@@ -1,8 +1,9 @@
 import { Calendar, MessageSquare, Paperclip, Clock, User } from "lucide-react";
 import { format } from "date-fns";
-import { Project, projectStatuses, getProjectAssignees } from "@/data/projects";
-import { mockEmployees } from "@/data/employees";
+import { Project, ProjectActivity, projectStatuses, getProjectAssignees } from "@/data/projects";
 import { PriorityBadge } from "./PriorityBadge";
+import { ActivityLog } from "./ActivityLog";
+import { AddCommentForm } from "./AddCommentForm";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,9 +21,10 @@ interface ProjectDetailSheetProps {
   project: Project | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onAddComment?: (projectId: string, comment: string) => void;
 }
 
-export function ProjectDetailSheet({ project, open, onOpenChange }: ProjectDetailSheetProps) {
+export function ProjectDetailSheet({ project, open, onOpenChange, onAddComment }: ProjectDetailSheetProps) {
   if (!project) return null;
 
   const assignees = getProjectAssignees(project);
@@ -39,6 +41,15 @@ export function ProjectDetailSheet({ project, open, onOpenChange }: ProjectDetai
   const handleDelete = () => {
     toast.success("Project deleted");
     onOpenChange(false);
+  };
+
+  const handleAddComment = (comment: string) => {
+    if (onAddComment) {
+      onAddComment(project.id, comment);
+      toast.success("Comment added");
+    } else {
+      toast.info("Comment functionality not connected");
+    }
   };
 
   return (
@@ -132,6 +143,20 @@ export function ProjectDetailSheet({ project, open, onOpenChange }: ProjectDetai
               </div>
             ))}
           </div>
+        </div>
+
+        <Separator className="my-4" />
+
+        {/* Activity Log */}
+        <div className="mb-6">
+          <ActivityLog activities={project.activities} />
+        </div>
+
+        <Separator className="my-4" />
+
+        {/* Add Comment */}
+        <div className="mb-6">
+          <AddCommentForm onSubmit={handleAddComment} />
         </div>
 
         <Separator className="my-4" />

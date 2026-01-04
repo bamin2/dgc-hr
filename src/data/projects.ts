@@ -2,6 +2,19 @@ import { mockEmployees } from "./employees";
 
 export type ProjectStatus = 'in_progress' | 'todo' | 'need_review' | 'done';
 export type ProjectPriority = 'high' | 'medium' | 'low';
+export type ActivityType = 'status_change' | 'assignee_added' | 'assignee_removed' | 'comment' | 'created';
+
+export interface ProjectActivity {
+  id: string;
+  projectId: string;
+  type: ActivityType;
+  userId: string;
+  timestamp: Date;
+  oldStatus?: ProjectStatus;
+  newStatus?: ProjectStatus;
+  assigneeId?: string;
+  comment?: string;
+}
 
 export interface Project {
   id: string;
@@ -15,6 +28,7 @@ export interface Project {
   commentsCount: number;
   attachmentsCount: number;
   assigneeIds: string[];
+  activities: ProjectActivity[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -53,6 +67,59 @@ const getRandomAssignees = (count: number): string[] => {
   return shuffled.slice(0, count).map(e => e.id);
 };
 
+// Helper to generate mock activities for a project
+const generateMockActivities = (projectId: string, createdAt: Date, status: ProjectStatus): ProjectActivity[] => {
+  const activities: ProjectActivity[] = [
+    {
+      id: `${projectId}-act-1`,
+      projectId,
+      type: 'created',
+      userId: 'emp-1',
+      timestamp: createdAt,
+    },
+  ];
+  
+  // Add a status change activity for in-progress projects
+  if (status === 'in_progress' || status === 'need_review' || status === 'done') {
+    activities.push({
+      id: `${projectId}-act-2`,
+      projectId,
+      type: 'status_change',
+      userId: 'emp-2',
+      oldStatus: 'todo',
+      newStatus: status === 'done' ? 'in_progress' : status,
+      timestamp: new Date(createdAt.getTime() + 2 * 24 * 60 * 60 * 1000),
+    });
+  }
+  
+  // Add a comment for projects with comments
+  if (Math.random() > 0.5) {
+    activities.push({
+      id: `${projectId}-act-3`,
+      projectId,
+      type: 'comment',
+      userId: 'emp-3',
+      comment: 'Making good progress on this task. Should be ready for review soon.',
+      timestamp: new Date(createdAt.getTime() + 3 * 24 * 60 * 60 * 1000),
+    });
+  }
+  
+  // Add done status for completed projects
+  if (status === 'done') {
+    activities.push({
+      id: `${projectId}-act-4`,
+      projectId,
+      type: 'status_change',
+      userId: 'emp-1',
+      oldStatus: 'in_progress',
+      newStatus: 'done',
+      timestamp: new Date(createdAt.getTime() + 5 * 24 * 60 * 60 * 1000),
+    });
+  }
+  
+  return activities;
+};
+
 export const mockProjects: Project[] = [
   // In Progress (4)
   {
@@ -67,6 +134,7 @@ export const mockProjects: Project[] = [
     commentsCount: 4,
     attachmentsCount: 2,
     assigneeIds: getRandomAssignees(6),
+    activities: generateMockActivities('proj-1', new Date(2024, 10, 1), 'in_progress'),
     createdAt: new Date(2024, 10, 1),
     updatedAt: new Date(2024, 10, 5),
   },
@@ -82,6 +150,7 @@ export const mockProjects: Project[] = [
     commentsCount: 2,
     attachmentsCount: 5,
     assigneeIds: getRandomAssignees(7),
+    activities: generateMockActivities('proj-2', new Date(2024, 10, 2), 'in_progress'),
     createdAt: new Date(2024, 10, 2),
     updatedAt: new Date(2024, 10, 6),
   },
@@ -97,6 +166,7 @@ export const mockProjects: Project[] = [
     commentsCount: 8,
     attachmentsCount: 3,
     assigneeIds: getRandomAssignees(5),
+    activities: generateMockActivities('proj-3', new Date(2024, 10, 1), 'in_progress'),
     createdAt: new Date(2024, 10, 1),
     updatedAt: new Date(2024, 10, 7),
   },
@@ -112,6 +182,7 @@ export const mockProjects: Project[] = [
     commentsCount: 1,
     attachmentsCount: 1,
     assigneeIds: getRandomAssignees(4),
+    activities: generateMockActivities('proj-4', new Date(2024, 10, 3), 'in_progress'),
     createdAt: new Date(2024, 10, 3),
     updatedAt: new Date(2024, 10, 8),
   },
@@ -128,6 +199,7 @@ export const mockProjects: Project[] = [
     commentsCount: 0,
     attachmentsCount: 2,
     assigneeIds: getRandomAssignees(3),
+    activities: generateMockActivities('proj-5', new Date(2024, 10, 5), 'todo'),
     createdAt: new Date(2024, 10, 5),
     updatedAt: new Date(2024, 10, 5),
   },
@@ -143,6 +215,7 @@ export const mockProjects: Project[] = [
     commentsCount: 3,
     attachmentsCount: 0,
     assigneeIds: getRandomAssignees(5),
+    activities: generateMockActivities('proj-6', new Date(2024, 10, 4), 'todo'),
     createdAt: new Date(2024, 10, 4),
     updatedAt: new Date(2024, 10, 6),
   },
@@ -158,6 +231,7 @@ export const mockProjects: Project[] = [
     commentsCount: 1,
     attachmentsCount: 4,
     assigneeIds: getRandomAssignees(2),
+    activities: generateMockActivities('proj-7', new Date(2024, 10, 6), 'todo'),
     createdAt: new Date(2024, 10, 6),
     updatedAt: new Date(2024, 10, 6),
   },
@@ -174,6 +248,7 @@ export const mockProjects: Project[] = [
     commentsCount: 6,
     attachmentsCount: 3,
     assigneeIds: getRandomAssignees(4),
+    activities: generateMockActivities('proj-8', new Date(2024, 10, 1), 'need_review'),
     createdAt: new Date(2024, 10, 1),
     updatedAt: new Date(2024, 10, 7),
   },
@@ -189,6 +264,7 @@ export const mockProjects: Project[] = [
     commentsCount: 5,
     attachmentsCount: 1,
     assigneeIds: getRandomAssignees(6),
+    activities: generateMockActivities('proj-9', new Date(2024, 10, 2), 'need_review'),
     createdAt: new Date(2024, 10, 2),
     updatedAt: new Date(2024, 10, 8),
   },
@@ -204,6 +280,7 @@ export const mockProjects: Project[] = [
     commentsCount: 2,
     attachmentsCount: 2,
     assigneeIds: getRandomAssignees(3),
+    activities: generateMockActivities('proj-10', new Date(2024, 10, 3), 'need_review'),
     createdAt: new Date(2024, 10, 3),
     updatedAt: new Date(2024, 10, 9),
   },
@@ -219,6 +296,7 @@ export const mockProjects: Project[] = [
     commentsCount: 7,
     attachmentsCount: 5,
     assigneeIds: getRandomAssignees(5),
+    activities: generateMockActivities('proj-11', new Date(2024, 10, 4), 'need_review'),
     createdAt: new Date(2024, 10, 4),
     updatedAt: new Date(2024, 10, 10),
   },
@@ -234,6 +312,7 @@ export const mockProjects: Project[] = [
     commentsCount: 4,
     attachmentsCount: 2,
     assigneeIds: getRandomAssignees(7),
+    activities: generateMockActivities('proj-12', new Date(2024, 10, 5), 'need_review'),
     createdAt: new Date(2024, 10, 5),
     updatedAt: new Date(2024, 10, 11),
   },
@@ -249,6 +328,7 @@ export const mockProjects: Project[] = [
     commentsCount: 3,
     attachmentsCount: 4,
     assigneeIds: getRandomAssignees(4),
+    activities: generateMockActivities('proj-13', new Date(2024, 10, 6), 'need_review'),
     createdAt: new Date(2024, 10, 6),
     updatedAt: new Date(2024, 10, 12),
   },
@@ -264,6 +344,7 @@ export const mockProjects: Project[] = [
     commentsCount: 9,
     attachmentsCount: 1,
     assigneeIds: getRandomAssignees(5),
+    activities: generateMockActivities('proj-14', new Date(2024, 10, 7), 'need_review'),
     createdAt: new Date(2024, 10, 7),
     updatedAt: new Date(2024, 10, 13),
   },
@@ -279,6 +360,7 @@ export const mockProjects: Project[] = [
     commentsCount: 2,
     attachmentsCount: 3,
     assigneeIds: getRandomAssignees(6),
+    activities: generateMockActivities('proj-15', new Date(2024, 10, 8), 'need_review'),
     createdAt: new Date(2024, 10, 8),
     updatedAt: new Date(2024, 10, 14),
   },
@@ -294,6 +376,7 @@ export const mockProjects: Project[] = [
     commentsCount: 5,
     attachmentsCount: 2,
     assigneeIds: getRandomAssignees(4),
+    activities: generateMockActivities('proj-16', new Date(2024, 10, 9), 'need_review'),
     createdAt: new Date(2024, 10, 9),
     updatedAt: new Date(2024, 10, 15),
   },
@@ -309,6 +392,7 @@ export const mockProjects: Project[] = [
     commentsCount: 6,
     attachmentsCount: 1,
     assigneeIds: getRandomAssignees(3),
+    activities: generateMockActivities('proj-17', new Date(2024, 10, 10), 'need_review'),
     createdAt: new Date(2024, 10, 10),
     updatedAt: new Date(2024, 10, 16),
   },
@@ -325,6 +409,7 @@ export const mockProjects: Project[] = [
     commentsCount: 12,
     attachmentsCount: 8,
     assigneeIds: getRandomAssignees(6),
+    activities: generateMockActivities('proj-18', new Date(2024, 9, 25), 'done'),
     createdAt: new Date(2024, 9, 25),
     updatedAt: new Date(2024, 10, 5),
   },
@@ -340,6 +425,7 @@ export const mockProjects: Project[] = [
     commentsCount: 8,
     attachmentsCount: 4,
     assigneeIds: getRandomAssignees(5),
+    activities: generateMockActivities('proj-19', new Date(2024, 9, 20), 'done'),
     createdAt: new Date(2024, 9, 20),
     updatedAt: new Date(2024, 10, 3),
   },
