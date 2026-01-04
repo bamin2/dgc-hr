@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { Trash2, Edit, MoreHorizontal } from "lucide-react";
 import {
   Table,
@@ -35,6 +36,7 @@ export function OnboardingTable({
   onEdit,
   onDelete,
 }: OnboardingTableProps) {
+  const navigate = useNavigate();
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
       onSelectionChange(records.map((r) => r.id));
@@ -94,14 +96,17 @@ export function OnboardingTable({
                 />
               </TableCell>
               <TableCell>
-                <div className="flex items-center gap-3">
+                <div 
+                  className="flex items-center gap-3 cursor-pointer hover:opacity-80"
+                  onClick={() => navigate(`/employees/onboarding/${record.id}`)}
+                >
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={record.employeeAvatar} />
                     <AvatarFallback className="bg-primary/10 text-primary text-xs">
                       {getInitials(record.employeeName)}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="font-medium text-foreground">
+                  <span className="font-medium text-foreground hover:text-primary">
                     {record.employeeName}
                   </span>
                 </div>
@@ -153,7 +158,9 @@ export function OnboardingTable({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem>View Details</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate(`/employees/onboarding/${record.id}`)}>
+                        View Details
+                      </DropdownMenuItem>
                       <DropdownMenuItem>Send Reminder</DropdownMenuItem>
                       <DropdownMenuItem>Reset Progress</DropdownMenuItem>
                     </DropdownMenuContent>
