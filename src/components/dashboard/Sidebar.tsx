@@ -53,7 +53,9 @@ export function Sidebar() {
       <nav className="flex-1 py-6 px-3 overflow-y-auto scrollbar-thin">
         <ul className="space-y-1">
           {menuItems.map((item) => {
-            const isActive = location.pathname === item.path;
+            const isActive = item.path === "/" 
+              ? location.pathname === "/" 
+              : location.pathname.startsWith(item.path);
             return (
               <li key={item.path}>
                 <NavLink
