@@ -1,33 +1,40 @@
 import { useState, useMemo, useEffect } from "react";
-import { Plus, Users } from "lucide-react";
+import { Plus, Upload, Users, Building2, UserPlus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Sidebar, Header } from "@/components/dashboard";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   EmployeeFilters,
   EmployeeTable,
   EmployeeCard,
   EmployeeForm,
   TablePagination,
-  ViewToggle,
 } from "@/components/employees";
 import { mockEmployees, Employee } from "@/data/employees";
 import { toast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
+
+type TabType = 'directory' | 'org-chart' | 'onboarding';
+
+const tabs: { id: TabType; label: string; icon: React.ElementType }[] = [
+  { id: 'directory', label: 'People Directory', icon: Users },
+  { id: 'org-chart', label: 'ORG Chart', icon: Building2 },
+  { id: 'onboarding', label: 'Onboarding', icon: UserPlus },
+];
 
 export default function Employees() {
   const navigate = useNavigate();
   const [employees, setEmployees] = useState<Employee[]>(mockEmployees);
-  const [view, setView] = useState<'table' | 'grid'>('table');
+  const [activeTab, setActiveTab] = useState<TabType>('directory');
   const [searchQuery, setSearchQuery] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [sortField, setSortField] = useState('name');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [entityFilter, setEntityFilter] = useState('all');
+  const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [entriesPerPage, setEntriesPerPage] = useState(10);
+  const [entriesPerPage, setEntriesPerPage] = useState(8);
   
   // Form modal state
   const [formOpen, setFormOpen] = useState(false);
@@ -36,9 +43,9 @@ export default function Employees() {
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, departmentFilter, statusFilter]);
+  }, [searchQuery, departmentFilter, statusFilter, entityFilter]);
 
-  // Filter and sort employees
+  // Filter employees
   const filteredEmployees = useMemo(() => {
     let result = [...employees];
 
@@ -62,51 +69,8 @@ export default function Employees() {
       result = result.filter(emp => emp.status === statusFilter);
     }
 
-    // Sorting
-    result.sort((a, b) => {
-      let aVal: string | number;
-      let bVal: string | number;
-
-      switch (sortField) {
-        case 'name':
-          aVal = `${a.firstName} ${a.lastName}`;
-          bVal = `${b.firstName} ${b.lastName}`;
-          break;
-        case 'employeeId':
-          aVal = a.employeeId;
-          bVal = b.employeeId;
-          break;
-        case 'department':
-          aVal = a.department;
-          bVal = b.department;
-          break;
-        case 'position':
-          aVal = a.position;
-          bVal = b.position;
-          break;
-        case 'status':
-          aVal = a.status;
-          bVal = b.status;
-          break;
-        case 'joinDate':
-          aVal = new Date(a.joinDate).getTime();
-          bVal = new Date(b.joinDate).getTime();
-          break;
-        default:
-          aVal = `${a.firstName} ${a.lastName}`;
-          bVal = `${b.firstName} ${b.lastName}`;
-      }
-
-      if (typeof aVal === 'string') {
-        return sortDirection === 'asc' 
-          ? aVal.localeCompare(bVal as string)
-          : (bVal as string).localeCompare(aVal);
-      }
-      return sortDirection === 'asc' ? aVal - (bVal as number) : (bVal as number) - aVal;
-    });
-
     return result;
-  }, [employees, searchQuery, departmentFilter, statusFilter, sortField, sortDirection]);
+  }, [employees, searchQuery, departmentFilter, statusFilter]);
 
   // Paginate employees
   const totalPages = Math.ceil(filteredEmployees.length / entriesPerPage);
@@ -114,15 +78,6 @@ export default function Employees() {
     const startIndex = (currentPage - 1) * entriesPerPage;
     return filteredEmployees.slice(startIndex, startIndex + entriesPerPage);
   }, [filteredEmployees, currentPage, entriesPerPage]);
-
-  const handleSort = (field: string) => {
-    if (sortField === field) {
-      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortDirection('asc');
-    }
-  };
 
   const handleView = (employee: Employee) => {
     navigate(`/employees/${employee.id}`);
@@ -135,6 +90,7 @@ export default function Employees() {
 
   const handleDelete = (employee: Employee) => {
     setEmployees(prev => prev.filter(e => e.id !== employee.id));
+    setSelectedEmployees(prev => prev.filter(id => id !== employee.id));
     toast({
       title: "Employee deleted",
       description: `${employee.firstName} ${employee.lastName} has been removed.`,
@@ -148,7 +104,6 @@ export default function Employees() {
 
   const handleSave = (data: Partial<Employee>) => {
     if (editingEmployee) {
-      // Update existing employee
       setEmployees(prev => prev.map(e => 
         e.id === editingEmployee.id ? { ...e, ...data } : e
       ));
@@ -157,11 +112,11 @@ export default function Employees() {
         description: `${data.firstName} ${data.lastName}'s information has been updated.`,
       });
     } else {
-      // Add new employee
       const newEmployee: Employee = {
         id: String(Date.now()),
         employeeId: `EMP${String(employees.length + 1).padStart(3, '0')}`,
         joinDate: new Date().toISOString().split('T')[0],
+        status: 'on_boarding',
         ...data,
       } as Employee;
       setEmployees(prev => [...prev, newEmployee]);
@@ -170,6 +125,13 @@ export default function Employees() {
         description: `${data.firstName} ${data.lastName} has been added to the directory.`,
       });
     }
+  };
+
+  const handleExport = () => {
+    toast({
+      title: "Export started",
+      description: "Your employee data is being exported.",
+    });
   };
 
   return (
@@ -182,97 +144,115 @@ export default function Employees() {
         <main className="flex-1 p-6">
           {/* Page Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <h1 className="text-2xl font-semibold text-foreground">People Directory</h1>
+            
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <Users className="h-6 w-6 text-primary" />
+              <Button variant="outline" onClick={handleExport} className="gap-2">
+                <Upload className="h-4 w-4" />
+                Export
+              </Button>
+              <Button onClick={handleAddNew} className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white">
+                <Plus className="h-4 w-4" />
+                Add Employee
+              </Button>
+            </div>
+          </div>
+
+          {/* Tabs */}
+          <div className="border-b mb-6">
+            <div className="flex gap-6">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={cn(
+                      "flex items-center gap-2 pb-3 text-sm font-medium border-b-2 transition-colors",
+                      activeTab === tab.id
+                        ? "border-primary text-primary"
+                        : "border-transparent text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {activeTab === 'directory' && (
+            <>
+              {/* Filters */}
+              <div className="mb-6">
+                <EmployeeFilters
+                  searchQuery={searchQuery}
+                  onSearchChange={setSearchQuery}
+                  departmentFilter={departmentFilter}
+                  onDepartmentChange={setDepartmentFilter}
+                  statusFilter={statusFilter}
+                  onStatusChange={setStatusFilter}
+                  entityFilter={entityFilter}
+                  onEntityChange={setEntityFilter}
+                />
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-2xl font-bold text-foreground">Employees</h1>
-                  <Badge variant="secondary" className="font-normal">
-                    {employees.length} total
-                  </Badge>
+
+              {/* Employee List */}
+              {filteredEmployees.length === 0 ? (
+                <div className="text-center py-12">
+                  <Users className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-foreground mb-1">No employees found</h3>
+                  <p className="text-muted-foreground">
+                    Try adjusting your search or filter criteria
+                  </p>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  Manage your team members and their information
+              ) : (
+                <>
+                  <EmployeeTable
+                    employees={paginatedEmployees}
+                    selectedEmployees={selectedEmployees}
+                    onSelectionChange={setSelectedEmployees}
+                    onView={handleView}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                  />
+                  <TablePagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={filteredEmployees.length}
+                    entriesPerPage={entriesPerPage}
+                    onPageChange={setCurrentPage}
+                    onEntriesPerPageChange={(entries) => {
+                      setEntriesPerPage(entries);
+                      setCurrentPage(1);
+                    }}
+                  />
+                </>
+              )}
+            </>
+          )}
+
+          {activeTab === 'org-chart' && (
+            <div className="flex items-center justify-center py-24">
+              <div className="text-center">
+                <Building2 className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-foreground mb-2">ORG Chart Coming Soon</h3>
+                <p className="text-muted-foreground max-w-md">
+                  Visualize your organization's structure with an interactive org chart.
                 </p>
               </div>
             </div>
-            
-            <Button onClick={handleAddNew} className="gap-2">
-              <Plus className="h-4 w-4" />
-              Add Employee
-            </Button>
-          </div>
+          )}
 
-          {/* Filters and View Toggle */}
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
-            <EmployeeFilters
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              departmentFilter={departmentFilter}
-              onDepartmentChange={setDepartmentFilter}
-              statusFilter={statusFilter}
-              onStatusChange={setStatusFilter}
-            />
-            <ViewToggle view={view} onViewChange={setView} />
-          </div>
-
-          {/* Employee List */}
-          {filteredEmployees.length === 0 ? (
-            <div className="text-center py-12">
-              <Users className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-foreground mb-1">No employees found</h3>
-              <p className="text-muted-foreground">
-                Try adjusting your search or filter criteria
-              </p>
-            </div>
-          ) : view === 'table' ? (
-            <>
-              <EmployeeTable
-                employees={paginatedEmployees}
-                onView={handleView}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                sortField={sortField}
-                sortDirection={sortDirection}
-                onSort={handleSort}
-              />
-              <TablePagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalItems={filteredEmployees.length}
-                entriesPerPage={entriesPerPage}
-                onPageChange={setCurrentPage}
-                onEntriesPerPageChange={(entries) => {
-                  setEntriesPerPage(entries);
-                  setCurrentPage(1);
-                }}
-              />
-            </>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {paginatedEmployees.map(employee => (
-                <EmployeeCard
-                  key={employee.id}
-                  employee={employee}
-                  onView={handleView}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                />
-              ))}
-              <div className="col-span-full">
-                <TablePagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  totalItems={filteredEmployees.length}
-                  entriesPerPage={entriesPerPage}
-                  onPageChange={setCurrentPage}
-                  onEntriesPerPageChange={(entries) => {
-                    setEntriesPerPage(entries);
-                    setCurrentPage(1);
-                  }}
-                />
+          {activeTab === 'onboarding' && (
+            <div className="flex items-center justify-center py-24">
+              <div className="text-center">
+                <UserPlus className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-foreground mb-2">Onboarding Coming Soon</h3>
+                <p className="text-muted-foreground max-w-md">
+                  Manage new employee onboarding workflows and checklists.
+                </p>
               </div>
             </div>
           )}
