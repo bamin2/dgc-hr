@@ -15,3 +15,6 @@ export { OnboardingStatusBadge } from "./OnboardingStatusBadge";
 export { OnboardingProgress } from "./OnboardingProgress";
 export { OnboardingFilters } from "./OnboardingFilters";
 export { OnboardingTable } from "./OnboardingTable";
+export { TaskStatusBadge } from "./TaskStatusBadge";
+export { AssigneeBadge } from "./AssigneeBadge";
+export { OnboardingTaskList } from "./OnboardingTaskList";
