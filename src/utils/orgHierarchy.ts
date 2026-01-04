@@ -83,3 +83,37 @@ export function wouldCreateCircularReference(
   const descendants = getAllDescendantIds(employees, employeeId);
   return descendants.includes(targetManagerId);
 }
+
+/**
+ * Build a tree structure starting from a specific employee
+ */
+export function buildOrgTreeFromEmployee(
+  employees: Employee[],
+  startingEmployeeId: string
+): OrgEmployee | null {
+  const startingEmployee = employees.find((e) => e.id === startingEmployeeId);
+  if (!startingEmployee) return null;
+
+  const buildNode = (employee: Employee): OrgEmployee => {
+    const orgEmployee = employeeToOrgEmployee(employee);
+    const directReports = getDirectReports(employees, employee.id);
+
+    if (directReports.length > 0) {
+      orgEmployee.children = directReports.map(buildNode);
+    }
+
+    return orgEmployee;
+  };
+
+  return buildNode(startingEmployee);
+}
+
+/**
+ * Get all employees who have at least one direct report (managers) or are the root
+ */
+export function getEmployeesWithReports(employees: Employee[]): Employee[] {
+  const managerIds = new Set(
+    employees.filter((e) => e.managerId).map((e) => e.managerId)
+  );
+  return employees.filter((e) => managerIds.has(e.id) || !e.managerId);
+}
