@@ -11,3 +11,7 @@ export { OrgChart } from "./OrgChart";
 export { OrgChartNode } from "./OrgChartNode";
 export { OrgChartTree } from "./OrgChartTree";
 export { OrgChartControls } from "./OrgChartControls";
+export { OnboardingStatusBadge } from "./OnboardingStatusBadge";
+export { OnboardingProgress } from "./OnboardingProgress";
+export { OnboardingFilters } from "./OnboardingFilters";
+export { OnboardingTable } from "./OnboardingTable";
