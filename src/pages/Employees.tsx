@@ -11,6 +11,7 @@ import {
   TablePagination,
   OrgChart,
 } from "@/components/employees";
+import { OrgEmployee } from "@/components/employees/OrgChartNode";
 import { mockEmployees, Employee } from "@/data/employees";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -239,11 +240,23 @@ export default function Employees() {
               onView={(employee) => {
                 navigate(`/employees/${employee.id}`);
               }}
-              onEdit={(employee) => {
-                toast({
-                  title: "Edit Employee",
-                  description: `Editing ${employee.name}`,
-                });
+              onEdit={(orgEmployee: OrgEmployee) => {
+                // Convert OrgEmployee to Employee format for the form
+                const nameParts = orgEmployee.name.split(' ');
+                const firstName = nameParts[0] || '';
+                const lastName = nameParts.slice(1).join(' ') || '';
+                
+                const employeeData: Partial<Employee> = {
+                  id: orgEmployee.id,
+                  firstName,
+                  lastName,
+                  department: orgEmployee.department,
+                  position: orgEmployee.position,
+                  avatar: orgEmployee.avatar,
+                };
+                
+                setEditingEmployee(employeeData as Employee);
+                setFormOpen(true);
               }}
             />
           )}
