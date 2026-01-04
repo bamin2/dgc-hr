@@ -1,8 +1,11 @@
-import { useState } from "react";
-import { CalendarIcon } from "lucide-react";
+import { useState, useMemo } from "react";
+import { CalendarIcon, Users } from "lucide-react";
 import { format } from "date-fns";
-import { ProjectStatus, ProjectPriority, projectStatuses, priorityConfig } from "@/data/projects";
+import { ProjectStatus, ProjectPriority, projectStatuses, priorityConfig, getTeamMembers } from "@/data/projects";
 import { mockEmployees } from "@/data/employees";
+import { useRole } from "@/contexts/RoleContext";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -38,12 +41,18 @@ interface CreateProjectDialogProps {
 }
 
 export function CreateProjectDialog({ open, onOpenChange, defaultStatus = 'todo' }: CreateProjectDialogProps) {
+  const { currentUser } = useRole();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState<ProjectStatus>(defaultStatus);
   const [priority, setPriority] = useState<ProjectPriority>("medium");
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
+  const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
+
+  const teamMembers = useMemo(() => {
+    return getTeamMembers(currentUser.id);
+  }, [currentUser.id]);
 
   const handleSubmit = () => {
     if (!title.trim()) {
@@ -67,6 +76,7 @@ export function CreateProjectDialog({ open, onOpenChange, defaultStatus = 'todo'
     setPriority("medium");
     setStartDate(undefined);
     setEndDate(undefined);
+    setAssigneeIds([]);
   };
 
   return (
@@ -125,17 +135,69 @@ export function CreateProjectDialog({ open, onOpenChange, defaultStatus = 'todo'
               <Label>Priority</Label>
               <Select value={priority} onValueChange={(v) => setPriority(v as ProjectPriority)}>
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue>{priorityConfig[priority].label}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {(Object.keys(priorityConfig) as ProjectPriority[]).map((p) => (
-                    <SelectItem key={p} value={p} className="capitalize">
-                      {p}
+                    <SelectItem key={p} value={p}>
+                      {priorityConfig[p].label}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          {/* Assignees */}
+          <div className="grid gap-2">
+            <Label>Assign To</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="justify-start text-left font-normal"
+                >
+                  <Users className="mr-2 h-4 w-4" />
+                  {assigneeIds.length === 0 
+                    ? "Select team members..."
+                    : `${assigneeIds.length} team member${assigneeIds.length > 1 ? 's' : ''} selected`
+                  }
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-2" align="start">
+                <div className="space-y-1">
+                  {teamMembers.map((employee) => (
+                    <label 
+                      key={employee.id}
+                      className="flex items-center gap-3 p-2 hover:bg-muted rounded-md cursor-pointer"
+                    >
+                      <Checkbox
+                        checked={assigneeIds.includes(employee.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setAssigneeIds(prev => [...prev, employee.id]);
+                          } else {
+                            setAssigneeIds(prev => prev.filter(id => id !== employee.id));
+                          }
+                        }}
+                      />
+                      <Avatar className="h-6 w-6">
+                        <AvatarImage src={employee.avatar} />
+                        <AvatarFallback>{employee.firstName[0]}{employee.lastName[0]}</AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm">
+                        {employee.firstName} {employee.lastName}
+                      </span>
+                    </label>
+                  ))}
+                  {teamMembers.length === 0 && (
+                    <p className="text-sm text-muted-foreground p-2">
+                      No team members found
+                    </p>
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
 
           {/* Dates */}
