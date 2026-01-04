@@ -1,29 +1,53 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { MentionTextarea } from "./MentionTextarea";
+import { Employee, mockEmployees } from "@/data/employees";
 
 interface AddCommentFormProps {
-  onSubmit: (comment: string) => void;
+  onSubmit: (comment: string, mentionedUserIds: string[]) => void;
+  teamMembers?: Employee[];
 }
 
-export function AddCommentForm({ onSubmit }: AddCommentFormProps) {
+// Helper to extract mentioned user IDs from comment text
+const extractMentions = (comment: string, teamMembers: Employee[]): string[] => {
+  const mentionPattern = /@([A-Za-z]+\s+[A-Za-z]+)/g;
+  const mentionedIds: string[] = [];
+  let match;
+
+  while ((match = mentionPattern.exec(comment)) !== null) {
+    const fullName = match[1];
+    const employee = teamMembers.find(
+      e => `${e.firstName} ${e.lastName}`.toLowerCase() === fullName.toLowerCase()
+    );
+    if (employee && !mentionedIds.includes(employee.id)) {
+      mentionedIds.push(employee.id);
+    }
+  }
+
+  return mentionedIds;
+};
+
+export function AddCommentForm({ onSubmit, teamMembers = mockEmployees }: AddCommentFormProps) {
   const [comment, setComment] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (!comment.trim()) return;
-    onSubmit(comment.trim());
+    
+    const mentionedUserIds = extractMentions(comment, teamMembers);
+    onSubmit(comment.trim(), mentionedUserIds);
     setComment("");
-  };
+  }, [comment, teamMembers, onSubmit]);
 
   return (
     <form onSubmit={handleSubmit} className="flex gap-2">
-      <Textarea
-        placeholder="Add a comment..."
+      <MentionTextarea
         value={comment}
-        onChange={(e) => setComment(e.target.value)}
-        className="min-h-[80px] resize-none flex-1"
+        onChange={setComment}
+        teamMembers={teamMembers}
+        placeholder="Add a comment... Use @ to mention someone"
+        className="min-h-[80px] resize-none"
       />
       <Button 
         type="submit" 

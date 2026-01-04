@@ -3,6 +3,7 @@ import { ArrowRight, MessageSquare, Plus, UserMinus, UserPlus } from "lucide-rea
 import { ProjectActivity, projectStatuses } from "@/data/projects";
 import { mockEmployees } from "@/data/employees";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { CommentContent } from "./CommentContent";
 import { cn } from "@/lib/utils";
 
 interface ActivityItemProps {
@@ -105,7 +106,10 @@ export function ActivityItem({ activity, isLast }: ActivityItemProps) {
         {/* Comment content */}
         {activity.type === 'comment' && activity.comment && (
           <div className="mt-2 p-3 bg-muted/50 rounded-lg text-sm">
-            {activity.comment}
+            <CommentContent 
+              content={activity.comment} 
+              mentionedUserIds={activity.mentionedUserIds}
+            />
           </div>
         )}
         

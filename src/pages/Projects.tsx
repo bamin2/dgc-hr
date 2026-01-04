@@ -139,13 +139,14 @@ export default function Projects() {
     });
   };
 
-  const handleAddComment = (projectId: string, comment: string) => {
+  const handleAddComment = (projectId: string, comment: string, mentionedUserIds: string[] = []) => {
     const newActivity: ProjectActivity = {
       id: `${projectId}-act-${Date.now()}`,
       projectId,
       type: 'comment',
       userId: currentUser.id,
       comment,
+      mentionedUserIds,
       timestamp: new Date(),
     };
 
@@ -168,6 +169,16 @@ export default function Projects() {
         return updatedProject;
       })
     );
+
+    // Create notifications for mentioned users
+    if (mentionedUserIds.length > 0) {
+      const project = projects.find(p => p.id === projectId);
+      mentionedUserIds.forEach(userId => {
+        console.log(`Notification for ${userId}: ${currentUser.name} mentioned you in "${project?.title}"`);
+        // In a real app, this would create actual notifications
+        // For now we log it - notification system would be connected here
+      });
+    }
   };
 
   return (

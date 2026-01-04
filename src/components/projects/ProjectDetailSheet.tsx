@@ -21,7 +21,7 @@ interface ProjectDetailSheetProps {
   project: Project | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddComment?: (projectId: string, comment: string) => void;
+  onAddComment?: (projectId: string, comment: string, mentionedUserIds: string[]) => void;
 }
 
 export function ProjectDetailSheet({ project, open, onOpenChange, onAddComment }: ProjectDetailSheetProps) {
@@ -43,9 +43,9 @@ export function ProjectDetailSheet({ project, open, onOpenChange, onAddComment }
     onOpenChange(false);
   };
 
-  const handleAddComment = (comment: string) => {
+  const handleAddComment = (comment: string, mentionedUserIds: string[]) => {
     if (onAddComment) {
-      onAddComment(project.id, comment);
+      onAddComment(project.id, comment, mentionedUserIds);
       toast.success("Comment added");
     } else {
       toast.info("Comment functionality not connected");
