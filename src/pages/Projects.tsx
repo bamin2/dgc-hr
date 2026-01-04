@@ -15,9 +15,12 @@ import {
   TimelineGranularity,
   ProjectFiltersState,
 } from "@/components/projects";
-import { Project, ProjectStatus, mockProjects } from "@/data/projects";
+import { Project, ProjectStatus, mockProjects, projectStatuses } from "@/data/projects";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Projects() {
+  const { toast } = useToast();
+  const [projects, setProjects] = useState<Project[]>(mockProjects);
   const [viewMode, setViewMode] = useState<ProjectViewMode>('board');
   const [searchQuery, setSearchQuery] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -41,7 +44,7 @@ export default function Projects() {
 
   // Filter projects
   const filteredProjects = useMemo(() => {
-    return mockProjects.filter(project => {
+    return projects.filter(project => {
       // Search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
@@ -63,7 +66,7 @@ export default function Projects() {
 
       return true;
     });
-  }, [searchQuery, filters]);
+  }, [projects, searchQuery, filters]);
 
   const handleAddProject = (status: ProjectStatus) => {
     setCreateDialogStatus(status);
@@ -73,6 +76,44 @@ export default function Projects() {
   const handleProjectClick = (project: Project) => {
     setSelectedProject(project);
     setDetailSheetOpen(true);
+  };
+
+  const handleProjectMove = (projectId: string, newStatus: ProjectStatus, insertIndex?: number) => {
+    setProjects(prevProjects => {
+      const project = prevProjects.find(p => p.id === projectId);
+      if (!project) return prevProjects;
+      
+      const oldStatus = project.status;
+      
+      // Update project status
+      const updatedProject = { ...project, status: newStatus, updatedAt: new Date() };
+      
+      // Remove from old position
+      let newProjects = prevProjects.filter(p => p.id !== projectId);
+      
+      // Get projects in the target status (maintaining their current order)
+      const targetStatusProjects = newProjects.filter(p => p.status === newStatus);
+      const otherProjects = newProjects.filter(p => p.status !== newStatus);
+      
+      // Insert at specified index or at end
+      if (insertIndex !== undefined && insertIndex <= targetStatusProjects.length) {
+        targetStatusProjects.splice(insertIndex, 0, updatedProject);
+      } else {
+        targetStatusProjects.push(updatedProject);
+      }
+      
+      const result = [...otherProjects, ...targetStatusProjects];
+      
+      // Show toast if status changed
+      if (oldStatus !== newStatus) {
+        toast({
+          title: "Project moved",
+          description: `Moved to ${projectStatuses[newStatus].label}`,
+        });
+      }
+      
+      return result;
+    });
   };
 
   return (
@@ -111,6 +152,7 @@ export default function Projects() {
                   projects={filteredProjects}
                   onAddProject={handleAddProject}
                   onProjectClick={handleProjectClick}
+                  onProjectMove={handleProjectMove}
                 />
               )}
               {viewMode === 'list' && (
