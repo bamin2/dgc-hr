@@ -5,3 +5,5 @@ export { EmployeeCard } from "./EmployeeCard";
 export { EmployeeTable } from "./EmployeeTable";
 export { EmployeeForm } from "./EmployeeForm";
 export { TablePagination } from "./TablePagination";
+export { RoleBadge } from "./RoleBadge";
+export { RoleSelector, RoleSelectorWithDescription } from "./RoleSelector";

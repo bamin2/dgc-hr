@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { RoleProvider } from "@/contexts/RoleContext";
 import Index from "./pages/Index";
 import Employees from "./pages/Employees";
 import EmployeeProfile from "./pages/EmployeeProfile";
@@ -25,32 +26,34 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/employees" element={<Employees />} />
-          <Route path="/employees/:id" element={<EmployeeProfile />} />
-          <Route path="/payroll" element={<Payroll />} />
-          <Route path="/payroll/run" element={<PayrollRun />} />
-          <Route path="/payroll/payslip/:id" element={<Payslip />} />
-          <Route path="/attendance" element={<Attendance />} />
-          <Route path="/attendance/leave/request" element={<LeaveRequest />} />
-          <Route path="/attendance/leave/:id" element={<LeaveDetail />} />
-          <Route path="/benefits" element={<Benefits />} />
-          <Route path="/benefits/plans/:id" element={<BenefitDetail />} />
-          <Route path="/benefits/enroll" element={<BenefitEnrollment />} />
-          <Route path="/benefits/claims/new" element={<ClaimSubmission />} />
-          <Route path="/reports" element={<Reports />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/notifications" element={<Notifications />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <RoleProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/employees" element={<Employees />} />
+            <Route path="/employees/:id" element={<EmployeeProfile />} />
+            <Route path="/payroll" element={<Payroll />} />
+            <Route path="/payroll/run" element={<PayrollRun />} />
+            <Route path="/payroll/payslip/:id" element={<Payslip />} />
+            <Route path="/attendance" element={<Attendance />} />
+            <Route path="/attendance/leave/request" element={<LeaveRequest />} />
+            <Route path="/attendance/leave/:id" element={<LeaveDetail />} />
+            <Route path="/benefits" element={<Benefits />} />
+            <Route path="/benefits/plans/:id" element={<BenefitDetail />} />
+            <Route path="/benefits/enroll" element={<BenefitEnrollment />} />
+            <Route path="/benefits/claims/new" element={<ClaimSubmission />} />
+            <Route path="/reports" element={<Reports />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/notifications" element={<Notifications />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </RoleProvider>
   </QueryClientProvider>
 );
 
