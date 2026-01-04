@@ -1,0 +1,264 @@
+import { useState } from 'react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SettingsCard } from './SettingsCard';
+import { ImageUpload } from './ImageUpload';
+import { Building2, Phone, Palette } from 'lucide-react';
+import { 
+  CompanySettings, 
+  industries, 
+  companySizes, 
+  timezones, 
+  currencies, 
+  dateFormats 
+} from '@/data/settings';
+
+interface CompanyProfileFormProps {
+  settings: CompanySettings;
+  onChange: (settings: CompanySettings) => void;
+}
+
+export const CompanyProfileForm = ({ settings, onChange }: CompanyProfileFormProps) => {
+  const updateField = (field: string, value: string) => {
+    onChange({ ...settings, [field]: value });
+  };
+
+  const updateAddress = (field: string, value: string) => {
+    onChange({ 
+      ...settings, 
+      address: { ...settings.address, [field]: value } 
+    });
+  };
+
+  const updateBranding = (field: string, value: string) => {
+    onChange({ 
+      ...settings, 
+      branding: { ...settings.branding, [field]: value } 
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      <SettingsCard 
+        title="Company Information" 
+        description="Basic details about your organization"
+        icon={Building2}
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="companyName">Company Name</Label>
+            <Input
+              id="companyName"
+              value={settings.name}
+              onChange={(e) => updateField('name', e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="legalName">Legal Name</Label>
+            <Input
+              id="legalName"
+              value={settings.legalName}
+              onChange={(e) => updateField('legalName', e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="industry">Industry</Label>
+            <Select value={settings.industry} onValueChange={(v) => updateField('industry', v)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select industry" />
+              </SelectTrigger>
+              <SelectContent>
+                {industries.map((ind) => (
+                  <SelectItem key={ind} value={ind}>{ind}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="companySize">Company Size</Label>
+            <Select value={settings.companySize} onValueChange={(v) => updateField('companySize', v)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select size" />
+              </SelectTrigger>
+              <SelectContent>
+                {companySizes.map((size) => (
+                  <SelectItem key={size} value={size}>{size} employees</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="taxId">Tax ID / EIN</Label>
+            <Input
+              id="taxId"
+              value={settings.taxId}
+              onChange={(e) => updateField('taxId', e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="yearFounded">Year Founded</Label>
+            <Input
+              id="yearFounded"
+              value={settings.yearFounded}
+              onChange={(e) => updateField('yearFounded', e.target.value)}
+            />
+          </div>
+        </div>
+      </SettingsCard>
+
+      <SettingsCard 
+        title="Contact Information" 
+        description="How to reach your company"
+        icon={Phone}
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="email">Primary Email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={settings.email}
+              onChange={(e) => updateField('email', e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="phone">Phone Number</Label>
+            <Input
+              id="phone"
+              value={settings.phone}
+              onChange={(e) => updateField('phone', e.target.value)}
+            />
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="website">Website</Label>
+            <Input
+              id="website"
+              value={settings.website}
+              onChange={(e) => updateField('website', e.target.value)}
+            />
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="street">Street Address</Label>
+            <Input
+              id="street"
+              value={settings.address.street}
+              onChange={(e) => updateAddress('street', e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="city">City</Label>
+            <Input
+              id="city"
+              value={settings.address.city}
+              onChange={(e) => updateAddress('city', e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="state">State / Province</Label>
+            <Input
+              id="state"
+              value={settings.address.state}
+              onChange={(e) => updateAddress('state', e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="zipCode">ZIP / Postal Code</Label>
+            <Input
+              id="zipCode"
+              value={settings.address.zipCode}
+              onChange={(e) => updateAddress('zipCode', e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="country">Country</Label>
+            <Input
+              id="country"
+              value={settings.address.country}
+              onChange={(e) => updateAddress('country', e.target.value)}
+            />
+          </div>
+        </div>
+      </SettingsCard>
+
+      <SettingsCard 
+        title="Branding & Preferences" 
+        description="Customize your workspace appearance"
+        icon={Palette}
+      >
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <Label>Company Logo</Label>
+            <ImageUpload
+              value={settings.branding.logoUrl}
+              onChange={(v) => updateBranding('logoUrl', v)}
+              label="Upload Logo"
+              fallback={settings.name.slice(0, 2).toUpperCase()}
+              size="lg"
+            />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="primaryColor">Brand Color</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="primaryColor"
+                  type="color"
+                  value={settings.branding.primaryColor}
+                  onChange={(e) => updateBranding('primaryColor', e.target.value)}
+                  className="w-12 h-10 p-1 cursor-pointer"
+                />
+                <Input
+                  value={settings.branding.primaryColor}
+                  onChange={(e) => updateBranding('primaryColor', e.target.value)}
+                  className="flex-1"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="timezone">Timezone</Label>
+              <Select value={settings.branding.timezone} onValueChange={(v) => updateBranding('timezone', v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select timezone" />
+                </SelectTrigger>
+                <SelectContent>
+                  {timezones.map((tz) => (
+                    <SelectItem key={tz} value={tz}>{tz.replace('_', ' ')}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="dateFormat">Date Format</Label>
+              <Select value={settings.branding.dateFormat} onValueChange={(v) => updateBranding('dateFormat', v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select format" />
+                </SelectTrigger>
+                <SelectContent>
+                  {dateFormats.map((fmt) => (
+                    <SelectItem key={fmt} value={fmt}>{fmt}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="currency">Currency</Label>
+              <Select value={settings.branding.currency} onValueChange={(v) => updateBranding('currency', v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select currency" />
+                </SelectTrigger>
+                <SelectContent>
+                  {currencies.map((cur) => (
+                    <SelectItem key={cur.code} value={cur.code}>
+                      {cur.symbol} {cur.code} - {cur.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+      </SettingsCard>
+    </div>
+  );
+};
