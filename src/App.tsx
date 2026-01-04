@@ -17,6 +17,7 @@ import BenefitDetail from "./pages/BenefitDetail";
 import BenefitEnrollment from "./pages/BenefitEnrollment";
 import ClaimSubmission from "./pages/ClaimSubmission";
 import Reports from "./pages/Reports";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +43,7 @@ const App = () => (
           <Route path="/benefits/enroll" element={<BenefitEnrollment />} />
           <Route path="/benefits/claims/new" element={<ClaimSubmission />} />
           <Route path="/reports" element={<Reports />} />
+          <Route path="/settings" element={<Settings />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
