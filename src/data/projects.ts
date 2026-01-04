@@ -14,6 +14,7 @@ export interface ProjectActivity {
   newStatus?: ProjectStatus;
   assigneeId?: string;
   comment?: string;
+  mentionedUserIds?: string[];
 }
 
 export interface Project {

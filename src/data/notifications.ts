@@ -5,7 +5,7 @@ export interface NotificationActor {
 
 export interface Notification {
   id: string;
-  type: 'leave_request' | 'approval' | 'payroll' | 'employee' | 'system' | 'reminder';
+  type: 'leave_request' | 'approval' | 'payroll' | 'employee' | 'system' | 'reminder' | 'mention';
   title: string;
   message: string;
   timestamp: string;
@@ -13,6 +13,7 @@ export interface Notification {
   priority: 'low' | 'medium' | 'high';
   actionUrl?: string;
   actor?: NotificationActor;
+  projectId?: string;
 }
 
 export const mockNotifications: Notification[] = [
