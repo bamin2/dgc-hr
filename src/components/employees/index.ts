@@ -12,6 +12,7 @@ export { OrgChartNode } from "./OrgChartNode";
 export { OrgChartTree } from "./OrgChartTree";
 export { OrgChartControls } from "./OrgChartControls";
 export { OrgChartExportButton } from "./OrgChartExportButton";
+export { DraggableOrgNode } from "./DraggableOrgNode";
 export { OnboardingStatusBadge } from "./OnboardingStatusBadge";
 export { OnboardingProgress } from "./OnboardingProgress";
 export { OnboardingFilters } from "./OnboardingFilters";

@@ -163,6 +163,60 @@ export default function Employees() {
     }
   };
 
+  const handleReassign = (employeeId: string, newManagerId: string) => {
+    const employee = employees.find((e) => e.id === employeeId);
+    const newManager = employees.find((e) => e.id === newManagerId);
+    const originalManagerId = employee?.managerId;
+
+    if (!employee || !newManager) return;
+
+    setEmployees((prev) =>
+      prev.map((e) =>
+        e.id === employeeId
+          ? {
+              ...e,
+              managerId: newManagerId,
+              manager: `${newManager.firstName} ${newManager.lastName}`,
+            }
+          : e
+      )
+    );
+
+    toast({
+      title: "Manager reassigned",
+      description: `${employee.firstName} ${employee.lastName} now reports to ${newManager.firstName} ${newManager.lastName}.`,
+      action: (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            // Undo the reassignment
+            const originalManager = employees.find((e) => e.id === originalManagerId);
+            setEmployees((prev) =>
+              prev.map((e) =>
+                e.id === employeeId
+                  ? {
+                      ...e,
+                      managerId: originalManagerId,
+                      manager: originalManager
+                        ? `${originalManager.firstName} ${originalManager.lastName}`
+                        : undefined,
+                    }
+                  : e
+              )
+            );
+            toast({
+              title: "Change undone",
+              description: `${employee.firstName} ${employee.lastName}'s manager has been restored.`,
+            });
+          }}
+        >
+          Undo
+        </Button>
+      ),
+    });
+  };
+
   const handleExport = () => {
     toast({
       title: "Export started",
@@ -293,6 +347,7 @@ export default function Employees() {
                   setFormOpen(true);
                 }
               }}
+              onReassign={handleReassign}
             />
           )}
 

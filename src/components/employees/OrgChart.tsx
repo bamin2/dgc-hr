@@ -7,19 +7,41 @@ import { OrgChartControls } from "./OrgChartControls";
 import { OrgChartExportButton } from "./OrgChartExportButton";
 import { OrgEmployee } from "./OrgChartNode";
 import { Employee } from "@/data/employees";
-import { buildOrgTree } from "@/utils/orgHierarchy";
+import { buildOrgTree, getAllDescendantIds, wouldCreateCircularReference } from "@/utils/orgHierarchy";
 import { toast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface OrgChartProps {
   employees: Employee[];
   onView?: (employee: OrgEmployee) => void;
   onEdit?: (employee: OrgEmployee) => void;
+  onReassign?: (employeeId: string, newManagerId: string) => void;
 }
 
-export function OrgChart({ employees, onView, onEdit }: OrgChartProps) {
+export function OrgChart({ employees, onView, onEdit, onReassign }: OrgChartProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [zoom, setZoom] = useState(1);
   const chartRef = useRef<HTMLDivElement>(null);
+
+  // Drag and drop state
+  const [draggedEmployeeId, setDraggedEmployeeId] = useState<string | null>(null);
+  const [descendantIds, setDescendantIds] = useState<string[]>([]);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingReassignment, setPendingReassignment] = useState<{
+    employeeId: string;
+    employeeName: string;
+    newManagerId: string;
+    newManagerName: string;
+  } | null>(null);
 
   // Build org tree from employees array
   const orgData = useMemo(() => buildOrgTree(employees), [employees]);
@@ -33,6 +55,66 @@ export function OrgChart({ employees, onView, onEdit }: OrgChartProps) {
       title: "Edit ORG Chart",
       description: "ORG Chart editing mode coming soon.",
     });
+  };
+
+  const handleDragStart = (employee: OrgEmployee) => {
+    setDraggedEmployeeId(employee.id);
+    // Calculate all descendants of the dragged employee to prevent invalid drops
+    const descendants = getAllDescendantIds(employees, employee.id);
+    setDescendantIds(descendants);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedEmployeeId(null);
+    setDescendantIds([]);
+  };
+
+  const handleDrop = (draggedEmployee: OrgEmployee, targetEmployee: OrgEmployee) => {
+    const draggedId = draggedEmployee.id;
+    const targetId = targetEmployee.id;
+
+    // Validate the drop
+    if (wouldCreateCircularReference(employees, draggedId, targetId)) {
+      toast({
+        title: "Invalid move",
+        description: "Cannot move an employee to report to their subordinate.",
+        variant: "destructive",
+      });
+      handleDragEnd();
+      return;
+    }
+
+    // Find employee names for the confirmation dialog
+    const draggedEmp = employees.find((e) => e.id === draggedId);
+    const targetEmp = employees.find((e) => e.id === targetId);
+
+    if (!draggedEmp || !targetEmp) {
+      handleDragEnd();
+      return;
+    }
+
+    // Show confirmation dialog
+    setPendingReassignment({
+      employeeId: draggedId,
+      employeeName: `${draggedEmp.firstName} ${draggedEmp.lastName}`,
+      newManagerId: targetId,
+      newManagerName: `${targetEmp.firstName} ${targetEmp.lastName}`,
+    });
+    setShowConfirmDialog(true);
+    handleDragEnd();
+  };
+
+  const handleConfirmReassignment = () => {
+    if (pendingReassignment && onReassign) {
+      onReassign(pendingReassignment.employeeId, pendingReassignment.newManagerId);
+    }
+    setShowConfirmDialog(false);
+    setPendingReassignment(null);
+  };
+
+  const handleCancelReassignment = () => {
+    setShowConfirmDialog(false);
+    setPendingReassignment(null);
   };
 
   if (!orgData) {
@@ -63,6 +145,11 @@ export function OrgChart({ employees, onView, onEdit }: OrgChartProps) {
         </Button>
       </div>
 
+      {/* Drag hint */}
+      <p className="text-xs text-muted-foreground mb-2">
+        Drag and drop employee cards to reassign their manager.
+      </p>
+
       {/* Canvas */}
       <div
         className="relative flex-1 border rounded-lg overflow-auto min-h-[500px]"
@@ -79,7 +166,17 @@ export function OrgChart({ employees, onView, onEdit }: OrgChartProps) {
             transformOrigin: "top center",
           }}
         >
-          <OrgChartTree employee={orgData} onView={onView} onEdit={onEdit} />
+          <OrgChartTree
+            employee={orgData}
+            onView={onView}
+            onEdit={onEdit}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+            onDrop={handleDrop}
+            draggedEmployeeId={draggedEmployeeId}
+            descendantIds={descendantIds}
+            isRoot={true}
+          />
         </div>
 
         {/* Zoom Controls */}
@@ -90,6 +187,37 @@ export function OrgChart({ employees, onView, onEdit }: OrgChartProps) {
           onReset={handleReset}
         />
       </div>
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Manager Reassignment</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingReassignment && (
+                <>
+                  Move <strong>{pendingReassignment.employeeName}</strong> to report to{" "}
+                  <strong>{pendingReassignment.newManagerName}</strong>?
+                  <br />
+                  <br />
+                  This will also move all their direct reports.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelReassignment}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmReassignment}
+              className="bg-emerald-600 hover:bg-emerald-700"
+            >
+              Confirm
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -1,18 +1,57 @@
-import { OrgChartNode, OrgEmployee } from "./OrgChartNode";
+import { DraggableOrgNode } from "./DraggableOrgNode";
+import { OrgEmployee } from "./OrgChartNode";
 
 interface OrgChartTreeProps {
   employee: OrgEmployee;
   onView?: (employee: OrgEmployee) => void;
   onEdit?: (employee: OrgEmployee) => void;
+  onDragStart?: (employee: OrgEmployee) => void;
+  onDragEnd?: () => void;
+  onDrop?: (draggedEmployee: OrgEmployee, targetEmployee: OrgEmployee) => void;
+  draggedEmployeeId?: string | null;
+  descendantIds?: string[];
+  isRoot?: boolean;
 }
 
-export function OrgChartTree({ employee, onView, onEdit }: OrgChartTreeProps) {
+export function OrgChartTree({
+  employee,
+  onView,
+  onEdit,
+  onDragStart,
+  onDragEnd,
+  onDrop,
+  draggedEmployeeId,
+  descendantIds = [],
+  isRoot = false,
+}: OrgChartTreeProps) {
   const hasChildren = employee.children && employee.children.length > 0;
+
+  // Determine if this node is a valid drop target
+  // Cannot drop on self or on a descendant of the dragged node
+  const isValidDropTarget =
+    draggedEmployeeId !== null &&
+    draggedEmployeeId !== employee.id &&
+    !descendantIds.includes(employee.id);
+
+  // CEO (root) cannot be dragged
+  const canDrag = !isRoot;
 
   return (
     <div className="flex flex-col items-center">
       {/* Node */}
-      <OrgChartNode employee={employee} onView={onView} onEdit={onEdit} />
+      <DraggableOrgNode
+        employee={employee}
+        onView={onView}
+        onEdit={onEdit}
+        onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
+        onDrop={onDrop}
+        isDragging={draggedEmployeeId === employee.id}
+        isDropTarget={draggedEmployeeId !== null && draggedEmployeeId !== employee.id}
+        isValidDropTarget={isValidDropTarget}
+        draggedEmployeeId={draggedEmployeeId}
+        canDrag={canDrag}
+      />
 
       {/* Connector lines and children */}
       {hasChildren && (
@@ -44,7 +83,17 @@ export function OrgChartTree({ employee, onView, onEdit }: OrgChartTreeProps) {
                   />
                 </div>
                 {/* Recursive child tree */}
-                <OrgChartTree employee={child} onView={onView} onEdit={onEdit} />
+                <OrgChartTree
+                  employee={child}
+                  onView={onView}
+                  onEdit={onEdit}
+                  onDragStart={onDragStart}
+                  onDragEnd={onDragEnd}
+                  onDrop={onDrop}
+                  draggedEmployeeId={draggedEmployeeId}
+                  descendantIds={descendantIds}
+                  isRoot={false}
+                />
               </div>
             ))}
           </div>
