@@ -16,25 +16,30 @@ import {
   Pencil,
   MessageSquare,
   UserX,
+  Shield,
 } from "lucide-react";
 import { Sidebar, Header } from "@/components/dashboard";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { StatusBadge, EmployeeForm } from "@/components/employees";
+import { StatusBadge, EmployeeForm, RoleBadge, RoleSelectorWithDescription } from "@/components/employees";
 import { mockEmployees, Employee } from "@/data/employees";
+import { AppRole, roleDescriptions } from "@/data/roles";
+import { useRole } from "@/contexts/RoleContext";
 import { format } from "date-fns";
 import { toast } from "@/hooks/use-toast";
 
 export default function EmployeeProfile() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { getEmployeeRole, updateEmployeeRole, canManageRoles } = useRole();
   const [employee, setEmployee] = useState<Employee | undefined>(
     mockEmployees.find(e => e.id === id)
   );
   const [formOpen, setFormOpen] = useState(false);
+  const employeeRole = id ? getEmployeeRole(id) : 'employee';
 
   if (!employee) {
     return (
@@ -100,6 +105,7 @@ export default function EmployeeProfile() {
                       {employee.firstName} {employee.lastName}
                     </h1>
                     <StatusBadge status={employee.status} />
+                    <RoleBadge role={employeeRole} />
                   </div>
                   <p className="text-lg text-muted-foreground mb-1">{employee.position}</p>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
@@ -154,6 +160,10 @@ export default function EmployeeProfile() {
               <TabsTrigger value="activity" className="gap-2">
                 <Activity className="h-4 w-4" />
                 Activity
+              </TabsTrigger>
+              <TabsTrigger value="roles" className="gap-2">
+                <Shield className="h-4 w-4" />
+                Roles
               </TabsTrigger>
             </TabsList>
 
@@ -331,6 +341,89 @@ export default function EmployeeProfile() {
                     date="1 week ago"
                     action="Updated profile information"
                   />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="roles" className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Current Role */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base font-medium flex items-center gap-2">
+                      <Shield className="h-4 w-4 text-primary" />
+                      Current Role
+                    </CardTitle>
+                    <CardDescription>
+                      The employee's current access level and permissions
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <RoleBadge role={employeeRole} />
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {roleDescriptions[employeeRole]}
+                    </p>
+                  </CardContent>
+                </Card>
+
+                {/* Role Assignment */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base font-medium flex items-center gap-2">
+                      <Shield className="h-4 w-4 text-primary" />
+                      Assign Role
+                    </CardTitle>
+                    <CardDescription>
+                      {canManageRoles 
+                        ? "Change this employee's role and permissions"
+                        : "Only HR and Admin can change roles"
+                      }
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <RoleSelectorWithDescription
+                      value={employeeRole}
+                      onValueChange={(newRole: AppRole) => {
+                        if (id) {
+                          updateEmployeeRole(id, newRole);
+                          toast({
+                            title: "Role updated",
+                            description: `${employee.firstName}'s role has been changed to ${newRole}.`,
+                          });
+                        }
+                      }}
+                      disabled={!canManageRoles}
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Role Permissions Info */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base font-medium">Role Permissions</CardTitle>
+                  <CardDescription>
+                    What each role can access in the system
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {(['employee', 'manager', 'hr', 'admin'] as AppRole[]).map((role) => (
+                      <div 
+                        key={role} 
+                        className={`p-4 rounded-lg border ${role === employeeRole ? 'border-primary bg-primary/5' : 'border-border'}`}
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <RoleBadge role={role} />
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {roleDescriptions[role]}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>

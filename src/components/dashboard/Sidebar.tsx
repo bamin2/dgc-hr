@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
@@ -11,24 +11,58 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
+  Clock,
+  Briefcase,
+  UsersRound,
+  FileStack,
+  Puzzle,
+  Receipt,
+  HelpCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { SidebarSection } from "./SidebarSection";
+import { AnnouncementsCard } from "./AnnouncementsCard";
+import { useRole } from "@/contexts/RoleContext";
+import { RoleBadge } from "@/components/employees/RoleBadge";
 
-const menuItems = [
+// MAIN - Visible to all employees
+const mainMenuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
   { icon: Users, label: "Employees", path: "/employees" },
-  { icon: Wallet, label: "Payroll", path: "/payroll" },
-  { icon: Calendar, label: "Leave & Attendance", path: "/attendance" },
-  { icon: Gift, label: "Benefits", path: "/benefits" },
+  { icon: Calendar, label: "Calendar", path: "/calendar" },
+  { icon: Briefcase, label: "Projects", path: "/projects" },
+  { icon: UsersRound, label: "Team Member", path: "/team" },
+];
+
+// MANAGEMENT - HR & Manager roles only
+const managementMenuItems = [
+  { icon: Clock, label: "Time Off", path: "/attendance" },
   { icon: FileText, label: "Reports", path: "/reports" },
+  { icon: Wallet, label: "Payrolls", path: "/payroll" },
+  { icon: Gift, label: "Benefits", path: "/benefits" },
+];
+
+// COMPANY - HR & Manager roles only
+const companyMenuItems = [
+  { icon: FileStack, label: "Documents", path: "/documents" },
+  { icon: Puzzle, label: "Integrations", path: "/integrations" },
+  { icon: Receipt, label: "Invoices", path: "/invoices" },
   { icon: Settings, label: "Settings", path: "/settings" },
+  { icon: HelpCircle, label: "Help & Center", path: "/help" },
 ];
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
+  const { currentUser, canAccessManagement, canAccessCompany } = useRole();
+
+  const initials = currentUser.name
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .toUpperCase();
 
   return (
     <aside
@@ -51,34 +85,34 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 py-6 px-3 overflow-y-auto scrollbar-thin">
-        <ul className="space-y-1">
-          {menuItems.map((item) => {
-            const isActive = item.path === "/" 
-              ? location.pathname === "/" 
-              : location.pathname.startsWith(item.path);
-            return (
-              <li key={item.path}>
-                <NavLink
-                  to={item.path}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200",
-                    "hover:bg-sidebar-accent",
-                    isActive
-                      ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-lg shadow-sidebar-primary/25"
-                      : "text-sidebar-foreground/70 hover:text-sidebar-foreground",
-                    collapsed && "justify-center px-0"
-                  )}
-                >
-                  <item.icon className="w-5 h-5 shrink-0" />
-                  {!collapsed && (
-                    <span className="font-medium">{item.label}</span>
-                  )}
-                </NavLink>
-              </li>
-            );
-          })}
-        </ul>
+        {/* MAIN Section - Always visible */}
+        <SidebarSection 
+          label="MAIN" 
+          items={mainMenuItems} 
+          collapsed={collapsed} 
+        />
+
+        {/* MANAGEMENT Section - Conditional */}
+        {canAccessManagement && (
+          <SidebarSection 
+            label="MANAGEMENT" 
+            items={managementMenuItems} 
+            collapsed={collapsed} 
+          />
+        )}
+
+        {/* COMPANY Section - Conditional */}
+        {canAccessCompany && (
+          <SidebarSection 
+            label="COMPANY" 
+            items={companyMenuItems} 
+            collapsed={collapsed} 
+          />
+        )}
       </nav>
+
+      {/* Announcements Card */}
+      <AnnouncementsCard collapsed={collapsed} />
 
       {/* Collapse Toggle */}
       <div className="px-3 py-2">
@@ -111,15 +145,15 @@ export function Sidebar() {
           )}
         >
           <Avatar className="w-10 h-10 ring-2 ring-sidebar-primary/30">
-            <AvatarImage src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face" />
+            <AvatarImage src={currentUser.avatar} />
             <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground">
-              CL
+              {initials}
             </AvatarFallback>
           </Avatar>
           {!collapsed && (
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold truncate">Christine Lobato</p>
-              <p className="text-xs text-sidebar-muted truncate">HR Manager</p>
+              <p className="text-sm font-semibold truncate">{currentUser.name}</p>
+              <RoleBadge role={currentUser.role} showIcon={false} className="mt-1 text-xs h-5" />
             </div>
           )}
           {!collapsed && (

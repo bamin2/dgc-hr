@@ -1,4 +1,6 @@
 export { Sidebar } from "./Sidebar";
+export { SidebarSection } from "./SidebarSection";
+export { AnnouncementsCard } from "./AnnouncementsCard";
 export { Header } from "./Header";
 export { MetricsCards } from "./MetricsCards";
 export { TimeTracker } from "./TimeTracker";
