@@ -237,10 +237,7 @@ export default function Employees() {
           {activeTab === 'org-chart' && (
             <OrgChart
               onView={(employee) => {
-                toast({
-                  title: "View Profile",
-                  description: `Viewing ${employee.name}'s profile`,
-                });
+                navigate(`/employees/${employee.id}`);
               }}
               onEdit={(employee) => {
                 toast({
