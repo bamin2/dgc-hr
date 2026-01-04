@@ -9,6 +9,9 @@ import EmployeeProfile from "./pages/EmployeeProfile";
 import Payroll from "./pages/Payroll";
 import PayrollRun from "./pages/PayrollRun";
 import Payslip from "./pages/Payslip";
+import Attendance from "./pages/Attendance";
+import LeaveRequest from "./pages/LeaveRequest";
+import LeaveDetail from "./pages/LeaveDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +29,9 @@ const App = () => (
           <Route path="/payroll" element={<Payroll />} />
           <Route path="/payroll/run" element={<PayrollRun />} />
           <Route path="/payroll/payslip/:id" element={<Payslip />} />
+          <Route path="/attendance" element={<Attendance />} />
+          <Route path="/attendance/leave/request" element={<LeaveRequest />} />
+          <Route path="/attendance/leave/:id" element={<LeaveDetail />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
