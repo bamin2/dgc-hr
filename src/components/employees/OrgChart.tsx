@@ -1,9 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { Search, Pencil } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { OrgChartTree } from "./OrgChartTree";
 import { OrgChartControls } from "./OrgChartControls";
+import { OrgChartExportButton } from "./OrgChartExportButton";
 import { OrgEmployee } from "./OrgChartNode";
 import { Employee } from "@/data/employees";
 import { buildOrgTree } from "@/utils/orgHierarchy";
@@ -18,6 +19,7 @@ interface OrgChartProps {
 export function OrgChart({ employees, onView, onEdit }: OrgChartProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [zoom, setZoom] = useState(1);
+  const chartRef = useRef<HTMLDivElement>(null);
 
   // Build org tree from employees array
   const orgData = useMemo(() => buildOrgTree(employees), [employees]);
@@ -54,6 +56,7 @@ export function OrgChart({ employees, onView, onEdit }: OrgChartProps) {
             className="pl-9"
           />
         </div>
+        <OrgChartExportButton chartRef={chartRef} />
         <Button variant="outline" onClick={handleEditOrgChart} className="gap-2">
           <Pencil className="h-4 w-4" />
           Edit ORG Chart
@@ -69,7 +72,8 @@ export function OrgChart({ employees, onView, onEdit }: OrgChartProps) {
         }}
       >
         <div
-          className="p-8 min-w-max flex justify-center"
+          ref={chartRef}
+          className="p-8 min-w-max flex justify-center bg-background"
           style={{
             transform: `scale(${zoom})`,
             transformOrigin: "top center",
