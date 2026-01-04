@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Plus, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Sidebar, Header } from "@/components/dashboard";
@@ -9,6 +9,7 @@ import {
   EmployeeTable,
   EmployeeCard,
   EmployeeForm,
+  TablePagination,
   ViewToggle,
 } from "@/components/employees";
 import { mockEmployees, Employee } from "@/data/employees";
@@ -24,9 +25,18 @@ export default function Employees() {
   const [sortField, setSortField] = useState('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
+  
   // Form modal state
   const [formOpen, setFormOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, departmentFilter, statusFilter]);
 
   // Filter and sort employees
   const filteredEmployees = useMemo(() => {
@@ -97,6 +107,13 @@ export default function Employees() {
 
     return result;
   }, [employees, searchQuery, departmentFilter, statusFilter, sortField, sortDirection]);
+
+  // Paginate employees
+  const totalPages = Math.ceil(filteredEmployees.length / entriesPerPage);
+  const paginatedEmployees = useMemo(() => {
+    const startIndex = (currentPage - 1) * entriesPerPage;
+    return filteredEmployees.slice(startIndex, startIndex + entriesPerPage);
+  }, [filteredEmployees, currentPage, entriesPerPage]);
 
   const handleSort = (field: string) => {
     if (sortField === field) {
@@ -211,18 +228,31 @@ export default function Employees() {
               </p>
             </div>
           ) : view === 'table' ? (
-            <EmployeeTable
-              employees={filteredEmployees}
-              onView={handleView}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              sortField={sortField}
-              sortDirection={sortDirection}
-              onSort={handleSort}
-            />
+            <>
+              <EmployeeTable
+                employees={paginatedEmployees}
+                onView={handleView}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                sortField={sortField}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+              />
+              <TablePagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={filteredEmployees.length}
+                entriesPerPage={entriesPerPage}
+                onPageChange={setCurrentPage}
+                onEntriesPerPageChange={(entries) => {
+                  setEntriesPerPage(entries);
+                  setCurrentPage(1);
+                }}
+              />
+            </>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {filteredEmployees.map(employee => (
+              {paginatedEmployees.map(employee => (
                 <EmployeeCard
                   key={employee.id}
                   employee={employee}
@@ -231,6 +261,19 @@ export default function Employees() {
                   onDelete={handleDelete}
                 />
               ))}
+              <div className="col-span-full">
+                <TablePagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalItems={filteredEmployees.length}
+                  entriesPerPage={entriesPerPage}
+                  onPageChange={setCurrentPage}
+                  onEntriesPerPageChange={(entries) => {
+                    setEntriesPerPage(entries);
+                    setCurrentPage(1);
+                  }}
+                />
+              </div>
             </div>
           )}
         </main>
