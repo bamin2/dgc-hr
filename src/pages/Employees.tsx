@@ -187,10 +187,20 @@ export default function Employees() {
                 <Upload className="h-4 w-4" />
                 Export
               </Button>
-              <Button onClick={handleAddNew} className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white">
-                <Plus className="h-4 w-4" />
-                Add Employee
-              </Button>
+              {activeTab === 'onboarding' ? (
+                <Button 
+                  onClick={() => navigate("/employees/onboarding/new")} 
+                  className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
+                >
+                  <UserPlus className="h-4 w-4" />
+                  Start Onboarding
+                </Button>
+              ) : (
+                <Button onClick={handleAddNew} className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white">
+                  <Plus className="h-4 w-4" />
+                  Add Employee
+                </Button>
+              )}
             </div>
           </div>
 

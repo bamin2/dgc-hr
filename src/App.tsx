@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Employees from "./pages/Employees";
 import EmployeeProfile from "./pages/EmployeeProfile";
 import OnboardingDetail from "./pages/OnboardingDetail";
+import NewOnboarding from "./pages/NewOnboarding";
 import Payroll from "./pages/Payroll";
 import PayrollRun from "./pages/PayrollRun";
 import Payslip from "./pages/Payslip";
@@ -36,6 +37,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/employees" element={<Employees />} />
             <Route path="/employees/:id" element={<EmployeeProfile />} />
+            <Route path="/employees/onboarding/new" element={<NewOnboarding />} />
             <Route path="/employees/onboarding/:id" element={<OnboardingDetail />} />
             <Route path="/payroll" element={<Payroll />} />
             <Route path="/payroll/run" element={<PayrollRun />} />
