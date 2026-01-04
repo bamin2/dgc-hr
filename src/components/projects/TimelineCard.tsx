@@ -16,10 +16,11 @@ interface TimelineCardProps {
   project: Project;
   weekStart: Date;
   dayWidth: number;
+  totalWidth: number;
   onClick?: () => void;
 }
 
-export function TimelineCard({ project, weekStart, dayWidth, onClick }: TimelineCardProps) {
+export function TimelineCard({ project, weekStart, dayWidth, totalWidth, onClick }: TimelineCardProps) {
   const assignees = getProjectAssignees(project);
   const displayedAssignees = assignees.slice(0, 3);
   const remainingCount = assignees.length - 3;
@@ -29,7 +30,8 @@ export function TimelineCard({ project, weekStart, dayWidth, onClick }: Timeline
   const duration = differenceInDays(project.endDate, project.startDate) + 1;
   
   const left = startOffset * dayWidth;
-  const width = Math.max(duration * dayWidth - 8, dayWidth - 8); // Minimum width of 1 day
+  const rawWidth = Math.max(duration * dayWidth - 8, dayWidth - 8);
+  const width = Math.min(rawWidth, totalWidth - left - 8); // Clamp to prevent overflow
 
   const getInitials = (firstName: string, lastName: string) => {
     return `${firstName[0]}${lastName[0]}`.toUpperCase();
@@ -46,7 +48,6 @@ export function TimelineCard({ project, weekStart, dayWidth, onClick }: Timeline
       style={{
         left: `${left}px`,
         width: `${width}px`,
-        minWidth: '200px',
       }}
       onClick={onClick}
     >

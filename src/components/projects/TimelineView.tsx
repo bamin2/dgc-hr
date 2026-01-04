@@ -29,41 +29,21 @@ export function TimelineView({
   const weekStart = startOfWeek(currentDate);
   const days = Array.from({ length: VISIBLE_DAYS }, (_, i) => addDays(weekStart, i));
 
-  // Filter projects that overlap with the current week
-  const visibleProjects = useMemo(() => {
-    const weekEnd = addDays(weekStart, VISIBLE_DAYS - 1);
-    return projects.filter(project => {
-      return (
-        isWithinInterval(project.startDate, { start: weekStart, end: weekEnd }) ||
-        isWithinInterval(project.endDate, { start: weekStart, end: weekEnd }) ||
-        (project.startDate <= weekStart && project.endDate >= weekEnd)
-      );
-    });
-  }, [projects, weekStart]);
+  const priorityOrder = { high: 0, medium: 1, low: 2 };
 
-  // Group projects by row to avoid overlap
-  const projectRows = useMemo(() => {
-    const rows: Project[][] = [];
-    
-    visibleProjects.forEach(project => {
-      let placed = false;
-      for (const row of rows) {
-        const hasOverlap = row.some(p => 
-          !(project.endDate < p.startDate || project.startDate > p.endDate)
+  // Filter projects that overlap with the current week and sort by priority
+  const sortedProjects = useMemo(() => {
+    const weekEnd = addDays(weekStart, VISIBLE_DAYS - 1);
+    return projects
+      .filter(project => {
+        return (
+          isWithinInterval(project.startDate, { start: weekStart, end: weekEnd }) ||
+          isWithinInterval(project.endDate, { start: weekStart, end: weekEnd }) ||
+          (project.startDate <= weekStart && project.endDate >= weekEnd)
         );
-        if (!hasOverlap) {
-          row.push(project);
-          placed = true;
-          break;
-        }
-      }
-      if (!placed) {
-        rows.push([project]);
-      }
-    });
-    
-    return rows;
-  }, [visibleProjects]);
+      })
+      .sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+  }, [projects, weekStart]);
 
   return (
     <div>
@@ -98,10 +78,10 @@ export function TimelineView({
           </div>
 
           {/* Timeline grid with projects */}
-          <div className="relative" style={{ minHeight: Math.max(projectRows.length * 140 + 40, 200) }}>
+          <div className="relative" style={{ minHeight: Math.max(sortedProjects.length * 128 + 40, 200) }}>
             {/* Grid lines */}
             <div className="absolute inset-0 flex">
-              {days.map((day, i) => (
+              {days.map((day) => (
                 <div
                   key={day.toISOString()}
                   className={cn(
@@ -118,23 +98,21 @@ export function TimelineView({
               ))}
             </div>
 
-            {/* Project cards */}
+            {/* Project cards - one per row, sorted by priority */}
             <div className="relative pt-4">
-              {projectRows.map((row, rowIndex) => (
+              {sortedProjects.map((project) => (
                 <div
-                  key={rowIndex}
+                  key={project.id}
                   className="relative"
-                  style={{ height: 140, marginBottom: 8 }}
+                  style={{ height: 120, marginBottom: 8 }}
                 >
-                  {row.map((project) => (
-                    <TimelineCard
-                      key={project.id}
-                      project={project}
-                      weekStart={weekStart}
-                      dayWidth={DAY_WIDTH}
-                      onClick={() => onProjectClick(project)}
-                    />
-                  ))}
+                  <TimelineCard
+                    project={project}
+                    weekStart={weekStart}
+                    dayWidth={DAY_WIDTH}
+                    totalWidth={DAY_WIDTH * VISIBLE_DAYS}
+                    onClick={() => onProjectClick(project)}
+                  />
                 </div>
               ))}
             </div>
