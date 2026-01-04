@@ -138,7 +138,7 @@ export function OrgChart({ employees, onView, onEdit, onReassign }: OrgChartProp
             className="pl-9"
           />
         </div>
-        <OrgChartExportButton chartRef={chartRef} />
+        <OrgChartExportButton employees={employees} />
         <Button variant="outline" onClick={handleEditOrgChart} className="gap-2">
           <Pencil className="h-4 w-4" />
           Edit ORG Chart
