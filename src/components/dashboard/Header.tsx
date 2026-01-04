@@ -1,4 +1,4 @@
-import { Search, Bell, ChevronDown } from "lucide-react";
+import { Search, ChevronDown } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { NotificationBell } from "@/components/notifications";
 
 interface HeaderProps {
   userName?: string;
@@ -46,14 +47,7 @@ export function Header({ userName = "Christine" }: HeaderProps) {
           </div>
 
           {/* Notifications */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="relative hover:bg-secondary"
-          >
-            <Bell className="w-5 h-5 text-muted-foreground" />
-            <span className="absolute top-2 right-2 w-2 h-2 bg-destructive rounded-full" />
-          </Button>
+          <NotificationBell />
 
           {/* User Menu */}
           <DropdownMenu>

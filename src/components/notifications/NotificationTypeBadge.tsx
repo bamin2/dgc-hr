@@ -1,0 +1,58 @@
+import { Calendar, CheckCircle, DollarSign, UserPlus, Settings, Clock } from "lucide-react";
+import { cn } from "@/lib/utils";
+import type { Notification } from "@/data/notifications";
+
+interface NotificationTypeBadgeProps {
+  type: Notification["type"];
+  className?: string;
+}
+
+const typeConfig = {
+  leave_request: {
+    icon: Calendar,
+    bgColor: "bg-blue-100 dark:bg-blue-900/30",
+    iconColor: "text-blue-600 dark:text-blue-400"
+  },
+  approval: {
+    icon: CheckCircle,
+    bgColor: "bg-green-100 dark:bg-green-900/30",
+    iconColor: "text-green-600 dark:text-green-400"
+  },
+  payroll: {
+    icon: DollarSign,
+    bgColor: "bg-orange-100 dark:bg-orange-900/30",
+    iconColor: "text-orange-600 dark:text-orange-400"
+  },
+  employee: {
+    icon: UserPlus,
+    bgColor: "bg-purple-100 dark:bg-purple-900/30",
+    iconColor: "text-purple-600 dark:text-purple-400"
+  },
+  system: {
+    icon: Settings,
+    bgColor: "bg-gray-100 dark:bg-gray-800",
+    iconColor: "text-gray-600 dark:text-gray-400"
+  },
+  reminder: {
+    icon: Clock,
+    bgColor: "bg-yellow-100 dark:bg-yellow-900/30",
+    iconColor: "text-yellow-600 dark:text-yellow-400"
+  }
+};
+
+export function NotificationTypeBadge({ type, className }: NotificationTypeBadgeProps) {
+  const config = typeConfig[type];
+  const Icon = config.icon;
+
+  return (
+    <div
+      className={cn(
+        "flex items-center justify-center w-9 h-9 rounded-full shrink-0",
+        config.bgColor,
+        className
+      )}
+    >
+      <Icon className={cn("w-4 h-4", config.iconColor)} />
+    </div>
+  );
+}
