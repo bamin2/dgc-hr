@@ -353,3 +353,18 @@ export const getProjectsByStatus = (status: ProjectStatus): Project[] => {
 export const getProjectAssignees = (project: Project) => {
   return mockEmployees.filter(e => project.assigneeIds.includes(e.id));
 };
+
+// Get team members for assignment dropdown (employees with same manager or direct reports)
+export const getTeamMembers = (currentEmployeeId: string) => {
+  const currentEmployee = mockEmployees.find(e => e.id === currentEmployeeId);
+  if (!currentEmployee) return [];
+  
+  return mockEmployees.filter(e => 
+    e.id !== currentEmployeeId && (
+      // Peers (same manager)
+      (currentEmployee.managerId && e.managerId === currentEmployee.managerId) ||
+      // Direct reports (current user is their manager)
+      e.managerId === currentEmployeeId
+    )
+  );
+};
