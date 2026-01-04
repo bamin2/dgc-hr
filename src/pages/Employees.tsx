@@ -6,12 +6,14 @@ import { Button } from "@/components/ui/button";
 import {
   EmployeeFilters,
   EmployeeTable,
-  EmployeeCard,
   EmployeeForm,
   TablePagination,
   OrgChart,
+  OnboardingFilters,
+  OnboardingTable,
 } from "@/components/employees";
 import { mockEmployees, Employee } from "@/data/employees";
+import { mockOnboardingRecords, OnboardingRecord, OnboardingStatus } from "@/data/onboarding";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -41,10 +43,43 @@ export default function Employees() {
   const [formOpen, setFormOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
 
+  // Onboarding state
+  const [onboardingRecords, setOnboardingRecords] = useState<OnboardingRecord[]>(mockOnboardingRecords);
+  const [onboardingSearch, setOnboardingSearch] = useState('');
+  const [onboardingStatusFilter, setOnboardingStatusFilter] = useState<OnboardingStatus | 'all'>('all');
+  const [selectedOnboarding, setSelectedOnboarding] = useState<string[]>([]);
+  const [onboardingPage, setOnboardingPage] = useState(1);
+
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, departmentFilter, statusFilter, entityFilter]);
+
+  useEffect(() => {
+    setOnboardingPage(1);
+  }, [onboardingSearch, onboardingStatusFilter]);
+
+  // Filter onboarding records
+  const filteredOnboarding = useMemo(() => {
+    let result = [...onboardingRecords];
+
+    if (onboardingSearch) {
+      const query = onboardingSearch.toLowerCase();
+      result = result.filter(r => r.employeeName.toLowerCase().includes(query));
+    }
+
+    if (onboardingStatusFilter !== 'all') {
+      result = result.filter(r => r.status === onboardingStatusFilter);
+    }
+
+    return result;
+  }, [onboardingRecords, onboardingSearch, onboardingStatusFilter]);
+
+  const onboardingTotalPages = Math.ceil(filteredOnboarding.length / entriesPerPage);
+  const paginatedOnboarding = useMemo(() => {
+    const startIndex = (onboardingPage - 1) * entriesPerPage;
+    return filteredOnboarding.slice(startIndex, startIndex + entriesPerPage);
+  }, [filteredOnboarding, onboardingPage, entriesPerPage]);
 
   // Filter employees
   const filteredEmployees = useMemo(() => {
@@ -252,15 +287,59 @@ export default function Employees() {
           )}
 
           {activeTab === 'onboarding' && (
-            <div className="flex items-center justify-center py-24">
-              <div className="text-center">
-                <UserPlus className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-foreground mb-2">Onboarding Coming Soon</h3>
-                <p className="text-muted-foreground max-w-md">
-                  Manage new employee onboarding workflows and checklists.
-                </p>
+            <>
+              <div className="mb-6">
+                <OnboardingFilters
+                  searchQuery={onboardingSearch}
+                  onSearchChange={setOnboardingSearch}
+                  statusFilter={onboardingStatusFilter}
+                  onStatusFilterChange={setOnboardingStatusFilter}
+                />
               </div>
-            </div>
+
+              {filteredOnboarding.length === 0 ? (
+                <div className="text-center py-12">
+                  <UserPlus className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-foreground mb-1">No onboarding records found</h3>
+                  <p className="text-muted-foreground">
+                    Try adjusting your search or filter criteria
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <OnboardingTable
+                    records={paginatedOnboarding}
+                    selectedRecords={selectedOnboarding}
+                    onSelectionChange={setSelectedOnboarding}
+                    onEdit={(record) => {
+                      toast({
+                        title: "Edit onboarding",
+                        description: `Editing ${record.employeeName}'s onboarding record.`,
+                      });
+                    }}
+                    onDelete={(record) => {
+                      setOnboardingRecords(prev => prev.filter(r => r.id !== record.id));
+                      setSelectedOnboarding(prev => prev.filter(id => id !== record.id));
+                      toast({
+                        title: "Record deleted",
+                        description: `${record.employeeName}'s onboarding record has been removed.`,
+                      });
+                    }}
+                  />
+                  <TablePagination
+                    currentPage={onboardingPage}
+                    totalPages={onboardingTotalPages}
+                    totalItems={filteredOnboarding.length}
+                    entriesPerPage={entriesPerPage}
+                    onPageChange={setOnboardingPage}
+                    onEntriesPerPageChange={(entries) => {
+                      setEntriesPerPage(entries);
+                      setOnboardingPage(1);
+                    }}
+                  />
+                </>
+              )}
+            </>
           )}
         </main>
       </div>
