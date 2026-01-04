@@ -17,6 +17,144 @@ export interface OnboardingTask {
   order: number;
 }
 
+export interface WorkflowTemplate {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  estimatedDays: number;
+  categories: TaskCategory[];
+  tasks: Omit<OnboardingTask, 'status' | 'completedAt' | 'completedBy'>[];
+}
+
+export const workflowTemplates: WorkflowTemplate[] = [
+  {
+    id: 'general',
+    name: 'General',
+    description: 'Standard onboarding for most roles with essential documentation, training, and introductions.',
+    icon: 'Briefcase',
+    estimatedDays: 14,
+    categories: ['documentation', 'training', 'setup', 'introduction', 'compliance'],
+    tasks: [
+      { id: 'task-1', title: 'Sign employment contract', description: 'Review and sign the official employment contract.', category: 'documentation', dueDate: '', assignedTo: 'hr', required: true, order: 1 },
+      { id: 'task-2', title: 'Submit ID documents', description: 'Provide copies of government-issued ID and work authorization.', category: 'documentation', dueDate: '', assignedTo: 'employee', required: true, order: 2 },
+      { id: 'task-3', title: 'Complete W-4 tax form', description: 'Fill out federal tax withholding form.', category: 'documentation', dueDate: '', assignedTo: 'employee', required: true, order: 3 },
+      { id: 'task-4', title: 'Direct deposit setup', description: 'Provide bank account details.', category: 'documentation', dueDate: '', assignedTo: 'employee', required: false, order: 4 },
+      { id: 'task-5', title: 'Emergency contact form', description: 'Submit emergency contact information.', category: 'documentation', dueDate: '', assignedTo: 'employee', required: true, order: 5 },
+      { id: 'task-6', title: 'Complete company orientation', description: 'Watch orientation video and complete quiz.', category: 'training', dueDate: '', assignedTo: 'employee', required: true, order: 6 },
+      { id: 'task-7', title: 'Safety training', description: 'Complete workplace safety training.', category: 'training', dueDate: '', assignedTo: 'employee', required: true, order: 7 },
+      { id: 'task-8', title: 'Review employee handbook', description: 'Read and acknowledge employee handbook.', category: 'training', dueDate: '', assignedTo: 'employee', required: true, order: 8 },
+      { id: 'task-9', title: 'IT equipment setup', description: 'Set up laptop and equipment.', category: 'setup', dueDate: '', assignedTo: 'it', required: true, order: 9 },
+      { id: 'task-10', title: 'Email account activation', description: 'Activate corporate email.', category: 'setup', dueDate: '', assignedTo: 'it', required: true, order: 10 },
+      { id: 'task-11', title: 'Access card provisioning', description: 'Receive building access card.', category: 'setup', dueDate: '', assignedTo: 'it', required: true, order: 11 },
+      { id: 'task-12', title: 'Meet with manager', description: 'One-on-one with direct manager.', category: 'introduction', dueDate: '', assignedTo: 'manager', required: true, order: 12 },
+      { id: 'task-13', title: 'Team introduction meeting', description: 'Meet team members.', category: 'introduction', dueDate: '', assignedTo: 'manager', required: true, order: 13 },
+      { id: 'task-14', title: 'Office tour', description: 'Tour of office facilities.', category: 'introduction', dueDate: '', assignedTo: 'hr', required: false, order: 14 },
+      { id: 'task-15', title: 'Background check verification', description: 'Complete background check.', category: 'compliance', dueDate: '', assignedTo: 'hr', required: true, order: 15 },
+      { id: 'task-16', title: 'NDA signing', description: 'Sign non-disclosure agreement.', category: 'compliance', dueDate: '', assignedTo: 'hr', required: true, order: 16 },
+      { id: 'task-17', title: 'Policy acknowledgment', description: 'Acknowledge company policies.', category: 'compliance', dueDate: '', assignedTo: 'employee', required: true, order: 17 },
+    ],
+  },
+  {
+    id: 'engineering',
+    name: 'Engineering',
+    description: 'Developer-focused onboarding with additional tech setup, coding standards, and development tools.',
+    icon: 'Code',
+    estimatedDays: 21,
+    categories: ['documentation', 'training', 'setup', 'introduction', 'compliance'],
+    tasks: [
+      { id: 'task-1', title: 'Sign employment contract', description: 'Review and sign the official employment contract.', category: 'documentation', dueDate: '', assignedTo: 'hr', required: true, order: 1 },
+      { id: 'task-2', title: 'Submit ID documents', description: 'Provide copies of government-issued ID.', category: 'documentation', dueDate: '', assignedTo: 'employee', required: true, order: 2 },
+      { id: 'task-3', title: 'Complete W-4 tax form', description: 'Fill out federal tax withholding form.', category: 'documentation', dueDate: '', assignedTo: 'employee', required: true, order: 3 },
+      { id: 'task-4', title: 'Complete company orientation', description: 'Watch orientation video.', category: 'training', dueDate: '', assignedTo: 'employee', required: true, order: 4 },
+      { id: 'task-5', title: 'Review employee handbook', description: 'Read employee handbook.', category: 'training', dueDate: '', assignedTo: 'employee', required: true, order: 5 },
+      { id: 'task-6', title: 'Engineering standards training', description: 'Learn coding standards and best practices.', category: 'training', dueDate: '', assignedTo: 'manager', required: true, order: 6 },
+      { id: 'task-7', title: 'Git workflow training', description: 'Learn branching strategy and PR process.', category: 'training', dueDate: '', assignedTo: 'manager', required: true, order: 7 },
+      { id: 'task-8', title: 'Code review introduction', description: 'Learn code review process.', category: 'training', dueDate: '', assignedTo: 'manager', required: true, order: 8 },
+      { id: 'task-9', title: 'IT equipment setup', description: 'Set up laptop and monitors.', category: 'setup', dueDate: '', assignedTo: 'it', required: true, order: 9 },
+      { id: 'task-10', title: 'Development environment setup', description: 'Install IDE, tools, and dependencies.', category: 'setup', dueDate: '', assignedTo: 'it', required: true, order: 10 },
+      { id: 'task-11', title: 'Repository access', description: 'Get access to GitHub/GitLab repos.', category: 'setup', dueDate: '', assignedTo: 'it', required: true, order: 11 },
+      { id: 'task-12', title: 'CI/CD pipeline access', description: 'Access to deployment pipelines.', category: 'setup', dueDate: '', assignedTo: 'it', required: true, order: 12 },
+      { id: 'task-13', title: 'Meet with manager', description: 'One-on-one with engineering manager.', category: 'introduction', dueDate: '', assignedTo: 'manager', required: true, order: 13 },
+      { id: 'task-14', title: 'Team introduction', description: 'Meet engineering team.', category: 'introduction', dueDate: '', assignedTo: 'manager', required: true, order: 14 },
+      { id: 'task-15', title: 'Architecture overview', description: 'System architecture walkthrough.', category: 'introduction', dueDate: '', assignedTo: 'manager', required: true, order: 15 },
+      { id: 'task-16', title: 'NDA signing', description: 'Sign non-disclosure agreement.', category: 'compliance', dueDate: '', assignedTo: 'hr', required: true, order: 16 },
+      { id: 'task-17', title: 'IP assignment agreement', description: 'Sign intellectual property agreement.', category: 'compliance', dueDate: '', assignedTo: 'hr', required: true, order: 17 },
+    ],
+  },
+  {
+    id: 'sales',
+    name: 'Sales',
+    description: 'Sales-focused onboarding with CRM training, product knowledge, and sales methodology.',
+    icon: 'TrendingUp',
+    estimatedDays: 14,
+    categories: ['documentation', 'training', 'setup', 'introduction', 'compliance'],
+    tasks: [
+      { id: 'task-1', title: 'Sign employment contract', description: 'Review and sign employment contract.', category: 'documentation', dueDate: '', assignedTo: 'hr', required: true, order: 1 },
+      { id: 'task-2', title: 'Submit ID documents', description: 'Provide identification documents.', category: 'documentation', dueDate: '', assignedTo: 'employee', required: true, order: 2 },
+      { id: 'task-3', title: 'Commission structure review', description: 'Review compensation and commission plan.', category: 'documentation', dueDate: '', assignedTo: 'hr', required: true, order: 3 },
+      { id: 'task-4', title: 'Complete company orientation', description: 'Watch orientation video.', category: 'training', dueDate: '', assignedTo: 'employee', required: true, order: 4 },
+      { id: 'task-5', title: 'Product knowledge training', description: 'Learn about products and services.', category: 'training', dueDate: '', assignedTo: 'manager', required: true, order: 5 },
+      { id: 'task-6', title: 'CRM training', description: 'Learn Salesforce/CRM system.', category: 'training', dueDate: '', assignedTo: 'manager', required: true, order: 6 },
+      { id: 'task-7', title: 'Sales methodology training', description: 'Learn sales process and techniques.', category: 'training', dueDate: '', assignedTo: 'manager', required: true, order: 7 },
+      { id: 'task-8', title: 'Competitive landscape training', description: 'Learn about competitors.', category: 'training', dueDate: '', assignedTo: 'manager', required: true, order: 8 },
+      { id: 'task-9', title: 'IT equipment setup', description: 'Set up laptop and phone.', category: 'setup', dueDate: '', assignedTo: 'it', required: true, order: 9 },
+      { id: 'task-10', title: 'CRM account setup', description: 'Configure CRM access.', category: 'setup', dueDate: '', assignedTo: 'it', required: true, order: 10 },
+      { id: 'task-11', title: 'Meet with sales manager', description: 'One-on-one with sales manager.', category: 'introduction', dueDate: '', assignedTo: 'manager', required: true, order: 11 },
+      { id: 'task-12', title: 'Team introduction', description: 'Meet sales team.', category: 'introduction', dueDate: '', assignedTo: 'manager', required: true, order: 12 },
+      { id: 'task-13', title: 'Shadow experienced rep', description: 'Observe sales calls.', category: 'introduction', dueDate: '', assignedTo: 'manager', required: true, order: 13 },
+      { id: 'task-14', title: 'NDA signing', description: 'Sign non-disclosure agreement.', category: 'compliance', dueDate: '', assignedTo: 'hr', required: true, order: 14 },
+    ],
+  },
+  {
+    id: 'remote',
+    name: 'Remote',
+    description: 'Tailored for remote employees with virtual setup, remote tools, and async communication.',
+    icon: 'Globe',
+    estimatedDays: 10,
+    categories: ['documentation', 'training', 'setup', 'introduction', 'compliance'],
+    tasks: [
+      { id: 'task-1', title: 'Sign employment contract', description: 'Review and sign employment contract.', category: 'documentation', dueDate: '', assignedTo: 'hr', required: true, order: 1 },
+      { id: 'task-2', title: 'Submit ID documents', description: 'Provide identification documents.', category: 'documentation', dueDate: '', assignedTo: 'employee', required: true, order: 2 },
+      { id: 'task-3', title: 'Home office stipend form', description: 'Request home office equipment stipend.', category: 'documentation', dueDate: '', assignedTo: 'employee', required: false, order: 3 },
+      { id: 'task-4', title: 'Complete company orientation', description: 'Watch orientation video.', category: 'training', dueDate: '', assignedTo: 'employee', required: true, order: 4 },
+      { id: 'task-5', title: 'Remote work best practices', description: 'Learn remote work guidelines.', category: 'training', dueDate: '', assignedTo: 'employee', required: true, order: 5 },
+      { id: 'task-6', title: 'Async communication training', description: 'Learn Slack, email etiquette.', category: 'training', dueDate: '', assignedTo: 'manager', required: true, order: 6 },
+      { id: 'task-7', title: 'Laptop shipped and received', description: 'Confirm laptop delivery.', category: 'setup', dueDate: '', assignedTo: 'it', required: true, order: 7 },
+      { id: 'task-8', title: 'VPN configuration', description: 'Set up VPN access.', category: 'setup', dueDate: '', assignedTo: 'it', required: true, order: 8 },
+      { id: 'task-9', title: 'Collaboration tools setup', description: 'Set up Slack, Zoom, etc.', category: 'setup', dueDate: '', assignedTo: 'it', required: true, order: 9 },
+      { id: 'task-10', title: 'Virtual meet with manager', description: 'Video call with manager.', category: 'introduction', dueDate: '', assignedTo: 'manager', required: true, order: 10 },
+      { id: 'task-11', title: 'Virtual team introduction', description: 'Video call with team.', category: 'introduction', dueDate: '', assignedTo: 'manager', required: true, order: 11 },
+      { id: 'task-12', title: 'Virtual buddy assignment', description: 'Meet remote buddy.', category: 'introduction', dueDate: '', assignedTo: 'hr', required: false, order: 12 },
+      { id: 'task-13', title: 'NDA signing', description: 'Sign non-disclosure agreement.', category: 'compliance', dueDate: '', assignedTo: 'hr', required: true, order: 13 },
+    ],
+  },
+  {
+    id: 'executive',
+    name: 'Executive',
+    description: 'Leadership onboarding with board introductions, strategic planning, and executive coaching.',
+    icon: 'Crown',
+    estimatedDays: 30,
+    categories: ['documentation', 'training', 'setup', 'introduction', 'compliance'],
+    tasks: [
+      { id: 'task-1', title: 'Sign executive contract', description: 'Review and sign executive employment agreement.', category: 'documentation', dueDate: '', assignedTo: 'hr', required: true, order: 1 },
+      { id: 'task-2', title: 'Submit ID documents', description: 'Provide identification documents.', category: 'documentation', dueDate: '', assignedTo: 'employee', required: true, order: 2 },
+      { id: 'task-3', title: 'Equity agreement signing', description: 'Review and sign stock option agreement.', category: 'documentation', dueDate: '', assignedTo: 'hr', required: true, order: 3 },
+      { id: 'task-4', title: 'Company strategy overview', description: 'Deep dive into company strategy.', category: 'training', dueDate: '', assignedTo: 'manager', required: true, order: 4 },
+      { id: 'task-5', title: 'Financial review', description: 'Review company financials.', category: 'training', dueDate: '', assignedTo: 'manager', required: true, order: 5 },
+      { id: 'task-6', title: 'Leadership training', description: 'Executive leadership program.', category: 'training', dueDate: '', assignedTo: 'hr', required: true, order: 6 },
+      { id: 'task-7', title: 'IT equipment setup', description: 'Set up laptop and equipment.', category: 'setup', dueDate: '', assignedTo: 'it', required: true, order: 7 },
+      { id: 'task-8', title: 'Executive assistant assignment', description: 'Meet executive assistant.', category: 'setup', dueDate: '', assignedTo: 'hr', required: false, order: 8 },
+      { id: 'task-9', title: 'Board member introductions', description: 'Meet board members.', category: 'introduction', dueDate: '', assignedTo: 'manager', required: true, order: 9 },
+      { id: 'task-10', title: 'Executive team meeting', description: 'Meet C-suite executives.', category: 'introduction', dueDate: '', assignedTo: 'manager', required: true, order: 10 },
+      { id: 'task-11', title: 'Department head meetings', description: 'Meet all department heads.', category: 'introduction', dueDate: '', assignedTo: 'manager', required: true, order: 11 },
+      { id: 'task-12', title: 'Key client introductions', description: 'Meet top clients.', category: 'introduction', dueDate: '', assignedTo: 'manager', required: false, order: 12 },
+      { id: 'task-13', title: 'NDA signing', description: 'Sign non-disclosure agreement.', category: 'compliance', dueDate: '', assignedTo: 'hr', required: true, order: 13 },
+      { id: 'task-14', title: 'D&O insurance enrollment', description: 'Enroll in directors insurance.', category: 'compliance', dueDate: '', assignedTo: 'hr', required: true, order: 14 },
+    ],
+  },
+];
+
 export interface OnboardingRecord {
   id: string;
   employeeId: string;
