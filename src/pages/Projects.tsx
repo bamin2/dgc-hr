@@ -15,11 +15,13 @@ import {
   TimelineGranularity,
   ProjectFiltersState,
 } from "@/components/projects";
-import { Project, ProjectStatus, mockProjects, projectStatuses } from "@/data/projects";
+import { Project, ProjectStatus, ProjectActivity, mockProjects, projectStatuses } from "@/data/projects";
 import { useToast } from "@/hooks/use-toast";
+import { useRole } from "@/contexts/RoleContext";
 
 export default function Projects() {
   const { toast } = useToast();
+  const { currentUser } = useRole();
   const [projects, setProjects] = useState<Project[]>(mockProjects);
   const [viewMode, setViewMode] = useState<ProjectViewMode>('board');
   const [searchQuery, setSearchQuery] = useState("");
@@ -85,8 +87,29 @@ export default function Projects() {
       
       const oldStatus = project.status;
       
+      // Create status change activity if status changed
+      const newActivities = oldStatus !== newStatus 
+        ? [
+            ...project.activities,
+            {
+              id: `${projectId}-act-${Date.now()}`,
+              projectId,
+              type: 'status_change' as const,
+              userId: currentUser.id,
+              oldStatus,
+              newStatus,
+              timestamp: new Date(),
+            },
+          ]
+        : project.activities;
+      
       // Update project status
-      const updatedProject = { ...project, status: newStatus, updatedAt: new Date() };
+      const updatedProject = { 
+        ...project, 
+        status: newStatus, 
+        activities: newActivities,
+        updatedAt: new Date() 
+      };
       
       // Remove from old position
       let newProjects = prevProjects.filter(p => p.id !== projectId);
@@ -114,6 +137,37 @@ export default function Projects() {
       
       return result;
     });
+  };
+
+  const handleAddComment = (projectId: string, comment: string) => {
+    const newActivity: ProjectActivity = {
+      id: `${projectId}-act-${Date.now()}`,
+      projectId,
+      type: 'comment',
+      userId: currentUser.id,
+      comment,
+      timestamp: new Date(),
+    };
+
+    setProjects(prevProjects => 
+      prevProjects.map(project => {
+        if (project.id !== projectId) return project;
+        
+        const updatedProject = {
+          ...project,
+          activities: [...project.activities, newActivity],
+          commentsCount: project.commentsCount + 1,
+          updatedAt: new Date(),
+        };
+        
+        // Update selected project immediately
+        if (selectedProject?.id === projectId) {
+          setSelectedProject(updatedProject);
+        }
+        
+        return updatedProject;
+      })
+    );
   };
 
   return (
@@ -187,6 +241,7 @@ export default function Projects() {
         project={selectedProject}
         open={detailSheetOpen}
         onOpenChange={setDetailSheetOpen}
+        onAddComment={handleAddComment}
       />
     </div>
   );
