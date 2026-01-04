@@ -52,3 +52,34 @@ export function buildOrgTree(employees: Employee[]): OrgEmployee | null {
 
   return buildNode(root);
 }
+
+/**
+ * Get all descendant IDs for an employee (for drop validation)
+ */
+export function getAllDescendantIds(
+  employees: Employee[],
+  employeeId: string
+): string[] {
+  const descendants: string[] = [];
+  const directReports = getDirectReports(employees, employeeId);
+
+  for (const report of directReports) {
+    descendants.push(report.id);
+    descendants.push(...getAllDescendantIds(employees, report.id));
+  }
+
+  return descendants;
+}
+
+/**
+ * Check if moving employee to target would create a circular reference
+ */
+export function wouldCreateCircularReference(
+  employees: Employee[],
+  employeeId: string,
+  targetManagerId: string
+): boolean {
+  if (employeeId === targetManagerId) return true;
+  const descendants = getAllDescendantIds(employees, employeeId);
+  return descendants.includes(targetManagerId);
+}
