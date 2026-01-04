@@ -4,6 +4,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { NotificationItem } from "./NotificationItem";
+import { Link } from "react-router-dom";
 import type { Notification } from "@/data/notifications";
 
 interface NotificationPanelProps {
@@ -73,6 +74,16 @@ export function NotificationPanel({
           />
         </TabsContent>
       </Tabs>
+
+      {/* Footer */}
+      <div className="border-t border-border px-4 py-3">
+        <Link 
+          to="/notifications" 
+          className="text-sm text-primary hover:underline flex items-center justify-center"
+        >
+          View all notifications
+        </Link>
+      </div>
     </div>
   );
 }

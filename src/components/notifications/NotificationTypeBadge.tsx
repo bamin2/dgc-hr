@@ -4,6 +4,7 @@ import type { Notification } from "@/data/notifications";
 
 interface NotificationTypeBadgeProps {
   type: Notification["type"];
+  size?: "sm" | "md" | "lg";
   className?: string;
 }
 
@@ -40,19 +41,27 @@ const typeConfig = {
   }
 };
 
-export function NotificationTypeBadge({ type, className }: NotificationTypeBadgeProps) {
+const sizeConfig = {
+  sm: { wrapper: "w-7 h-7", icon: "w-3.5 h-3.5" },
+  md: { wrapper: "w-9 h-9", icon: "w-4 h-4" },
+  lg: { wrapper: "w-10 h-10", icon: "w-5 h-5" }
+};
+
+export function NotificationTypeBadge({ type, size = "md", className }: NotificationTypeBadgeProps) {
   const config = typeConfig[type];
+  const sizes = sizeConfig[size];
   const Icon = config.icon;
 
   return (
     <div
       className={cn(
-        "flex items-center justify-center w-9 h-9 rounded-full shrink-0",
+        "flex items-center justify-center rounded-full shrink-0",
+        sizes.wrapper,
         config.bgColor,
         className
       )}
     >
-      <Icon className={cn("w-4 h-4", config.iconColor)} />
+      <Icon className={cn(sizes.icon, config.iconColor)} />
     </div>
   );
 }
