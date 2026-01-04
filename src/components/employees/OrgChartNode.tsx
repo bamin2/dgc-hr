@@ -39,9 +39,21 @@ export function OrgChartNode({ employee, onView, onEdit }: OrgChartNodeProps) {
     });
   };
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Prevent navigation when clicking on interactive elements
+    const target = e.target as HTMLElement;
+    if (target.closest('button') || target.closest('[role="menu"]')) {
+      return;
+    }
+    onView?.(employee);
+  };
+
   return (
     <div className="relative flex flex-col items-center">
-      <div className="relative bg-card border border-dashed border-border rounded-lg p-4 w-[200px] text-center shadow-sm">
+      <div 
+        onClick={handleCardClick}
+        className="relative bg-card border border-dashed border-border rounded-lg p-4 w-[200px] text-center shadow-sm cursor-pointer hover:border-primary/50 hover:shadow-md transition-all"
+      >
         {/* More Options Menu */}
         <div className="absolute top-2 right-2">
           <DropdownMenu>
