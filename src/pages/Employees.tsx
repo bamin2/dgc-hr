@@ -9,6 +9,7 @@ import {
   EmployeeCard,
   EmployeeForm,
   TablePagination,
+  OrgChart,
 } from "@/components/employees";
 import { mockEmployees, Employee } from "@/data/employees";
 import { toast } from "@/hooks/use-toast";
@@ -234,15 +235,20 @@ export default function Employees() {
           )}
 
           {activeTab === 'org-chart' && (
-            <div className="flex items-center justify-center py-24">
-              <div className="text-center">
-                <Building2 className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-foreground mb-2">ORG Chart Coming Soon</h3>
-                <p className="text-muted-foreground max-w-md">
-                  Visualize your organization's structure with an interactive org chart.
-                </p>
-              </div>
-            </div>
+            <OrgChart
+              onView={(employee) => {
+                toast({
+                  title: "View Profile",
+                  description: `Viewing ${employee.name}'s profile`,
+                });
+              }}
+              onEdit={(employee) => {
+                toast({
+                  title: "Edit Employee",
+                  description: `Editing ${employee.name}`,
+                });
+              }}
+            />
           )}
 
           {activeTab === 'onboarding' && (
