@@ -12,6 +12,10 @@ import Payslip from "./pages/Payslip";
 import Attendance from "./pages/Attendance";
 import LeaveRequest from "./pages/LeaveRequest";
 import LeaveDetail from "./pages/LeaveDetail";
+import Benefits from "./pages/Benefits";
+import BenefitDetail from "./pages/BenefitDetail";
+import BenefitEnrollment from "./pages/BenefitEnrollment";
+import ClaimSubmission from "./pages/ClaimSubmission";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +36,10 @@ const App = () => (
           <Route path="/attendance" element={<Attendance />} />
           <Route path="/attendance/leave/request" element={<LeaveRequest />} />
           <Route path="/attendance/leave/:id" element={<LeaveDetail />} />
+          <Route path="/benefits" element={<Benefits />} />
+          <Route path="/benefits/plans/:id" element={<BenefitDetail />} />
+          <Route path="/benefits/enroll" element={<BenefitEnrollment />} />
+          <Route path="/benefits/claims/new" element={<ClaimSubmission />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
