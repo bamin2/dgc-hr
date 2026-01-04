@@ -1,3 +1,4 @@
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -5,15 +6,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface TablePaginationProps {
   currentPage: number;
@@ -39,20 +33,17 @@ export function TablePagination({
   const getPageNumbers = () => {
     const pages: (number | 'ellipsis')[] = [];
     
-    if (totalPages <= 7) {
-      // Show all pages if 7 or fewer
+    if (totalPages <= 5) {
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
       }
     } else {
-      // Always show first page
       pages.push(1);
       
       if (currentPage > 3) {
         pages.push('ellipsis');
       }
       
-      // Show pages around current
       const start = Math.max(2, currentPage - 1);
       const end = Math.min(totalPages - 1, currentPage + 1);
       
@@ -64,7 +55,6 @@ export function TablePagination({
         pages.push('ellipsis');
       }
       
-      // Always show last page
       if (totalPages > 1) {
         pages.push(totalPages);
       }
@@ -76,66 +66,74 @@ export function TablePagination({
   if (totalItems === 0) return null;
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4 px-2">
-      {/* Entries per page selector */}
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <span>Show</span>
-        <Select
-          value={String(entriesPerPage)}
-          onValueChange={(value) => onEntriesPerPageChange(Number(value))}
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4">
+      {/* Page controls on left */}
+      <div className="flex items-center gap-1">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
         >
-          <SelectTrigger className="w-[70px] h-8">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="5">5</SelectItem>
-            <SelectItem value="10">10</SelectItem>
-            <SelectItem value="25">25</SelectItem>
-            <SelectItem value="50">50</SelectItem>
-          </SelectContent>
-        </Select>
-        <span>entries</span>
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        
+        {getPageNumbers().map((page, index) => (
+          page === 'ellipsis' ? (
+            <span key={`ellipsis-${index}`} className="px-2 text-muted-foreground">...</span>
+          ) : (
+            <Button
+              key={page}
+              variant={currentPage === page ? "default" : "ghost"}
+              size="icon"
+              className={cn(
+                "h-8 w-8 text-sm",
+                currentPage === page && "bg-primary text-primary-foreground"
+              )}
+              onClick={() => onPageChange(page)}
+            >
+              {page}
+            </Button>
+          )
+        ))}
+        
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => currentPage < totalPages && onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
       </div>
 
-      {/* Pagination info */}
-      <p className="text-sm text-muted-foreground">
-        Showing {startIndex}-{endIndex} of {totalItems} employees
-      </p>
-
-      {/* Page controls */}
-      <Pagination>
-        <PaginationContent>
-          <PaginationItem>
-            <PaginationPrevious
-              onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
-              className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-            />
-          </PaginationItem>
-          
-          {getPageNumbers().map((page, index) => (
-            <PaginationItem key={index}>
-              {page === 'ellipsis' ? (
-                <PaginationEllipsis />
-              ) : (
-                <PaginationLink
-                  onClick={() => onPageChange(page)}
-                  isActive={currentPage === page}
-                  className="cursor-pointer"
-                >
-                  {page}
-                </PaginationLink>
-              )}
-            </PaginationItem>
-          ))}
-          
-          <PaginationItem>
-            <PaginationNext
-              onClick={() => currentPage < totalPages && onPageChange(currentPage + 1)}
-              className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-            />
-          </PaginationItem>
-        </PaginationContent>
-      </Pagination>
+      {/* Info and entries selector on right */}
+      <div className="flex items-center gap-4">
+        <p className="text-sm text-muted-foreground">
+          Showing {startIndex} to {endIndex} of {totalItems} entries
+        </p>
+        
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Show</span>
+          <Select
+            value={String(entriesPerPage)}
+            onValueChange={(value) => onEntriesPerPageChange(Number(value))}
+          >
+            <SelectTrigger className="w-[70px] h-8 bg-background">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="5">5</SelectItem>
+              <SelectItem value="8">8</SelectItem>
+              <SelectItem value="10">10</SelectItem>
+              <SelectItem value="25">25</SelectItem>
+              <SelectItem value="50">50</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
     </div>
   );
 }

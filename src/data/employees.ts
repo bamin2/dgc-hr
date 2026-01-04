@@ -7,7 +7,7 @@ export interface Employee {
   avatar: string;
   department: string;
   position: string;
-  status: 'active' | 'on_leave' | 'inactive';
+  status: 'active' | 'on_leave' | 'on_boarding' | 'probation';
   joinDate: string;
   employeeId: string;
   manager?: string;
@@ -94,7 +94,7 @@ export const mockEmployees: Employee[] = [
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
     department: 'Marketing',
     position: 'Marketing Specialist',
-    status: 'active',
+    status: 'on_boarding',
     joinDate: '2023-02-01',
     employeeId: 'EMP004',
     manager: 'Amanda Foster',
@@ -131,7 +131,7 @@ export const mockEmployees: Employee[] = [
     avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
     department: 'Finance',
     position: 'Financial Analyst',
-    status: 'inactive',
+    status: 'probation',
     joinDate: '2021-11-15',
     employeeId: 'EMP006',
     manager: 'Patricia Miller',
@@ -168,7 +168,7 @@ export const mockEmployees: Employee[] = [
     avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&h=150&fit=crop&crop=face',
     department: 'Engineering',
     position: 'Backend Developer',
-    status: 'active',
+    status: 'probation',
     joinDate: '2022-08-10',
     employeeId: 'EMP008',
     manager: 'Michael Chen',
@@ -205,7 +205,7 @@ export const mockEmployees: Employee[] = [
     avatar: 'https://images.unsplash.com/photo-1519345182560-3f2917c472ef?w=150&h=150&fit=crop&crop=face',
     department: 'Sales',
     position: 'Sales Representative',
-    status: 'on_leave',
+    status: 'on_boarding',
     joinDate: '2023-01-15',
     employeeId: 'EMP010',
     manager: 'Patricia Miller',
@@ -224,6 +224,12 @@ export const departments = [
   'Finance',
   'Human Resources',
   'Sales'
+];
+
+export const entities = [
+  'Franfer Inc.',
+  'Franfer EU',
+  'Franfer Asia'
 ];
 
 export const positions = [
