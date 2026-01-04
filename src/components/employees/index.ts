@@ -7,3 +7,7 @@ export { EmployeeForm } from "./EmployeeForm";
 export { TablePagination } from "./TablePagination";
 export { RoleBadge } from "./RoleBadge";
 export { RoleSelector, RoleSelectorWithDescription } from "./RoleSelector";
+export { OrgChart } from "./OrgChart";
+export { OrgChartNode } from "./OrgChartNode";
+export { OrgChartTree } from "./OrgChartTree";
+export { OrgChartControls } from "./OrgChartControls";
