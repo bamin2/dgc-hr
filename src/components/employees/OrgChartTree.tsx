@@ -20,22 +20,29 @@ export function OrgChartTree({ employee, onView, onEdit }: OrgChartTreeProps) {
           {/* Vertical line down from parent */}
           <div className="w-px h-8 bg-border" />
 
-          {/* Horizontal connector bar */}
-          {employee.children!.length > 1 && (
-            <div
-              className="h-px bg-border"
-              style={{
-                width: `${(employee.children!.length - 1) * 240}px`,
-              }}
-            />
-          )}
-
-          {/* Children row */}
-          <div className="flex gap-10">
+          {/* Children with connectors */}
+          <div className="flex">
             {employee.children!.map((child, index) => (
               <div key={child.id} className="flex flex-col items-center">
-                {/* Vertical line down to child */}
-                <div className="w-px h-8 bg-border" />
+                {/* Horizontal + vertical connector */}
+                <div className="flex w-full h-8">
+                  {/* Left horizontal segment */}
+                  <div
+                    className={`h-px flex-1 ${
+                      index === 0 ? "bg-transparent" : "bg-border"
+                    }`}
+                  />
+                  {/* Vertical drop */}
+                  <div className="w-px h-full bg-border" />
+                  {/* Right horizontal segment */}
+                  <div
+                    className={`h-px flex-1 ${
+                      index === employee.children!.length - 1
+                        ? "bg-transparent"
+                        : "bg-border"
+                    }`}
+                  />
+                </div>
                 {/* Recursive child tree */}
                 <OrgChartTree employee={child} onView={onView} onEdit={onEdit} />
               </div>
