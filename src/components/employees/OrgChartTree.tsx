@@ -60,14 +60,14 @@ export function OrgChartTree({
           <div className="w-px h-8 bg-border" />
 
           {/* Children with connectors */}
-          <div className="flex">
+          <div className="flex gap-6">
             {employee.children!.map((child, index) => (
               <div key={child.id} className="flex flex-col items-center">
                 {/* Horizontal + vertical connector */}
-                <div className="flex w-full h-8">
+                <div className="flex items-start w-full h-8">
                   {/* Left horizontal segment */}
                   <div
-                    className={`h-px flex-1 ${
+                    className={`h-px flex-1 min-w-[12px] ${
                       index === 0 ? "bg-transparent" : "bg-border"
                     }`}
                   />
@@ -75,7 +75,7 @@ export function OrgChartTree({
                   <div className="w-px h-full bg-border" />
                   {/* Right horizontal segment */}
                   <div
-                    className={`h-px flex-1 ${
+                    className={`h-px flex-1 min-w-[12px] ${
                       index === employee.children!.length - 1
                         ? "bg-transparent"
                         : "bg-border"
