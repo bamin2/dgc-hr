@@ -26,24 +26,40 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { StatusBadge, EmployeeForm, RoleBadge, RoleSelectorWithDescription, CreateLoginDialog } from "@/components/employees";
-import { mockEmployees, Employee } from "@/data/employees";
+import { useEmployee, useUpdateEmployee, Employee } from "@/hooks/useEmployees";
 import { AppRole, roleDescriptions } from "@/data/roles";
 import { useRole } from "@/contexts/RoleContext";
 import { format } from "date-fns";
 import { toast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function EmployeeProfile() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { getEmployeeRole, updateEmployeeRole, canManageRoles } = useRole();
-  const [employee, setEmployee] = useState<Employee | undefined>(
-    mockEmployees.find(e => e.id === id)
-  );
+  const { data: employee, isLoading, error } = useEmployee(id);
+  const updateEmployee = useUpdateEmployee();
   const [formOpen, setFormOpen] = useState(false);
   const [createLoginOpen, setCreateLoginOpen] = useState(false);
   const employeeRole = id ? getEmployeeRole(id) : 'employee';
 
-  if (!employee) {
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen bg-background">
+        <Sidebar />
+        <div className="flex-1 flex flex-col">
+          <Header />
+          <main className="flex-1 p-6">
+            <Skeleton className="h-8 w-40 mb-4" />
+            <Skeleton className="h-48 w-full mb-6" />
+            <Skeleton className="h-96 w-full" />
+          </main>
+        </div>
+      </div>
+    );
+  }
+
+  if (!employee || error) {
     return (
       <div className="flex min-h-screen bg-background">
         <Sidebar />
@@ -65,10 +81,40 @@ export default function EmployeeProfile() {
   const initials = `${employee.firstName[0]}${employee.lastName[0]}`;
 
   const handleSave = (data: Partial<Employee>) => {
-    setEmployee(prev => prev ? { ...prev, ...data } : prev);
-    toast({
-      title: "Profile updated",
-      description: "Employee information has been saved.",
+    updateEmployee.mutate({
+      id: employee.id,
+      first_name: data.firstName,
+      last_name: data.lastName,
+      email: data.email,
+      phone: data.phone,
+      department_id: data.departmentId,
+      position_id: data.positionId,
+      status: data.status,
+      join_date: data.joinDate,
+      manager_id: data.managerId,
+      location: data.location,
+      salary: data.salary,
+      address: data.address,
+      date_of_birth: data.dateOfBirth,
+      gender: data.gender as "male" | "female" | "other" | "prefer_not_to_say" | null,
+      nationality: data.nationality,
+      emergency_contact_name: data.emergencyContact?.name,
+      emergency_contact_phone: data.emergencyContact?.phone,
+      emergency_contact_relationship: data.emergencyContact?.relationship,
+    }, {
+      onSuccess: () => {
+        toast({
+          title: "Profile updated",
+          description: "Employee information has been saved.",
+        });
+      },
+      onError: (err) => {
+        toast({
+          title: "Error",
+          description: "Failed to update employee profile.",
+          variant: "destructive",
+        });
+      },
     });
   };
 
