@@ -7,3 +7,8 @@ export { LeaveChart } from './LeaveChart';
 export { ReportsTable } from './ReportsTable';
 export { ReportsFilters } from './ReportsFilters';
 export { ExportButton } from './ExportButton';
+export { SalaryMetricsCards } from './SalaryMetricsCards';
+export { SalaryDistributionChart } from './SalaryDistributionChart';
+export { SalaryTrendChart } from './SalaryTrendChart';
+export { DepartmentSalaryTable } from './DepartmentSalaryTable';
+export { SalaryChangeTypeChart } from './SalaryChangeTypeChart';
