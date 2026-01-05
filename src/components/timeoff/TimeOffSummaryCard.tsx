@@ -1,7 +1,9 @@
 import { Check, Clock, Calendar, Briefcase, Flag, ChevronRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { mockTimeOffBalance } from "@/data/timeoff";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useMyLeaveBalances } from "@/hooks/useLeaveBalances";
+import { useLeaveRequests } from "@/hooks/useLeaveRequests";
 
 interface SummaryItemProps {
   icon: React.ReactNode;
@@ -33,6 +35,38 @@ function SummaryItem({ icon, bgColor, days, label, sublabel, link }: SummaryItem
 }
 
 export function TimeOffSummaryCard() {
+  const { data: balances, isLoading: balancesLoading } = useMyLeaveBalances();
+  const { data: leaveRequests, isLoading: requestsLoading } = useLeaveRequests();
+
+  const isLoading = balancesLoading || requestsLoading;
+
+  // Calculate summary from balances
+  const totalAvailable = balances?.reduce((sum, b) => sum + b.total_days - b.used_days - b.pending_days, 0) || 0;
+  const totalPending = balances?.reduce((sum, b) => sum + b.pending_days, 0) || 0;
+  const totalUsed = balances?.reduce((sum, b) => sum + b.used_days, 0) || 0;
+  const totalDays = balances?.reduce((sum, b) => sum + b.total_days, 0) || 0;
+
+  // Count approved upcoming leave (booked)
+  const bookedDays = leaveRequests
+    ?.filter(r => r.status === 'approved' && new Date(r.start_date) >= new Date())
+    .reduce((sum, r) => sum + r.days_count, 0) || 0;
+
+  if (isLoading) {
+    return (
+      <Card className="w-full max-w-md">
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <Skeleton className="h-6 w-40" />
+          <Skeleton className="h-8 w-24" />
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <Skeleton key={i} className="h-16 w-full rounded-xl" />
+          ))}
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -43,35 +77,35 @@ export function TimeOffSummaryCard() {
         <SummaryItem
           icon={<Check className="w-5 h-5" />}
           bgColor="bg-primary"
-          days={mockTimeOffBalance.availableDays}
+          days={totalAvailable}
           label="paid time off"
           sublabel="Available to book"
         />
         <SummaryItem
           icon={<Clock className="w-5 h-5" />}
           bgColor="bg-blue-500"
-          days={mockTimeOffBalance.pendingDays}
+          days={totalPending}
           label="pending approval"
           sublabel="Awaiting manager approval"
         />
         <SummaryItem
           icon={<Calendar className="w-5 h-5" />}
           bgColor="bg-orange-500"
-          days={mockTimeOffBalance.bookedDays}
+          days={bookedDays}
           label="booked"
-          sublabel={`${mockTimeOffBalance.usedDays}d used`}
+          sublabel={`${totalUsed}d used`}
         />
         <SummaryItem
           icon={<Briefcase className="w-5 h-5" />}
           bgColor="bg-teal-500"
-          days={mockTimeOffBalance.contractDays}
+          days={totalDays}
           label="per year"
-          sublabel="In the contract"
+          sublabel="Total allowance"
         />
         <SummaryItem
           icon={<Flag className="w-5 h-5" />}
           bgColor="bg-rose-400"
-          days={mockTimeOffBalance.nationalHolidays}
+          days={0}
           label="national holidays"
           sublabel="See holiday list"
           link="#"

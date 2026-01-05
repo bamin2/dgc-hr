@@ -24,8 +24,12 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { timeOffTypeLabels, TimeOffType } from "@/data/timeoff";
+import { useLeaveTypes } from "@/hooks/useLeaveTypes";
+import { useCreateLeaveRequest } from "@/hooks/useLeaveRequests";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface RequestTimeOffDialogProps {
   open: boolean;
@@ -33,24 +37,80 @@ interface RequestTimeOffDialogProps {
 }
 
 export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialogProps) {
-  const [timeOffType, setTimeOffType] = useState<TimeOffType>("paid_time_off");
+  const [leaveTypeId, setLeaveTypeId] = useState<string>("");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [note, setNote] = useState("");
-  const [files, setFiles] = useState<File[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { data: leaveTypes, isLoading: typesLoading } = useLeaveTypes();
+  const createRequest = useCreateLeaveRequest();
 
   // Reset form when dialog closes
   useEffect(() => {
     if (!open) {
-      setTimeOffType("paid_time_off");
+      setLeaveTypeId("");
       setDateRange(undefined);
       setNote("");
-      setFiles([]);
     }
   }, [open]);
 
-  const handleSubmit = () => {
-    console.log({ timeOffType, dateRange, note, files });
-    onOpenChange(false);
+  // Set default leave type when types are loaded
+  useEffect(() => {
+    if (leaveTypes && leaveTypes.length > 0 && !leaveTypeId) {
+      setLeaveTypeId(leaveTypes[0].id);
+    }
+  }, [leaveTypes, leaveTypeId]);
+
+  const handleSubmit = async () => {
+    if (!dateRange?.from || !leaveTypeId) {
+      toast.error("Please select a leave type and dates");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Get the current user's employee_id
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("You must be logged in to request time off");
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('employee_id')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile?.employee_id) {
+        toast.error("Your profile is not linked to an employee record");
+        return;
+      }
+
+      const startDate = format(dateRange.from, 'yyyy-MM-dd');
+      const endDate = dateRange.to 
+        ? format(dateRange.to, 'yyyy-MM-dd') 
+        : startDate;
+      const daysCount = dateRange.to 
+        ? differenceInCalendarDays(dateRange.to, dateRange.from) + 1 
+        : 1;
+
+      await createRequest.mutateAsync({
+        employee_id: profile.employee_id,
+        leave_type_id: leaveTypeId,
+        start_date: startDate,
+        end_date: endDate,
+        days_count: daysCount,
+        reason: note || undefined,
+      });
+
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Failed to submit leave request:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const clearDates = (e: React.MouseEvent) => {
@@ -64,6 +124,8 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
       : 1
     : 0;
 
+  const selectedLeaveType = leaveTypes?.find(t => t.id === leaveTypeId);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
@@ -75,20 +137,32 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
           {/* Time off type */}
           <div className="space-y-2">
             <Label>Time off type</Label>
-            <Select value={timeOffType} onValueChange={(v) => setTimeOffType(v as TimeOffType)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(timeOffTypeLabels).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {typesLoading ? (
+              <Skeleton className="h-10 w-full" />
+            ) : (
+              <Select value={leaveTypeId} onValueChange={setLeaveTypeId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select leave type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {leaveTypes?.map((type) => (
+                    <SelectItem key={type.id} value={type.id}>
+                      <div className="flex items-center gap-2">
+                        {type.color && (
+                          <div 
+                            className="w-2 h-2 rounded-full" 
+                            style={{ backgroundColor: type.color }}
+                          />
+                        )}
+                        {type.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
             <p className="text-sm text-muted-foreground">
-              Select the option that best describes your time off request.
+              {selectedLeaveType?.description || "Select the option that best describes your time off request."}
             </p>
           </div>
 
@@ -127,7 +201,7 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
+                <Calendar
                   mode="range"
                   selected={dateRange}
                   onSelect={setDateRange}
@@ -149,7 +223,7 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
           <div className="space-y-2">
             <Label>Note</Label>
             <Textarea
-              placeholder="Automatic public holiday."
+              placeholder="Add a note for the approver..."
               value={note}
               onChange={(e) => setNote(e.target.value)}
               className="min-h-[80px]"
@@ -159,7 +233,7 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
             </p>
           </div>
 
-          {/* File Upload */}
+          {/* File Upload - placeholder for future */}
           <div className="space-y-2">
             <div className="border-2 border-dashed border-primary/30 rounded-lg p-6 text-center">
               <div className="w-12 h-12 rounded-full bg-muted mx-auto mb-3 flex items-center justify-center">
@@ -169,7 +243,7 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
               <p className="text-sm text-muted-foreground mb-3">
                 Maximum file size allowed is 20MB
               </p>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" disabled>
                 <Upload className="w-4 h-4 mr-2" />
                 Upload your files
               </Button>
@@ -195,11 +269,16 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
               variant="outline"
               className="flex-1"
               onClick={() => onOpenChange(false)}
+              disabled={isSubmitting}
             >
               Cancel
             </Button>
-            <Button className="flex-1" onClick={handleSubmit}>
-              Request time off
+            <Button 
+              className="flex-1" 
+              onClick={handleSubmit}
+              disabled={isSubmitting || !dateRange?.from || !leaveTypeId}
+            >
+              {isSubmitting ? "Submitting..." : "Request time off"}
             </Button>
           </div>
         </div>

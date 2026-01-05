@@ -2,7 +2,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 interface AttendanceStatusBadgeProps {
-  status: 'present' | 'absent' | 'late' | 'on_leave' | 'half_day';
+  status: 'present' | 'absent' | 'late' | 'on_leave' | 'half_day' | 'remote';
 }
 
 const statusConfig = {
@@ -25,6 +25,10 @@ const statusConfig = {
   half_day: {
     label: 'Half Day',
     className: 'bg-purple-100 text-purple-700 border-purple-200',
+  },
+  remote: {
+    label: 'Remote',
+    className: 'bg-cyan-100 text-cyan-700 border-cyan-200',
   },
 };
 
