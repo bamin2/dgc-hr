@@ -2,10 +2,10 @@ import { formatDistanceToNow } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { NotificationTypeBadge } from "./NotificationTypeBadge";
-import type { Notification } from "@/data/notifications";
+import type { NotificationDisplay } from "@/hooks/useNotifications";
 
 interface NotificationItemProps {
-  notification: Notification;
+  notification: NotificationDisplay;
   onMarkAsRead: (id: string) => void;
 }
 

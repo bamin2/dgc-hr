@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { NotificationItem } from "./NotificationItem";
 import { Link } from "react-router-dom";
-import type { Notification } from "@/data/notifications";
+import type { NotificationDisplay } from "@/hooks/useNotifications";
 
 interface NotificationPanelProps {
-  notifications: Notification[];
+  notifications: NotificationDisplay[];
   onMarkAsRead: (id: string) => void;
   onMarkAllAsRead: () => void;
 }
@@ -89,7 +89,7 @@ export function NotificationPanel({
 }
 
 interface NotificationListProps {
-  notifications: Notification[];
+  notifications: NotificationDisplay[];
   onMarkAsRead: (id: string) => void;
   emptyMessage?: string;
 }
