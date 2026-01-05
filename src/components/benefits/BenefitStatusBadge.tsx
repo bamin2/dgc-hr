@@ -1,12 +1,13 @@
 import { cn } from '@/lib/utils';
-import type { BenefitStatus, EnrollmentStatus } from '@/data/benefits';
+import type { BenefitStatus } from '@/hooks/useBenefitPlans';
+import type { EnrollmentStatus } from '@/hooks/useBenefitEnrollments';
 
 interface BenefitStatusBadgeProps {
   status: BenefitStatus | EnrollmentStatus;
   className?: string;
 }
 
-const statusConfig: Record<BenefitStatus | EnrollmentStatus, { label: string; className: string }> = {
+const statusConfig: Record<string, { label: string; className: string }> = {
   active: {
     label: 'Active',
     className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
@@ -22,11 +23,15 @@ const statusConfig: Record<BenefitStatus | EnrollmentStatus, { label: string; cl
   cancelled: {
     label: 'Cancelled',
     className: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+  },
+  expired: {
+    label: 'Expired',
+    className: 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
   }
 };
 
 export const BenefitStatusBadge = ({ status, className }: BenefitStatusBadgeProps) => {
-  const config = statusConfig[status];
+  const config = statusConfig[status] || statusConfig.pending;
 
   return (
     <span

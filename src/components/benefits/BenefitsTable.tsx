@@ -4,7 +4,7 @@ import { BenefitTypeBadge } from './BenefitTypeBadge';
 import { BenefitStatusBadge } from './BenefitStatusBadge';
 import { Eye, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import type { BenefitPlan } from '@/data/benefits';
+import type { BenefitPlan } from '@/hooks/useBenefitPlans';
 
 interface BenefitsTableProps {
   plans: BenefitPlan[];
@@ -12,6 +12,14 @@ interface BenefitsTableProps {
 
 export const BenefitsTable = ({ plans }: BenefitsTableProps) => {
   const navigate = useNavigate();
+
+  if (plans.length === 0) {
+    return (
+      <div className="border rounded-lg p-8 text-center text-muted-foreground">
+        No benefit plans found. Create a plan to get started.
+      </div>
+    );
+  }
 
   return (
     <div className="border rounded-lg overflow-hidden">
@@ -29,8 +37,10 @@ export const BenefitsTable = ({ plans }: BenefitsTableProps) => {
         </TableHeader>
         <TableBody>
           {plans.map((plan) => {
-            const minCost = Math.min(...plan.coverageLevels.map(c => c.employeeCost));
-            const maxCost = Math.max(...plan.coverageLevels.map(c => c.employeeCost));
+            const coverageLevels = plan.coverage_levels || [];
+            const costs = coverageLevels.map(c => c.employee_cost);
+            const minCost = costs.length > 0 ? Math.min(...costs) : 0;
+            const maxCost = costs.length > 0 ? Math.max(...costs) : 0;
             
             return (
               <TableRow key={plan.id} className="hover:bg-muted/30">
@@ -42,7 +52,7 @@ export const BenefitsTable = ({ plans }: BenefitsTableProps) => {
                 <TableCell className="text-center">
                   <div className="flex items-center justify-center gap-1.5">
                     <Users className="h-4 w-4 text-muted-foreground" />
-                    <span>{plan.enrolledCount}</span>
+                    <span>{plan.enrolled_count}</span>
                   </div>
                 </TableCell>
                 <TableCell>

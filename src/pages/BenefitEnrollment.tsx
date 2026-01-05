@@ -3,25 +3,44 @@ import { Sidebar } from '@/components/dashboard/Sidebar';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { EnrollmentForm } from '@/components/benefits';
+import { useCreateBenefitEnrollment } from '@/hooks/useBenefitEnrollments';
 import { useToast } from '@/hooks/use-toast';
+import { format } from 'date-fns';
 
 const BenefitEnrollment = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const createEnrollment = useCreateBenefitEnrollment();
 
-  const handleSubmit = (data: {
+  const handleSubmit = async (data: {
     employeeId: string;
     planId: string;
-    coverageLevel: string;
+    coverageLevelId: string;
+    coverageLevel: { employee_cost: number; employer_cost: number };
     startDate: Date;
   }) => {
-    // In a real app, this would submit to an API
-    console.log('Enrollment submitted:', data);
-    toast({
-      title: 'Enrollment Successful',
-      description: 'The employee has been enrolled in the benefit plan.'
-    });
-    navigate('/benefits');
+    try {
+      await createEnrollment.mutateAsync({
+        employee_id: data.employeeId,
+        plan_id: data.planId,
+        coverage_level_id: data.coverageLevelId,
+        start_date: format(data.startDate, 'yyyy-MM-dd'),
+        employee_contribution: data.coverageLevel.employee_cost,
+        employer_contribution: data.coverageLevel.employer_cost,
+      });
+      
+      toast({
+        title: 'Enrollment Successful',
+        description: 'The employee has been enrolled in the benefit plan.'
+      });
+      navigate('/benefits');
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to enroll employee. Please try again.',
+        variant: 'destructive'
+      });
+    }
   };
 
   return (

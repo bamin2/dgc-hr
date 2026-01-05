@@ -100,6 +100,274 @@ export type Database = {
           },
         ]
       }
+      benefit_beneficiaries: {
+        Row: {
+          created_at: string
+          date_of_birth: string | null
+          enrollment_id: string
+          id: string
+          name: string
+          percentage: number | null
+          relationship: string
+        }
+        Insert: {
+          created_at?: string
+          date_of_birth?: string | null
+          enrollment_id: string
+          id?: string
+          name: string
+          percentage?: number | null
+          relationship: string
+        }
+        Update: {
+          created_at?: string
+          date_of_birth?: string | null
+          enrollment_id?: string
+          id?: string
+          name?: string
+          percentage?: number | null
+          relationship?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "benefit_beneficiaries_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "benefit_enrollments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      benefit_claims: {
+        Row: {
+          amount: number
+          approved_amount: number | null
+          claim_date: string
+          claim_number: string
+          created_at: string
+          description: string | null
+          employee_id: string
+          enrollment_id: string
+          id: string
+          plan_id: string
+          provider_name: string | null
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          service_date: string
+          status: Database["public"]["Enums"]["claim_status"]
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          approved_amount?: number | null
+          claim_date: string
+          claim_number: string
+          created_at?: string
+          description?: string | null
+          employee_id: string
+          enrollment_id: string
+          id?: string
+          plan_id: string
+          provider_name?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          service_date: string
+          status?: Database["public"]["Enums"]["claim_status"]
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          approved_amount?: number | null
+          claim_date?: string
+          claim_number?: string
+          created_at?: string
+          description?: string | null
+          employee_id?: string
+          enrollment_id?: string
+          id?: string
+          plan_id?: string
+          provider_name?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          service_date?: string
+          status?: Database["public"]["Enums"]["claim_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "benefit_claims_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "benefit_claims_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "benefit_enrollments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "benefit_claims_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "benefit_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "benefit_claims_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      benefit_coverage_levels: {
+        Row: {
+          coverage_details: Json | null
+          created_at: string
+          employee_cost: number
+          employer_cost: number
+          id: string
+          name: string
+          plan_id: string
+        }
+        Insert: {
+          coverage_details?: Json | null
+          created_at?: string
+          employee_cost?: number
+          employer_cost?: number
+          id?: string
+          name: string
+          plan_id: string
+        }
+        Update: {
+          coverage_details?: Json | null
+          created_at?: string
+          employee_cost?: number
+          employer_cost?: number
+          id?: string
+          name?: string
+          plan_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "benefit_coverage_levels_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "benefit_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      benefit_enrollments: {
+        Row: {
+          coverage_level_id: string
+          created_at: string
+          employee_contribution: number
+          employee_id: string
+          employer_contribution: number
+          end_date: string | null
+          id: string
+          plan_id: string
+          start_date: string
+          status: Database["public"]["Enums"]["enrollment_status"]
+          updated_at: string
+        }
+        Insert: {
+          coverage_level_id: string
+          created_at?: string
+          employee_contribution?: number
+          employee_id: string
+          employer_contribution?: number
+          end_date?: string | null
+          id?: string
+          plan_id: string
+          start_date: string
+          status?: Database["public"]["Enums"]["enrollment_status"]
+          updated_at?: string
+        }
+        Update: {
+          coverage_level_id?: string
+          created_at?: string
+          employee_contribution?: number
+          employee_id?: string
+          employer_contribution?: number
+          end_date?: string | null
+          id?: string
+          plan_id?: string
+          start_date?: string
+          status?: Database["public"]["Enums"]["enrollment_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "benefit_enrollments_coverage_level_id_fkey"
+            columns: ["coverage_level_id"]
+            isOneToOne: false
+            referencedRelation: "benefit_coverage_levels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "benefit_enrollments_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "benefit_enrollments_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "benefit_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      benefit_plans: {
+        Row: {
+          created_at: string
+          description: string | null
+          enrolled_count: number | null
+          features: string[] | null
+          id: string
+          name: string
+          provider: string
+          status: Database["public"]["Enums"]["benefit_status"]
+          type: Database["public"]["Enums"]["benefit_type"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          enrolled_count?: number | null
+          features?: string[] | null
+          id?: string
+          name: string
+          provider: string
+          status?: Database["public"]["Enums"]["benefit_status"]
+          type: Database["public"]["Enums"]["benefit_type"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          enrolled_count?: number | null
+          features?: string[] | null
+          id?: string
+          name?: string
+          provider?: string
+          status?: Database["public"]["Enums"]["benefit_status"]
+          type?: Database["public"]["Enums"]["benefit_type"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       company_settings: {
         Row: {
           address_city: string | null
@@ -1260,12 +1528,24 @@ export type Database = {
         | "comment"
         | "updated"
       app_role: "employee" | "manager" | "hr" | "admin"
+      benefit_status: "active" | "inactive" | "pending"
+      benefit_type:
+        | "health"
+        | "dental"
+        | "vision"
+        | "life"
+        | "disability"
+        | "retirement"
+        | "wellness"
+        | "other"
+      claim_status: "pending" | "approved" | "rejected" | "processing"
       employee_status:
         | "active"
         | "on_leave"
         | "on_boarding"
         | "probation"
         | "terminated"
+      enrollment_status: "active" | "pending" | "cancelled" | "expired"
       gender_type: "male" | "female" | "other" | "prefer_not_to_say"
       project_priority: "low" | "medium" | "high"
       project_status: "todo" | "in_progress" | "need_review" | "done"
@@ -1412,6 +1692,18 @@ export const Constants = {
         "updated",
       ],
       app_role: ["employee", "manager", "hr", "admin"],
+      benefit_status: ["active", "inactive", "pending"],
+      benefit_type: [
+        "health",
+        "dental",
+        "vision",
+        "life",
+        "disability",
+        "retirement",
+        "wellness",
+        "other",
+      ],
+      claim_status: ["pending", "approved", "rejected", "processing"],
       employee_status: [
         "active",
         "on_leave",
@@ -1419,6 +1711,7 @@ export const Constants = {
         "probation",
         "terminated",
       ],
+      enrollment_status: ["active", "pending", "cancelled", "expired"],
       gender_type: ["male", "female", "other", "prefer_not_to_say"],
       project_priority: ["low", "medium", "high"],
       project_status: ["todo", "in_progress", "need_review", "done"],

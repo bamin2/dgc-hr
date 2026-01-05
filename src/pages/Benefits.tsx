@@ -4,7 +4,7 @@ import { Sidebar } from '@/components/dashboard/Sidebar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, FileText } from 'lucide-react';
+import { Plus, FileText, Loader2 } from 'lucide-react';
 import {
   BenefitsMetrics,
   BenefitPlanCard,
@@ -14,15 +14,10 @@ import {
   ClaimsTable,
   BenefitsCostChart
 } from '@/components/benefits';
-import {
-  benefitPlans,
-  benefitEnrollments,
-  benefitClaims,
-  getBenefitsMetrics,
-  type BenefitType,
-  type BenefitStatus,
-  type ClaimStatus
-} from '@/data/benefits';
+import { useBenefitPlans, type BenefitType, type BenefitStatus } from '@/hooks/useBenefitPlans';
+import { useBenefitEnrollments, type EnrollmentStatus } from '@/hooks/useBenefitEnrollments';
+import { useBenefitClaims, useApproveBenefitClaim, useRejectBenefitClaim, type ClaimStatus } from '@/hooks/useBenefitClaims';
+import { useBenefitsMetrics } from '@/hooks/useBenefitsMetrics';
 import { useToast } from '@/hooks/use-toast';
 
 const Benefits = () => {
@@ -36,10 +31,18 @@ const Benefits = () => {
   const [statusFilter, setStatusFilter] = useState<BenefitStatus | 'all'>('all');
   const [claimStatusFilter, setClaimStatusFilter] = useState<ClaimStatus | 'all'>('all');
 
-  const metrics = getBenefitsMetrics();
+  // Data fetching
+  const { data: plans = [], isLoading: plansLoading } = useBenefitPlans();
+  const { data: enrollments = [], isLoading: enrollmentsLoading } = useBenefitEnrollments();
+  const { data: claims = [], isLoading: claimsLoading } = useBenefitClaims();
+  const { data: metrics, isLoading: metricsLoading } = useBenefitsMetrics();
+
+  // Mutations
+  const approveClaim = useApproveBenefitClaim();
+  const rejectClaim = useRejectBenefitClaim();
 
   // Filter plans
-  const filteredPlans = benefitPlans.filter(plan => {
+  const filteredPlans = plans.filter(plan => {
     const matchesSearch = plan.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       plan.provider.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesType = typeFilter === 'all' || plan.type === typeFilter;
@@ -48,38 +51,92 @@ const Benefits = () => {
   });
 
   // Filter enrollments
-  const filteredEnrollments = benefitEnrollments.filter(enrollment => {
-    const employeeName = `${enrollment.employee.firstName} ${enrollment.employee.lastName}`;
+  const filteredEnrollments = enrollments.filter(enrollment => {
+    const employeeName = enrollment.employee 
+      ? `${enrollment.employee.first_name} ${enrollment.employee.last_name}` 
+      : '';
+    const planName = enrollment.plan?.name || '';
     const matchesSearch = employeeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      enrollment.plan.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesType = typeFilter === 'all' || enrollment.plan.type === typeFilter;
+      planName.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesType = typeFilter === 'all' || enrollment.plan?.type === typeFilter;
     return matchesSearch && matchesType;
   });
 
   // Filter claims
-  const filteredClaims = benefitClaims.filter(claim => {
-    const employeeName = `${claim.employee.firstName} ${claim.employee.lastName}`;
+  const filteredClaims = claims.filter(claim => {
+    const employeeName = claim.employee 
+      ? `${claim.employee.first_name} ${claim.employee.last_name}` 
+      : '';
+    const description = claim.description || '';
     const matchesSearch = employeeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      claim.claimType.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesType = typeFilter === 'all' || claim.plan.type === typeFilter;
+      description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesType = typeFilter === 'all' || claim.plan?.type === typeFilter;
     const matchesStatus = claimStatusFilter === 'all' || claim.status === claimStatusFilter;
     return matchesSearch && matchesType && matchesStatus;
   });
 
-  const handleApproveClaim = (claimId: string) => {
-    toast({
-      title: 'Claim Approved',
-      description: `Claim ${claimId} has been approved successfully.`
-    });
+  // Active enrollments for cost chart
+  const activeEnrollments = enrollments.filter(e => e.status === 'active');
+
+  // Pending claims for overview
+  const pendingClaims = claims.filter(c => c.status === 'pending').slice(0, 3);
+
+  const handleApproveClaim = async (claimId: string) => {
+    const claim = claims.find(c => c.id === claimId);
+    if (!claim) return;
+
+    try {
+      await approveClaim.mutateAsync({
+        claimId,
+        approvedAmount: claim.amount,
+        reviewerId: claim.employee_id, // In real app, use current user's employee ID
+      });
+      toast({
+        title: 'Claim Approved',
+        description: `Claim has been approved successfully.`
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to approve claim',
+        variant: 'destructive'
+      });
+    }
   };
 
-  const handleDenyClaim = (claimId: string) => {
-    toast({
-      title: 'Claim Denied',
-      description: `Claim ${claimId} has been denied.`,
-      variant: 'destructive'
-    });
+  const handleDenyClaim = async (claimId: string) => {
+    try {
+      await rejectClaim.mutateAsync({
+        claimId,
+        rejectionReason: 'Claim denied by administrator',
+        reviewerId: claims.find(c => c.id === claimId)?.employee_id || '',
+      });
+      toast({
+        title: 'Claim Denied',
+        description: `Claim has been denied.`,
+        variant: 'destructive'
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to deny claim',
+        variant: 'destructive'
+      });
+    }
   };
+
+  const isLoading = plansLoading || enrollmentsLoading || claimsLoading || metricsLoading;
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen bg-background">
+        <Sidebar />
+        <main className="flex-1 p-6 overflow-auto flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -115,7 +172,7 @@ const Benefits = () => {
 
             {/* Overview Tab */}
             <TabsContent value="overview" className="space-y-6 mt-6">
-              <BenefitsMetrics metrics={metrics} />
+              {metrics && <BenefitsMetrics metrics={metrics} />}
               
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2">
@@ -128,16 +185,21 @@ const Benefits = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {benefitPlans.slice(0, 4).map(plan => (
+                        {plans.slice(0, 4).map(plan => (
                           <BenefitPlanCard key={plan.id} plan={plan} />
                         ))}
+                        {plans.length === 0 && (
+                          <p className="col-span-2 text-center text-muted-foreground py-8">
+                            No benefit plans available. Add plans to get started.
+                          </p>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
                 </div>
                 
                 <div className="space-y-6">
-                  <BenefitsCostChart enrollments={benefitEnrollments.filter(e => e.status === 'active')} />
+                  <BenefitsCostChart enrollments={activeEnrollments} />
                   
                   <Card className="border-border/50">
                     <CardHeader className="pb-2">
@@ -145,15 +207,22 @@ const Benefits = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-3">
-                        {benefitClaims.filter(c => c.status === 'pending').slice(0, 3).map(claim => (
+                        {pendingClaims.map(claim => (
                           <div key={claim.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                             <div>
-                              <p className="font-medium text-sm">{claim.employee.firstName} {claim.employee.lastName}</p>
-                              <p className="text-xs text-muted-foreground">{claim.claimType}</p>
+                              <p className="font-medium text-sm">
+                                {claim.employee?.first_name} {claim.employee?.last_name}
+                              </p>
+                              <p className="text-xs text-muted-foreground">{claim.description || 'Benefit claim'}</p>
                             </div>
                             <p className="font-semibold">${claim.amount}</p>
                           </div>
                         ))}
+                        {pendingClaims.length === 0 && (
+                          <p className="text-center text-muted-foreground py-4">
+                            No pending claims
+                          </p>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -206,7 +275,7 @@ const Benefits = () => {
                   <option value="pending">Pending</option>
                   <option value="processing">Processing</option>
                   <option value="approved">Approved</option>
-                  <option value="denied">Denied</option>
+                  <option value="rejected">Rejected</option>
                 </select>
               </div>
               <ClaimsTable 
