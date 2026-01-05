@@ -1,18 +1,19 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useCallback, ReactNode } from 'react';
 import { format as dateFnsFormat } from 'date-fns';
 import { CompanySettings, companySettings as defaultSettings, currencies } from '@/data/settings';
+import { useCompanySettingsDb } from '@/hooks/useCompanySettingsDb';
 
 interface CompanySettingsContextType {
   settings: CompanySettings;
-  updateSettings: (newSettings: Partial<CompanySettings>) => void;
+  updateSettings: (newSettings: Partial<CompanySettings>) => Promise<void>;
   formatDate: (date: Date | string) => string;
   formatCurrency: (amount: number) => string;
   getCurrencySymbol: () => string;
+  isLoading: boolean;
+  isSaving: boolean;
 }
 
 const CompanySettingsContext = createContext<CompanySettingsContextType | undefined>(undefined);
-
-const STORAGE_KEY = 'company-settings';
 
 // Convert hex color to HSL values
 function hexToHSL(hex: string): { h: number; s: number; l: number } {
@@ -56,63 +57,42 @@ function hexToHSL(hex: string): { h: number; s: number; l: number } {
 
 // Apply brand color to CSS custom properties
 function applyBrandColor(hexColor: string) {
-  const hsl = hexToHSL(hexColor);
-  const hslValue = `${hsl.h} ${hsl.s}% ${hsl.l}%`;
+  if (!hexColor || hexColor.length < 4) return;
   
-  document.documentElement.style.setProperty('--primary', hslValue);
-  document.documentElement.style.setProperty('--ring', hslValue);
-  document.documentElement.style.setProperty('--sidebar-primary', hslValue);
-  document.documentElement.style.setProperty('--sidebar-ring', hslValue);
+  try {
+    const hsl = hexToHSL(hexColor);
+    const hslValue = `${hsl.h} ${hsl.s}% ${hsl.l}%`;
+    
+    document.documentElement.style.setProperty('--primary', hslValue);
+    document.documentElement.style.setProperty('--ring', hslValue);
+    document.documentElement.style.setProperty('--sidebar-primary', hslValue);
+    document.documentElement.style.setProperty('--sidebar-ring', hslValue);
+  } catch (e) {
+    console.error('Failed to apply brand color:', e);
+  }
 }
 
 export function CompanySettingsProvider({ children }: { children: ReactNode }) {
-  const [settings, setSettings] = useState<CompanySettings>(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        return JSON.parse(stored);
-      }
-    } catch (e) {
-      console.error('Failed to load company settings from storage:', e);
-    }
-    return defaultSettings;
-  });
+  const { 
+    settings: dbSettings, 
+    isLoading, 
+    updateSettings: updateDbSettings,
+    isSaving 
+  } = useCompanySettingsDb();
 
-  // Apply brand color on mount and when it changes
-  useEffect(() => {
+  // Use database settings if available, otherwise default
+  const settings = dbSettings || defaultSettings;
+
+  // Apply brand color when settings change
+  React.useEffect(() => {
     if (settings.branding.primaryColor) {
       applyBrandColor(settings.branding.primaryColor);
     }
   }, [settings.branding.primaryColor]);
 
-  // Save to localStorage whenever settings change
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-    } catch (e) {
-      console.error('Failed to save company settings to storage:', e);
-    }
-  }, [settings]);
-
-  const updateSettings = useCallback((newSettings: Partial<CompanySettings>) => {
-    setSettings(prev => {
-      // Deep merge for nested objects
-      const merged = { ...prev };
-      
-      Object.keys(newSettings).forEach(key => {
-        const typedKey = key as keyof CompanySettings;
-        const value = newSettings[typedKey];
-        
-        if (value && typeof value === 'object' && !Array.isArray(value)) {
-          (merged as any)[typedKey] = { ...(prev as any)[typedKey], ...value };
-        } else if (value !== undefined) {
-          (merged as any)[typedKey] = value;
-        }
-      });
-      
-      return merged;
-    });
-  }, []);
+  const updateSettings = useCallback(async (newSettings: Partial<CompanySettings>) => {
+    await updateDbSettings(newSettings);
+  }, [updateDbSettings]);
 
   // Date formatting based on selected format
   const formatDate = useCallback((date: Date | string) => {
@@ -131,8 +111,6 @@ export function CompanySettingsProvider({ children }: { children: ReactNode }) {
 
   // Currency formatting based on selected currency
   const formatCurrency = useCallback((amount: number) => {
-    const currencyInfo = currencies.find(c => c.code === settings.branding.currency);
-    
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: settings.branding.currency || 'USD',
@@ -153,7 +131,9 @@ export function CompanySettingsProvider({ children }: { children: ReactNode }) {
         updateSettings, 
         formatDate, 
         formatCurrency,
-        getCurrencySymbol 
+        getCurrencySymbol,
+        isLoading,
+        isSaving
       }}
     >
       {children}

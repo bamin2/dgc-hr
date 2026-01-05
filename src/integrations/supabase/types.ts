@@ -53,6 +53,81 @@ export type Database = {
         }
         Relationships: []
       }
+      company_settings: {
+        Row: {
+          address_city: string | null
+          address_country: string | null
+          address_state: string | null
+          address_street: string | null
+          address_zip_code: string | null
+          company_size: string | null
+          created_at: string | null
+          currency: string | null
+          date_format: string | null
+          email: string | null
+          id: string
+          industry: string | null
+          legal_name: string | null
+          logo_url: string | null
+          name: string
+          phone: string | null
+          primary_color: string | null
+          tax_id: string | null
+          timezone: string | null
+          updated_at: string | null
+          website: string | null
+          year_founded: string | null
+        }
+        Insert: {
+          address_city?: string | null
+          address_country?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          address_zip_code?: string | null
+          company_size?: string | null
+          created_at?: string | null
+          currency?: string | null
+          date_format?: string | null
+          email?: string | null
+          id?: string
+          industry?: string | null
+          legal_name?: string | null
+          logo_url?: string | null
+          name?: string
+          phone?: string | null
+          primary_color?: string | null
+          tax_id?: string | null
+          timezone?: string | null
+          updated_at?: string | null
+          website?: string | null
+          year_founded?: string | null
+        }
+        Update: {
+          address_city?: string | null
+          address_country?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          address_zip_code?: string | null
+          company_size?: string | null
+          created_at?: string | null
+          currency?: string | null
+          date_format?: string | null
+          email?: string | null
+          id?: string
+          industry?: string | null
+          legal_name?: string | null
+          logo_url?: string | null
+          name?: string
+          phone?: string | null
+          primary_color?: string | null
+          tax_id?: string | null
+          timezone?: string | null
+          updated_at?: string | null
+          website?: string | null
+          year_founded?: string | null
+        }
+        Relationships: []
+      }
       deduction_templates: {
         Row: {
           amount: number

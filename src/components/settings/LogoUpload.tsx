@@ -1,8 +1,10 @@
 import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Upload, X } from 'lucide-react';
+import { Upload, X, Loader2 } from 'lucide-react';
 import { ImageCropper } from '@/components/ui/image-cropper';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface LogoUploadProps {
   value: string;
@@ -21,6 +23,7 @@ export const LogoUpload = ({
 }: LogoUploadProps) => {
   const [cropperOpen, setCropperOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string>('');
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const sizeClasses = {
@@ -34,6 +37,13 @@ export const LogoUpload = ({
     if (file) {
       // Validate file type
       if (!file.type.startsWith('image/')) {
+        toast.error('Please select an image file');
+        return;
+      }
+      
+      // Validate file size (5MB max)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Image must be less than 5MB');
         return;
       }
       
@@ -46,7 +56,7 @@ export const LogoUpload = ({
         }
       };
       reader.onerror = () => {
-        console.error('Failed to read image file');
+        toast.error('Failed to read image file');
       };
       reader.readAsDataURL(file);
     }
@@ -57,15 +67,57 @@ export const LogoUpload = ({
   };
 
   const handleCropComplete = async (croppedBlob: Blob) => {
-    // Convert blob to base64
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      onChange(reader.result as string);
-    };
-    reader.readAsDataURL(croppedBlob);
+    setIsUploading(true);
+    
+    try {
+      // Generate unique filename
+      const fileName = `company/logo-${Date.now()}.jpg`;
+      
+      // Delete old logo if it exists in our bucket
+      if (value && value.includes('avatars')) {
+        const oldPath = value.split('/avatars/')[1];
+        if (oldPath) {
+          await supabase.storage.from('avatars').remove([oldPath]);
+        }
+      }
+      
+      // Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, croppedBlob, {
+          cacheControl: '3600',
+          upsert: true,
+          contentType: 'image/jpeg',
+        });
+      
+      if (uploadError) {
+        throw uploadError;
+      }
+      
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+      
+      // Update settings with the URL
+      onChange(publicUrl);
+      toast.success('Logo uploaded successfully');
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('Failed to upload logo');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
-  const handleRemove = () => {
+  const handleRemove = async () => {
+    // Delete from storage if it's our bucket
+    if (value && value.includes('avatars')) {
+      const path = value.split('/avatars/')[1];
+      if (path) {
+        await supabase.storage.from('avatars').remove([path]);
+      }
+    }
     onChange('');
   };
 
@@ -80,16 +132,21 @@ export const LogoUpload = ({
         </Avatar>
         <div className="flex flex-col gap-2">
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" asChild>
+            <Button variant="outline" size="sm" asChild disabled={isUploading}>
               <label className="cursor-pointer">
-                <Upload className="h-4 w-4 mr-2" />
-                {label}
+                {isUploading ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Upload className="h-4 w-4 mr-2" />
+                )}
+                {isUploading ? 'Uploading...' : label}
                 <input
                   ref={fileInputRef}
                   type="file"
                   accept="image/*"
                   className="hidden"
                   onChange={handleFileChange}
+                  disabled={isUploading}
                 />
               </label>
             </Button>
@@ -98,6 +155,7 @@ export const LogoUpload = ({
                 variant="ghost" 
                 size="sm" 
                 onClick={handleRemove}
+                disabled={isUploading}
               >
                 <X className="h-4 w-4" />
               </Button>

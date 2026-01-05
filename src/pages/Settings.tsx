@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Sidebar, Header } from '@/components/dashboard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { 
   CompanyProfileForm, 
   UserPreferencesForm, 
@@ -11,7 +12,6 @@ import {
 } from '@/components/settings';
 import { PayrollSettingsTab } from '@/components/settings/payroll';
 import { 
-  companySettings as initialCompanySettings, 
   userPreferences as initialUserPreferences, 
   notificationSettings as initialNotificationSettings,
   integrations as initialIntegrations,
@@ -22,11 +22,36 @@ import {
 } from '@/data/settings';
 import { useCompanySettings } from '@/contexts/CompanySettingsContext';
 import { useRole } from '@/contexts/RoleContext';
-import { Settings, Building2, User, Bell, Puzzle, Shield, Save, Wallet } from 'lucide-react';
+import { Settings, Building2, User, Bell, Puzzle, Shield, Save, Wallet, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
+const SettingsPageSkeleton = () => (
+  <div className="flex min-h-screen bg-background">
+    <Sidebar />
+    <div className="flex-1 flex flex-col">
+      <Header />
+      <main className="flex-1 p-6 overflow-auto">
+        <div className="max-w-6xl mx-auto space-y-6">
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-11 w-11 rounded-lg" />
+            <div className="space-y-2">
+              <Skeleton className="h-7 w-32" />
+              <Skeleton className="h-4 w-48" />
+            </div>
+          </div>
+          <Skeleton className="h-12 w-full" />
+          <div className="space-y-4">
+            <Skeleton className="h-64 w-full" />
+            <Skeleton className="h-48 w-full" />
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+);
+
 const SettingsPage = () => {
-  const { settings: globalSettings, updateSettings: updateGlobalSettings } = useCompanySettings();
+  const { settings: globalSettings, updateSettings: updateGlobalSettings, isLoading, isSaving } = useCompanySettings();
   const { canManageRoles } = useRole();
   
   // Initialize local state from global context
@@ -42,16 +67,18 @@ const SettingsPage = () => {
     setCompanySettings(globalSettings);
   }, [globalSettings]);
 
-  const handleSave = () => {
-    // Save company settings to global context (which persists to localStorage)
-    updateGlobalSettings(companySettings);
-    toast.success('Settings saved successfully');
+  const handleSave = async () => {
+    try {
+      await updateGlobalSettings(companySettings);
+      toast.success('Settings saved successfully');
+    } catch (error) {
+      console.error('Failed to save settings:', error);
+      toast.error('Failed to save settings');
+    }
   };
 
   const handleCompanySettingsChange = (newSettings: CompanySettings) => {
     setCompanySettings(newSettings);
-    // Immediately update global context for real-time preview
-    updateGlobalSettings(newSettings);
   };
 
   const handleConnectIntegration = (id: string) => {
@@ -93,6 +120,10 @@ const SettingsPage = () => {
 
   const visibleTabs = allTabs.filter(tab => !tab.requiresAdmin || canManageRoles);
 
+  if (isLoading) {
+    return <SettingsPageSkeleton />;
+  }
+
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />
@@ -114,9 +145,13 @@ const SettingsPage = () => {
                 </div>
               </div>
               {canManageRoles && (
-                <Button onClick={handleSave}>
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Changes
+                <Button onClick={handleSave} disabled={isSaving}>
+                  {isSaving ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4 mr-2" />
+                  )}
+                  {isSaving ? 'Saving...' : 'Save Changes'}
                 </Button>
               )}
             </div>
