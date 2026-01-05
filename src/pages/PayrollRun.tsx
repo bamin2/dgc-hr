@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Check, Calendar, Users, DollarSign, FileCheck } from "lucide-react";
+import { startOfMonth, endOfMonth, format } from "date-fns";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { mockPayrollRecords, payrollMetrics } from "@/data/payroll";
+import { mockPayrollRecords } from "@/data/payroll";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -23,8 +24,8 @@ export default function PayrollRun() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [payPeriod, setPayPeriod] = useState({
-    startDate: "2026-01-01",
-    endDate: "2026-01-31",
+    startDate: format(startOfMonth(new Date()), "yyyy-MM-dd"),
+    endDate: format(endOfMonth(new Date()), "yyyy-MM-dd"),
   });
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>(
     mockPayrollRecords.map((r) => r.employeeId)
@@ -153,6 +154,23 @@ export default function PayrollRun() {
                   </div>
                 ))}
               </div>
+              
+              {/* Total Amount Footer */}
+              <div className="mt-4 pt-4 border-t">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedEmployees.length} employee(s) selected
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-muted-foreground">Total Amount</p>
+                    <p className="text-xl font-bold text-primary">
+                      ${selectedRecords.reduce((sum, r) => sum + r.netPay, 0).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         );
@@ -161,15 +179,16 @@ export default function PayrollRun() {
         return (
           <Card className="border-0 shadow-sm">
             <CardHeader>
-              <CardTitle>Add Adjustments (Optional)</CardTitle>
+              <CardTitle>Pay Details</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {selectedRecords.slice(0, 5).map((record) => (
+              <div className="space-y-4">
+                {selectedRecords.map((record) => (
                   <div
                     key={record.id}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-lg bg-muted/30"
+                    className="p-4 rounded-lg bg-muted/30 space-y-3"
                   >
+                    {/* Employee Header */}
                     <div className="flex items-center gap-3">
                       <Avatar className="w-9 h-9">
                         <AvatarImage src={record.employee.avatar} />
@@ -177,55 +196,55 @@ export default function PayrollRun() {
                           {record.employee.firstName[0]}{record.employee.lastName[0]}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="font-medium text-sm text-foreground">
-                        {record.employee.firstName} {record.employee.lastName}
-                      </span>
+                      <div>
+                        <p className="font-medium text-sm text-foreground">
+                          {record.employee.firstName} {record.employee.lastName}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {record.employee.department}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-1">
-                        <Label className="text-xs whitespace-nowrap">Bonus</Label>
-                        <Input
-                          type="number"
-                          placeholder="0"
-                          className="w-24 h-8 text-sm"
-                          value={adjustments[record.employeeId]?.bonus || ""}
-                          onChange={(e) =>
-                            setAdjustments({
-                              ...adjustments,
-                              [record.employeeId]: {
-                                ...adjustments[record.employeeId],
-                                bonus: Number(e.target.value) || 0,
-                              },
-                            })
-                          }
-                        />
+                    
+                    {/* Earnings Section */}
+                    <div className="grid grid-cols-3 gap-2 text-sm">
+                      <div>
+                        <p className="text-muted-foreground text-xs">Base Salary</p>
+                        <p className="font-medium">${record.baseSalary.toLocaleString()}</p>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Label className="text-xs whitespace-nowrap">Deduct</Label>
-                        <Input
-                          type="number"
-                          placeholder="0"
-                          className="w-24 h-8 text-sm"
-                          value={adjustments[record.employeeId]?.deduction || ""}
-                          onChange={(e) =>
-                            setAdjustments({
-                              ...adjustments,
-                              [record.employeeId]: {
-                                ...adjustments[record.employeeId],
-                                deduction: Number(e.target.value) || 0,
-                              },
-                            })
-                          }
-                        />
+                      <div>
+                        <p className="text-muted-foreground text-xs">Overtime</p>
+                        <p className="font-medium">${record.overtime.toLocaleString()}</p>
                       </div>
+                      <div>
+                        <p className="text-muted-foreground text-xs">Bonuses</p>
+                        <p className="font-medium">${record.bonuses.toLocaleString()}</p>
+                      </div>
+                    </div>
+                    
+                    {/* Deductions Section */}
+                    <div className="grid grid-cols-3 gap-2 text-sm">
+                      <div>
+                        <p className="text-muted-foreground text-xs">Tax</p>
+                        <p className="font-medium text-destructive">-${record.deductions.tax.toLocaleString()}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground text-xs">Insurance</p>
+                        <p className="font-medium text-destructive">-${record.deductions.insurance.toLocaleString()}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground text-xs">Other</p>
+                        <p className="font-medium text-destructive">-${record.deductions.other.toLocaleString()}</p>
+                      </div>
+                    </div>
+                    
+                    {/* Net Pay */}
+                    <div className="pt-2 border-t flex justify-between items-center">
+                      <span className="font-medium text-sm">Net Pay</span>
+                      <span className="font-bold text-primary">${record.netPay.toLocaleString()}</span>
                     </div>
                   </div>
                 ))}
-                {selectedRecords.length > 5 && (
-                  <p className="text-sm text-muted-foreground text-center py-2">
-                    + {selectedRecords.length - 5} more employees
-                  </p>
-                )}
               </div>
             </CardContent>
           </Card>
