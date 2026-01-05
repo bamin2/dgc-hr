@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format, differenceInCalendarDays } from "date-fns";
 import { DateRange } from "react-day-picker";
 import { Calendar as CalendarIcon, Clock, Paperclip, Upload, X, Folder } from "lucide-react";
@@ -37,6 +37,16 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [note, setNote] = useState("");
   const [files, setFiles] = useState<File[]>([]);
+
+  // Reset form when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setTimeOffType("paid_time_off");
+      setDateRange(undefined);
+      setNote("");
+      setFiles([]);
+    }
+  }, [open]);
 
   const handleSubmit = () => {
     console.log({ timeOffType, dateRange, note, files });
