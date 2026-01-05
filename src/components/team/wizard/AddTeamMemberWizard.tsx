@@ -9,6 +9,9 @@ import { TeamRoleStep, TeamRoleData } from "./TeamRoleStep";
 import { TeamCompensationStep, TeamCompensationData } from "./TeamCompensationStep";
 import { TeamOfferStep, TeamOfferData } from "./TeamOfferStep";
 import { TeamFinalizeStep } from "./TeamFinalizeStep";
+import { useCreateEmployee, useDepartments, usePositions } from "@/hooks/useEmployees";
+import { useAssignAllowances } from "@/hooks/useEmployeeAllowances";
+import { useAssignDeductions } from "@/hooks/useEmployeeDeductions";
 
 const steps = [
   { id: 1, label: "Team Basic" },
@@ -21,6 +24,17 @@ const steps = [
 export function AddTeamMemberWizard() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
+
+  // Hooks for persistence
+  const createEmployee = useCreateEmployee();
+  const assignAllowances = useAssignAllowances();
+  const assignDeductions = useAssignDeductions();
+  const { data: departments } = useDepartments();
+  const { data: positions } = usePositions();
+
+  const isSubmitting = createEmployee.isPending || 
+                       assignAllowances.isPending || 
+                       assignDeductions.isPending;
 
   // Step data
   const [basicData, setBasicData] = useState<TeamBasicData>({
@@ -117,12 +131,55 @@ export function AddTeamMemberWizard() {
     }
   };
 
-  const handleSubmit = () => {
-    toast({
-      title: "Team member added",
-      description: `${basicData.firstName} ${basicData.lastName} has been added successfully.`,
-    });
-    navigate("/team");
+  const handleSubmit = async () => {
+    try {
+      // Find department and position IDs
+      const departmentId = departments?.find(d => d.name === roleData.department)?.id;
+      const positionId = positions?.find(p => p.title === roleData.jobTitle)?.id;
+
+      // Create the employee
+      const newEmployee = await createEmployee.mutateAsync({
+        first_name: basicData.firstName,
+        last_name: basicData.lastName,
+        email: basicData.email,
+        department_id: departmentId || null,
+        position_id: positionId || null,
+        manager_id: roleData.managerId || null,
+        join_date: roleData.startDate?.toISOString().split('T')[0] || null,
+        salary: parseFloat(compensationData.salary) || null,
+        status: 'on_boarding',
+        location: roleData.workLocation || null,
+      });
+
+      // Assign allowances if any were selected
+      if (compensationData.selectedAllowances.length > 0) {
+        await assignAllowances.mutateAsync({
+          employeeId: newEmployee.id,
+          allowanceTemplateIds: compensationData.selectedAllowances,
+        });
+      }
+
+      // Assign deductions if any were selected
+      if (compensationData.selectedDeductions.length > 0) {
+        await assignDeductions.mutateAsync({
+          employeeId: newEmployee.id,
+          deductionTemplateIds: compensationData.selectedDeductions,
+        });
+      }
+
+      toast({
+        title: "Team member added",
+        description: `${basicData.firstName} ${basicData.lastName} has been added successfully.`,
+      });
+      navigate("/team");
+    } catch (error) {
+      console.error("Error creating team member:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add team member. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleClose = () => {
@@ -215,9 +272,10 @@ export function AddTeamMemberWizard() {
         ) : (
           <Button
             onClick={handleSubmit}
+            disabled={isSubmitting}
             className="bg-emerald-600 hover:bg-emerald-700 text-white"
           >
-            Send Offer
+            {isSubmitting ? "Saving..." : "Send Offer"}
           </Button>
         )}
       </footer>
