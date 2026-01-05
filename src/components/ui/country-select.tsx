@@ -1,0 +1,89 @@
+import * as React from "react";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { countries, getCountryByName } from "@/data/countries";
+
+interface CountrySelectProps {
+  value: string;
+  onValueChange: (value: string) => void;
+  placeholder?: string;
+  disabled?: boolean;
+}
+
+export function CountrySelect({
+  value,
+  onValueChange,
+  placeholder = "Select country",
+  disabled = false,
+}: CountrySelectProps) {
+  const [open, setOpen] = React.useState(false);
+  
+  const selectedCountry = value ? getCountryByName(value) : undefined;
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          disabled={disabled}
+          className="w-full justify-between font-normal"
+        >
+          {selectedCountry ? (
+            <span className="flex items-center gap-2">
+              <span className="text-lg">{selectedCountry.flag}</span>
+              <span>{selectedCountry.name}</span>
+            </span>
+          ) : (
+            <span className="text-muted-foreground">{placeholder}</span>
+          )}
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[300px] p-0" align="start">
+        <Command>
+          <CommandInput placeholder="Search country..." />
+          <CommandList>
+            <CommandEmpty>No country found.</CommandEmpty>
+            <CommandGroup className="max-h-[300px] overflow-y-auto">
+              {countries.map((country) => (
+                <CommandItem
+                  key={country.code}
+                  value={country.name}
+                  onSelect={() => {
+                    onValueChange(country.name);
+                    setOpen(false);
+                  }}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      value === country.name ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  <span className="text-lg mr-2">{country.flag}</span>
+                  <span>{country.name}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
