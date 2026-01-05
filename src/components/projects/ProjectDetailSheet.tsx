@@ -1,6 +1,6 @@
 import { Calendar, MessageSquare, Paperclip, Clock, User } from "lucide-react";
 import { format } from "date-fns";
-import { Project, ProjectActivity, projectStatuses, getProjectAssignees } from "@/data/projects";
+import { Project, projectStatuses, useProjectAssignees } from "@/hooks/useProjects";
 import { PriorityBadge } from "./PriorityBadge";
 import { ActivityLog } from "./ActivityLog";
 import { AddCommentForm } from "./AddCommentForm";
@@ -22,12 +22,14 @@ interface ProjectDetailSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAddComment?: (projectId: string, comment: string, mentionedUserIds: string[]) => void;
+  onDelete?: (projectId: string) => void;
 }
 
-export function ProjectDetailSheet({ project, open, onOpenChange, onAddComment }: ProjectDetailSheetProps) {
+export function ProjectDetailSheet({ project, open, onOpenChange, onAddComment, onDelete }: ProjectDetailSheetProps) {
+  const { data: assignees = [] } = useProjectAssignees(project?.id || '');
+  
   if (!project) return null;
 
-  const assignees = getProjectAssignees(project);
   const statusConfig = projectStatuses[project.status];
 
   const getInitials = (firstName: string, lastName: string) => {
@@ -39,8 +41,12 @@ export function ProjectDetailSheet({ project, open, onOpenChange, onAddComment }
   };
 
   const handleDelete = () => {
-    toast.success("Project deleted");
-    onOpenChange(false);
+    if (onDelete) {
+      onDelete(project.id);
+    } else {
+      toast.success("Project deleted");
+      onOpenChange(false);
+    }
   };
 
   const handleAddComment = (comment: string, mentionedUserIds: string[]) => {
@@ -128,20 +134,24 @@ export function ProjectDetailSheet({ project, open, onOpenChange, onAddComment }
             <span className="text-sm font-medium">Assignees ({assignees.length})</span>
           </div>
           <div className="space-y-2">
-            {assignees.map((assignee) => (
-              <div key={assignee.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={assignee.avatar} alt={`${assignee.firstName} ${assignee.lastName}`} />
-                  <AvatarFallback className="text-xs">
-                    {getInitials(assignee.firstName, assignee.lastName)}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="text-sm font-medium">{assignee.firstName} {assignee.lastName}</p>
-                  <p className="text-xs text-muted-foreground">{assignee.position}</p>
+            {assignees.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No assignees yet</p>
+            ) : (
+              assignees.map((assignee: any) => (
+                <div key={assignee.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={assignee.avatar_url} alt={`${assignee.first_name} ${assignee.last_name}`} />
+                    <AvatarFallback className="text-xs">
+                      {getInitials(assignee.first_name, assignee.last_name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="text-sm font-medium">{assignee.first_name} {assignee.last_name}</p>
+                    <p className="text-xs text-muted-foreground">{assignee.position?.title || 'Team Member'}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 

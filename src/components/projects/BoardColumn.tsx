@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Plus, Loader2, Circle, AlertCircle, CheckCircle } from "lucide-react";
-import { Project, ProjectStatus, projectStatuses } from "@/data/projects";
+import { Project, ProjectStatus, projectStatuses } from "@/hooks/useProjects";
 import { ProjectCard } from "./ProjectCard";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";

@@ -1,8 +1,7 @@
 import { MoreHorizontal } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
-import { Project, getProjectAssignees, priorityConfig } from "@/data/projects";
+import { Project, priorityConfig } from "@/hooks/useProjects";
 import { PriorityBadge } from "./PriorityBadge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -21,9 +20,7 @@ interface TimelineCardProps {
 }
 
 export function TimelineCard({ project, weekStart, dayWidth, totalWidth, onClick }: TimelineCardProps) {
-  const assignees = getProjectAssignees(project);
-  const displayedAssignees = assignees.slice(0, 3);
-  const remainingCount = assignees.length - 3;
+  const assigneeCount = project.assigneeIds.length;
 
   // Calculate position and width
   const startOffset = Math.max(0, differenceInDays(project.startDate, weekStart));
@@ -32,10 +29,6 @@ export function TimelineCard({ project, weekStart, dayWidth, totalWidth, onClick
   const left = startOffset * dayWidth;
   const rawWidth = Math.max(duration * dayWidth - 8, dayWidth - 8);
   const width = Math.min(rawWidth, totalWidth - left - 8); // Clamp to prevent overflow
-
-  const getInitials = (firstName: string, lastName: string) => {
-    return `${firstName[0]}${lastName[0]}`.toUpperCase();
-  };
 
   const progressConfig = priorityConfig[project.priority];
 
@@ -79,23 +72,9 @@ export function TimelineCard({ project, weekStart, dayWidth, totalWidth, onClick
       <div className="flex items-center justify-between mb-3">
         <PriorityBadge priority={project.priority} />
         
-        <div className="flex items-center">
-          <div className="flex -space-x-2">
-            {displayedAssignees.map((assignee) => (
-              <Avatar key={assignee.id} className="h-5 w-5 border-2 border-card">
-                <AvatarImage src={assignee.avatar} alt={`${assignee.firstName} ${assignee.lastName}`} />
-                <AvatarFallback className="text-[8px]">
-                  {getInitials(assignee.firstName, assignee.lastName)}
-                </AvatarFallback>
-              </Avatar>
-            ))}
-          </div>
-          {remainingCount > 0 && (
-            <span className="ml-1 text-xs text-muted-foreground">
-              +{remainingCount.toString().padStart(2, '0')}
-            </span>
-          )}
-        </div>
+        <span className="text-xs text-muted-foreground">
+          {assigneeCount} member{assigneeCount !== 1 ? 's' : ''}
+        </span>
       </div>
 
       {/* Progress bar */}

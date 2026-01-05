@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Project, ProjectStatus } from "@/data/projects";
+import { Project, ProjectStatus } from "@/hooks/useProjects";
 import { BoardColumn } from "./BoardColumn";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 

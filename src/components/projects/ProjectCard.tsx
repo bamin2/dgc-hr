@@ -1,8 +1,7 @@
 import { Calendar, MessageSquare, Paperclip, MoreHorizontal, GripVertical } from "lucide-react";
 import { format } from "date-fns";
-import { Project, getProjectAssignees } from "@/data/projects";
+import { Project } from "@/hooks/useProjects";
 import { PriorityBadge } from "./PriorityBadge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -21,13 +20,7 @@ interface ProjectCardProps {
 }
 
 export function ProjectCard({ project, onClick, isDragging, onDragStart, onDragEnd }: ProjectCardProps) {
-  const assignees = getProjectAssignees(project);
-  const displayedAssignees = assignees.slice(0, 3);
-  const remainingCount = assignees.length - 3;
-
-  const getInitials = (firstName: string, lastName: string) => {
-    return `${firstName[0]}${lastName[0]}`.toUpperCase();
-  };
+  const assigneeCount = project.assigneeIds.length;
 
   const handleDragStart = (e: React.DragEvent) => {
     e.dataTransfer.setData("projectId", project.id);
@@ -98,23 +91,9 @@ export function ProjectCard({ project, onClick, isDragging, onDragStart, onDragE
       <div className="flex items-center justify-between ml-6">
         <PriorityBadge priority={project.priority} />
         
-        <div className="flex items-center">
-          <div className="flex -space-x-2">
-            {displayedAssignees.map((assignee) => (
-              <Avatar key={assignee.id} className="h-6 w-6 border-2 border-card">
-                <AvatarImage src={assignee.avatar} alt={`${assignee.firstName} ${assignee.lastName}`} />
-                <AvatarFallback className="text-[10px]">
-                  {getInitials(assignee.firstName, assignee.lastName)}
-                </AvatarFallback>
-              </Avatar>
-            ))}
-          </div>
-          {remainingCount > 0 && (
-            <span className="ml-1 text-xs text-muted-foreground">
-              +{remainingCount.toString().padStart(2, '0')}
-            </span>
-          )}
-        </div>
+        <span className="text-xs text-muted-foreground">
+          {assigneeCount} member{assigneeCount !== 1 ? 's' : ''}
+        </span>
       </div>
     </div>
   );

@@ -920,6 +920,172 @@ export type Database = {
           },
         ]
       }
+      project_activities: {
+        Row: {
+          activity_type: Database["public"]["Enums"]["activity_type"]
+          actor_id: string | null
+          comment: string | null
+          created_at: string
+          id: string
+          mentioned_employee_ids: string[] | null
+          metadata: Json | null
+          new_status: Database["public"]["Enums"]["project_status"] | null
+          old_status: Database["public"]["Enums"]["project_status"] | null
+          project_id: string
+          target_employee_id: string | null
+        }
+        Insert: {
+          activity_type: Database["public"]["Enums"]["activity_type"]
+          actor_id?: string | null
+          comment?: string | null
+          created_at?: string
+          id?: string
+          mentioned_employee_ids?: string[] | null
+          metadata?: Json | null
+          new_status?: Database["public"]["Enums"]["project_status"] | null
+          old_status?: Database["public"]["Enums"]["project_status"] | null
+          project_id: string
+          target_employee_id?: string | null
+        }
+        Update: {
+          activity_type?: Database["public"]["Enums"]["activity_type"]
+          actor_id?: string | null
+          comment?: string | null
+          created_at?: string
+          id?: string
+          mentioned_employee_ids?: string[] | null
+          metadata?: Json | null
+          new_status?: Database["public"]["Enums"]["project_status"] | null
+          old_status?: Database["public"]["Enums"]["project_status"] | null
+          project_id?: string
+          target_employee_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_activities_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_activities_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_activities_target_employee_id_fkey"
+            columns: ["target_employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_members: {
+        Row: {
+          created_at: string
+          employee_id: string
+          id: string
+          project_id: string
+          role: string
+        }
+        Insert: {
+          created_at?: string
+          employee_id: string
+          id?: string
+          project_id: string
+          role?: string
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          id?: string
+          project_id?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_members_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_members_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          department_id: string | null
+          description: string | null
+          due_date: string | null
+          end_date: string | null
+          id: string
+          owner_id: string | null
+          priority: Database["public"]["Enums"]["project_priority"]
+          start_date: string | null
+          status: Database["public"]["Enums"]["project_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          department_id?: string | null
+          description?: string | null
+          due_date?: string | null
+          end_date?: string | null
+          id?: string
+          owner_id?: string | null
+          priority?: Database["public"]["Enums"]["project_priority"]
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["project_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          department_id?: string | null
+          description?: string | null
+          due_date?: string | null
+          end_date?: string | null
+          id?: string
+          owner_id?: string | null
+          priority?: Database["public"]["Enums"]["project_priority"]
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["project_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       salary_history: {
         Row: {
           change_type: Database["public"]["Enums"]["salary_change_type"]
@@ -1062,6 +1228,13 @@ export type Database = {
       }
     }
     Enums: {
+      activity_type:
+        | "created"
+        | "status_change"
+        | "assignee_added"
+        | "assignee_removed"
+        | "comment"
+        | "updated"
       app_role: "employee" | "manager" | "hr" | "admin"
       employee_status:
         | "active"
@@ -1070,6 +1243,8 @@ export type Database = {
         | "probation"
         | "terminated"
       gender_type: "male" | "female" | "other" | "prefer_not_to_say"
+      project_priority: "low" | "medium" | "high"
+      project_status: "todo" | "in_progress" | "need_review" | "done"
       salary_change_type:
         | "initial"
         | "adjustment"
@@ -1204,6 +1379,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      activity_type: [
+        "created",
+        "status_change",
+        "assignee_added",
+        "assignee_removed",
+        "comment",
+        "updated",
+      ],
       app_role: ["employee", "manager", "hr", "admin"],
       employee_status: [
         "active",
@@ -1213,6 +1396,8 @@ export const Constants = {
         "terminated",
       ],
       gender_type: ["male", "female", "other", "prefer_not_to_say"],
+      project_priority: ["low", "medium", "high"],
+      project_status: ["todo", "in_progress", "need_review", "done"],
       salary_change_type: [
         "initial",
         "adjustment",

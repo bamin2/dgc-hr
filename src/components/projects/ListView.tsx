@@ -1,4 +1,4 @@
-import { Project, ProjectStatus } from "@/data/projects";
+import { Project, ProjectStatus } from "@/hooks/useProjects";
 import { ListSection } from "./ListSection";
 
 interface ListViewProps {

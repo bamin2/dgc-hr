@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ChevronDown, ChevronRight, Plus, Loader2, Circle, AlertCircle, CheckCircle, Calendar, Globe } from "lucide-react";
 import { format } from "date-fns";
-import { Project, ProjectStatus, projectStatuses, getProjectAssignees } from "@/data/projects";
+import { Project, ProjectStatus, projectStatuses } from "@/hooks/useProjects";
 import { PriorityBadge } from "./PriorityBadge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -26,10 +26,6 @@ const statusIcons: Record<ProjectStatus, React.ReactNode> = {
 export function ListSection({ status, projects, onAddProject, onProjectClick }: ListSectionProps) {
   const [isOpen, setIsOpen] = useState(true);
   const config = projectStatuses[status];
-
-  const getInitials = (firstName: string, lastName: string) => {
-    return `${firstName[0]}${lastName[0]}`.toUpperCase();
-  };
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
@@ -72,9 +68,7 @@ export function ListSection({ status, projects, onAddProject, onProjectClick }: 
         {/* Table Rows */}
         <div className="border-x border-b border-border rounded-b-lg overflow-hidden">
           {projects.map((project) => {
-            const assignees = getProjectAssignees(project);
-            const displayedAssignees = assignees.slice(0, 2);
-            const remainingCount = assignees.length - 2;
+            const assigneeCount = project.assigneeIds.length;
 
             return (
               <div
@@ -99,21 +93,9 @@ export function ListSection({ status, projects, onAddProject, onProjectClick }: 
                   <span>{format(project.dueDate, "MMM, dd")}</span>
                 </div>
                 <div className="flex items-center">
-                  <div className="flex -space-x-2">
-                    {displayedAssignees.map((assignee) => (
-                      <Avatar key={assignee.id} className="h-6 w-6 border-2 border-card">
-                        <AvatarImage src={assignee.avatar} alt={`${assignee.firstName} ${assignee.lastName}`} />
-                        <AvatarFallback className="text-[10px]">
-                          {getInitials(assignee.firstName, assignee.lastName)}
-                        </AvatarFallback>
-                      </Avatar>
-                    ))}
-                  </div>
-                  {remainingCount > 0 && (
-                    <span className="ml-1 text-xs text-muted-foreground">
-                      +{remainingCount}
-                    </span>
-                  )}
+                  <span className="text-xs text-muted-foreground">
+                    {assigneeCount} member{assigneeCount !== 1 ? 's' : ''}
+                  </span>
                 </div>
                 <PriorityBadge priority={project.priority} />
               </div>

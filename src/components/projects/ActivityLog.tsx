@@ -1,10 +1,10 @@
 import { Clock } from "lucide-react";
-import { ProjectActivity } from "@/data/projects";
+import { ProjectActivityDisplay } from "@/hooks/useProjects";
 import { ActivityItem } from "./ActivityItem";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ActivityLogProps {
-  activities: ProjectActivity[];
+  activities: ProjectActivityDisplay[];
 }
 
 export function ActivityLog({ activities }: ActivityLogProps) {
