@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CountrySelect } from "@/components/ui/country-select";
+import { ImageCropper } from "@/components/ui/image-cropper";
 import { Employee, useDepartments, usePositions } from "@/hooks/useEmployees";
 import { useAvatarUpload } from "@/hooks/useAvatarUpload";
 import { toast } from "@/hooks/use-toast";
@@ -54,6 +55,8 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
   const { data: positions = [] } = usePositions();
   const { uploadAvatar, isUploading } = useAvatarUpload();
   
+  const [cropperOpen, setCropperOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormData>({
     firstName: '',
     lastName: '',
@@ -140,7 +143,7 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
     });
   };
 
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -154,21 +157,34 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
       return;
     }
 
-    // Validate file size (2MB max)
-    if (file.size > 2 * 1024 * 1024) {
+    // Validate file size (5MB max for original before cropping)
+    if (file.size > 5 * 1024 * 1024) {
       toast({
         title: "File too large",
-        description: "Please upload an image smaller than 2MB.",
+        description: "Please upload an image smaller than 5MB.",
         variant: "destructive",
       });
       return;
     }
 
+    // Create object URL and open cropper
+    const imageUrl = URL.createObjectURL(file);
+    setSelectedImage(imageUrl);
+    setCropperOpen(true);
+    
+    // Reset file input so same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleCroppedImage = async (croppedBlob: Blob) => {
     try {
-      // Use employee ID if editing, otherwise use a temporary ID
+      // Convert blob to File for upload
+      const file = new File([croppedBlob], 'avatar.jpg', { type: 'image/jpeg' });
       const employeeId = employee?.id || `temp-${Date.now()}`;
-      const avatarUrl = await uploadAvatar(file, employeeId);
       
+      const avatarUrl = await uploadAvatar(file, employeeId);
       setFormData(prev => ({ ...prev, avatar: avatarUrl }));
       
       toast({
@@ -181,6 +197,12 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
         description: "Failed to upload photo. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      // Cleanup object URL
+      if (selectedImage) {
+        URL.revokeObjectURL(selectedImage);
+        setSelectedImage(null);
+      }
     }
   };
 
@@ -211,9 +233,19 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
-                onChange={handlePhotoUpload}
+                onChange={handlePhotoSelect}
                 className="hidden"
               />
+              {selectedImage && (
+                <ImageCropper
+                  open={cropperOpen}
+                  onOpenChange={setCropperOpen}
+                  imageSrc={selectedImage}
+                  onCropComplete={handleCroppedImage}
+                  aspectRatio={1}
+                  cropShape="round"
+                />
+              )}
               <Button 
                 type="button" 
                 variant="outline" 
