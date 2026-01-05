@@ -22,6 +22,14 @@ interface RoleContextType {
 
 const managementRoles: AppRole[] = ['hr', 'manager', 'admin'];
 
+// Role priority for determining the highest role when user has multiple
+const rolePriority: Record<AppRole, number> = {
+  employee: 1,
+  manager: 2,
+  hr: 3,
+  admin: 4,
+};
+
 const RoleContext = createContext<RoleContextType | undefined>(undefined);
 
 export function RoleProvider({ children }: { children: React.ReactNode }) {
@@ -40,14 +48,20 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
       }
 
       try {
-        // Fetch user's role from user_roles table
-        const { data: roleData, error: roleError } = await supabase
+        // Fetch all user roles and determine the highest priority one
+        const { data: rolesData, error: roleError } = await supabase
           .from('user_roles')
           .select('role')
-          .eq('user_id', user.id)
-          .single();
+          .eq('user_id', user.id);
 
-        const role: AppRole = roleError || !roleData ? 'employee' : roleData.role;
+        let role: AppRole = 'employee';
+        if (!roleError && rolesData && rolesData.length > 0) {
+          role = rolesData.reduce((highest, current) => {
+            return rolePriority[current.role as AppRole] > rolePriority[highest]
+              ? (current.role as AppRole)
+              : highest;
+          }, 'employee' as AppRole);
+        }
 
         // Update current user with profile and role info
         setCurrentUser({
