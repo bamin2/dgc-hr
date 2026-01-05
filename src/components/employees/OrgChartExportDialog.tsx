@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "@/hooks/use-toast";
-import { Employee } from "@/data/employees";
+import { Employee } from "@/hooks/useEmployees";
 import {
   buildOrgTreeFromEmployee,
   getEmployeesWithReports,

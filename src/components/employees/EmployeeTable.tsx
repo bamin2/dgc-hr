@@ -17,7 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { StatusBadge } from "./StatusBadge";
-import { Employee } from "@/data/employees";
+import { Employee } from "@/hooks/useEmployees";
 import { format } from "date-fns";
 
 interface EmployeeTableProps {

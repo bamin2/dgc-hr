@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Employee } from "@/data/employees";
+import { Employee } from "@/hooks/useEmployees";
 import { OrgChartExportDialog } from "./OrgChartExportDialog";
 
 interface OrgChartExportButtonProps {
