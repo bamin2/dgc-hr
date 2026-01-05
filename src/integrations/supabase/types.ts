@@ -1226,6 +1226,14 @@ export type Database = {
         Args: { _employee_id: string; _manager_user_id: string }
         Returns: boolean
       }
+      is_project_member: {
+        Args: { p_employee_id: string; p_project_id: string }
+        Returns: boolean
+      }
+      is_project_owner: {
+        Args: { p_employee_id: string; p_project_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       activity_type:
