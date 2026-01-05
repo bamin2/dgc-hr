@@ -12,7 +12,12 @@ import {
   LeaveChart,
   ReportsTable,
   ReportsFilters,
-  ExportButton
+  ExportButton,
+  SalaryMetricsCards,
+  SalaryDistributionChart,
+  SalaryTrendChart,
+  DepartmentSalaryTable,
+  SalaryChangeTypeChart,
 } from '@/components/reports';
 import {
   reportsList,
@@ -26,6 +31,7 @@ import {
 } from '@/data/reports';
 import { useToast } from '@/hooks/use-toast';
 import { DateRange } from 'react-day-picker';
+import { useSalaryAnalytics } from '@/hooks/useSalaryAnalytics';
 
 const Reports = () => {
   const { toast } = useToast();
@@ -41,6 +47,9 @@ const Reports = () => {
   const stats = getReportDashboardStats();
   const attendanceData = generateAttendanceReportData();
   const payrollData = generatePayrollReportData();
+  
+  // Salary Analytics
+  const salaryAnalytics = useSalaryAnalytics();
 
   // Filter reports
   const filteredReports = reportsList.filter(report => {
@@ -110,6 +119,7 @@ const Reports = () => {
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="attendance">Attendance</TabsTrigger>
               <TabsTrigger value="payroll">Payroll</TabsTrigger>
+              <TabsTrigger value="salary">Salary</TabsTrigger>
               <TabsTrigger value="leave">Leave</TabsTrigger>
               <TabsTrigger value="reports">All Reports</TabsTrigger>
             </TabsList>
@@ -233,6 +243,20 @@ const Reports = () => {
               </div>
 
               <DepartmentTable data={departmentStats} />
+            </TabsContent>
+
+            {/* Salary Tab */}
+            <TabsContent value="salary" className="space-y-6 mt-6">
+              <SalaryMetricsCards stats={salaryAnalytics.stats} isLoading={salaryAnalytics.isLoading} />
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <SalaryDistributionChart data={salaryAnalytics.salaryDistribution} isLoading={salaryAnalytics.isLoading} />
+                <SalaryChangeTypeChart data={salaryAnalytics.changeTypeBreakdown} isLoading={salaryAnalytics.isLoading} />
+              </div>
+
+              <SalaryTrendChart data={salaryAnalytics.salaryTrends} isLoading={salaryAnalytics.isLoading} />
+              
+              <DepartmentSalaryTable data={salaryAnalytics.departmentSalaries} isLoading={salaryAnalytics.isLoading} />
             </TabsContent>
 
             {/* Leave Tab */}
