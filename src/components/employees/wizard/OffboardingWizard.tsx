@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
-import { ChevronLeft, ChevronRight, Rocket } from "lucide-react";
+import { ArrowLeft, ArrowRight, Rocket } from "lucide-react";
 import { WizardProgress } from "./WizardProgress";
 import { OffboardingEmployeeStep } from "./OffboardingEmployeeStep";
 import { ExitInterviewStep } from "./ExitInterviewStep";
@@ -207,39 +208,38 @@ export function OffboardingWizard({ employee, onComplete }: OffboardingWizardPro
   };
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Progress */}
-      <div className="mb-6">
-        <WizardProgress currentStep={currentStep} steps={steps} />
-      </div>
+    <div className="space-y-6">
+      <WizardProgress currentStep={currentStep + 1} steps={steps} />
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto pr-2">{renderStepContent()}</div>
+      <Card>
+        <CardContent className="p-6">
+          {renderStepContent()}
+        </CardContent>
+      </Card>
 
-      {/* Navigation */}
-      <div className="flex justify-between pt-6 mt-6 border-t">
+      <div className="flex items-center justify-between">
         <Button
           variant="outline"
           onClick={handlePrevious}
           disabled={currentStep === 0}
           className="gap-2"
         >
-          <ChevronLeft className="h-4 w-4" />
+          <ArrowLeft className="h-4 w-4" />
           Previous
         </Button>
 
-        {currentStep === steps.length - 1 ? (
+        {currentStep < steps.length - 1 ? (
+          <Button onClick={handleNext} className="gap-2 bg-primary hover:bg-primary/90">
+            Next
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        ) : (
           <Button
             onClick={handleLaunch}
             className="gap-2 bg-red-600 hover:bg-red-700 text-white"
           >
             <Rocket className="h-4 w-4" />
             Launch Offboarding
-          </Button>
-        ) : (
-          <Button onClick={handleNext} className="gap-2">
-            Next
-            <ChevronRight className="h-4 w-4" />
           </Button>
         )}
       </div>
