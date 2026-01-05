@@ -23,8 +23,13 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { mockEmployees } from "@/data/employees";
-import { EventColor, EventPlatform, EventType } from "@/data/calendar";
+import { useEmployees } from "@/hooks/useEmployees";
+import { 
+  EventColor, 
+  EventPlatform, 
+  EventType,
+  useCreateCalendarEvent,
+} from "@/hooks/useCalendarEvents";
 import { toast } from "sonner";
 
 interface CreateEventDialogProps {
@@ -52,16 +57,10 @@ export function CreateEventDialog({ open, onOpenChange }: CreateEventDialogProps
   const [color, setColor] = useState<EventColor>("green");
   const [organizer, setOrganizer] = useState("");
 
-  const handleSubmit = () => {
-    if (!title || !date || !organizer) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-    
-    toast.success("Event created successfully!");
-    onOpenChange(false);
-    
-    // Reset form
+  const { data: employees = [] } = useEmployees();
+  const createEvent = useCreateCalendarEvent();
+
+  const resetForm = () => {
     setTitle("");
     setDescription("");
     setDate(undefined);
@@ -71,6 +70,42 @@ export function CreateEventDialog({ open, onOpenChange }: CreateEventDialogProps
     setPlatform("zoom");
     setColor("green");
     setOrganizer("");
+  };
+
+  const handleSubmit = async () => {
+    if (!title || !date || !organizer) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    // Construct start and end times
+    const [startHour, startMin] = startTime.split(":").map(Number);
+    const [endHour, endMin] = endTime.split(":").map(Number);
+
+    const startDateTime = new Date(date);
+    startDateTime.setHours(startHour, startMin, 0, 0);
+
+    const endDateTime = new Date(date);
+    endDateTime.setHours(endHour, endMin, 0, 0);
+
+    try {
+      await createEvent.mutateAsync({
+        title,
+        description: description || undefined,
+        start_time: startDateTime.toISOString(),
+        end_time: endDateTime.toISOString(),
+        type: eventType,
+        platform,
+        color,
+        organizer_id: organizer,
+      });
+      
+      toast.success("Event created successfully!");
+      onOpenChange(false);
+      resetForm();
+    } catch (error) {
+      toast.error("Failed to create event");
+    }
   };
 
   return (
@@ -218,7 +253,7 @@ export function CreateEventDialog({ open, onOpenChange }: CreateEventDialogProps
                 <SelectValue placeholder="Select organizer" />
               </SelectTrigger>
               <SelectContent>
-                {mockEmployees.map((emp) => (
+                {employees.map((emp) => (
                   <SelectItem key={emp.id} value={emp.id}>
                     {emp.firstName} {emp.lastName}
                   </SelectItem>
@@ -232,7 +267,9 @@ export function CreateEventDialog({ open, onOpenChange }: CreateEventDialogProps
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit}>Create Event</Button>
+          <Button onClick={handleSubmit} disabled={createEvent.isPending}>
+            {createEvent.isPending ? "Creating..." : "Create Event"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -3,14 +3,18 @@ import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Header } from "@/components/dashboard/Header";
 import {
   CalendarHeader,
-  CalendarToolbar,
   CalendarFilters,
   WeekView,
   CreateEventDialog,
   EventDetailSheet,
 } from "@/components/calendar";
-import { calendarEvents, getEventsForDate, CalendarEvent } from "@/data/calendar";
+import { 
+  useCalendarEvents, 
+  getEventsForDate, 
+  CalendarEvent 
+} from "@/hooks/useCalendarEvents";
 import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Calendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -26,12 +30,30 @@ export default function Calendar() {
     colors: [] as string[],
   });
 
+  // Calculate the week range for fetching events
+  const weekRange = useMemo(() => {
+    const startOfWeek = new Date(currentDate);
+    const day = startOfWeek.getDay();
+    const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
+    startOfWeek.setDate(diff);
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 7);
+    endOfWeek.setHours(23, 59, 59, 999);
+
+    return { start: startOfWeek, end: endOfWeek };
+  }, [currentDate]);
+
+  // Fetch events from database
+  const { data: events = [], isLoading } = useCalendarEvents(weekRange.start, weekRange.end);
+
   // Calculate the week dates based on current date
   const weekDates = useMemo(() => {
     const dates: Date[] = [];
     const startOfWeek = new Date(currentDate);
     const day = startOfWeek.getDay();
-    const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1); // Adjust for Monday start
+    const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
     startOfWeek.setDate(diff);
 
     for (let i = 0; i < 7; i++) {
@@ -44,12 +66,12 @@ export default function Calendar() {
 
   // Get today's events for the header summary
   const todayEvents = useMemo(() => {
-    return getEventsForDate(new Date());
-  }, []);
+    return getEventsForDate(events, new Date());
+  }, [events]);
 
   // Filter events based on active filters
   const filteredEvents = useMemo(() => {
-    return calendarEvents.filter((event) => {
+    return events.filter((event) => {
       if (filters.types.length > 0 && !filters.types.includes(event.type)) {
         return false;
       }
@@ -61,7 +83,7 @@ export default function Calendar() {
       }
       return true;
     });
-  }, [filters]);
+  }, [events, filters]);
 
   const handleToday = () => {
     const today = new Date();

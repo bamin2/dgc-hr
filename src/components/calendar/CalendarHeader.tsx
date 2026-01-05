@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { CalendarClock, Plus } from "lucide-react";
-import { CalendarEvent } from "@/data/calendar";
+import { CalendarEvent } from "@/hooks/useCalendarEvents";
 
 interface CalendarHeaderProps {
   currentDate: Date;

@@ -1,4 +1,4 @@
-import { CalendarEvent, getOrganizerById, getParticipants } from "@/data/calendar";
+import { CalendarEvent, getOrganizerFromEvent, getParticipantsFromEvent } from "@/hooks/useCalendarEvents";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { Video, MessageSquare, Users, Monitor } from "lucide-react";
@@ -58,13 +58,14 @@ const platformLabels: Record<string, string> = {
 };
 
 export function EventCard({ event, onClick }: EventCardProps) {
-  const organizer = getOrganizerById(event.organizerId);
-  const participants = getParticipants(event.participantIds);
+  const organizer = getOrganizerFromEvent(event);
+  const participants = getParticipantsFromEvent(event);
   const styles = colorStyles[event.color] || colorStyles.green;
   const visibleParticipants = participants.slice(0, 3);
   const remainingCount = participants.length - 3;
 
-  const formatTime = (date: Date) => {
+  const formatTime = (dateStr: string) => {
+    const date = new Date(dateStr);
     return date.toLocaleTimeString("en-US", {
       hour: "numeric",
       minute: "2-digit",
@@ -84,7 +85,7 @@ export function EventCard({ event, onClick }: EventCardProps) {
     <div
       onClick={onClick}
       className={cn(
-        "rounded-lg border-l-4 p-2.5 cursor-pointer transition-all hover:shadow-md",
+        "rounded-lg border-l-4 p-2.5 cursor-pointer transition-all hover:shadow-md h-full overflow-hidden",
         styles.bg,
         styles.border
       )}
@@ -92,7 +93,7 @@ export function EventCard({ event, onClick }: EventCardProps) {
       {/* Organizer */}
       <div className="flex items-center gap-1.5 mb-1">
         <Avatar className="h-4 w-4">
-          <AvatarImage src={organizer?.avatar} />
+          <AvatarImage src={organizer?.avatar || undefined} />
           <AvatarFallback className="text-[8px] bg-muted">
             {organizer ? getInitials(organizer.name) : "?"}
           </AvatarFallback>
@@ -109,7 +110,7 @@ export function EventCard({ event, onClick }: EventCardProps) {
 
       {/* Time */}
       <p className="text-[10px] text-muted-foreground mb-1.5">
-        {formatTime(event.startTime)} - {formatTime(event.endTime)}
+        {formatTime(event.start_time)} - {formatTime(event.end_time)}
       </p>
 
       {/* Participants and Platform */}
@@ -117,7 +118,7 @@ export function EventCard({ event, onClick }: EventCardProps) {
         <div className="flex items-center -space-x-1">
           {visibleParticipants.map((participant) => (
             <Avatar key={participant.id} className="h-5 w-5 border border-background">
-              <AvatarImage src={participant.avatar} />
+              <AvatarImage src={participant.avatar || undefined} />
               <AvatarFallback className="text-[8px] bg-muted">
                 {getInitials(participant.name)}
               </AvatarFallback>
