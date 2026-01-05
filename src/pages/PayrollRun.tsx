@@ -1,20 +1,25 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Check, Calendar, Users, DollarSign, FileCheck } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Calendar as CalendarIcon, Users, DollarSign, FileCheck } from "lucide-react";
 import { startOfMonth, endOfMonth, format } from "date-fns";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { mockPayrollRecords } from "@/data/payroll";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 const steps = [
-  { id: 1, title: "Pay Period", icon: Calendar },
+  { id: 1, title: "Pay Period", icon: CalendarIcon },
   { id: 2, title: "Select Employees", icon: Users },
   { id: 3, title: "Adjustments", icon: DollarSign },
   { id: 4, title: "Review & Process", icon: FileCheck },
@@ -76,26 +81,70 @@ export default function PayrollRun() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="startDate">Start Date</Label>
-                  <Input
-                    id="startDate"
-                    type="date"
-                    value={payPeriod.startDate}
-                    onChange={(e) =>
-                      setPayPeriod({ ...payPeriod, startDate: e.target.value })
-                    }
-                  />
+                  <Label>Start Date</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !payPeriod.startDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {payPeriod.startDate
+                          ? format(new Date(payPeriod.startDate), "dd/MM/yyyy")
+                          : "Select start date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={payPeriod.startDate ? new Date(payPeriod.startDate) : undefined}
+                        onSelect={(date) =>
+                          setPayPeriod({
+                            ...payPeriod,
+                            startDate: date ? format(date, "yyyy-MM-dd") : "",
+                          })
+                        }
+                        initialFocus
+                        className="pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="endDate">End Date</Label>
-                  <Input
-                    id="endDate"
-                    type="date"
-                    value={payPeriod.endDate}
-                    onChange={(e) =>
-                      setPayPeriod({ ...payPeriod, endDate: e.target.value })
-                    }
-                  />
+                  <Label>End Date</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !payPeriod.endDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {payPeriod.endDate
+                          ? format(new Date(payPeriod.endDate), "dd/MM/yyyy")
+                          : "Select end date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={payPeriod.endDate ? new Date(payPeriod.endDate) : undefined}
+                        onSelect={(date) =>
+                          setPayPeriod({
+                            ...payPeriod,
+                            endDate: date ? format(date, "yyyy-MM-dd") : "",
+                          })
+                        }
+                        initialFocus
+                        className="pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
             </CardContent>
@@ -149,7 +198,7 @@ export default function PayrollRun() {
                       </div>
                     </div>
                     <span className="font-medium text-foreground">
-                      ${record.netPay.toLocaleString()}
+                      ${record.baseSalary.toLocaleString()}
                     </span>
                   </div>
                 ))}
@@ -166,7 +215,7 @@ export default function PayrollRun() {
                   <div className="text-right">
                     <p className="text-sm text-muted-foreground">Total Amount</p>
                     <p className="text-xl font-bold text-primary">
-                      ${selectedRecords.reduce((sum, r) => sum + r.netPay, 0).toLocaleString()}
+                      ${selectedRecords.reduce((sum, r) => sum + r.baseSalary, 0).toLocaleString()}
                     </p>
                   </div>
                 </div>
@@ -261,7 +310,7 @@ export default function PayrollRun() {
                 <div className="p-4 bg-muted/30 rounded-lg">
                   <p className="text-sm text-muted-foreground">Pay Period</p>
                   <p className="font-medium text-foreground">
-                    {payPeriod.startDate} to {payPeriod.endDate}
+                    {format(new Date(payPeriod.startDate), "dd/MM/yyyy")} to {format(new Date(payPeriod.endDate), "dd/MM/yyyy")}
                   </p>
                 </div>
                 <div className="p-4 bg-muted/30 rounded-lg">
