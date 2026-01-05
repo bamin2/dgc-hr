@@ -17,6 +17,7 @@ import {
   MessageSquare,
   UserX,
   Shield,
+  KeyRound,
 } from "lucide-react";
 import { Sidebar, Header } from "@/components/dashboard";
 import { Button } from "@/components/ui/button";
@@ -24,7 +25,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { StatusBadge, EmployeeForm, RoleBadge, RoleSelectorWithDescription } from "@/components/employees";
+import { StatusBadge, EmployeeForm, RoleBadge, RoleSelectorWithDescription, CreateLoginDialog } from "@/components/employees";
 import { mockEmployees, Employee } from "@/data/employees";
 import { AppRole, roleDescriptions } from "@/data/roles";
 import { useRole } from "@/contexts/RoleContext";
@@ -39,6 +40,7 @@ export default function EmployeeProfile() {
     mockEmployees.find(e => e.id === id)
   );
   const [formOpen, setFormOpen] = useState(false);
+  const [createLoginOpen, setCreateLoginOpen] = useState(false);
   const employeeRole = id ? getEmployeeRole(id) : 'employee';
 
   if (!employee) {
@@ -400,6 +402,31 @@ export default function EmployeeProfile() {
                 </Card>
               </div>
 
+              {/* Create Login (HR/Admin only) */}
+              {canManageRoles && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base font-medium flex items-center gap-2">
+                      <KeyRound className="h-4 w-4 text-primary" />
+                      Account Access
+                    </CardTitle>
+                    <CardDescription>
+                      Create login credentials for this employee to access the system
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button 
+                      variant="outline" 
+                      className="gap-2"
+                      onClick={() => setCreateLoginOpen(true)}
+                    >
+                      <KeyRound className="h-4 w-4" />
+                      Create Login
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Role Permissions Info */}
               <Card>
                 <CardHeader>
@@ -436,6 +463,17 @@ export default function EmployeeProfile() {
         onOpenChange={setFormOpen}
         employee={employee}
         onSave={handleSave}
+      />
+
+      <CreateLoginDialog
+        open={createLoginOpen}
+        onOpenChange={setCreateLoginOpen}
+        employee={{
+          id: employee.id,
+          firstName: employee.firstName,
+          lastName: employee.lastName,
+          email: employee.email,
+        }}
       />
     </div>
   );
