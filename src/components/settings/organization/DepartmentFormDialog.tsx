@@ -51,17 +51,17 @@ export function DepartmentFormDialog({
 }: DepartmentFormDialogProps) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [managerId, setManagerId] = useState<string>('');
+  const [managerId, setManagerId] = useState<string>('none');
 
   useEffect(() => {
     if (department) {
       setName(department.name);
       setDescription(department.description || '');
-      setManagerId(department.manager_id || '');
+      setManagerId(department.manager_id || 'none');
     } else {
       setName('');
       setDescription('');
-      setManagerId('');
+      setManagerId('none');
     }
   }, [department, open]);
 
@@ -72,7 +72,7 @@ export function DepartmentFormDialog({
     await onSubmit({
       name: name.trim(),
       description: description.trim() || null,
-      manager_id: managerId || null,
+      manager_id: managerId === 'none' ? null : managerId,
     });
   };
 
@@ -112,7 +112,7 @@ export function DepartmentFormDialog({
                 <SelectValue placeholder="Select department head (optional)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">No department head</SelectItem>
+                <SelectItem value="none">No department head</SelectItem>
                 {employees.map((emp) => (
                   <SelectItem key={emp.id} value={emp.id}>
                     <div className="flex items-center gap-2">
