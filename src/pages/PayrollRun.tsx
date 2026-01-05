@@ -308,19 +308,33 @@ export default function PayrollRun() {
                 ))}
               </div>
               
-              {/* Total Net Pay Footer */}
+              {/* Total Summary Footer */}
               <div className="mt-4 pt-4 border-t">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">
-                      {selectedEmployees.length} employee(s) selected
-                    </p>
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-sm text-muted-foreground">
+                    {selectedEmployees.length} employee(s) selected
+                  </p>
+                </div>
+                
+                {/* Summary Breakdown */}
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Total Earnings</span>
+                    <span className="font-medium">
+                      ${selectedRecords.reduce((sum, r) => sum + r.baseSalary + r.overtime + r.bonuses, 0).toLocaleString()}
+                    </span>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm text-muted-foreground">Total Net Pay</p>
-                    <p className="text-xl font-bold text-primary">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Total Deductions</span>
+                    <span className="font-medium text-destructive">
+                      -${selectedRecords.reduce((sum, r) => sum + r.deductions.tax + r.deductions.insurance + r.deductions.other, 0).toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between pt-2 border-t">
+                    <span className="font-medium">Final Net Pay</span>
+                    <span className="text-xl font-bold text-primary">
                       ${selectedRecords.reduce((sum, r) => sum + r.netPay, 0).toLocaleString()}
-                    </p>
+                    </span>
                   </div>
                 </div>
               </div>
