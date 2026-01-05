@@ -98,6 +98,7 @@ export default function EmployeeProfile() {
       date_of_birth: data.dateOfBirth,
       gender: data.gender as "male" | "female" | "other" | "prefer_not_to_say" | null,
       nationality: data.nationality,
+      avatar_url: data.avatar,
       emergency_contact_name: data.emergencyContact?.name,
       emergency_contact_phone: data.emergencyContact?.phone,
       emergency_contact_relationship: data.emergencyContact?.relationship,

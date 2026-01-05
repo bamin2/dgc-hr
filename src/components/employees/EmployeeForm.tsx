@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Upload } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Upload, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,7 +17,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { CountrySelect } from "@/components/ui/country-select";
 import { Employee, useDepartments, usePositions } from "@/hooks/useEmployees";
+import { useAvatarUpload } from "@/hooks/useAvatarUpload";
+import { toast } from "@/hooks/use-toast";
 
 interface EmployeeFormProps {
   open: boolean;
@@ -45,9 +48,11 @@ interface FormData {
 
 export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeFormProps) {
   const isEditing = !!employee;
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { data: departments = [] } = useDepartments();
   const { data: positions = [] } = usePositions();
+  const { uploadAvatar, isUploading } = useAvatarUpload();
   
   const [formData, setFormData] = useState<FormData>({
     firstName: '',
@@ -135,6 +140,50 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
     });
   };
 
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload an image file (JPG, PNG, or GIF).",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (2MB max)
+    if (file.size > 2 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please upload an image smaller than 2MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Use employee ID if editing, otherwise use a temporary ID
+      const employeeId = employee?.id || `temp-${Date.now()}`;
+      const avatarUrl = await uploadAvatar(file, employeeId);
+      
+      setFormData(prev => ({ ...prev, avatar: avatarUrl }));
+      
+      toast({
+        title: "Photo uploaded",
+        description: "Profile photo has been updated.",
+      });
+    } catch (error) {
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload photo. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const initials = formData.firstName && formData.lastName 
     ? `${formData.firstName[0]}${formData.lastName[0]}`
     : 'NA';
@@ -158,9 +207,32 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
               </AvatarFallback>
             </Avatar>
             <div>
-              <Button type="button" variant="outline" size="sm" className="gap-2">
-                <Upload className="h-4 w-4" />
-                Upload Photo
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoUpload}
+                className="hidden"
+              />
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="sm" 
+                className="gap-2"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+              >
+                {isUploading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-4 w-4" />
+                    Upload Photo
+                  </>
+                )}
               </Button>
               <p className="text-xs text-muted-foreground mt-1">
                 JPG, PNG or GIF. Max 2MB
@@ -217,10 +289,10 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
               </div>
               <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="nationality">Nationality</Label>
-                <Input
-                  id="nationality"
+                <CountrySelect
                   value={formData.nationality}
-                  onChange={(e) => handleChange('nationality', e.target.value)}
+                  onValueChange={(v) => handleChange('nationality', v)}
+                  placeholder="Select nationality"
                 />
               </div>
             </div>
@@ -316,7 +388,7 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit">
+            <Button type="submit" disabled={isUploading}>
               {isEditing ? 'Save Changes' : 'Add Employee'}
             </Button>
           </div>
