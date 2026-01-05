@@ -26,6 +26,7 @@ import Settings from "./pages/Settings";
 import Notifications from "./pages/Notifications";
 import Calendar from "./pages/Calendar";
 import Projects from "./pages/Projects";
+import TimeOff from "./pages/TimeOff";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -51,6 +52,7 @@ const App = () => (
             <Route path="/payroll/run" element={<PayrollRun />} />
             <Route path="/payroll/payslip/:id" element={<Payslip />} />
             <Route path="/attendance" element={<Attendance />} />
+            <Route path="/time-off" element={<TimeOff />} />
             <Route path="/attendance/leave/request" element={<LeaveRequest />} />
             <Route path="/attendance/leave/:id" element={<LeaveDetail />} />
             <Route path="/benefits" element={<Benefits />} />
