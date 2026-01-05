@@ -64,7 +64,7 @@ export function useLeaveRequests(options: UseLeaveRequestsOptions = {}) {
             last_name,
             email,
             avatar_url,
-            department:departments (
+            department:departments!employees_department_id_fkey (
               id,
               name
             )
@@ -116,7 +116,7 @@ export function useLeaveRequest(id: string) {
             last_name,
             email,
             avatar_url,
-            department:departments (
+            department:departments!employees_department_id_fkey (
               id,
               name
             )

@@ -52,7 +52,7 @@ export function useAttendanceRecords(options: UseAttendanceRecordsOptions = {}) 
             last_name,
             email,
             avatar_url,
-            department:departments (
+            department:departments!employees_department_id_fkey (
               id,
               name
             )
