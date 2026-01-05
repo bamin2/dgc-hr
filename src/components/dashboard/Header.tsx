@@ -1,4 +1,5 @@
-import { Search, ChevronDown } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Search, ChevronDown, LogOut, User, Settings } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -6,21 +7,34 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { NotificationBell } from "@/components/notifications";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRole } from "@/contexts/RoleContext";
+import { RoleBadge } from "@/components/employees";
 
-interface HeaderProps {
-  userName?: string;
-}
+export function Header() {
+  const navigate = useNavigate();
+  const { signOut, profile } = useAuth();
+  const { currentUser } = useRole();
 
-export function Header({ userName = "Christine" }: HeaderProps) {
-  const currentDate = new Date().toLocaleDateString("en-US", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/auth");
+  };
+
+  const displayName = profile 
+    ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'User'
+    : currentUser.name || 'User';
+
+  const initials = displayName
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
 
   return (
     <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b border-border">
@@ -28,7 +42,7 @@ export function Header({ userName = "Christine" }: HeaderProps) {
         {/* Greeting */}
         <div>
           <h1 className="text-xl font-bold text-foreground">
-            Hello, {userName}! 👋
+            Hello, {displayName.split(' ')[0]}! 👋
           </h1>
           <p className="text-sm text-muted-foreground">
             Let's check your team today
@@ -57,21 +71,35 @@ export function Header({ userName = "Christine" }: HeaderProps) {
                 className="flex items-center gap-2 hover:bg-secondary"
               >
                 <Avatar className="w-8 h-8">
-                  <AvatarImage src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face" />
+                  <AvatarImage src={profile?.avatar_url || currentUser.avatar} />
                   <AvatarFallback className="bg-primary text-primary-foreground">
-                    CL
+                    {initials}
                   </AvatarFallback>
                 </Avatar>
-                <span className="hidden sm:block font-medium text-sm">
-                  Christine
-                </span>
+                <div className="hidden sm:flex items-center gap-2">
+                  <span className="font-medium text-sm">
+                    {displayName.split(' ')[0]}
+                  </span>
+                  <RoleBadge role={currentUser.role} />
+                </div>
                 <ChevronDown className="w-4 h-4 text-muted-foreground" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem>Profile</DropdownMenuItem>
-              <DropdownMenuItem>Settings</DropdownMenuItem>
-              <DropdownMenuItem className="text-destructive">
+              <DropdownMenuItem onClick={() => navigate('/employees/' + currentUser.id)}>
+                <User className="w-4 h-4 mr-2" />
+                Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/settings')}>
+                <Settings className="w-4 h-4 mr-2" />
+                Settings
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                className="text-destructive focus:text-destructive"
+                onClick={handleSignOut}
+              >
+                <LogOut className="w-4 h-4 mr-2" />
                 Logout
               </DropdownMenuItem>
             </DropdownMenuContent>
