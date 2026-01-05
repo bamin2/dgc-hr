@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import {
   TeamMemberTable,
   TeamMemberFilters,
+  OnboardingDialog,
 } from "@/components/team";
 import { TablePagination } from "@/components/employees";
 import { mockTeamMembers, type TeamMember as TeamMemberType, type TeamMemberStatus } from "@/data/team";
@@ -29,6 +30,10 @@ export default function TeamMember() {
   const [searchQuery, setSearchQuery] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('all');
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+
+  // Onboarding dialog state
+  const [onboardingDialogOpen, setOnboardingDialogOpen] = useState(false);
+  const [selectedMemberForOnboarding, setSelectedMemberForOnboarding] = useState<TeamMemberType | null>(null);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -92,6 +97,39 @@ export default function TeamMember() {
     toast({
       title: "Member deleted",
       description: `${member.firstName} ${member.lastName} has been removed.`,
+    });
+  };
+
+  const handleStartOnboarding = (member: TeamMemberType) => {
+    setSelectedMemberForOnboarding(member);
+    setOnboardingDialogOpen(true);
+  };
+
+  const handleOnboardingComplete = () => {
+    if (selectedMemberForOnboarding) {
+      setMembers((prev) =>
+        prev.map((m) =>
+          m.id === selectedMemberForOnboarding.id ? { ...m, status: "onboarding" } : m
+        )
+      );
+      toast({
+        title: "Onboarding started",
+        description: `Onboarding has been launched for ${selectedMemberForOnboarding.firstName} ${selectedMemberForOnboarding.lastName}`,
+      });
+    }
+    setOnboardingDialogOpen(false);
+    setSelectedMemberForOnboarding(null);
+  };
+
+  const handleStartOffboarding = (member: TeamMemberType) => {
+    setMembers((prev) =>
+      prev.map((m) =>
+        m.id === member.id ? { ...m, status: "offboarding" } : m
+      )
+    );
+    toast({
+      title: "Offboarding started",
+      description: `Offboarding has been started for ${member.firstName} ${member.lastName}`,
     });
   };
 
@@ -188,6 +226,8 @@ export default function TeamMember() {
                 onSelectionChange={setSelectedMembers}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
+                onStartOnboarding={handleStartOnboarding}
+                onStartOffboarding={handleStartOffboarding}
               />
               <TablePagination
                 currentPage={currentPage}
@@ -202,6 +242,14 @@ export default function TeamMember() {
               />
             </>
           )}
+
+          {/* Onboarding Dialog */}
+          <OnboardingDialog
+            open={onboardingDialogOpen}
+            onOpenChange={setOnboardingDialogOpen}
+            member={selectedMemberForOnboarding}
+            onComplete={handleOnboardingComplete}
+          />
         </main>
       </div>
     </div>
