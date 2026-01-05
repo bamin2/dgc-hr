@@ -34,10 +34,7 @@ interface RequestTimeOffDialogProps {
 
 export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialogProps) {
   const [timeOffType, setTimeOffType] = useState<TimeOffType>("paid_time_off");
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: new Date(),
-    to: undefined,
-  });
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [note, setNote] = useState("");
   const [files, setFiles] = useState<File[]>([]);
 
