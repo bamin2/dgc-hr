@@ -11,18 +11,45 @@ import {
   isSameMonth,
   isSameDay,
   isWithinInterval,
+  parseISO,
 } from "date-fns";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { mockCalendarEvents, timeOffTypeColors } from "@/data/timeoff";
+import { useLeaveRequests } from "@/hooks/useLeaveRequests";
 
 type ViewMode = "day" | "week" | "month";
+
+interface CalendarEvent {
+  id: string;
+  title: string;
+  startDate: Date;
+  endDate: Date;
+  color: string;
+}
 
 export function TimeOffMonthCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>("month");
+
+  const { data: leaveRequests, isLoading } = useLeaveRequests();
+
+  // Convert leave requests to calendar events
+  const calendarEvents: CalendarEvent[] = useMemo(() => {
+    if (!leaveRequests) return [];
+    
+    return leaveRequests
+      .filter(r => r.status === 'approved' || r.status === 'pending')
+      .map(request => ({
+        id: request.id,
+        title: `${request.employee?.first_name || ''} - ${request.leave_type?.name || 'Leave'}`,
+        startDate: parseISO(request.start_date),
+        endDate: parseISO(request.end_date),
+        color: request.leave_type?.color || '#3b82f6',
+      }));
+  }, [leaveRequests]);
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
@@ -48,16 +75,16 @@ export function TimeOffMonthCalendar() {
   }, [days]);
 
   const getEventsForDay = (day: Date) => {
-    return mockCalendarEvents.filter((event) =>
+    return calendarEvents.filter((event) =>
       isWithinInterval(day, { start: event.startDate, end: event.endDate })
     );
   };
 
-  const isEventStart = (day: Date, event: typeof mockCalendarEvents[0]) => {
+  const isEventStart = (day: Date, event: CalendarEvent) => {
     return isSameDay(day, event.startDate);
   };
 
-  const isEventEnd = (day: Date, event: typeof mockCalendarEvents[0]) => {
+  const isEventEnd = (day: Date, event: CalendarEvent) => {
     return isSameDay(day, event.endDate);
   };
 
@@ -67,6 +94,19 @@ export function TimeOffMonthCalendar() {
 
   const today = new Date();
   const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+  if (isLoading) {
+    return (
+      <div className="flex-1">
+        <div className="flex items-center justify-between mb-4">
+          <Skeleton className="h-10 w-20" />
+          <Skeleton className="h-10 w-48" />
+          <Skeleton className="h-10 w-32" />
+        </div>
+        <Skeleton className="h-[500px] w-full rounded-lg" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1">
@@ -138,7 +178,6 @@ export function TimeOffMonthCalendar() {
                   {/* Events */}
                   <div className="mt-1 space-y-1">
                     {events.slice(0, 2).map((event) => {
-                      const colors = timeOffTypeColors[event.type];
                       const isStart = isEventStart(day, event);
                       const isEnd = isEventEnd(day, event);
                       
@@ -146,15 +185,14 @@ export function TimeOffMonthCalendar() {
                         <div
                           key={event.id}
                           className={cn(
-                            "text-xs px-2 py-1 truncate",
-                            colors.bg,
-                            colors.text,
+                            "text-xs px-2 py-1 truncate text-white",
                             isStart && "rounded-l-md",
                             isEnd && "rounded-r-md",
                             !isStart && !isEnd && "rounded-none",
                             isStart && isEnd && "rounded-md"
                           )}
                           style={{
+                            backgroundColor: event.color,
                             marginLeft: isStart ? 0 : -8,
                             marginRight: isEnd ? 0 : -8,
                             paddingLeft: isStart ? 8 : 4,

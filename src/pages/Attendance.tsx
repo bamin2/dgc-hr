@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Plus } from 'lucide-react';
 import {
   AttendanceMetrics,
@@ -20,8 +21,10 @@ import {
   LeaveRequestsTable,
   AttendanceCalendar,
 } from '@/components/attendance';
-import { attendanceRecords, leaveRequests, leaveBalances } from '@/data/attendance';
-import { mockEmployees as employees } from '@/data/employees';
+import { useCurrentMonthAttendance, useTodayAttendance } from '@/hooks/useAttendanceRecords';
+import { useLeaveRequests, usePendingLeaveRequests, LeaveRequestStatus } from '@/hooks/useLeaveRequests';
+import { useLeaveBalanceSummary } from '@/hooks/useLeaveBalances';
+import { useDepartmentsManagement } from '@/hooks/useDepartmentsManagement';
 
 export default function Attendance() {
   const navigate = useNavigate();
@@ -29,45 +32,44 @@ export default function Attendance() {
   const [searchQuery, setSearchQuery] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('all-departments');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [leaveStatusFilter, setLeaveStatusFilter] = useState('all');
+  const [leaveStatusFilter, setLeaveStatusFilter] = useState<LeaveRequestStatus | 'all'>('all');
 
-  // Get today's date for filtering
-  const today = new Date().toISOString().split('T')[0];
+  // Fetch data from database
+  const { data: todayAttendance, isLoading: todayLoading } = useTodayAttendance();
+  const { data: monthAttendance, isLoading: monthLoading } = useCurrentMonthAttendance();
+  const { data: allLeaveRequests, isLoading: requestsLoading } = useLeaveRequests();
+  const { data: pendingRequests, isLoading: pendingLoading } = usePendingLeaveRequests();
+  const { data: departments } = useDepartmentsManagement();
+
+  // For a logged-in employee, we'd use their employee_id here
+  // For now, showing a placeholder since we need to handle this per-user
+  const { data: leaveBalances, isLoading: balancesLoading } = useLeaveBalanceSummary(undefined);
 
   // Filter attendance records
-  const filteredAttendance = attendanceRecords.filter((record) => {
-    const employee = employees.find((e) => e.id === record.employeeId);
+  const filteredAttendance = (monthAttendance || []).filter((record) => {
+    const employee = record.employee;
     if (!employee) return false;
 
-    const matchesSearch = `${employee.firstName} ${employee.lastName}`.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesDepartment =
-      departmentFilter === 'all-departments' ||
-      employee.department.toLowerCase().replace(' ', '-') === departmentFilter;
+    const fullName = `${employee.first_name} ${employee.last_name}`.toLowerCase();
+    const matchesSearch = fullName.includes(searchQuery.toLowerCase());
+    const matchesDepartment = departmentFilter === 'all-departments' || 
+      employee.department?.id === departmentFilter;
     const matchesStatus = statusFilter === 'all' || record.status === statusFilter;
 
     return matchesSearch && matchesDepartment && matchesStatus;
   });
 
-  // Get today's attendance
-  const todayAttendance = filteredAttendance.filter((r) => r.date === today);
-
   // Filter leave requests
-  const filteredLeaveRequests = leaveRequests.filter((request) => {
-    const employee = employees.find((e) => e.id === request.employeeId);
+  const filteredLeaveRequests = (allLeaveRequests || []).filter((request) => {
+    const employee = request.employee;
     if (!employee) return false;
 
-    const matchesSearch = `${employee.firstName} ${employee.lastName}`.toLowerCase().includes(searchQuery.toLowerCase());
+    const fullName = `${employee.first_name} ${employee.last_name}`.toLowerCase();
+    const matchesSearch = fullName.includes(searchQuery.toLowerCase());
     const matchesStatus = leaveStatusFilter === 'all' || request.status === leaveStatusFilter;
 
     return matchesSearch && matchesStatus;
   });
-
-  // Get average leave balance for display
-  const avgBalance = leaveBalances[0] || {
-    annual: { total: 20, used: 5, remaining: 15 },
-    sick: { total: 10, used: 2, remaining: 8 },
-    personal: { total: 5, used: 1, remaining: 4 },
-  };
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -114,20 +116,35 @@ export default function Attendance() {
                         <CardTitle className="text-base font-semibold">
                           Today's Attendance
                         </CardTitle>
-                        <Button variant="link" className="text-primary p-0 h-auto" onClick={() => setActiveTab('attendance')}>
+                        <Button 
+                          variant="link" 
+                          className="text-primary p-0 h-auto" 
+                          onClick={() => setActiveTab('attendance')}
+                        >
                           View All
                         </Button>
                       </div>
                     </CardHeader>
                     <CardContent className="p-0">
-                      <AttendanceTable records={todayAttendance.slice(0, 5)} />
+                      {todayLoading ? (
+                        <div className="p-4 space-y-3">
+                          {[1, 2, 3].map((i) => (
+                            <Skeleton key={i} className="h-12 w-full" />
+                          ))}
+                        </div>
+                      ) : (
+                        <AttendanceTable records={(todayAttendance || []).slice(0, 5)} />
+                      )}
                     </CardContent>
                   </Card>
                 </div>
 
                 {/* Leave Balance */}
                 <div>
-                  <LeaveBalanceCard balance={avgBalance} />
+                  <LeaveBalanceCard 
+                    balances={leaveBalances} 
+                    isLoading={balancesLoading} 
+                  />
                 </div>
               </div>
 
@@ -138,15 +155,25 @@ export default function Attendance() {
                     <CardTitle className="text-base font-semibold">
                       Pending Leave Requests
                     </CardTitle>
-                    <Button variant="link" className="text-primary p-0 h-auto" onClick={() => setActiveTab('leave-requests')}>
+                    <Button 
+                      variant="link" 
+                      className="text-primary p-0 h-auto" 
+                      onClick={() => setActiveTab('leave-requests')}
+                    >
                       View All
                     </Button>
                   </div>
                 </CardHeader>
                 <CardContent className="p-0">
-                  <LeaveRequestsTable
-                    requests={leaveRequests.filter((r) => r.status === 'pending').slice(0, 5)}
-                  />
+                  {pendingLoading ? (
+                    <div className="p-4 space-y-3">
+                      {[1, 2, 3].map((i) => (
+                        <Skeleton key={i} className="h-12 w-full" />
+                      ))}
+                    </div>
+                  ) : (
+                    <LeaveRequestsTable requests={(pendingRequests || []).slice(0, 5)} />
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
@@ -161,13 +188,24 @@ export default function Attendance() {
                 statusFilter={statusFilter}
                 onStatusChange={setStatusFilter}
               />
-              <AttendanceTable records={filteredAttendance.slice(0, 20)} />
+              {monthLoading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <Skeleton key={i} className="h-12 w-full" />
+                  ))}
+                </div>
+              ) : (
+                <AttendanceTable records={filteredAttendance.slice(0, 20)} />
+              )}
             </TabsContent>
 
             {/* Leave Requests Tab */}
             <TabsContent value="leave-requests" className="space-y-6">
               <div className="flex flex-col sm:flex-row gap-3">
-                <Select value={leaveStatusFilter} onValueChange={setLeaveStatusFilter}>
+                <Select 
+                  value={leaveStatusFilter} 
+                  onValueChange={(value) => setLeaveStatusFilter(value as LeaveRequestStatus | 'all')}
+                >
                   <SelectTrigger className="w-full sm:w-[180px]">
                     <SelectValue placeholder="Filter by status" />
                   </SelectTrigger>
@@ -179,7 +217,15 @@ export default function Attendance() {
                   </SelectContent>
                 </Select>
               </div>
-              <LeaveRequestsTable requests={filteredLeaveRequests} />
+              {requestsLoading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <Skeleton key={i} className="h-12 w-full" />
+                  ))}
+                </div>
+              ) : (
+                <LeaveRequestsTable requests={filteredLeaveRequests} />
+              )}
             </TabsContent>
 
             {/* Calendar Tab */}

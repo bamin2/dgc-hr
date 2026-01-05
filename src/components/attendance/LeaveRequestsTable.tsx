@@ -9,8 +9,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { LeaveStatusBadge } from './LeaveStatusBadge';
-import { LeaveRequest, getLeaveTypeLabel } from '@/data/attendance';
-import { mockEmployees as employees } from '@/data/employees';
+import { LeaveRequest } from '@/hooks/useLeaveRequests';
 import { Check, X, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -21,10 +20,6 @@ interface LeaveRequestsTableProps {
 
 export function LeaveRequestsTable({ requests, showActions = true }: LeaveRequestsTableProps) {
   const navigate = useNavigate();
-  
-  const getEmployee = (employeeId: string) => {
-    return employees.find((e) => e.id === employeeId);
-  };
 
   return (
     <div className="rounded-lg border bg-card">
@@ -49,7 +44,7 @@ export function LeaveRequestsTable({ requests, showActions = true }: LeaveReques
             </TableRow>
           ) : (
             requests.map((request) => {
-              const employee = getEmployee(request.employeeId);
+              const employee = request.employee;
               if (!employee) return null;
 
               return (
@@ -57,30 +52,45 @@ export function LeaveRequestsTable({ requests, showActions = true }: LeaveReques
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={employee.avatar} alt={`${employee.firstName} ${employee.lastName}`} />
+                        <AvatarImage 
+                          src={employee.avatar_url || undefined} 
+                          alt={`${employee.first_name} ${employee.last_name}`} 
+                        />
                         <AvatarFallback>
-                          {employee.firstName[0]}{employee.lastName[0]}
+                          {employee.first_name[0]}{employee.last_name[0]}
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="font-medium text-sm">{employee.firstName} {employee.lastName}</p>
-                        <p className="text-xs text-muted-foreground">{employee.department}</p>
+                        <p className="font-medium text-sm">
+                          {employee.first_name} {employee.last_name}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {employee.department?.name || '-'}
+                        </p>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell className="text-sm">
-                    {getLeaveTypeLabel(request.leaveType)}
+                    <div className="flex items-center gap-2">
+                      {request.leave_type?.color && (
+                        <div 
+                          className="w-2 h-2 rounded-full" 
+                          style={{ backgroundColor: request.leave_type.color }}
+                        />
+                      )}
+                      {request.leave_type?.name || 'Unknown'}
+                    </div>
                   </TableCell>
                   <TableCell className="text-sm">
                     <div>
-                      {new Date(request.startDate).toLocaleDateString('en-US', {
+                      {new Date(request.start_date).toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',
                       })}
-                      {request.startDate !== request.endDate && (
+                      {request.start_date !== request.end_date && (
                         <>
                           {' - '}
-                          {new Date(request.endDate).toLocaleDateString('en-US', {
+                          {new Date(request.end_date).toLocaleDateString('en-US', {
                             month: 'short',
                             day: 'numeric',
                           })}
@@ -89,11 +99,11 @@ export function LeaveRequestsTable({ requests, showActions = true }: LeaveReques
                     </div>
                   </TableCell>
                   <TableCell className="text-sm">
-                    {request.totalDays} {request.totalDays === 1 ? 'day' : 'days'}
-                    {request.isHalfDay && ' (Half)'}
+                    {request.days_count} {request.days_count === 1 ? 'day' : 'days'}
+                    {request.is_half_day && ' (Half)'}
                   </TableCell>
                   <TableCell className="text-sm max-w-[200px] truncate">
-                    {request.reason}
+                    {request.reason || '-'}
                   </TableCell>
                   <TableCell>
                     <LeaveStatusBadge status={request.status} />
