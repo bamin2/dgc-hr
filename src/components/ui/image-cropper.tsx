@@ -71,17 +71,23 @@ export function ImageCropper({
         </DialogHeader>
 
         <div className="relative h-[300px] bg-muted rounded-lg overflow-hidden">
-          <Cropper
-            image={imageSrc}
-            crop={crop}
-            zoom={zoom}
-            aspect={aspectRatio}
-            cropShape={cropShape}
-            showGrid={false}
-            onCropChange={setCrop}
-            onCropComplete={onCropChange}
-            onZoomChange={setZoom}
-          />
+          {imageSrc ? (
+            <Cropper
+              image={imageSrc}
+              crop={crop}
+              zoom={zoom}
+              aspect={aspectRatio}
+              cropShape={cropShape}
+              showGrid={false}
+              onCropChange={setCrop}
+              onCropComplete={onCropChange}
+              onZoomChange={setZoom}
+            />
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          )}
         </div>
 
         {/* Zoom Slider */}
