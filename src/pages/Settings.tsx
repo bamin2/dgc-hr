@@ -9,6 +9,7 @@ import {
   IntegrationsGrid,
   SecuritySettings 
 } from '@/components/settings';
+import { PayrollSettingsTab } from '@/components/settings/payroll';
 import { 
   companySettings as initialCompanySettings, 
   userPreferences as initialUserPreferences, 
@@ -19,7 +20,7 @@ import {
   UserPreferences,
   NotificationSettings
 } from '@/data/settings';
-import { Settings, Building2, User, Bell, Puzzle, Shield, Save } from 'lucide-react';
+import { Settings, Building2, User, Bell, Puzzle, Shield, Save, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
 
 const SettingsPage = () => {
@@ -66,6 +67,7 @@ const SettingsPage = () => {
     { value: 'company', label: 'Company Profile', icon: Building2 },
     { value: 'preferences', label: 'Preferences', icon: User },
     { value: 'notifications', label: 'Notifications', icon: Bell },
+    { value: 'payroll', label: 'Payroll', icon: Wallet },
     { value: 'integrations', label: 'Integrations', icon: Puzzle },
     { value: 'security', label: 'Security', icon: Shield }
   ];
@@ -98,7 +100,7 @@ const SettingsPage = () => {
 
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-              <TabsList className="grid grid-cols-2 sm:grid-cols-5 w-full h-auto gap-1 p-1">
+              <TabsList className="grid grid-cols-2 sm:grid-cols-6 w-full h-auto gap-1 p-1">
                 {tabs.map((tab) => {
                   const Icon = tab.icon;
                   return (
@@ -133,6 +135,10 @@ const SettingsPage = () => {
                   settings={notificationSettings} 
                   onChange={setNotificationSettings} 
                 />
+              </TabsContent>
+
+              <TabsContent value="payroll" className="mt-6">
+                <PayrollSettingsTab />
               </TabsContent>
 
               <TabsContent value="integrations" className="mt-6">

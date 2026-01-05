@@ -46,7 +46,8 @@ export function AddTeamMemberWizard() {
     salary: "",
     payFrequency: "year",
     employmentStatus: "",
-    taxExemptionStatus: "",
+    selectedAllowances: [],
+    selectedDeductions: [],
   });
 
   const [offerData, setOfferData] = useState<TeamOfferData>({

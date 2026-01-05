@@ -7,14 +7,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { MultiSelect } from "@/components/ui/multi-select";
+import { useActiveAllowanceTemplates } from "@/hooks/useAllowanceTemplates";
+import { useActiveDeductionTemplates } from "@/hooks/useDeductionTemplates";
 import { PayFrequency } from "@/data/team";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export interface TeamCompensationData {
   employeeType: string;
   salary: string;
   payFrequency: PayFrequency;
   employmentStatus: string;
-  taxExemptionStatus: string;
+  selectedAllowances: string[];
+  selectedDeductions: string[];
 }
 
 interface TeamCompensationStepProps {
@@ -34,18 +39,14 @@ const employeeTypes = [
   "Operations Manager",
 ];
 
-const taxStatuses = [
-  "W-2 Employee",
-  "1099 Contractor",
-  "Exempt",
-  "Non-Exempt",
-];
-
 export function TeamCompensationStep({
   data,
   onChange,
   workerType,
 }: TeamCompensationStepProps) {
+  const { data: allowanceTemplates, isLoading: loadingAllowances } = useActiveAllowanceTemplates();
+  const { data: deductionTemplates, isLoading: loadingDeductions } = useActiveDeductionTemplates();
+
   const updateField = <K extends keyof TeamCompensationData>(
     field: K,
     value: TeamCompensationData[K]
@@ -65,6 +66,22 @@ export function TeamCompensationStep({
         return "Employee";
     }
   };
+
+  const allowanceOptions = (allowanceTemplates || []).map(t => ({
+    value: t.id,
+    label: t.name,
+    description: t.amount_type === 'fixed' 
+      ? `$${t.amount.toLocaleString()}`
+      : `${t.amount}% of ${t.percentage_of?.replace('_', ' ')}`,
+  }));
+
+  const deductionOptions = (deductionTemplates || []).map(t => ({
+    value: t.id,
+    label: t.name,
+    description: t.amount_type === 'fixed' 
+      ? `$${t.amount.toLocaleString()}`
+      : `${t.amount}% of ${t.percentage_of?.replace('_', ' ')}`,
+  }));
 
   return (
     <div className="space-y-6">
@@ -149,24 +166,42 @@ export function TeamCompensationStep({
         </p>
       </div>
 
-      {/* Tax Exemption Status */}
+      {/* Allowances */}
       <div className="space-y-2">
-        <Label>Special tax exemption status</Label>
-        <Select
-          value={data.taxExemptionStatus}
-          onValueChange={(value) => updateField("taxExemptionStatus", value)}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select status" />
-          </SelectTrigger>
-          <SelectContent>
-            {taxStatuses.map((status) => (
-              <SelectItem key={status} value={status}>
-                {status}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Label>Allowances</Label>
+        {loadingAllowances ? (
+          <Skeleton className="h-10 w-full" />
+        ) : (
+          <MultiSelect
+            options={allowanceOptions}
+            selected={data.selectedAllowances}
+            onChange={(selected) => updateField("selectedAllowances", selected)}
+            placeholder="Select allowances..."
+            emptyMessage="No allowance templates available. Create them in Settings."
+          />
+        )}
+        <p className="text-xs text-muted-foreground">
+          Add allowances that will be included in this employee's payroll
+        </p>
+      </div>
+
+      {/* Deductions */}
+      <div className="space-y-2">
+        <Label>Deductions</Label>
+        {loadingDeductions ? (
+          <Skeleton className="h-10 w-full" />
+        ) : (
+          <MultiSelect
+            options={deductionOptions}
+            selected={data.selectedDeductions}
+            onChange={(selected) => updateField("selectedDeductions", selected)}
+            placeholder="Select deductions..."
+            emptyMessage="No deduction templates available. Create them in Settings."
+          />
+        )}
+        <p className="text-xs text-muted-foreground">
+          Add deductions that will be applied during payroll processing
+        </p>
       </div>
     </div>
   );

@@ -14,6 +14,84 @@ export type Database = {
   }
   public: {
     Tables: {
+      allowance_templates: {
+        Row: {
+          amount: number
+          amount_type: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          is_taxable: boolean | null
+          name: string
+          percentage_of: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount?: number
+          amount_type?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_taxable?: boolean | null
+          name: string
+          percentage_of?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          amount_type?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_taxable?: boolean | null
+          name?: string
+          percentage_of?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      deduction_templates: {
+        Row: {
+          amount: number
+          amount_type: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          is_mandatory: boolean | null
+          name: string
+          percentage_of: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount?: number
+          amount_type?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_mandatory?: boolean | null
+          name: string
+          percentage_of?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          amount_type?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_mandatory?: boolean | null
+          name?: string
+          percentage_of?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       departments: {
         Row: {
           created_at: string
@@ -34,6 +112,96 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      employee_allowances: {
+        Row: {
+          allowance_template_id: string
+          created_at: string | null
+          custom_amount: number | null
+          effective_date: string | null
+          employee_id: string
+          end_date: string | null
+          id: string
+        }
+        Insert: {
+          allowance_template_id: string
+          created_at?: string | null
+          custom_amount?: number | null
+          effective_date?: string | null
+          employee_id: string
+          end_date?: string | null
+          id?: string
+        }
+        Update: {
+          allowance_template_id?: string
+          created_at?: string | null
+          custom_amount?: number | null
+          effective_date?: string | null
+          employee_id?: string
+          end_date?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_allowances_allowance_template_id_fkey"
+            columns: ["allowance_template_id"]
+            isOneToOne: false
+            referencedRelation: "allowance_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_allowances_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_deductions: {
+        Row: {
+          created_at: string | null
+          custom_amount: number | null
+          deduction_template_id: string
+          effective_date: string | null
+          employee_id: string
+          end_date: string | null
+          id: string
+        }
+        Insert: {
+          created_at?: string | null
+          custom_amount?: number | null
+          deduction_template_id: string
+          effective_date?: string | null
+          employee_id: string
+          end_date?: string | null
+          id?: string
+        }
+        Update: {
+          created_at?: string | null
+          custom_amount?: number | null
+          deduction_template_id?: string
+          effective_date?: string | null
+          employee_id?: string
+          end_date?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_deductions_deduction_template_id_fkey"
+            columns: ["deduction_template_id"]
+            isOneToOne: false
+            referencedRelation: "deduction_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_deductions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       employees: {
         Row: {

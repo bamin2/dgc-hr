@@ -5,8 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { countries } from "@/data/team";
 import { mockEmployees } from "@/data/employees";
+import { useActiveAllowanceTemplates } from "@/hooks/useAllowanceTemplates";
+import { useActiveDeductionTemplates } from "@/hooks/useDeductionTemplates";
 import { TeamBasicData } from "./TeamBasicStep";
 import { TeamRoleData } from "./TeamRoleStep";
 import { TeamCompensationData } from "./TeamCompensationStep";
@@ -33,6 +36,16 @@ export function TeamFinalizeStep({
 }: TeamFinalizeStepProps) {
   const country = countries.find((c) => c.code === basicData.country);
   const manager = mockEmployees.find((e) => e.id === roleData.managerId);
+  const { data: allowanceTemplates } = useActiveAllowanceTemplates();
+  const { data: deductionTemplates } = useActiveDeductionTemplates();
+
+  const selectedAllowanceNames = (allowanceTemplates || [])
+    .filter(t => compensationData.selectedAllowances.includes(t.id))
+    .map(t => t.name);
+
+  const selectedDeductionNames = (deductionTemplates || [])
+    .filter(t => compensationData.selectedDeductions.includes(t.id))
+    .map(t => t.name);
 
   const formatSalary = () => {
     const amount = parseFloat(compensationData.salary) || 0;
@@ -166,12 +179,32 @@ export function TeamFinalizeStep({
           </div>
           <div>
             <p className="text-muted-foreground">Employee type</p>
-            <p className="font-medium">{compensationData.employeeType}</p>
+            <p className="font-medium">{compensationData.employeeType || "Not set"}</p>
           </div>
-          <div>
-            <p className="text-muted-foreground">Tax status</p>
-            <p className="font-medium">{compensationData.taxExemptionStatus || "Not set"}</p>
-          </div>
+          {selectedAllowanceNames.length > 0 && (
+            <div className="col-span-2">
+              <p className="text-muted-foreground mb-1">Allowances</p>
+              <div className="flex flex-wrap gap-1">
+                {selectedAllowanceNames.map(name => (
+                  <Badge key={name} variant="secondary" className="text-xs font-normal">
+                    {name}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+          {selectedDeductionNames.length > 0 && (
+            <div className="col-span-2">
+              <p className="text-muted-foreground mb-1">Deductions</p>
+              <div className="flex flex-wrap gap-1">
+                {selectedDeductionNames.map(name => (
+                  <Badge key={name} variant="outline" className="text-xs font-normal">
+                    {name}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
