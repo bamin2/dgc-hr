@@ -5,7 +5,7 @@ import { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/type
 export type DbEmployee = Tables<"employees"> & {
   department?: { id: string; name: string } | null;
   position?: { id: string; title: string } | null;
-  manager?: { id: string; first_name: string; last_name: string }[] | null;
+  manager?: { id: string; first_name: string; last_name: string } | { id: string; first_name: string; last_name: string }[] | null;
 };
 
 // UI-compatible Employee interface
@@ -54,9 +54,11 @@ export function mapDbEmployeeToEmployee(db: DbEmployee): Employee {
     status: db.status as Employee["status"],
     joinDate: db.join_date || new Date().toISOString().split("T")[0],
     employeeId: db.employee_code || db.id.slice(0, 8).toUpperCase(),
-    manager: db.manager?.[0]
-      ? `${db.manager[0].first_name} ${db.manager[0].last_name}`
-      : undefined,
+    manager: (() => {
+      if (!db.manager) return undefined;
+      const mgr = Array.isArray(db.manager) ? db.manager[0] : db.manager;
+      return mgr ? `${mgr.first_name} ${mgr.last_name}` : undefined;
+    })(),
     managerId: db.manager_id || undefined,
     location: db.location || undefined,
     salary: db.salary ? Number(db.salary) : undefined,
@@ -83,7 +85,7 @@ async function fetchEmployees(): Promise<Employee[]> {
       *,
       department:departments!employees_department_id_fkey(id, name),
       position:positions!employees_position_id_fkey(id, title),
-      manager:employees!employees_manager_id_fkey(id, first_name, last_name)
+      manager:employees!manager_id(id, first_name, last_name)
     `
     )
     .order("first_name");
@@ -104,7 +106,7 @@ async function fetchEmployee(id: string): Promise<Employee | null> {
       *,
       department:departments!employees_department_id_fkey(id, name),
       position:positions!employees_position_id_fkey(id, title),
-      manager:employees!employees_manager_id_fkey(id, first_name, last_name)
+      manager:employees!manager_id(id, first_name, last_name)
     `
     )
     .eq("id", id)
