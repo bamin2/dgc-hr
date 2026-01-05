@@ -55,6 +55,8 @@ export function TeamMemberTable({
 }: TeamMemberTableProps) {
   const navigate = useNavigate();
   const [memberToDelete, setMemberToDelete] = useState<TeamMember | null>(null);
+  const [memberToOnboard, setMemberToOnboard] = useState<TeamMember | null>(null);
+  const [memberToOffboard, setMemberToOffboard] = useState<TeamMember | null>(null);
 
   const toggleAll = () => {
     if (selectedMembers.length === members.length) {
@@ -147,11 +149,11 @@ export function TeamMemberTable({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => onStartOnboarding(member)}>
+                    <DropdownMenuItem onClick={() => setMemberToOnboard(member)}>
                       <UserPlus className="h-4 w-4 mr-2" />
                       Start onboarding
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onStartOffboarding(member)}>
+                    <DropdownMenuItem onClick={() => setMemberToOffboard(member)}>
                       <UserMinus className="h-4 w-4 mr-2" />
                       Start offboarding
                     </DropdownMenuItem>
@@ -199,6 +201,63 @@ export function TeamMemberTable({
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog 
+        open={!!memberToOnboard} 
+        onOpenChange={(open) => !open && setMemberToOnboard(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Start Onboarding</AlertDialogTitle>
+            <AlertDialogDescription>
+              You are about to start the onboarding process for {memberToOnboard?.firstName} {memberToOnboard?.lastName}. 
+              This will initiate the onboarding workflow and send notifications to relevant team members.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (memberToOnboard) {
+                  onStartOnboarding(memberToOnboard);
+                }
+                setMemberToOnboard(null);
+              }}
+            >
+              Start Onboarding
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog 
+        open={!!memberToOffboard} 
+        onOpenChange={(open) => !open && setMemberToOffboard(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Start Offboarding</AlertDialogTitle>
+            <AlertDialogDescription>
+              You are about to start the offboarding process for {memberToOffboard?.firstName} {memberToOffboard?.lastName}. 
+              This will initiate the offboarding workflow including exit interviews, asset returns, and access revocation.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (memberToOffboard) {
+                  onStartOffboarding(memberToOffboard);
+                }
+                setMemberToOffboard(null);
+              }}
+              className="bg-orange-600 text-white hover:bg-orange-700"
+            >
+              Start Offboarding
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
