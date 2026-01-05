@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { format, startOfWeek, addDays, isToday, isWithinInterval } from "date-fns";
-import { Project, ProjectStatus } from "@/data/projects";
+import { Project, ProjectStatus } from "@/hooks/useProjects";
 import { TimelineToolbar, TimelineGranularity } from "./TimelineToolbar";
 import { TimelineCard } from "./TimelineCard";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";

@@ -1,12 +1,11 @@
 import { useState, useRef, useEffect, useCallback, KeyboardEvent } from "react";
 import { Textarea } from "@/components/ui/textarea";
-import { MentionSuggestions } from "./MentionSuggestions";
-import { Employee } from "@/data/employees";
+import { MentionSuggestions, TeamMember } from "./MentionSuggestions";
 
 interface MentionTextareaProps {
   value: string;
   onChange: (value: string) => void;
-  teamMembers: Employee[];
+  teamMembers: TeamMember[];
   placeholder?: string;
   className?: string;
 }
@@ -26,7 +25,7 @@ export function MentionTextarea({
 
   // Filter team members based on query
   const filteredSuggestions = teamMembers.filter(member => {
-    const fullName = `${member.firstName} ${member.lastName}`.toLowerCase();
+    const fullName = `${member.first_name} ${member.last_name}`.toLowerCase();
     return fullName.includes(mentionQuery.toLowerCase());
   }).slice(0, 5);
 
@@ -65,10 +64,10 @@ export function MentionTextarea({
     setMentionStartIndex(null);
   }, [onChange]);
 
-  const insertMention = useCallback((employee: Employee) => {
+  const insertMention = useCallback((member: TeamMember) => {
     if (mentionStartIndex === null) return;
     
-    const fullName = `${employee.firstName} ${employee.lastName}`;
+    const fullName = `${member.first_name} ${member.last_name}`;
     const beforeMention = value.slice(0, mentionStartIndex);
     const afterMention = value.slice(mentionStartIndex + mentionQuery.length + 1);
     const newValue = `${beforeMention}@${fullName} ${afterMention}`;

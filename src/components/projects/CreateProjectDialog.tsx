@@ -1,9 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { CalendarIcon, Users } from "lucide-react";
 import { format } from "date-fns";
-import { ProjectStatus, ProjectPriority, projectStatuses, priorityConfig, getTeamMembers } from "@/data/projects";
-import { mockEmployees } from "@/data/employees";
-import { useRole } from "@/contexts/RoleContext";
+import { ProjectStatus, ProjectPriority, projectStatuses, priorityConfig, useProjects, useTeamMembers } from "@/hooks/useProjects";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -41,7 +39,9 @@ interface CreateProjectDialogProps {
 }
 
 export function CreateProjectDialog({ open, onOpenChange, defaultStatus = 'todo' }: CreateProjectDialogProps) {
-  const { currentUser } = useRole();
+  const { createProject, isCreating } = useProjects();
+  const { data: teamMembers = [] } = useTeamMembers();
+  
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState<ProjectStatus>(defaultStatus);
@@ -50,11 +50,7 @@ export function CreateProjectDialog({ open, onOpenChange, defaultStatus = 'todo'
   const [endDate, setEndDate] = useState<Date>();
   const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
 
-  const teamMembers = useMemo(() => {
-    return getTeamMembers(currentUser.id);
-  }, [currentUser.id]);
-
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!title.trim()) {
       toast.error("Please enter a project title");
       return;
@@ -64,9 +60,24 @@ export function CreateProjectDialog({ open, onOpenChange, defaultStatus = 'todo'
       return;
     }
 
-    toast.success("Project created successfully");
-    onOpenChange(false);
-    resetForm();
+    try {
+      await createProject({
+        title,
+        description,
+        status,
+        priority,
+        startDate,
+        endDate,
+        dueDate: endDate,
+        assigneeIds,
+      });
+      
+      toast.success("Project created successfully");
+      onOpenChange(false);
+      resetForm();
+    } catch (error) {
+      toast.error("Failed to create project");
+    }
   };
 
   const resetForm = () => {
@@ -165,8 +176,8 @@ export function CreateProjectDialog({ open, onOpenChange, defaultStatus = 'todo'
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-64 p-2" align="start">
-                <div className="space-y-1">
-                  {teamMembers.map((employee) => (
+                <div className="space-y-1 max-h-60 overflow-y-auto">
+                  {teamMembers.map((employee: any) => (
                     <label 
                       key={employee.id}
                       className="flex items-center gap-3 p-2 hover:bg-muted rounded-md cursor-pointer"
@@ -182,11 +193,11 @@ export function CreateProjectDialog({ open, onOpenChange, defaultStatus = 'todo'
                         }}
                       />
                       <Avatar className="h-6 w-6">
-                        <AvatarImage src={employee.avatar} />
-                        <AvatarFallback>{employee.firstName[0]}{employee.lastName[0]}</AvatarFallback>
+                        <AvatarImage src={employee.avatar_url} />
+                        <AvatarFallback>{employee.first_name?.[0]}{employee.last_name?.[0]}</AvatarFallback>
                       </Avatar>
                       <span className="text-sm">
-                        {employee.firstName} {employee.lastName}
+                        {employee.first_name} {employee.last_name}
                       </span>
                     </label>
                   ))}
@@ -260,7 +271,9 @@ export function CreateProjectDialog({ open, onOpenChange, defaultStatus = 'todo'
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit}>Create Project</Button>
+          <Button onClick={handleSubmit} disabled={isCreating}>
+            {isCreating ? "Creating..." : "Create Project"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

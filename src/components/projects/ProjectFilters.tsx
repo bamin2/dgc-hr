@@ -1,6 +1,5 @@
 import { X } from "lucide-react";
-import { ProjectPriority, ProjectStatus, projectStatuses, priorityConfig } from "@/data/projects";
-import { mockEmployees } from "@/data/employees";
+import { ProjectPriority, ProjectStatus, projectStatuses, priorityConfig } from "@/hooks/useProjects";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";

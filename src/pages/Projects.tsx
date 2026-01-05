@@ -15,14 +15,20 @@ import {
   TimelineGranularity,
   ProjectFiltersState,
 } from "@/components/projects";
-import { Project, ProjectStatus, ProjectActivity, mockProjects, projectStatuses } from "@/data/projects";
+import { useProjects, Project, ProjectStatus, projectStatuses } from "@/hooks/useProjects";
 import { useToast } from "@/hooks/use-toast";
-import { useRole } from "@/contexts/RoleContext";
+import { Loader2 } from "lucide-react";
 
 export default function Projects() {
   const { toast } = useToast();
-  const { currentUser } = useRole();
-  const [projects, setProjects] = useState<Project[]>(mockProjects);
+  const { 
+    projects, 
+    isLoading, 
+    updateProjectStatus, 
+    addComment,
+    deleteProject 
+  } = useProjects();
+  
   const [viewMode, setViewMode] = useState<ProjectViewMode>('board');
   const [searchQuery, setSearchQuery] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -41,7 +47,7 @@ export default function Projects() {
   const [detailSheetOpen, setDetailSheetOpen] = useState(false);
 
   // Timeline state
-  const [timelineDate, setTimelineDate] = useState(new Date(2024, 10, 7));
+  const [timelineDate, setTimelineDate] = useState(new Date());
   const [timelineGranularity, setTimelineGranularity] = useState<TimelineGranularity>('week');
 
   // Filter projects
@@ -80,106 +86,81 @@ export default function Projects() {
     setDetailSheetOpen(true);
   };
 
-  const handleProjectMove = (projectId: string, newStatus: ProjectStatus, insertIndex?: number) => {
-    setProjects(prevProjects => {
-      const project = prevProjects.find(p => p.id === projectId);
-      if (!project) return prevProjects;
+  const handleProjectMove = async (projectId: string, newStatus: ProjectStatus) => {
+    const project = projects.find(p => p.id === projectId);
+    if (!project || project.status === newStatus) return;
+    
+    try {
+      await updateProjectStatus({
+        projectId,
+        newStatus,
+        oldStatus: project.status,
+      });
       
-      const oldStatus = project.status;
-      
-      // Create status change activity if status changed
-      const newActivities = oldStatus !== newStatus 
-        ? [
-            ...project.activities,
-            {
-              id: `${projectId}-act-${Date.now()}`,
-              projectId,
-              type: 'status_change' as const,
-              userId: currentUser.id,
-              oldStatus,
-              newStatus,
-              timestamp: new Date(),
-            },
-          ]
-        : project.activities;
-      
-      // Update project status
-      const updatedProject = { 
-        ...project, 
-        status: newStatus, 
-        activities: newActivities,
-        updatedAt: new Date() 
-      };
-      
-      // Remove from old position
-      let newProjects = prevProjects.filter(p => p.id !== projectId);
-      
-      // Get projects in the target status (maintaining their current order)
-      const targetStatusProjects = newProjects.filter(p => p.status === newStatus);
-      const otherProjects = newProjects.filter(p => p.status !== newStatus);
-      
-      // Insert at specified index or at end
-      if (insertIndex !== undefined && insertIndex <= targetStatusProjects.length) {
-        targetStatusProjects.splice(insertIndex, 0, updatedProject);
-      } else {
-        targetStatusProjects.push(updatedProject);
-      }
-      
-      const result = [...otherProjects, ...targetStatusProjects];
-      
-      // Show toast if status changed
-      if (oldStatus !== newStatus) {
-        toast({
-          title: "Project moved",
-          description: `Moved to ${projectStatuses[newStatus].label}`,
-        });
-      }
-      
-      return result;
-    });
-  };
-
-  const handleAddComment = (projectId: string, comment: string, mentionedUserIds: string[] = []) => {
-    const newActivity: ProjectActivity = {
-      id: `${projectId}-act-${Date.now()}`,
-      projectId,
-      type: 'comment',
-      userId: currentUser.id,
-      comment,
-      mentionedUserIds,
-      timestamp: new Date(),
-    };
-
-    setProjects(prevProjects => 
-      prevProjects.map(project => {
-        if (project.id !== projectId) return project;
-        
-        const updatedProject = {
-          ...project,
-          activities: [...project.activities, newActivity],
-          commentsCount: project.commentsCount + 1,
-          updatedAt: new Date(),
-        };
-        
-        // Update selected project immediately
-        if (selectedProject?.id === projectId) {
-          setSelectedProject(updatedProject);
-        }
-        
-        return updatedProject;
-      })
-    );
-
-    // Create notifications for mentioned users
-    if (mentionedUserIds.length > 0) {
-      const project = projects.find(p => p.id === projectId);
-      mentionedUserIds.forEach(userId => {
-        console.log(`Notification for ${userId}: ${currentUser.name} mentioned you in "${project?.title}"`);
-        // In a real app, this would create actual notifications
-        // For now we log it - notification system would be connected here
+      toast({
+        title: "Project moved",
+        description: `Moved to ${projectStatuses[newStatus].label}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to move project",
+        variant: "destructive",
       });
     }
   };
+
+  const handleAddComment = async (projectId: string, comment: string, mentionedUserIds: string[] = []) => {
+    try {
+      await addComment({
+        projectId,
+        comment,
+        mentionedUserIds,
+      });
+      
+      // Update selected project with new comment count
+      if (selectedProject?.id === projectId) {
+        const updatedProject = projects.find(p => p.id === projectId);
+        if (updatedProject) {
+          setSelectedProject(updatedProject);
+        }
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add comment",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteProject = async (projectId: string) => {
+    try {
+      await deleteProject(projectId);
+      setDetailSheetOpen(false);
+      toast({
+        title: "Project deleted",
+        description: "The project has been removed.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete project",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen bg-background">
+        <Sidebar />
+        <div className="flex-1 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-background">
@@ -253,6 +234,7 @@ export default function Projects() {
         open={detailSheetOpen}
         onOpenChange={setDetailSheetOpen}
         onAddComment={handleAddComment}
+        onDelete={handleDeleteProject}
       />
     </div>
   );

@@ -1,11 +1,18 @@
-import { Employee } from "@/data/employees";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
+export interface TeamMember {
+  id: string;
+  first_name: string;
+  last_name: string;
+  avatar_url: string | null;
+  position?: { title: string } | null;
+}
+
 interface MentionSuggestionsProps {
-  suggestions: Employee[];
+  suggestions: TeamMember[];
   selectedIndex: number;
-  onSelect: (employee: Employee) => void;
+  onSelect: (member: TeamMember) => void;
 }
 
 export function MentionSuggestions({ suggestions, selectedIndex, onSelect }: MentionSuggestionsProps) {
@@ -18,28 +25,28 @@ export function MentionSuggestions({ suggestions, selectedIndex, onSelect }: Men
   return (
     <div className="absolute bottom-full left-0 right-0 mb-1 bg-popover border rounded-lg shadow-lg overflow-hidden z-50">
       <div className="max-h-[200px] overflow-y-auto">
-        {suggestions.map((employee, index) => (
+        {suggestions.map((member, index) => (
           <button
-            key={employee.id}
+            key={member.id}
             type="button"
             className={cn(
               "w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-accent transition-colors",
               index === selectedIndex && "bg-accent"
             )}
-            onClick={() => onSelect(employee)}
+            onClick={() => onSelect(member)}
           >
             <Avatar className="h-7 w-7">
-              <AvatarImage src={employee.avatar} alt={`${employee.firstName} ${employee.lastName}`} />
+              <AvatarImage src={member.avatar_url || ''} alt={`${member.first_name} ${member.last_name}`} />
               <AvatarFallback className="text-xs">
-                {getInitials(employee.firstName, employee.lastName)}
+                {getInitials(member.first_name, member.last_name)}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate">
-                {employee.firstName} {employee.lastName}
+                {member.first_name} {member.last_name}
               </p>
               <p className="text-xs text-muted-foreground truncate">
-                {employee.position}
+                {member.position?.title || 'Team Member'}
               </p>
             </div>
           </button>

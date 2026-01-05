@@ -1,4 +1,4 @@
-import { ProjectPriority, priorityConfig } from "@/data/projects";
+import { ProjectPriority, priorityConfig } from "@/hooks/useProjects";
 import { cn } from "@/lib/utils";
 
 interface PriorityBadgeProps {
