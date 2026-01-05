@@ -37,18 +37,16 @@ export function OffboardingDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl">
             Start Employee Offboarding
           </DialogTitle>
         </DialogHeader>
-        <div className="flex-1 overflow-hidden">
-          <OffboardingWizard
-            employee={employeeInfo}
-            onComplete={handleComplete}
-          />
-        </div>
+        <OffboardingWizard
+          employee={employeeInfo}
+          onComplete={handleComplete}
+        />
       </DialogContent>
     </Dialog>
   );
