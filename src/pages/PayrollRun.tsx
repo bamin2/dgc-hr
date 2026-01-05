@@ -101,11 +101,20 @@ export default function PayrollRun() {
                       <Calendar
                         mode="single"
                         selected={payPeriod.startDate ? new Date(payPeriod.startDate) : undefined}
-                        onSelect={(date) =>
-                          setPayPeriod({
-                            ...payPeriod,
-                            startDate: date ? format(date, "yyyy-MM-dd") : "",
-                          })
+                        onSelect={(date) => {
+                          if (date) {
+                            const formattedDate = format(date, "yyyy-MM-dd");
+                            if (payPeriod.endDate && date > new Date(payPeriod.endDate)) {
+                              setPayPeriod({ startDate: formattedDate, endDate: "" });
+                            } else {
+                              setPayPeriod({ ...payPeriod, startDate: formattedDate });
+                            }
+                          } else {
+                            setPayPeriod({ ...payPeriod, startDate: "" });
+                          }
+                        }}
+                        disabled={(date) =>
+                          payPeriod.endDate ? date > new Date(payPeriod.endDate) : false
                         }
                         initialFocus
                         className="pointer-events-auto"
@@ -139,6 +148,9 @@ export default function PayrollRun() {
                             ...payPeriod,
                             endDate: date ? format(date, "yyyy-MM-dd") : "",
                           })
+                        }
+                        disabled={(date) =>
+                          payPeriod.startDate ? date < new Date(payPeriod.startDate) : false
                         }
                         initialFocus
                         className="pointer-events-auto"
