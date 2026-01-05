@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { Plus, Upload, Users } from "lucide-react";
+import { Plus, Upload, Users, DollarSign } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Sidebar, Header } from "@/components/dashboard";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import {
   TeamMemberFilters,
   OnboardingDialog,
   OffboardingDialog,
+  BulkUpdateSalariesDialog,
 } from "@/components/team";
 import { TablePagination } from "@/components/employees";
 import { mockTeamMembers, type TeamMember as TeamMemberType, type TeamMemberStatus } from "@/data/team";
@@ -39,6 +40,9 @@ export default function TeamMember() {
   // Offboarding dialog state
   const [offboardingDialogOpen, setOffboardingDialogOpen] = useState(false);
   const [selectedMemberForOffboarding, setSelectedMemberForOffboarding] = useState<TeamMemberType | null>(null);
+
+  // Bulk update salaries dialog state
+  const [bulkUpdateDialogOpen, setBulkUpdateDialogOpen] = useState(false);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -151,6 +155,24 @@ export default function TeamMember() {
     });
   };
 
+  const handleBulkSalaryUpdate = (updates: { id: string; newSalary: number }[]) => {
+    setMembers((prev) =>
+      prev.map((m) => {
+        const update = updates.find((u) => u.id === m.id);
+        if (update) {
+          return { ...m, salary: update.newSalary };
+        }
+        return m;
+      })
+    );
+    setSelectedMembers([]);
+  };
+
+  // Get selected member objects for the dialog
+  const selectedMemberObjects = useMemo(() => {
+    return members.filter((m) => selectedMembers.includes(m.id));
+  }, [members, selectedMembers]);
+
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />
@@ -164,6 +186,15 @@ export default function TeamMember() {
             <h1 className="text-2xl font-semibold text-foreground">Team Member</h1>
 
             <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setBulkUpdateDialogOpen(true)}
+                disabled={selectedMembers.length === 0}
+                className="gap-2"
+              >
+                <DollarSign className="h-4 w-4" />
+                Bulk Update Salaries
+              </Button>
               <Button variant="outline" onClick={handleExport} className="gap-2">
                 <Upload className="h-4 w-4" />
                 Export
@@ -268,6 +299,14 @@ export default function TeamMember() {
             onOpenChange={setOffboardingDialogOpen}
             member={selectedMemberForOffboarding}
             onComplete={handleOffboardingComplete}
+          />
+
+          {/* Bulk Update Salaries Dialog */}
+          <BulkUpdateSalariesDialog
+            open={bulkUpdateDialogOpen}
+            onOpenChange={setBulkUpdateDialogOpen}
+            selectedMembers={selectedMemberObjects}
+            onUpdate={handleBulkSalaryUpdate}
           />
         </main>
       </div>
