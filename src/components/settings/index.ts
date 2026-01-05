@@ -9,3 +9,4 @@ export { IntegrationCard } from './IntegrationCard';
 export { IntegrationsGrid } from './IntegrationsGrid';
 export { SessionCard } from './SessionCard';
 export { SecuritySettings } from './SecuritySettings';
+export { AuditLogCard } from './AuditLogCard';
