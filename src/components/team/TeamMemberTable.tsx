@@ -1,4 +1,4 @@
-import { MoreHorizontal, Trash2, Edit } from "lucide-react";
+import { MoreHorizontal, Trash2, Edit, UserPlus, UserMinus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import {
@@ -16,6 +16,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { TeamMember } from "@/data/team";
@@ -28,6 +29,8 @@ interface TeamMemberTableProps {
   onSelectionChange: (ids: string[]) => void;
   onEdit: (member: TeamMember) => void;
   onDelete: (member: TeamMember) => void;
+  onStartOnboarding: (member: TeamMember) => void;
+  onStartOffboarding: (member: TeamMember) => void;
 }
 
 export function TeamMemberTable({
@@ -36,6 +39,8 @@ export function TeamMemberTable({
   onSelectionChange,
   onEdit,
   onDelete,
+  onStartOnboarding,
+  onStartOffboarding,
 }: TeamMemberTableProps) {
   const navigate = useNavigate();
 
@@ -130,10 +135,19 @@ export function TeamMemberTable({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => onStartOnboarding(member)}>
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      Start onboarding
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onStartOffboarding(member)}>
+                      <UserMinus className="h-4 w-4 mr-2" />
+                      Start offboarding
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => onEdit(member)}>
                       <Edit className="h-4 w-4 mr-2" />
                       Edit
                     </DropdownMenuItem>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem
                       onClick={() => onDelete(member)}
                       className="text-destructive focus:text-destructive"

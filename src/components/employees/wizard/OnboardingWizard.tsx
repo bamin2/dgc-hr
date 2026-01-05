@@ -20,19 +20,24 @@ const steps = [
   { label: "Review", description: "Launch" },
 ];
 
-export function OnboardingWizard() {
+interface OnboardingWizardProps {
+  initialEmployeeDetails?: Partial<EmployeeDetails>;
+  onComplete?: () => void;
+}
+
+export function OnboardingWizard({ initialEmployeeDetails, onComplete }: OnboardingWizardProps) {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
 
   const [employeeDetails, setEmployeeDetails] = useState<EmployeeDetails>({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    department: "",
-    position: "",
-    startDate: null,
-    location: "",
+    firstName: initialEmployeeDetails?.firstName || "",
+    lastName: initialEmployeeDetails?.lastName || "",
+    email: initialEmployeeDetails?.email || "",
+    phone: initialEmployeeDetails?.phone || "",
+    department: initialEmployeeDetails?.department || "",
+    position: initialEmployeeDetails?.position || "",
+    startDate: initialEmployeeDetails?.startDate || null,
+    location: initialEmployeeDetails?.location || "",
   });
 
   const [selectedTemplate, setSelectedTemplate] = useState<WorkflowTemplate | null>(null);
@@ -137,7 +142,11 @@ export function OnboardingWizard() {
       title: "Onboarding launched!",
       description: `${employeeDetails.firstName} ${employeeDetails.lastName}'s onboarding has been started successfully.`,
     });
-    navigate("/employees");
+    if (onComplete) {
+      onComplete();
+    } else {
+      navigate("/employees");
+    }
   };
 
   return (
