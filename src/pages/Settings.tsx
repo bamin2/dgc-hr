@@ -21,11 +21,13 @@ import {
   NotificationSettings
 } from '@/data/settings';
 import { useCompanySettings } from '@/contexts/CompanySettingsContext';
+import { useRole } from '@/contexts/RoleContext';
 import { Settings, Building2, User, Bell, Puzzle, Shield, Save, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
 
 const SettingsPage = () => {
   const { settings: globalSettings, updateSettings: updateGlobalSettings } = useCompanySettings();
+  const { canManageRoles } = useRole();
   
   // Initialize local state from global context
   const [companySettings, setCompanySettings] = useState<CompanySettings>(globalSettings);
@@ -33,7 +35,7 @@ const SettingsPage = () => {
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>(initialNotificationSettings);
   const [integrations, setIntegrations] = useState(initialIntegrations);
   const [sessions, setSessions] = useState(initialSessions);
-  const [activeTab, setActiveTab] = useState('company');
+  const [activeTab, setActiveTab] = useState(canManageRoles ? 'company' : 'preferences');
 
   // Sync local state with global context when it changes
   useEffect(() => {
@@ -80,14 +82,16 @@ const SettingsPage = () => {
     toast.success('All other sessions revoked');
   };
 
-  const tabs = [
-    { value: 'company', label: 'Company Profile', icon: Building2 },
-    { value: 'preferences', label: 'Preferences', icon: User },
-    { value: 'notifications', label: 'Notifications', icon: Bell },
-    { value: 'payroll', label: 'Payroll', icon: Wallet },
-    { value: 'integrations', label: 'Integrations', icon: Puzzle },
-    { value: 'security', label: 'Security', icon: Shield }
+  const allTabs = [
+    { value: 'company', label: 'Company Profile', icon: Building2, requiresAdmin: true },
+    { value: 'preferences', label: 'Preferences', icon: User, requiresAdmin: false },
+    { value: 'notifications', label: 'Notifications', icon: Bell, requiresAdmin: false },
+    { value: 'payroll', label: 'Payroll', icon: Wallet, requiresAdmin: true },
+    { value: 'integrations', label: 'Integrations', icon: Puzzle, requiresAdmin: false },
+    { value: 'security', label: 'Security', icon: Shield, requiresAdmin: false }
   ];
+
+  const visibleTabs = allTabs.filter(tab => !tab.requiresAdmin || canManageRoles);
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -109,16 +113,18 @@ const SettingsPage = () => {
                   </p>
                 </div>
               </div>
-              <Button onClick={handleSave}>
-                <Save className="h-4 w-4 mr-2" />
-                Save Changes
-              </Button>
+              {canManageRoles && (
+                <Button onClick={handleSave}>
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Changes
+                </Button>
+              )}
             </div>
 
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-              <TabsList className="grid grid-cols-2 sm:grid-cols-6 w-full h-auto gap-1 p-1">
-                {tabs.map((tab) => {
+              <TabsList className="grid w-full h-auto gap-1 p-1" style={{ gridTemplateColumns: `repeat(${visibleTabs.length}, minmax(0, 1fr))` }}>
+                {visibleTabs.map((tab) => {
                   const Icon = tab.icon;
                   return (
                     <TabsTrigger 
@@ -133,12 +139,14 @@ const SettingsPage = () => {
                 })}
               </TabsList>
 
-              <TabsContent value="company" className="mt-6">
-                <CompanyProfileForm 
-                  settings={companySettings} 
-                  onChange={handleCompanySettingsChange} 
-                />
-              </TabsContent>
+              {canManageRoles && (
+                <TabsContent value="company" className="mt-6">
+                  <CompanyProfileForm 
+                    settings={companySettings} 
+                    onChange={handleCompanySettingsChange} 
+                  />
+                </TabsContent>
+              )}
 
               <TabsContent value="preferences" className="mt-6">
                 <UserPreferencesForm 
@@ -154,9 +162,11 @@ const SettingsPage = () => {
                 />
               </TabsContent>
 
-              <TabsContent value="payroll" className="mt-6">
-                <PayrollSettingsTab />
-              </TabsContent>
+              {canManageRoles && (
+                <TabsContent value="payroll" className="mt-6">
+                  <PayrollSettingsTab />
+                </TabsContent>
+              )}
 
               <TabsContent value="integrations" className="mt-6">
                 <IntegrationsGrid 
