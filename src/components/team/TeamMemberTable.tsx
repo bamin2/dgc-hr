@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { MoreHorizontal, Trash2, Edit, UserPlus, UserMinus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
@@ -19,6 +20,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { TeamMember } from "@/data/team";
 import { TeamMemberStatusBadge } from "./TeamMemberStatusBadge";
 import { TeamEmployeeTypeBadge } from "./TeamEmployeeTypeBadge";
@@ -43,6 +54,7 @@ export function TeamMemberTable({
   onStartOffboarding,
 }: TeamMemberTableProps) {
   const navigate = useNavigate();
+  const [memberToDelete, setMemberToDelete] = useState<TeamMember | null>(null);
 
   const toggleAll = () => {
     if (selectedMembers.length === members.length) {
@@ -149,7 +161,7 @@ export function TeamMemberTable({
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
-                      onClick={() => onDelete(member)}
+                      onClick={() => setMemberToDelete(member)}
                       className="text-destructive focus:text-destructive"
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
@@ -162,6 +174,35 @@ export function TeamMemberTable({
           ))}
         </TableBody>
       </Table>
+
+      <AlertDialog 
+        open={!!memberToDelete} 
+        onOpenChange={(open) => !open && setMemberToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Team Member</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {memberToDelete?.firstName} {memberToDelete?.lastName}? 
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (memberToDelete) {
+                  onDelete(memberToDelete);
+                }
+                setMemberToDelete(null);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
