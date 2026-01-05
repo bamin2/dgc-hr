@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { RoleProvider } from "@/contexts/RoleContext";
+import { CompanySettingsProvider } from "@/contexts/CompanySettingsContext";
 import { ProtectedRoute, PublicRoute } from "@/components/auth";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -38,53 +39,55 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <RoleProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              {/* Public routes */}
-              <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
-              <Route path="/auth/reset-password" element={<ResetPassword />} />
-              
-              {/* Protected routes - All authenticated users */}
-              <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-              <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
-              <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
-              <Route path="/attendance" element={<ProtectedRoute><Attendance /></ProtectedRoute>} />
-              <Route path="/time-off" element={<ProtectedRoute><TimeOff /></ProtectedRoute>} />
-              <Route path="/benefits" element={<ProtectedRoute><Benefits /></ProtectedRoute>} />
-              <Route path="/benefits/plans/:id" element={<ProtectedRoute><BenefitDetail /></ProtectedRoute>} />
-              <Route path="/benefits/enroll" element={<ProtectedRoute><BenefitEnrollment /></ProtectedRoute>} />
-              <Route path="/benefits/claims/new" element={<ProtectedRoute><ClaimSubmission /></ProtectedRoute>} />
-              <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
-              <Route path="/attendance/leave/request" element={<ProtectedRoute><LeaveRequest /></ProtectedRoute>} />
-              <Route path="/attendance/leave/:id" element={<ProtectedRoute><LeaveDetail /></ProtectedRoute>} />
-              
-              {/* Protected routes - HR & Admin */}
-              <Route path="/employees" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><Employees /></ProtectedRoute>} />
-              <Route path="/employees/:id" element={<ProtectedRoute requiredRoles={['hr', 'admin', 'manager']}><EmployeeProfile /></ProtectedRoute>} />
-              <Route path="/employees/onboarding/new" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><NewOnboarding /></ProtectedRoute>} />
-              <Route path="/employees/onboarding/:id" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><OnboardingDetail /></ProtectedRoute>} />
-              <Route path="/payroll" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><Payroll /></ProtectedRoute>} />
-              <Route path="/payroll/run" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><PayrollRun /></ProtectedRoute>} />
-              <Route path="/payroll/payslip/:id" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><Payslip /></ProtectedRoute>} />
-              
-              {/* Protected routes - Manager, HR & Admin */}
-              <Route path="/team" element={<ProtectedRoute requiredRoles={['manager', 'hr', 'admin']}><TeamMember /></ProtectedRoute>} />
-              <Route path="/team/add" element={<ProtectedRoute requiredRoles={['manager', 'hr', 'admin']}><AddTeamMember /></ProtectedRoute>} />
-              <Route path="/reports" element={<ProtectedRoute requiredRoles={['manager', 'hr', 'admin']}><Reports /></ProtectedRoute>} />
-              
-              {/* Protected routes - Admin only */}
-              <Route path="/settings" element={<ProtectedRoute requiredRoles={['admin']}><Settings /></ProtectedRoute>} />
-              
-              {/* Catch-all */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </RoleProvider>
+      <CompanySettingsProvider>
+        <RoleProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                {/* Public routes */}
+                <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
+                <Route path="/auth/reset-password" element={<ResetPassword />} />
+                
+                {/* Protected routes - All authenticated users */}
+                <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+                <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
+                <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
+                <Route path="/attendance" element={<ProtectedRoute><Attendance /></ProtectedRoute>} />
+                <Route path="/time-off" element={<ProtectedRoute><TimeOff /></ProtectedRoute>} />
+                <Route path="/benefits" element={<ProtectedRoute><Benefits /></ProtectedRoute>} />
+                <Route path="/benefits/plans/:id" element={<ProtectedRoute><BenefitDetail /></ProtectedRoute>} />
+                <Route path="/benefits/enroll" element={<ProtectedRoute><BenefitEnrollment /></ProtectedRoute>} />
+                <Route path="/benefits/claims/new" element={<ProtectedRoute><ClaimSubmission /></ProtectedRoute>} />
+                <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+                <Route path="/attendance/leave/request" element={<ProtectedRoute><LeaveRequest /></ProtectedRoute>} />
+                <Route path="/attendance/leave/:id" element={<ProtectedRoute><LeaveDetail /></ProtectedRoute>} />
+                
+                {/* Protected routes - HR & Admin */}
+                <Route path="/employees" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><Employees /></ProtectedRoute>} />
+                <Route path="/employees/:id" element={<ProtectedRoute requiredRoles={['hr', 'admin', 'manager']}><EmployeeProfile /></ProtectedRoute>} />
+                <Route path="/employees/onboarding/new" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><NewOnboarding /></ProtectedRoute>} />
+                <Route path="/employees/onboarding/:id" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><OnboardingDetail /></ProtectedRoute>} />
+                <Route path="/payroll" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><Payroll /></ProtectedRoute>} />
+                <Route path="/payroll/run" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><PayrollRun /></ProtectedRoute>} />
+                <Route path="/payroll/payslip/:id" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><Payslip /></ProtectedRoute>} />
+                
+                {/* Protected routes - Manager, HR & Admin */}
+                <Route path="/team" element={<ProtectedRoute requiredRoles={['manager', 'hr', 'admin']}><TeamMember /></ProtectedRoute>} />
+                <Route path="/team/add" element={<ProtectedRoute requiredRoles={['manager', 'hr', 'admin']}><AddTeamMember /></ProtectedRoute>} />
+                <Route path="/reports" element={<ProtectedRoute requiredRoles={['manager', 'hr', 'admin']}><Reports /></ProtectedRoute>} />
+                
+                {/* Protected routes - Admin only */}
+                <Route path="/settings" element={<ProtectedRoute requiredRoles={['admin']}><Settings /></ProtectedRoute>} />
+                
+                {/* Catch-all */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </RoleProvider>
+      </CompanySettingsProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

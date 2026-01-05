@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sidebar, Header } from '@/components/dashboard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -20,19 +20,36 @@ import {
   UserPreferences,
   NotificationSettings
 } from '@/data/settings';
+import { useCompanySettings } from '@/contexts/CompanySettingsContext';
 import { Settings, Building2, User, Bell, Puzzle, Shield, Save, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
 
 const SettingsPage = () => {
-  const [companySettings, setCompanySettings] = useState<CompanySettings>(initialCompanySettings);
+  const { settings: globalSettings, updateSettings: updateGlobalSettings } = useCompanySettings();
+  
+  // Initialize local state from global context
+  const [companySettings, setCompanySettings] = useState<CompanySettings>(globalSettings);
   const [userPreferences, setUserPreferences] = useState<UserPreferences>(initialUserPreferences);
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>(initialNotificationSettings);
   const [integrations, setIntegrations] = useState(initialIntegrations);
   const [sessions, setSessions] = useState(initialSessions);
   const [activeTab, setActiveTab] = useState('company');
 
+  // Sync local state with global context when it changes
+  useEffect(() => {
+    setCompanySettings(globalSettings);
+  }, [globalSettings]);
+
   const handleSave = () => {
+    // Save company settings to global context (which persists to localStorage)
+    updateGlobalSettings(companySettings);
     toast.success('Settings saved successfully');
+  };
+
+  const handleCompanySettingsChange = (newSettings: CompanySettings) => {
+    setCompanySettings(newSettings);
+    // Immediately update global context for real-time preview
+    updateGlobalSettings(newSettings);
   };
 
   const handleConnectIntegration = (id: string) => {
@@ -119,7 +136,7 @@ const SettingsPage = () => {
               <TabsContent value="company" className="mt-6">
                 <CompanyProfileForm 
                   settings={companySettings} 
-                  onChange={setCompanySettings} 
+                  onChange={handleCompanySettingsChange} 
                 />
               </TabsContent>
 

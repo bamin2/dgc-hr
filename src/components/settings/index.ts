@@ -1,6 +1,7 @@
 export { SettingsCard } from './SettingsCard';
 export { ThemeToggle } from './ThemeToggle';
 export { ImageUpload } from './ImageUpload';
+export { LogoUpload } from './LogoUpload';
 export { CompanyProfileForm } from './CompanyProfileForm';
 export { UserPreferencesForm } from './UserPreferencesForm';
 export { NotificationSettingsForm } from './NotificationSettingsForm';
