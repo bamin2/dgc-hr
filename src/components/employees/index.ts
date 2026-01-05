@@ -24,4 +24,5 @@ export { TaskStatusBadge } from "./TaskStatusBadge";
 export { AssigneeBadge } from "./AssigneeBadge";
 export { OnboardingTaskList } from "./OnboardingTaskList";
 export { CreateLoginDialog } from "./CreateLoginDialog";
+export { SalaryHistoryCard } from "./SalaryHistoryCard";
 export * from "./wizard";

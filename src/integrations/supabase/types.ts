@@ -474,6 +474,50 @@ export type Database = {
           },
         ]
       }
+      salary_history: {
+        Row: {
+          change_type: Database["public"]["Enums"]["salary_change_type"]
+          changed_by: string | null
+          created_at: string
+          effective_date: string
+          employee_id: string
+          id: string
+          new_salary: number
+          previous_salary: number | null
+          reason: string | null
+        }
+        Insert: {
+          change_type?: Database["public"]["Enums"]["salary_change_type"]
+          changed_by?: string | null
+          created_at?: string
+          effective_date?: string
+          employee_id: string
+          id?: string
+          new_salary: number
+          previous_salary?: number | null
+          reason?: string | null
+        }
+        Update: {
+          change_type?: Database["public"]["Enums"]["salary_change_type"]
+          changed_by?: string | null
+          created_at?: string
+          effective_date?: string
+          employee_id?: string
+          id?: string
+          new_salary?: number
+          previous_salary?: number | null
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "salary_history_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -532,6 +576,13 @@ export type Database = {
         | "probation"
         | "terminated"
       gender_type: "male" | "female" | "other" | "prefer_not_to_say"
+      salary_change_type:
+        | "initial"
+        | "adjustment"
+        | "promotion"
+        | "annual_review"
+        | "correction"
+        | "bulk_update"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -668,6 +719,14 @@ export const Constants = {
         "terminated",
       ],
       gender_type: ["male", "female", "other", "prefer_not_to_say"],
+      salary_change_type: [
+        "initial",
+        "adjustment",
+        "promotion",
+        "annual_review",
+        "correction",
+        "bulk_update",
+      ],
     },
   },
 } as const

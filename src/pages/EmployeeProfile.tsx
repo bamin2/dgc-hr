@@ -25,7 +25,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { StatusBadge, EmployeeForm, RoleBadge, RoleSelectorWithDescription, CreateLoginDialog } from "@/components/employees";
+import { StatusBadge, EmployeeForm, RoleBadge, RoleSelectorWithDescription, CreateLoginDialog, SalaryHistoryCard } from "@/components/employees";
 import { useEmployee, useUpdateEmployee, Employee } from "@/hooks/useEmployees";
 import { AppRole, roleDescriptions } from "@/data/roles";
 import { useRole } from "@/contexts/RoleContext";
@@ -319,6 +319,9 @@ export default function EmployeeProfile() {
                   </CardContent>
                 </Card>
               </div>
+
+              {/* Salary History */}
+              <SalaryHistoryCard employeeId={employee.id} />
             </TabsContent>
 
             <TabsContent value="documents">
