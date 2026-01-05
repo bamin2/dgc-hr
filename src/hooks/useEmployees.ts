@@ -96,6 +96,28 @@ async function fetchEmployees(): Promise<Employee[]> {
   return (data as DbEmployee[]).map(mapDbEmployeeToEmployee);
 }
 
+async function fetchEmployee(id: string): Promise<Employee | null> {
+  const { data, error } = await supabase
+    .from("employees")
+    .select(
+      `
+      *,
+      department:departments(id, name),
+      position:positions(id, title),
+      manager:employees!manager_id(id, first_name, last_name)
+    `
+    )
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Error fetching employee:", error);
+    throw error;
+  }
+
+  return data ? mapDbEmployeeToEmployee(data as DbEmployee) : null;
+}
+
 async function fetchDepartments() {
   const { data, error } = await supabase
     .from("departments")
@@ -128,6 +150,14 @@ export function useEmployees() {
   return useQuery({
     queryKey: ["employees"],
     queryFn: fetchEmployees,
+  });
+}
+
+export function useEmployee(id: string | undefined) {
+  return useQuery({
+    queryKey: ["employee", id],
+    queryFn: () => fetchEmployee(id!),
+    enabled: !!id,
   });
 }
 
