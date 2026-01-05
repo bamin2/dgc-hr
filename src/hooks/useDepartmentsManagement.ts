@@ -6,18 +6,30 @@ interface Department {
   name: string;
   description: string | null;
   created_at: string;
+  manager_id: string | null;
+  manager_name: string | null;
+  manager_avatar: string | null;
   employeeCount: number;
 }
 
 interface DepartmentInput {
   name: string;
   description?: string | null;
+  manager_id?: string | null;
 }
 
 async function fetchDepartmentsWithCounts(): Promise<Department[]> {
   const { data: departments, error: deptError } = await supabase
     .from('departments')
-    .select('*')
+    .select(`
+      *,
+      manager:manager_id (
+        id,
+        first_name,
+        last_name,
+        avatar_url
+      )
+    `)
     .order('name');
 
   if (deptError) throw deptError;
@@ -36,10 +48,19 @@ async function fetchDepartmentsWithCounts(): Promise<Department[]> {
     }
   });
 
-  return (departments || []).map(dept => ({
-    ...dept,
-    employeeCount: countMap.get(dept.id) || 0,
-  }));
+  return (departments || []).map(dept => {
+    const manager = dept.manager as { id: string; first_name: string; last_name: string; avatar_url: string | null } | null;
+    return {
+      id: dept.id,
+      name: dept.name,
+      description: dept.description,
+      created_at: dept.created_at,
+      manager_id: dept.manager_id,
+      manager_name: manager ? `${manager.first_name} ${manager.last_name}` : null,
+      manager_avatar: manager?.avatar_url || null,
+      employeeCount: countMap.get(dept.id) || 0,
+    };
+  });
 }
 
 export function useDepartmentsManagement() {
@@ -56,7 +77,11 @@ export function useCreateDepartment() {
     mutationFn: async (input: DepartmentInput) => {
       const { data, error } = await supabase
         .from('departments')
-        .insert({ name: input.name, description: input.description })
+        .insert({ 
+          name: input.name, 
+          description: input.description,
+          manager_id: input.manager_id || null,
+        })
         .select()
         .single();
 
@@ -77,7 +102,11 @@ export function useUpdateDepartment() {
     mutationFn: async ({ id, ...input }: DepartmentInput & { id: string }) => {
       const { data, error } = await supabase
         .from('departments')
-        .update({ name: input.name, description: input.description })
+        .update({ 
+          name: input.name, 
+          description: input.description,
+          manager_id: input.manager_id || null,
+        })
         .eq('id', id)
         .select()
         .single();

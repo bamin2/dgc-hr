@@ -202,21 +202,32 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          manager_id: string | null
           name: string
         }
         Insert: {
           created_at?: string
           description?: string | null
           id?: string
+          manager_id?: string | null
           name: string
         }
         Update: {
           created_at?: string
           description?: string | null
           id?: string
+          manager_id?: string | null
           name?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "departments_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       employee_allowances: {
         Row: {

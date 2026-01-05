@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,17 +21,22 @@ import {
   useUpdateDepartment,
   useDeleteDepartment,
 } from '@/hooks/useDepartmentsManagement';
+import { useEmployees } from '@/hooks/useEmployees';
 import { DepartmentFormDialog } from './DepartmentFormDialog';
 
 interface Department {
   id: string;
   name: string;
   description: string | null;
+  manager_id: string | null;
+  manager_name: string | null;
+  manager_avatar: string | null;
   employeeCount: number;
 }
 
 export function DepartmentsSection() {
   const { data: departments, isLoading } = useDepartmentsManagement();
+  const { data: employees } = useEmployees();
   const createMutation = useCreateDepartment();
   const updateMutation = useUpdateDepartment();
   const deleteMutation = useDeleteDepartment();
@@ -49,7 +55,7 @@ export function DepartmentsSection() {
     setFormOpen(true);
   };
 
-  const handleSubmit = async (data: { name: string; description?: string | null }) => {
+  const handleSubmit = async (data: { name: string; description?: string | null; manager_id?: string | null }) => {
     try {
       if (editingDepartment) {
         await updateMutation.mutateAsync({ id: editingDepartment.id, ...data });
@@ -74,6 +80,14 @@ export function DepartmentsSection() {
       toast.error(error.message || 'Failed to delete department');
     }
   };
+
+  // Map employees to the format needed by the form
+  const employeeOptions = (employees || []).map(emp => ({
+    id: emp.id,
+    first_name: emp.firstName,
+    last_name: emp.lastName,
+    avatar_url: emp.avatar || null,
+  }));
 
   if (isLoading) {
     return (
@@ -126,6 +140,19 @@ export function DepartmentsSection() {
                         {dept.description}
                       </p>
                     )}
+                    {dept.manager_name && (
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <Avatar className="h-4 w-4">
+                          <AvatarImage src={dept.manager_avatar || undefined} />
+                          <AvatarFallback className="text-[8px]">
+                            {dept.manager_name.split(' ').map(n => n[0]).join('')}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-xs text-muted-foreground">
+                          Head: {dept.manager_name}
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center gap-3 ml-4">
                     <span className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -160,6 +187,7 @@ export function DepartmentsSection() {
         open={formOpen}
         onOpenChange={setFormOpen}
         department={editingDepartment}
+        employees={employeeOptions}
         onSubmit={handleSubmit}
         isLoading={createMutation.isPending || updateMutation.isPending}
       />
