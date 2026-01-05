@@ -11,9 +11,10 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
   CalendarEvent,
-  getOrganizerById,
-  getParticipants,
-} from "@/data/calendar";
+  getOrganizerFromEvent,
+  getParticipantsFromEvent,
+  useDeleteCalendarEvent,
+} from "@/hooks/useCalendarEvents";
 import {
   Calendar,
   Clock,
@@ -65,12 +66,15 @@ export function EventDetailSheet({
   open,
   onOpenChange,
 }: EventDetailSheetProps) {
+  const deleteEvent = useDeleteCalendarEvent();
+
   if (!event) return null;
 
-  const organizer = getOrganizerById(event.organizerId);
-  const participants = getParticipants(event.participantIds);
+  const organizer = getOrganizerFromEvent(event);
+  const participants = getParticipantsFromEvent(event);
 
-  const formatDate = (date: Date) => {
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
     return date.toLocaleDateString("en-US", {
       weekday: "long",
       month: "long",
@@ -79,7 +83,8 @@ export function EventDetailSheet({
     });
   };
 
-  const formatTime = (date: Date) => {
+  const formatTime = (dateStr: string) => {
+    const date = new Date(dateStr);
     return date.toLocaleTimeString("en-US", {
       hour: "numeric",
       minute: "2-digit",
@@ -103,9 +108,14 @@ export function EventDetailSheet({
     toast.info("Edit mode", { description: "Event editing coming soon" });
   };
 
-  const handleDelete = () => {
-    toast.success("Event deleted");
-    onOpenChange(false);
+  const handleDelete = async () => {
+    try {
+      await deleteEvent.mutateAsync(event.id);
+      toast.success("Event deleted");
+      onOpenChange(false);
+    } catch (error) {
+      toast.error("Failed to delete event");
+    }
   };
 
   return (
@@ -120,7 +130,13 @@ export function EventDetailSheet({
               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleEdit}>
                 <Edit className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={handleDelete}>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 text-destructive" 
+                onClick={handleDelete}
+                disabled={deleteEvent.isPending}
+              >
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>
@@ -134,12 +150,12 @@ export function EventDetailSheet({
           <div className="space-y-3">
             <div className="flex items-center gap-3 text-sm">
               <Calendar className="h-4 w-4 text-muted-foreground" />
-              <span>{formatDate(event.startTime)}</span>
+              <span>{formatDate(event.start_time)}</span>
             </div>
             <div className="flex items-center gap-3 text-sm">
               <Clock className="h-4 w-4 text-muted-foreground" />
               <span>
-                {formatTime(event.startTime)} - {formatTime(event.endTime)}
+                {formatTime(event.start_time)} - {formatTime(event.end_time)}
               </span>
             </div>
             {event.platform && (
@@ -164,7 +180,7 @@ export function EventDetailSheet({
             {organizer && (
               <div className="flex items-center gap-3">
                 <Avatar className="h-10 w-10">
-                  <AvatarImage src={organizer.avatar} />
+                  <AvatarImage src={organizer.avatar || undefined} />
                   <AvatarFallback>{getInitials(organizer.name)}</AvatarFallback>
                 </Avatar>
                 <div>
@@ -189,7 +205,7 @@ export function EventDetailSheet({
               {participants.map((participant) => (
                 <div key={participant.id} className="flex items-center gap-3">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={participant.avatar} />
+                    <AvatarImage src={participant.avatar || undefined} />
                     <AvatarFallback className="text-xs">
                       {getInitials(participant.name)}
                     </AvatarFallback>
@@ -200,6 +216,9 @@ export function EventDetailSheet({
                   </div>
                 </div>
               ))}
+              {participants.length === 0 && (
+                <p className="text-sm text-muted-foreground">No participants added</p>
+              )}
             </div>
           </div>
 

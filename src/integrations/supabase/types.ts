@@ -368,6 +368,65 @@ export type Database = {
         }
         Relationships: []
       }
+      calendar_events: {
+        Row: {
+          color: Database["public"]["Enums"]["event_color"]
+          created_at: string
+          description: string | null
+          end_time: string
+          id: string
+          is_all_day: boolean | null
+          location: string | null
+          organizer_id: string | null
+          platform: Database["public"]["Enums"]["event_platform"] | null
+          recurrence: Database["public"]["Enums"]["event_recurrence"] | null
+          start_time: string
+          title: string
+          type: Database["public"]["Enums"]["event_type"]
+          updated_at: string
+        }
+        Insert: {
+          color?: Database["public"]["Enums"]["event_color"]
+          created_at?: string
+          description?: string | null
+          end_time: string
+          id?: string
+          is_all_day?: boolean | null
+          location?: string | null
+          organizer_id?: string | null
+          platform?: Database["public"]["Enums"]["event_platform"] | null
+          recurrence?: Database["public"]["Enums"]["event_recurrence"] | null
+          start_time: string
+          title: string
+          type?: Database["public"]["Enums"]["event_type"]
+          updated_at?: string
+        }
+        Update: {
+          color?: Database["public"]["Enums"]["event_color"]
+          created_at?: string
+          description?: string | null
+          end_time?: string
+          id?: string
+          is_all_day?: boolean | null
+          location?: string | null
+          organizer_id?: string | null
+          platform?: Database["public"]["Enums"]["event_platform"] | null
+          recurrence?: Database["public"]["Enums"]["event_recurrence"] | null
+          start_time?: string
+          title?: string
+          type?: Database["public"]["Enums"]["event_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_events_organizer_id_fkey"
+            columns: ["organizer_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_settings: {
         Row: {
           address_city: string | null
@@ -733,6 +792,45 @@ export type Database = {
             columns: ["position_id"]
             isOneToOne: false
             referencedRelation: "positions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_participants: {
+        Row: {
+          created_at: string
+          employee_id: string
+          event_id: string
+          id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          employee_id: string
+          event_id: string
+          id?: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          event_id?: string
+          id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_participants_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_participants_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "calendar_events"
             referencedColumns: ["id"]
           },
         ]
@@ -1546,6 +1644,10 @@ export type Database = {
         | "probation"
         | "terminated"
       enrollment_status: "active" | "pending" | "cancelled" | "expired"
+      event_color: "green" | "orange" | "coral" | "mint" | "blue" | "purple"
+      event_platform: "zoom" | "meet" | "slack" | "teams" | "in-person"
+      event_recurrence: "none" | "daily" | "weekly" | "monthly"
+      event_type: "meeting" | "event" | "reminder" | "task"
       gender_type: "male" | "female" | "other" | "prefer_not_to_say"
       project_priority: "low" | "medium" | "high"
       project_status: "todo" | "in_progress" | "need_review" | "done"
@@ -1712,6 +1814,10 @@ export const Constants = {
         "terminated",
       ],
       enrollment_status: ["active", "pending", "cancelled", "expired"],
+      event_color: ["green", "orange", "coral", "mint", "blue", "purple"],
+      event_platform: ["zoom", "meet", "slack", "teams", "in-person"],
+      event_recurrence: ["none", "daily", "weekly", "monthly"],
+      event_type: ["meeting", "event", "reminder", "task"],
       gender_type: ["male", "female", "other", "prefer_not_to_say"],
       project_priority: ["low", "medium", "high"],
       project_status: ["todo", "in_progress", "need_review", "done"],

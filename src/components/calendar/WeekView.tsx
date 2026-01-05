@@ -1,4 +1,4 @@
-import { CalendarEvent } from "@/data/calendar";
+import { CalendarEvent } from "@/hooks/useCalendarEvents";
 import { EventCard } from "./EventCard";
 import { cn } from "@/lib/utils";
 
@@ -19,7 +19,7 @@ export function WeekView({ weekDates, events, onEventClick }: WeekViewProps) {
 
   const getEventsForDateAndHour = (date: Date, hour: number) => {
     return events.filter((event) => {
-      const eventDate = new Date(event.startTime);
+      const eventDate = new Date(event.start_time);
       return (
         eventDate.getDate() === date.getDate() &&
         eventDate.getMonth() === date.getMonth() &&
@@ -30,8 +30,8 @@ export function WeekView({ weekDates, events, onEventClick }: WeekViewProps) {
   };
 
   const getEventHeight = (event: CalendarEvent) => {
-    const start = new Date(event.startTime);
-    const end = new Date(event.endTime);
+    const start = new Date(event.start_time);
+    const end = new Date(event.end_time);
     const durationHours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
     return Math.max(durationHours * 64, 64); // 64px per hour, minimum 64px
   };
@@ -112,12 +112,12 @@ export function WeekView({ weekDates, events, onEventClick }: WeekViewProps) {
                   key={hour}
                   className="h-16 border-b border-border/50 relative"
                 >
-                  {hourEvents.map((event, idx) => (
+                  {hourEvents.map((event) => (
                     <div
                       key={event.id}
                       className="absolute inset-x-1 z-10"
                       style={{
-                        top: `${(new Date(event.startTime).getMinutes() / 60) * 64}px`,
+                        top: `${(new Date(event.start_time).getMinutes() / 60) * 64}px`,
                         height: `${getEventHeight(event)}px`,
                       }}
                     >
