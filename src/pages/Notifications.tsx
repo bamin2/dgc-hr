@@ -1,23 +1,30 @@
 import { useState, useMemo } from 'react';
 import { Sidebar } from '@/components/dashboard/Sidebar';
 import { Button } from '@/components/ui/button';
-import { Check, Trash2, Bell } from 'lucide-react';
+import { Check, Trash2, Bell, Loader2 } from 'lucide-react';
 import {
   NotificationsFilters,
   NotificationsMetrics,
   NotificationCard
 } from '@/components/notifications';
-import { mockNotifications, type Notification } from '@/data/notifications';
+import { useNotifications, type NotificationDisplay } from '@/hooks/useNotifications';
 import { useToast } from '@/hooks/use-toast';
 import { DateRange } from 'react-day-picker';
 import { isWithinInterval, startOfDay, endOfDay, isToday } from 'date-fns';
 
-type NotificationType = Notification['type'];
-type NotificationPriority = Notification['priority'];
+type NotificationType = NotificationDisplay['type'];
+type NotificationPriority = NotificationDisplay['priority'];
 
 const Notifications = () => {
   const { toast } = useToast();
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
+  const { 
+    notifications, 
+    isLoading, 
+    markAsRead, 
+    markAllAsRead, 
+    deleteNotification, 
+    deleteReadNotifications 
+  } = useNotifications();
   
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -64,39 +71,69 @@ const Notifications = () => {
     });
   }, [notifications, searchQuery, typeFilter, statusFilter, priorityFilter, dateRange]);
 
-  const handleMarkAsRead = (id: string) => {
-    setNotifications(prev => 
-      prev.map(n => n.id === id ? { ...n, isRead: true } : n)
-    );
-    toast({
-      title: 'Notification marked as read',
-      description: 'The notification has been marked as read.'
-    });
+  const handleMarkAsRead = async (id: string) => {
+    try {
+      await markAsRead(id);
+      toast({
+        title: 'Notification marked as read',
+        description: 'The notification has been marked as read.'
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to mark notification as read.',
+        variant: 'destructive'
+      });
+    }
   };
 
-  const handleMarkAllAsRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
-    toast({
-      title: 'All notifications marked as read',
-      description: `${metrics.unread} notifications marked as read.`
-    });
+  const handleMarkAllAsRead = async () => {
+    try {
+      await markAllAsRead();
+      toast({
+        title: 'All notifications marked as read',
+        description: `${metrics.unread} notifications marked as read.`
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to mark all notifications as read.',
+        variant: 'destructive'
+      });
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
-    toast({
-      title: 'Notification deleted',
-      description: 'The notification has been removed.'
-    });
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteNotification(id);
+      toast({
+        title: 'Notification deleted',
+        description: 'The notification has been removed.'
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete notification.',
+        variant: 'destructive'
+      });
+    }
   };
 
-  const handleClearRead = () => {
+  const handleClearRead = async () => {
     const readCount = notifications.filter(n => n.isRead).length;
-    setNotifications(prev => prev.filter(n => !n.isRead));
-    toast({
-      title: 'Read notifications cleared',
-      description: `${readCount} read notifications removed.`
-    });
+    try {
+      await deleteReadNotifications();
+      toast({
+        title: 'Read notifications cleared',
+        description: `${readCount} read notifications removed.`
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to clear read notifications.',
+        variant: 'destructive'
+      });
+    }
   };
 
   const handleClearFilters = () => {
@@ -106,6 +143,17 @@ const Notifications = () => {
     setPriorityFilter('all');
     setDateRange(undefined);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen bg-background">
+        <Sidebar />
+        <main className="flex-1 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-background">

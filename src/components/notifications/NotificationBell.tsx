@@ -7,23 +7,29 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { NotificationPanel } from "./NotificationPanel";
-import { mockNotifications, type Notification } from "@/data/notifications";
+import { useNotifications } from "@/hooks/useNotifications";
 import { cn } from "@/lib/utils";
 
 export function NotificationBell() {
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
+  const { notifications, markAsRead, markAllAsRead } = useNotifications();
   const [isOpen, setIsOpen] = useState(false);
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
-  const markAsRead = (id: string) => {
-    setNotifications(prev =>
-      prev.map(n => (n.id === id ? { ...n, isRead: true } : n))
-    );
+  const handleMarkAsRead = async (id: string) => {
+    try {
+      await markAsRead(id);
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error);
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+  const handleMarkAllAsRead = async () => {
+    try {
+      await markAllAsRead();
+    } catch (error) {
+      console.error('Failed to mark all notifications as read:', error);
+    }
   };
 
   return (
@@ -55,8 +61,8 @@ export function NotificationBell() {
       >
         <NotificationPanel
           notifications={notifications}
-          onMarkAsRead={markAsRead}
-          onMarkAllAsRead={markAllAsRead}
+          onMarkAsRead={handleMarkAsRead}
+          onMarkAllAsRead={handleMarkAllAsRead}
         />
       </PopoverContent>
     </Popover>
