@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { Plus, Upload, Users, Building2 } from "lucide-react";
+import { Plus, Upload, Users, Building2, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Sidebar, Header } from "@/components/dashboard";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,13 @@ import {
   TablePagination,
   OrgChart,
 } from "@/components/employees";
-import { mockEmployees, Employee } from "@/data/employees";
+import {
+  useEmployees,
+  useCreateEmployee,
+  useUpdateEmployee,
+  useDeleteEmployee,
+  Employee,
+} from "@/hooks/useEmployees";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -23,7 +29,13 @@ const tabs: { id: TabType; label: string; icon: React.ElementType }[] = [
 
 export default function Employees() {
   const navigate = useNavigate();
-  const [employees, setEmployees] = useState<Employee[]>(mockEmployees);
+  
+  // Fetch employees from Supabase
+  const { data: employees = [], isLoading, error } = useEmployees();
+  const createEmployee = useCreateEmployee();
+  const updateEmployee = useUpdateEmployee();
+  const deleteEmployee = useDeleteEmployee();
+  
   const [activeTab, setActiveTab] = useState<TabType>('directory');
   const [searchQuery, setSearchQuery] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('all');
@@ -87,13 +99,21 @@ export default function Employees() {
     setFormOpen(true);
   };
 
-  const handleDelete = (employee: Employee) => {
-    setEmployees(prev => prev.filter(e => e.id !== employee.id));
-    setSelectedEmployees(prev => prev.filter(id => id !== employee.id));
-    toast({
-      title: "Employee deleted",
-      description: `${employee.firstName} ${employee.lastName} has been removed.`,
-    });
+  const handleDelete = async (employee: Employee) => {
+    try {
+      await deleteEmployee.mutateAsync(employee.id);
+      setSelectedEmployees(prev => prev.filter(id => id !== employee.id));
+      toast({
+        title: "Employee deleted",
+        description: `${employee.firstName} ${employee.lastName} has been removed.`,
+      });
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to delete employee. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleAddNew = () => {
@@ -101,83 +121,80 @@ export default function Employees() {
     setFormOpen(true);
   };
 
-  const handleSave = (data: Partial<Employee>) => {
-    if (editingEmployee) {
-      setEmployees(prev => prev.map(e => 
-        e.id === editingEmployee.id ? { ...e, ...data } : e
-      ));
+  const handleSave = async (data: Partial<Employee>) => {
+    try {
+      if (editingEmployee) {
+        await updateEmployee.mutateAsync({
+          id: editingEmployee.id,
+          first_name: data.firstName,
+          last_name: data.lastName,
+          email: data.email,
+          phone: data.phone,
+          department_id: data.departmentId || null,
+          position_id: data.positionId || null,
+          status: data.status as any,
+          date_of_birth: data.dateOfBirth || null,
+          gender: data.gender as any || null,
+          address: data.address || null,
+          nationality: data.nationality || null,
+          avatar_url: data.avatar || null,
+        });
+        toast({
+          title: "Employee updated",
+          description: `${data.firstName} ${data.lastName}'s information has been updated.`,
+        });
+      } else {
+        await createEmployee.mutateAsync({
+          first_name: data.firstName!,
+          last_name: data.lastName!,
+          email: data.email!,
+          phone: data.phone,
+          department_id: data.departmentId || null,
+          position_id: data.positionId || null,
+          status: (data.status as any) || 'on_boarding',
+          date_of_birth: data.dateOfBirth || null,
+          gender: data.gender as any || null,
+          address: data.address || null,
+          nationality: data.nationality || null,
+          avatar_url: data.avatar || null,
+        });
+        toast({
+          title: "Employee added",
+          description: `${data.firstName} ${data.lastName} has been added to the directory.`,
+        });
+      }
+    } catch (err) {
       toast({
-        title: "Employee updated",
-        description: `${data.firstName} ${data.lastName}'s information has been updated.`,
-      });
-    } else {
-      const newEmployee: Employee = {
-        id: String(Date.now()),
-        employeeId: `EMP${String(employees.length + 1).padStart(3, '0')}`,
-        joinDate: new Date().toISOString().split('T')[0],
-        status: 'on_boarding',
-        ...data,
-      } as Employee;
-      setEmployees(prev => [...prev, newEmployee]);
-      toast({
-        title: "Employee added",
-        description: `${data.firstName} ${data.lastName} has been added to the directory.`,
+        title: "Error",
+        description: "Failed to save employee. Please try again.",
+        variant: "destructive",
       });
     }
   };
 
-  const handleReassign = (employeeId: string, newManagerId: string) => {
+  const handleReassign = async (employeeId: string, newManagerId: string) => {
     const employee = employees.find((e) => e.id === employeeId);
     const newManager = employees.find((e) => e.id === newManagerId);
-    const originalManagerId = employee?.managerId;
 
     if (!employee || !newManager) return;
 
-    setEmployees((prev) =>
-      prev.map((e) =>
-        e.id === employeeId
-          ? {
-              ...e,
-              managerId: newManagerId,
-              manager: `${newManager.firstName} ${newManager.lastName}`,
-            }
-          : e
-      )
-    );
-
-    toast({
-      title: "Manager reassigned",
-      description: `${employee.firstName} ${employee.lastName} now reports to ${newManager.firstName} ${newManager.lastName}.`,
-      action: (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            // Undo the reassignment
-            const originalManager = employees.find((e) => e.id === originalManagerId);
-            setEmployees((prev) =>
-              prev.map((e) =>
-                e.id === employeeId
-                  ? {
-                      ...e,
-                      managerId: originalManagerId,
-                      manager: originalManager
-                        ? `${originalManager.firstName} ${originalManager.lastName}`
-                        : undefined,
-                    }
-                  : e
-              )
-            );
-            toast({
-              title: "Change undone",
-              description: `${employee.firstName} ${employee.lastName}'s manager has been restored.`,
-            });
-          }}
-        >
-          Undo
-        </Button>
-      ),
-    });
+    try {
+      await updateEmployee.mutateAsync({
+        id: employeeId,
+        manager_id: newManagerId,
+      });
+      
+      toast({
+        title: "Manager reassigned",
+        description: `${employee.firstName} ${employee.lastName} now reports to ${newManager.firstName} ${newManager.lastName}.`,
+      });
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to reassign manager. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleExport = () => {
@@ -211,29 +228,45 @@ export default function Employees() {
             </div>
           </div>
 
-          {/* Tabs */}
-          <div className="border-b mb-6">
-            <div className="flex gap-6">
-              {tabs.map((tab) => {
-                const Icon = tab.icon;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={cn(
-                      "flex items-center gap-2 pb-3 text-sm font-medium border-b-2 transition-colors",
-                      activeTab === tab.id
-                        ? "border-primary text-primary"
-                        : "border-transparent text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {tab.label}
-                  </button>
-                );
-              })}
+          {/* Loading State */}
+          {isLoading && (
+            <div className="flex items-center justify-center h-96">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
-          </div>
+          )}
+
+          {/* Error State */}
+          {error && (
+            <div className="text-center py-12">
+              <p className="text-destructive">Failed to load employees. Please try again.</p>
+            </div>
+          )}
+
+          {!isLoading && !error && (
+            <>
+              {/* Tabs */}
+              <div className="border-b mb-6">
+                <div className="flex gap-6">
+                  {tabs.map((tab) => {
+                    const Icon = tab.icon;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={cn(
+                          "flex items-center gap-2 pb-3 text-sm font-medium border-b-2 transition-colors",
+                          activeTab === tab.id
+                            ? "border-primary text-primary"
+                            : "border-transparent text-muted-foreground hover:text-foreground"
+                        )}
+                      >
+                        <Icon className="h-4 w-4" />
+                        {tab.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
           {activeTab === 'directory' && (
             <>
@@ -286,22 +319,24 @@ export default function Employees() {
             </>
           )}
 
-          {activeTab === 'org-chart' && (
-            <OrgChart
-              employees={employees}
-              onView={(orgEmployee) => {
-                navigate(`/employees/${orgEmployee.id}`);
-              }}
-              onEdit={(orgEmployee) => {
-                // Find the full employee record by ID
-                const employee = employees.find(e => e.id === orgEmployee.id);
-                if (employee) {
-                  setEditingEmployee(employee);
-                  setFormOpen(true);
-                }
-              }}
-              onReassign={handleReassign}
-            />
+              {activeTab === 'org-chart' && (
+                <OrgChart
+                  employees={employees}
+                  onView={(orgEmployee) => {
+                    navigate(`/employees/${orgEmployee.id}`);
+                  }}
+                  onEdit={(orgEmployee) => {
+                    // Find the full employee record by ID
+                    const employee = employees.find(e => e.id === orgEmployee.id);
+                    if (employee) {
+                      setEditingEmployee(employee);
+                      setFormOpen(true);
+                    }
+                  }}
+                  onReassign={handleReassign}
+                />
+              )}
+            </>
           )}
         </main>
       </div>

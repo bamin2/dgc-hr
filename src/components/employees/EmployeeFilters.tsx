@@ -7,7 +7,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { departments, entities } from "@/data/employees";
+import { useDepartments } from "@/hooks/useEmployees";
+
+// Keep entities as static for now (could be moved to DB later)
+const entities = [
+  'Franfer Inc.',
+  'Franfer EU',
+  'Franfer Asia'
+];
 
 interface EmployeeFiltersProps {
   searchQuery: string;
@@ -30,6 +37,8 @@ export function EmployeeFilters({
   entityFilter,
   onEntityChange,
 }: EmployeeFiltersProps) {
+  const { data: departments = [] } = useDepartments();
+
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full">
       {/* Search input on left */}
@@ -55,6 +64,7 @@ export function EmployeeFilters({
             <SelectItem value="on_boarding">On Boarding</SelectItem>
             <SelectItem value="probation">Probation</SelectItem>
             <SelectItem value="on_leave">On Leave</SelectItem>
+            <SelectItem value="terminated">Terminated</SelectItem>
           </SelectContent>
         </Select>
         
@@ -65,8 +75,8 @@ export function EmployeeFilters({
           <SelectContent>
             <SelectItem value="all">All departments</SelectItem>
             {departments.map((dept) => (
-              <SelectItem key={dept} value={dept}>
-                {dept}
+              <SelectItem key={dept.id} value={dept.name}>
+                {dept.name}
               </SelectItem>
             ))}
           </SelectContent>

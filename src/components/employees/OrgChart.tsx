@@ -6,7 +6,7 @@ import { OrgChartTree } from "./OrgChartTree";
 import { OrgChartControls } from "./OrgChartControls";
 import { OrgChartExportButton } from "./OrgChartExportButton";
 import { OrgEmployee } from "./OrgChartNode";
-import { Employee } from "@/data/employees";
+import { Employee } from "@/hooks/useEmployees";
 import { buildOrgTree, getAllDescendantIds, wouldCreateCircularReference } from "@/utils/orgHierarchy";
 import { toast } from "@/hooks/use-toast";
 import {

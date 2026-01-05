@@ -1,4 +1,4 @@
-import { Employee } from "@/data/employees";
+import { Employee } from "@/hooks/useEmployees";
 import { OrgEmployee } from "@/components/employees/OrgChartNode";
 
 /**

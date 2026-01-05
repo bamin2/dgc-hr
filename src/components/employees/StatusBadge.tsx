@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
 interface StatusBadgeProps {
-  status: 'active' | 'on_leave' | 'on_boarding' | 'probation';
+  status: 'active' | 'on_leave' | 'on_boarding' | 'probation' | 'terminated';
   className?: string;
 }
 
@@ -25,6 +25,11 @@ const statusConfig = {
     label: 'ON LEAVE',
     className: 'border-red-300 bg-red-50 text-red-600 dark:border-red-600 dark:bg-red-950/50 dark:text-red-400',
     dotClassName: 'bg-red-500'
+  },
+  terminated: {
+    label: 'TERMINATED',
+    className: 'border-gray-300 bg-gray-50 text-gray-600 dark:border-gray-600 dark:bg-gray-950/50 dark:text-gray-400',
+    dotClassName: 'bg-gray-500'
   }
 };
 

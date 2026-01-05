@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { X, Upload } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Employee, departments, positions } from "@/data/employees";
+import { Employee, useDepartments, usePositions } from "@/hooks/useEmployees";
 
 interface EmployeeFormProps {
   open: boolean;
@@ -26,32 +26,113 @@ interface EmployeeFormProps {
   onSave: (employee: Partial<Employee>) => void;
 }
 
+interface FormData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  department: string;
+  departmentId: string;
+  position: string;
+  positionId: string;
+  status: Employee["status"];
+  dateOfBirth: string;
+  gender: string;
+  address: string;
+  nationality: string;
+  avatar: string;
+}
+
 export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeFormProps) {
   const isEditing = !!employee;
   
-  const [formData, setFormData] = useState<Partial<Employee>>({
-    firstName: employee?.firstName || '',
-    lastName: employee?.lastName || '',
-    email: employee?.email || '',
-    phone: employee?.phone || '',
-    department: employee?.department || '',
-    position: employee?.position || '',
-    status: employee?.status || 'active',
-    dateOfBirth: employee?.dateOfBirth || '',
-    gender: employee?.gender || '',
-    address: employee?.address || '',
-    nationality: employee?.nationality || '',
-    avatar: employee?.avatar || '',
+  const { data: departments = [] } = useDepartments();
+  const { data: positions = [] } = usePositions();
+  
+  const [formData, setFormData] = useState<FormData>({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    department: '',
+    departmentId: '',
+    position: '',
+    positionId: '',
+    status: 'active',
+    dateOfBirth: '',
+    gender: '',
+    address: '',
+    nationality: '',
+    avatar: '',
   });
+
+  // Update form when employee prop changes
+  useEffect(() => {
+    if (employee) {
+      setFormData({
+        firstName: employee.firstName || '',
+        lastName: employee.lastName || '',
+        email: employee.email || '',
+        phone: employee.phone || '',
+        department: employee.department || '',
+        departmentId: employee.departmentId || '',
+        position: employee.position || '',
+        positionId: employee.positionId || '',
+        status: employee.status || 'active',
+        dateOfBirth: employee.dateOfBirth || '',
+        gender: employee.gender || '',
+        address: employee.address || '',
+        nationality: employee.nationality || '',
+        avatar: employee.avatar || '',
+      });
+    } else {
+      setFormData({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        department: '',
+        departmentId: '',
+        position: '',
+        positionId: '',
+        status: 'active',
+        dateOfBirth: '',
+        gender: '',
+        address: '',
+        nationality: '',
+        avatar: '',
+      });
+    }
+  }, [employee, open]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    onSave(formData as Partial<Employee>);
     onOpenChange(false);
   };
 
-  const handleChange = (field: keyof Employee, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const handleChange = (field: keyof FormData, value: string) => {
+    setFormData(prev => {
+      const updates: Partial<FormData> = { [field]: value };
+      
+      // When department changes, update both ID and name
+      if (field === 'departmentId') {
+        const dept = departments.find(d => d.id === value);
+        if (dept) {
+          updates.department = dept.name;
+        }
+      }
+      
+      // When position changes, update both ID and name
+      if (field === 'positionId') {
+        const pos = positions.find(p => p.id === value);
+        if (pos) {
+          updates.position = pos.title;
+        }
+      }
+      
+      return { ...prev, ...updates };
+    });
   };
 
   const initials = formData.firstName && formData.lastName 
@@ -127,9 +208,10 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
                     <SelectValue placeholder="Select gender" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Male">Male</SelectItem>
-                    <SelectItem value="Female">Female</SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                    <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -161,12 +243,11 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number *</Label>
+                <Label htmlFor="phone">Phone Number</Label>
                 <Input
                   id="phone"
                   value={formData.phone}
                   onChange={(e) => handleChange('phone', e.target.value)}
-                  required
                 />
               </div>
               <div className="space-y-2 sm:col-span-2">
@@ -188,40 +269,42 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="department">Department *</Label>
-                <Select value={formData.department} onValueChange={(v) => handleChange('department', v)}>
+                <Select value={formData.departmentId || ''} onValueChange={(v) => handleChange('departmentId', v)}>
                   <SelectTrigger id="department">
                     <SelectValue placeholder="Select department" />
                   </SelectTrigger>
                   <SelectContent>
                     {departments.map((dept) => (
-                      <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                      <SelectItem key={dept.id} value={dept.id}>{dept.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="position">Position *</Label>
-                <Select value={formData.position} onValueChange={(v) => handleChange('position', v)}>
+                <Select value={formData.positionId || ''} onValueChange={(v) => handleChange('positionId', v)}>
                   <SelectTrigger id="position">
                     <SelectValue placeholder="Select position" />
                   </SelectTrigger>
                   <SelectContent>
                     {positions.map((pos) => (
-                      <SelectItem key={pos} value={pos}>{pos}</SelectItem>
+                      <SelectItem key={pos.id} value={pos.id}>{pos.title}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="status">Status</Label>
-                <Select value={formData.status} onValueChange={(v) => handleChange('status', v as Employee['status'])}>
+                <Select value={formData.status} onValueChange={(v) => handleChange('status', v)}>
                   <SelectTrigger id="status">
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="active">Active</SelectItem>
                     <SelectItem value="on_leave">On Leave</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
+                    <SelectItem value="on_boarding">On Boarding</SelectItem>
+                    <SelectItem value="probation">Probation</SelectItem>
+                    <SelectItem value="terminated">Terminated</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
