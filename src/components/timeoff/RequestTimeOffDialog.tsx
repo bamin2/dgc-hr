@@ -127,13 +127,16 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
+              <Calendar
                   mode="range"
                   selected={dateRange}
                   onSelect={setDateRange}
                   initialFocus
                   numberOfMonths={1}
                   className="pointer-events-auto"
+                  classNames={{
+                    day_today: "ring-1 ring-accent text-foreground",
+                  }}
                 />
               </PopoverContent>
             </Popover>
