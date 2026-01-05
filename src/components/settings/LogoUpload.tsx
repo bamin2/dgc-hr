@@ -32,10 +32,21 @@ export const LogoUpload = ({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        return;
+      }
+      
       const reader = new FileReader();
       reader.onloadend = () => {
-        setSelectedImage(reader.result as string);
-        setCropperOpen(true);
+        const result = reader.result as string;
+        if (result) {
+          setSelectedImage(result);
+          setCropperOpen(true);
+        }
+      };
+      reader.onerror = () => {
+        console.error('Failed to read image file');
       };
       reader.readAsDataURL(file);
     }
@@ -98,7 +109,12 @@ export const LogoUpload = ({
 
       <ImageCropper
         open={cropperOpen}
-        onOpenChange={setCropperOpen}
+        onOpenChange={(open) => {
+          setCropperOpen(open);
+          if (!open) {
+            setSelectedImage('');
+          }
+        }}
         imageSrc={selectedImage}
         onCropComplete={handleCropComplete}
         aspectRatio={1}
