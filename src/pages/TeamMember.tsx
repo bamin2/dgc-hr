@@ -90,10 +90,7 @@ export default function TeamMember() {
   };
 
   const handleEdit = (member: TeamMemberType) => {
-    toast({
-      title: "Edit member",
-      description: `Editing ${member.firstName} ${member.lastName}`,
-    });
+    navigate(`/employees/${member.id}`);
   };
 
   const handleDelete = (member: TeamMemberType) => {
