@@ -17,6 +17,7 @@ import {
 import { mockPayrollRecords } from "@/data/payroll";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useAddPayrollRun } from "@/hooks/usePayrollRuns";
 
 const steps = [
   { id: 1, title: "Pay Period", icon: CalendarIcon },
@@ -27,6 +28,7 @@ const steps = [
 
 export default function PayrollRun() {
   const navigate = useNavigate();
+  const addPayrollRun = useAddPayrollRun();
   const [currentStep, setCurrentStep] = useState(1);
   const [payPeriod, setPayPeriod] = useState({
     startDate: format(startOfMonth(new Date()), "yyyy-MM-dd"),
@@ -61,13 +63,42 @@ export default function PayrollRun() {
     return sum + r.netPay + adj.bonus - adj.deduction;
   }, 0);
 
-  const handleProcess = () => {
+  const handleProcess = async () => {
     setIsProcessing(true);
-    setTimeout(() => {
-      setIsProcessing(false);
+    
+    try {
+      const records = selectedRecords.map((r) => ({
+        payroll_run_id: "", // Will be set by the hook
+        employee_id: r.employeeId,
+        employee_name: `${r.employee.firstName} ${r.employee.lastName}`,
+        department: r.employee.department,
+        base_salary: r.baseSalary,
+        overtime: r.overtime,
+        bonuses: r.bonuses,
+        tax_deduction: r.deductions.tax,
+        insurance_deduction: r.deductions.insurance,
+        other_deduction: r.deductions.other,
+        net_pay: r.netPay,
+        status: "paid",
+        paid_date: new Date().toISOString().split("T")[0],
+      }));
+
+      await addPayrollRun.mutateAsync({
+        payPeriodStart: payPeriod.startDate,
+        payPeriodEnd: payPeriod.endDate,
+        totalAmount: totalPayroll,
+        employeeCount: selectedEmployees.length,
+        records,
+      });
+
       toast.success("Payroll processed successfully!");
       navigate("/payroll");
-    }, 2000);
+    } catch (error) {
+      console.error("Error processing payroll:", error);
+      toast.error("Failed to process payroll. Please try again.");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const renderStepContent = () => {

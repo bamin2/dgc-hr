@@ -12,16 +12,18 @@ import {
 } from "@/components/payroll";
 import {
   mockPayrollRecords,
-  mockPayrollRuns,
   payrollMetrics,
   departmentPayrollData,
 } from "@/data/payroll";
+import { usePayrollRuns } from "@/hooks/usePayrollRuns";
 
 export default function Payroll() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [monthFilter, setMonthFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  
+  const { data: payrollRuns = [] } = usePayrollRuns();
 
   const filteredRecords = mockPayrollRecords.filter((record) => {
     const matchesSearch =
@@ -82,7 +84,7 @@ export default function Payroll() {
             {/* Sidebar widgets take 1/3 */}
             <div className="space-y-6">
               <PayrollChart data={departmentPayrollData} />
-              <RecentPayrollRuns runs={mockPayrollRuns} />
+              <RecentPayrollRuns runs={payrollRuns.slice(0, 5)} />
             </div>
           </div>
         </div>
