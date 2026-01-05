@@ -307,6 +307,23 @@ export default function PayrollRun() {
                   </div>
                 ))}
               </div>
+              
+              {/* Total Net Pay Footer */}
+              <div className="mt-4 pt-4 border-t">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedEmployees.length} employee(s) selected
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-muted-foreground">Total Net Pay</p>
+                    <p className="text-xl font-bold text-primary">
+                      ${selectedRecords.reduce((sum, r) => sum + r.netPay, 0).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         );
