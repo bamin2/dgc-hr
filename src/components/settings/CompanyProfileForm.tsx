@@ -1,16 +1,16 @@
-import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SettingsCard } from './SettingsCard';
-import { ImageUpload } from './ImageUpload';
+import { LogoUpload } from './LogoUpload';
 import { Building2, Phone, Palette } from 'lucide-react';
+import { CountrySelect } from '@/components/ui/country-select';
+import { CurrencySelect } from '@/components/ui/currency-select';
 import { 
   CompanySettings, 
   industries, 
   companySizes, 
   timezones, 
-  currencies, 
   dateFormats 
 } from '@/data/settings';
 
@@ -172,10 +172,10 @@ export const CompanyProfileForm = ({ settings, onChange }: CompanyProfileFormPro
           </div>
           <div className="space-y-2">
             <Label htmlFor="country">Country</Label>
-            <Input
-              id="country"
+            <CountrySelect
               value={settings.address.country}
-              onChange={(e) => updateAddress('country', e.target.value)}
+              onValueChange={(v) => updateAddress('country', v)}
+              placeholder="Select country"
             />
           </div>
         </div>
@@ -189,7 +189,7 @@ export const CompanyProfileForm = ({ settings, onChange }: CompanyProfileFormPro
         <div className="space-y-6">
           <div className="space-y-2">
             <Label>Company Logo</Label>
-            <ImageUpload
+            <LogoUpload
               value={settings.branding.logoUrl}
               onChange={(v) => updateBranding('logoUrl', v)}
               label="Upload Logo"
@@ -197,7 +197,7 @@ export const CompanyProfileForm = ({ settings, onChange }: CompanyProfileFormPro
               size="lg"
             />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="primaryColor">Brand Color</Label>
               <div className="flex gap-2">
@@ -243,18 +243,11 @@ export const CompanyProfileForm = ({ settings, onChange }: CompanyProfileFormPro
             </div>
             <div className="space-y-2">
               <Label htmlFor="currency">Currency</Label>
-              <Select value={settings.branding.currency} onValueChange={(v) => updateBranding('currency', v)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select currency" />
-                </SelectTrigger>
-                <SelectContent>
-                  {currencies.map((cur) => (
-                    <SelectItem key={cur.code} value={cur.code}>
-                      {cur.symbol} {cur.code} - {cur.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <CurrencySelect
+                value={settings.branding.currency}
+                onValueChange={(v) => updateBranding('currency', v)}
+                placeholder="Select currency"
+              />
             </div>
           </div>
         </div>

@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { SidebarSection } from "./SidebarSection";
 import { AnnouncementsCard } from "./AnnouncementsCard";
 import { useRole } from "@/contexts/RoleContext";
+import { useCompanySettings } from "@/contexts/CompanySettingsContext";
 import { RoleBadge } from "@/components/employees/RoleBadge";
 
 // MAIN - Visible to all employees
@@ -57,12 +58,29 @@ export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const { currentUser, canAccessManagement, canAccessCompany } = useRole();
+  const { settings } = useCompanySettings();
 
   const initials = currentUser.name
     .split(' ')
     .map(n => n[0])
     .join('')
     .toUpperCase();
+
+  // Get company initials for logo fallback
+  const companyInitials = settings.name
+    .split(' ')
+    .map(n => n[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+
+  // Get display name (first word of company name)
+  const companyDisplayName = settings.name.split(' ')[0];
+
+  // Check if logo is valid (not empty or placeholder)
+  const hasLogo = settings.branding.logoUrl && 
+    settings.branding.logoUrl !== '/placeholder.svg' && 
+    settings.branding.logoUrl !== '';
 
   return (
     <aside
@@ -74,11 +92,16 @@ export function Sidebar() {
       {/* Logo Section */}
       <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
         <div className={cn("flex items-center gap-3", collapsed && "justify-center w-full")}>
-          <div className="w-10 h-10 rounded-xl bg-sidebar-primary flex items-center justify-center">
-            <span className="text-sidebar-primary-foreground font-bold text-lg">F</span>
-          </div>
+          <Avatar className="w-10 h-10 rounded-xl">
+            {hasLogo ? (
+              <AvatarImage src={settings.branding.logoUrl} alt={settings.name} className="object-cover" />
+            ) : null}
+            <AvatarFallback className="rounded-xl bg-sidebar-primary text-sidebar-primary-foreground font-bold text-lg">
+              {companyInitials.charAt(0) || 'F'}
+            </AvatarFallback>
+          </Avatar>
           {!collapsed && (
-            <span className="text-xl font-bold tracking-tight">Franfer</span>
+            <span className="text-xl font-bold tracking-tight">{companyDisplayName}</span>
           )}
         </div>
       </div>
