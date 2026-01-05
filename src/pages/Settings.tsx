@@ -9,7 +9,8 @@ import {
   NotificationSettingsForm, 
   IntegrationsGrid,
   SecuritySettings,
-  AuditLogCard
+  AuditLogCard,
+  OrganizationSettingsTab
 } from '@/components/settings';
 import { PayrollSettingsTab } from '@/components/settings/payroll';
 import { 
@@ -23,7 +24,7 @@ import { useCompanySettings } from '@/contexts/CompanySettingsContext';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { useNotificationPreferences } from '@/hooks/useNotificationPreferences';
 import { useRole } from '@/contexts/RoleContext';
-import { Settings, Building2, User, Bell, Puzzle, Shield, Save, Wallet, Loader2 } from 'lucide-react';
+import { Settings, Building2, User, Bell, Puzzle, Shield, Save, Wallet, Loader2, Network } from 'lucide-react';
 import { toast } from 'sonner';
 
 const SettingsPageSkeleton = () => (
@@ -138,6 +139,7 @@ const SettingsPage = () => {
 
   const allTabs = [
     { value: 'company', label: 'Company Profile', icon: Building2, requiresAdmin: true },
+    { value: 'organization', label: 'Organization', icon: Network, requiresAdmin: true },
     { value: 'preferences', label: 'Preferences', icon: User, requiresAdmin: false },
     { value: 'notifications', label: 'Notifications', icon: Bell, requiresAdmin: false },
     { value: 'payroll', label: 'Payroll', icon: Wallet, requiresAdmin: true },
@@ -206,6 +208,12 @@ const SettingsPage = () => {
                     onChange={handleCompanySettingsChange} 
                   />
                   <AuditLogCard />
+                </TabsContent>
+              )}
+
+              {canManageRoles && (
+                <TabsContent value="organization" className="mt-6">
+                  <OrganizationSettingsTab />
                 </TabsContent>
               )}
 

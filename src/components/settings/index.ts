@@ -3,6 +3,7 @@ export { ThemeToggle } from './ThemeToggle';
 export { ImageUpload } from './ImageUpload';
 export { LogoUpload } from './LogoUpload';
 export { CompanyProfileForm } from './CompanyProfileForm';
+export { OrganizationSettingsTab } from './organization';
 export { UserPreferencesForm } from './UserPreferencesForm';
 export { NotificationSettingsForm } from './NotificationSettingsForm';
 export { IntegrationCard } from './IntegrationCard';
