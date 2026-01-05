@@ -14,6 +14,7 @@ import { TablePagination } from "@/components/employees";
 import { mockTeamMembers, type TeamMember as TeamMemberType, type TeamMemberStatus } from "@/data/team";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { useBulkAddSalaryHistory, type SalaryChangeType } from "@/hooks/useSalaryHistory";
 
 type TabType = 'all' | 'active' | 'onboarding' | 'offboarding' | 'dismissed';
 
@@ -27,6 +28,7 @@ const tabs: { id: TabType; label: string }[] = [
 
 export default function TeamMember() {
   const navigate = useNavigate();
+  const bulkAddSalaryHistory = useBulkAddSalaryHistory();
   const [members, setMembers] = useState<TeamMemberType[]>(mockTeamMembers);
   const [activeTab, setActiveTab] = useState<TabType>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -155,18 +157,42 @@ export default function TeamMember() {
     });
   };
 
-  const handleBulkSalaryUpdate = (updates: { id: string; previousSalary: number | null; newSalary: number; changeType: string; reason?: string }[]) => {
-    setMembers((prev) =>
-      prev.map((m) => {
-        const update = updates.find((u) => u.id === m.id);
-        if (update) {
-          return { ...m, salary: update.newSalary };
-        }
-        return m;
-      })
-    );
-    setSelectedMembers([]);
-    // Note: In production, this would also persist the salary history to the database
+  const handleBulkSalaryUpdate = async (updates: { id: string; previousSalary: number | null; newSalary: number; changeType: SalaryChangeType; reason?: string }[]) => {
+    try {
+      // Persist salary history to database
+      await bulkAddSalaryHistory.mutateAsync(
+        updates.map(update => ({
+          employeeId: update.id,
+          previousSalary: update.previousSalary,
+          newSalary: update.newSalary,
+          changeType: update.changeType,
+          reason: update.reason,
+        }))
+      );
+
+      // Update local state
+      setMembers((prev) =>
+        prev.map((m) => {
+          const update = updates.find((u) => u.id === m.id);
+          if (update) {
+            return { ...m, salary: update.newSalary };
+          }
+          return m;
+        })
+      );
+      setSelectedMembers([]);
+
+      toast({
+        title: "Salaries updated",
+        description: `Updated salaries for ${updates.length} team member(s) and recorded in history.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error updating salaries",
+        description: "Failed to save salary history. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Get selected member objects for the dialog
