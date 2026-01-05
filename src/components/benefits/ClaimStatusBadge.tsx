@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import type { ClaimStatus } from '@/data/benefits';
+import type { ClaimStatus } from '@/hooks/useBenefitClaims';
 
 interface ClaimStatusBadgeProps {
   status: ClaimStatus;
@@ -19,14 +19,14 @@ const statusConfig: Record<ClaimStatus, { label: string; className: string }> = 
     label: 'Approved',
     className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
   },
-  denied: {
-    label: 'Denied',
+  rejected: {
+    label: 'Rejected',
     className: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
   }
 };
 
 export const ClaimStatusBadge = ({ status, className }: ClaimStatusBadgeProps) => {
-  const config = statusConfig[status];
+  const config = statusConfig[status] || statusConfig.pending;
 
   return (
     <span

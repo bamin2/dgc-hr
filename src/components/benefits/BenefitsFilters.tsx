@@ -1,7 +1,7 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
-import type { BenefitType, BenefitStatus } from '@/data/benefits';
+import type { BenefitType, BenefitStatus } from '@/hooks/useBenefitPlans';
 
 interface BenefitsFiltersProps {
   searchQuery: string;
@@ -43,9 +43,11 @@ export const BenefitsFilters = ({
           <SelectItem value="health">Health</SelectItem>
           <SelectItem value="dental">Dental</SelectItem>
           <SelectItem value="vision">Vision</SelectItem>
-          <SelectItem value="401k">401(k)</SelectItem>
+          <SelectItem value="retirement">Retirement</SelectItem>
           <SelectItem value="life">Life</SelectItem>
           <SelectItem value="disability">Disability</SelectItem>
+          <SelectItem value="wellness">Wellness</SelectItem>
+          <SelectItem value="other">Other</SelectItem>
         </SelectContent>
       </Select>
 
@@ -58,6 +60,7 @@ export const BenefitsFilters = ({
             <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="active">Active</SelectItem>
             <SelectItem value="inactive">Inactive</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
           </SelectContent>
         </Select>
       )}

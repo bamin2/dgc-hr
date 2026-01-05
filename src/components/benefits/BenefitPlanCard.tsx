@@ -4,7 +4,7 @@ import { BenefitTypeBadge } from './BenefitTypeBadge';
 import { BenefitStatusBadge } from './BenefitStatusBadge';
 import { Users, Check, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import type { BenefitPlan } from '@/data/benefits';
+import type { BenefitPlan } from '@/hooks/useBenefitPlans';
 
 interface BenefitPlanCardProps {
   plan: BenefitPlan;
@@ -12,7 +12,9 @@ interface BenefitPlanCardProps {
 
 export const BenefitPlanCard = ({ plan }: BenefitPlanCardProps) => {
   const navigate = useNavigate();
-  const lowestCost = Math.min(...plan.coverageLevels.map(c => c.employeeCost));
+  const coverageLevels = plan.coverage_levels || [];
+  const costs = coverageLevels.map(c => c.employee_cost);
+  const lowestCost = costs.length > 0 ? Math.min(...costs) : 0;
 
   return (
     <Card className="border-border/50 hover:shadow-md transition-shadow">
@@ -26,29 +28,33 @@ export const BenefitPlanCard = ({ plan }: BenefitPlanCardProps) => {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p className="text-sm text-muted-foreground line-clamp-2">{plan.description}</p>
+        <p className="text-sm text-muted-foreground line-clamp-2">
+          {plan.description || 'No description available'}
+        </p>
         
         <div className="flex items-center gap-4 text-sm">
           <div className="flex items-center gap-1.5 text-muted-foreground">
             <Users className="h-4 w-4" />
-            <span>{plan.enrolledCount} enrolled</span>
+            <span>{plan.enrolled_count} enrolled</span>
           </div>
           <div className="text-muted-foreground">
             From <span className="font-semibold text-foreground">${lowestCost}</span>/mo
           </div>
         </div>
 
-        <div className="space-y-2">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Key Features</p>
-          <ul className="space-y-1.5">
-            {plan.features.slice(0, 3).map((feature, index) => (
-              <li key={index} className="flex items-center gap-2 text-sm">
-                <Check className="h-3.5 w-3.5 text-emerald-500 flex-shrink-0" />
-                <span className="text-muted-foreground">{feature}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+        {plan.features && plan.features.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Key Features</p>
+            <ul className="space-y-1.5">
+              {plan.features.slice(0, 3).map((feature, index) => (
+                <li key={index} className="flex items-center gap-2 text-sm">
+                  <Check className="h-3.5 w-3.5 text-emerald-500 flex-shrink-0" />
+                  <span className="text-muted-foreground">{feature}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <Button 
           variant="outline" 

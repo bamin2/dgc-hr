@@ -6,48 +6,61 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Check } from 'lucide-react';
+import { CalendarIcon, Check, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { mockEmployees } from '@/data/employees';
-import { benefitPlans, type BenefitPlan } from '@/data/benefits';
+import { useEmployees } from '@/hooks/useEmployees';
+import { useBenefitPlans, type BenefitPlan, type CoverageLevel } from '@/hooks/useBenefitPlans';
 import { BenefitTypeBadge } from './BenefitTypeBadge';
 
 interface EnrollmentFormProps {
   onSubmit: (data: {
     employeeId: string;
     planId: string;
-    coverageLevel: string;
+    coverageLevelId: string;
+    coverageLevel: CoverageLevel;
     startDate: Date;
   }) => void;
   onCancel: () => void;
 }
 
-const coverageLevelLabels: Record<string, string> = {
-  individual: 'Individual',
-  individual_spouse: 'Employee + Spouse',
-  individual_children: 'Employee + Children',
-  family: 'Family'
-};
-
 export const EnrollmentForm = ({ onSubmit, onCancel }: EnrollmentFormProps) => {
   const [employeeId, setEmployeeId] = useState('');
   const [planId, setPlanId] = useState('');
-  const [coverageLevel, setCoverageLevel] = useState('');
+  const [coverageLevelId, setCoverageLevelId] = useState('');
   const [startDate, setStartDate] = useState<Date>();
   const [acknowledged, setAcknowledged] = useState(false);
 
-  const selectedPlan = benefitPlans.find(p => p.id === planId);
-  const selectedCoverage = selectedPlan?.coverageLevels.find(c => c.level === coverageLevel);
+  const { data: employees = [], isLoading: employeesLoading } = useEmployees();
+  const { data: plans = [], isLoading: plansLoading } = useBenefitPlans('active');
+
+  const activeEmployees = employees.filter(e => e.status === 'active');
+  const selectedPlan = plans.find(p => p.id === planId);
+  const selectedCoverage = selectedPlan?.coverage_levels?.find(c => c.id === coverageLevelId);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (employeeId && planId && coverageLevel && startDate) {
-      onSubmit({ employeeId, planId, coverageLevel, startDate });
+    if (employeeId && planId && coverageLevelId && startDate && selectedCoverage) {
+      onSubmit({ 
+        employeeId, 
+        planId, 
+        coverageLevelId, 
+        coverageLevel: selectedCoverage,
+        startDate 
+      });
     }
   };
 
-  const isValid = employeeId && planId && coverageLevel && startDate && acknowledged;
+  const isValid = employeeId && planId && coverageLevelId && startDate && acknowledged;
+  const isLoading = employeesLoading || plansLoading;
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -64,9 +77,9 @@ export const EnrollmentForm = ({ onSubmit, onCancel }: EnrollmentFormProps) => {
                 <SelectValue placeholder="Select employee" />
               </SelectTrigger>
               <SelectContent>
-                {mockEmployees.filter(e => e.status === 'active').map((employee) => (
+                {activeEmployees.map((employee) => (
                   <SelectItem key={employee.id} value={employee.id}>
-                    {employee.firstName} {employee.lastName} - {employee.department}
+                    {employee.firstName} {employee.lastName} - {employee.department || 'No department'}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -75,12 +88,12 @@ export const EnrollmentForm = ({ onSubmit, onCancel }: EnrollmentFormProps) => {
 
           <div className="space-y-2">
             <Label htmlFor="plan">Benefit Plan</Label>
-            <Select value={planId} onValueChange={(v) => { setPlanId(v); setCoverageLevel(''); }}>
+            <Select value={planId} onValueChange={(v) => { setPlanId(v); setCoverageLevelId(''); }}>
               <SelectTrigger>
                 <SelectValue placeholder="Select benefit plan" />
               </SelectTrigger>
               <SelectContent>
-                {benefitPlans.filter(p => p.status === 'active').map((plan) => (
+                {plans.map((plan) => (
                   <SelectItem key={plan.id} value={plan.id}>
                     <div className="flex items-center gap-2">
                       <BenefitTypeBadge type={plan.type} showIcon={false} />
@@ -90,19 +103,22 @@ export const EnrollmentForm = ({ onSubmit, onCancel }: EnrollmentFormProps) => {
                 ))}
               </SelectContent>
             </Select>
+            {plans.length === 0 && (
+              <p className="text-xs text-amber-600">No active benefit plans available.</p>
+            )}
           </div>
 
-          {selectedPlan && (
+          {selectedPlan && selectedPlan.coverage_levels && selectedPlan.coverage_levels.length > 0 && (
             <div className="space-y-2">
               <Label htmlFor="coverage">Coverage Level</Label>
-              <Select value={coverageLevel} onValueChange={setCoverageLevel}>
+              <Select value={coverageLevelId} onValueChange={setCoverageLevelId}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select coverage level" />
                 </SelectTrigger>
                 <SelectContent>
-                  {selectedPlan.coverageLevels.map((coverage) => (
-                    <SelectItem key={coverage.level} value={coverage.level}>
-                      {coverageLevelLabels[coverage.level]} - ${coverage.employeeCost}/mo
+                  {selectedPlan.coverage_levels.map((coverage) => (
+                    <SelectItem key={coverage.id} value={coverage.id}>
+                      {coverage.name} - ${coverage.employee_cost}/mo
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -149,15 +165,15 @@ export const EnrollmentForm = ({ onSubmit, onCancel }: EnrollmentFormProps) => {
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Coverage</span>
-                <span>{coverageLevelLabels[coverageLevel]}</span>
+                <span>{selectedCoverage.name}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Employee Cost</span>
-                <span className="font-medium">${selectedCoverage.employeeCost}/month</span>
+                <span className="font-medium">${selectedCoverage.employee_cost}/month</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Employer Contribution</span>
-                <span className="text-emerald-600">${selectedCoverage.employerCost}/month</span>
+                <span className="text-emerald-600">${selectedCoverage.employer_cost}/month</span>
               </div>
             </div>
           </CardContent>

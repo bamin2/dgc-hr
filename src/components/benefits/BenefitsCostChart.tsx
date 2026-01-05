@@ -1,17 +1,18 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
-import type { BenefitEnrollment } from '@/data/benefits';
+import type { BenefitEnrollment } from '@/hooks/useBenefitEnrollments';
 
 interface BenefitsCostChartProps {
   enrollments: BenefitEnrollment[];
 }
 
-const COLORS = ['#22C55E', '#3B82F6', '#8B5CF6', '#F97316', '#14B8A6', '#64748B'];
+const COLORS = ['#22C55E', '#3B82F6', '#8B5CF6', '#F97316', '#14B8A6', '#64748B', '#EC4899', '#6B7280'];
 
 export const BenefitsCostChart = ({ enrollments }: BenefitsCostChartProps) => {
   const costByType = enrollments.reduce((acc, enrollment) => {
-    const type = enrollment.plan.type;
-    acc[type] = (acc[type] || 0) + enrollment.monthlyCost;
+    const type = enrollment.plan?.type || 'other';
+    const monthlyCost = enrollment.employee_contribution + enrollment.employer_contribution;
+    acc[type] = (acc[type] || 0) + monthlyCost;
     return acc;
   }, {} as Record<string, number>);
 
@@ -19,9 +20,11 @@ export const BenefitsCostChart = ({ enrollments }: BenefitsCostChartProps) => {
     health: 'Health',
     dental: 'Dental',
     vision: 'Vision',
-    '401k': '401(k)',
+    retirement: 'Retirement',
     life: 'Life',
-    disability: 'Disability'
+    disability: 'Disability',
+    wellness: 'Wellness',
+    other: 'Other'
   };
 
   const data = Object.entries(costByType).map(([type, cost]) => ({
@@ -30,6 +33,22 @@ export const BenefitsCostChart = ({ enrollments }: BenefitsCostChartProps) => {
   }));
 
   const totalCost = data.reduce((sum, item) => sum + item.value, 0);
+
+  if (data.length === 0) {
+    return (
+      <Card className="border-border/50">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base font-medium">Cost by Benefit Type</CardTitle>
+          <p className="text-2xl font-semibold">$0<span className="text-sm font-normal text-muted-foreground">/month</span></p>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[220px] flex items-center justify-center text-muted-foreground">
+            No active enrollments
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="border-border/50">

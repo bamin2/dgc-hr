@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
-import { Heart, Smile, Eye, PiggyBank, Shield, Accessibility } from 'lucide-react';
-import type { BenefitType } from '@/data/benefits';
+import { Heart, Smile, Eye, PiggyBank, Shield, Accessibility, Sparkles, HelpCircle } from 'lucide-react';
+import type { BenefitType } from '@/hooks/useBenefitPlans';
 
 interface BenefitTypeBadgeProps {
   type: BenefitType;
@@ -24,8 +24,8 @@ const typeConfig: Record<BenefitType, { label: string; icon: typeof Heart; class
     icon: Eye,
     className: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
   },
-  '401k': {
-    label: '401(k)',
+  retirement: {
+    label: 'Retirement',
     icon: PiggyBank,
     className: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
   },
@@ -38,11 +38,21 @@ const typeConfig: Record<BenefitType, { label: string; icon: typeof Heart; class
     label: 'Disability',
     icon: Accessibility,
     className: 'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-400'
+  },
+  wellness: {
+    label: 'Wellness',
+    icon: Sparkles,
+    className: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400'
+  },
+  other: {
+    label: 'Other',
+    icon: HelpCircle,
+    className: 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
   }
 };
 
 export const BenefitTypeBadge = ({ type, showIcon = true, className }: BenefitTypeBadgeProps) => {
-  const config = typeConfig[type];
+  const config = typeConfig[type] || typeConfig.other;
   const Icon = config.icon;
 
   return (
