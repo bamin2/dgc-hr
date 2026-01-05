@@ -7,6 +7,7 @@ import {
   TeamMemberTable,
   TeamMemberFilters,
   OnboardingDialog,
+  OffboardingDialog,
 } from "@/components/team";
 import { TablePagination } from "@/components/employees";
 import { mockTeamMembers, type TeamMember as TeamMemberType, type TeamMemberStatus } from "@/data/team";
@@ -34,6 +35,10 @@ export default function TeamMember() {
   // Onboarding dialog state
   const [onboardingDialogOpen, setOnboardingDialogOpen] = useState(false);
   const [selectedMemberForOnboarding, setSelectedMemberForOnboarding] = useState<TeamMemberType | null>(null);
+
+  // Offboarding dialog state
+  const [offboardingDialogOpen, setOffboardingDialogOpen] = useState(false);
+  const [selectedMemberForOffboarding, setSelectedMemberForOffboarding] = useState<TeamMemberType | null>(null);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -122,15 +127,24 @@ export default function TeamMember() {
   };
 
   const handleStartOffboarding = (member: TeamMemberType) => {
-    setMembers((prev) =>
-      prev.map((m) =>
-        m.id === member.id ? { ...m, status: "offboarding" } : m
-      )
-    );
-    toast({
-      title: "Offboarding started",
-      description: `Offboarding has been started for ${member.firstName} ${member.lastName}`,
-    });
+    setSelectedMemberForOffboarding(member);
+    setOffboardingDialogOpen(true);
+  };
+
+  const handleOffboardingComplete = () => {
+    if (selectedMemberForOffboarding) {
+      setMembers((prev) =>
+        prev.map((m) =>
+          m.id === selectedMemberForOffboarding.id ? { ...m, status: "offboarding" } : m
+        )
+      );
+      toast({
+        title: "Offboarding started",
+        description: `Offboarding has been launched for ${selectedMemberForOffboarding.firstName} ${selectedMemberForOffboarding.lastName}`,
+      });
+    }
+    setOffboardingDialogOpen(false);
+    setSelectedMemberForOffboarding(null);
   };
 
   const handleExport = () => {
@@ -249,6 +263,14 @@ export default function TeamMember() {
             onOpenChange={setOnboardingDialogOpen}
             member={selectedMemberForOnboarding}
             onComplete={handleOnboardingComplete}
+          />
+
+          {/* Offboarding Dialog */}
+          <OffboardingDialog
+            open={offboardingDialogOpen}
+            onOpenChange={setOffboardingDialogOpen}
+            member={selectedMemberForOffboarding}
+            onComplete={handleOffboardingComplete}
           />
         </main>
       </div>
