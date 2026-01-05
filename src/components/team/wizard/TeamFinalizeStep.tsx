@@ -1,0 +1,271 @@
+import { format } from "date-fns";
+import { Edit2, Check, Mail, FileText, UserCheck } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { countries } from "@/data/team";
+import { mockEmployees } from "@/data/employees";
+import { TeamBasicData } from "./TeamBasicStep";
+import { TeamRoleData } from "./TeamRoleStep";
+import { TeamCompensationData } from "./TeamCompensationStep";
+import { TeamOfferData } from "./TeamOfferStep";
+
+interface TeamFinalizeStepProps {
+  basicData: TeamBasicData;
+  roleData: TeamRoleData;
+  compensationData: TeamCompensationData;
+  offerData: TeamOfferData;
+  note: string;
+  onNoteChange: (note: string) => void;
+  onEditStep: (step: number) => void;
+}
+
+export function TeamFinalizeStep({
+  basicData,
+  roleData,
+  compensationData,
+  offerData,
+  note,
+  onNoteChange,
+  onEditStep,
+}: TeamFinalizeStepProps) {
+  const country = countries.find((c) => c.code === basicData.country);
+  const manager = mockEmployees.find((e) => e.id === roleData.managerId);
+
+  const formatSalary = () => {
+    const amount = parseFloat(compensationData.salary) || 0;
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-xl font-semibold text-foreground">
+          Review and finalize
+        </h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          Review all information before sending the offer
+        </p>
+      </div>
+
+      {/* Personal Information */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between py-3">
+          <CardTitle className="text-sm font-medium">Personal Information</CardTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onEditStep(1)}
+            className="h-8"
+          >
+            <Edit2 className="h-3 w-3 mr-1" />
+            Edit
+          </Button>
+        </CardHeader>
+        <CardContent className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <p className="text-muted-foreground">Full name</p>
+            <p className="font-medium">
+              {basicData.firstName} {basicData.lastName}
+            </p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">Email</p>
+            <p className="font-medium">{basicData.email}</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">Country</p>
+            <p className="font-medium">
+              {country?.flag} {country?.name}
+            </p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">Worker type</p>
+            <p className="font-medium capitalize">
+              {basicData.workerType.replace(/_/g, " ")}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Role Information */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between py-3">
+          <CardTitle className="text-sm font-medium">Role Information</CardTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onEditStep(2)}
+            className="h-8"
+          >
+            <Edit2 className="h-3 w-3 mr-1" />
+            Edit
+          </Button>
+        </CardHeader>
+        <CardContent className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <p className="text-muted-foreground">Job title</p>
+            <p className="font-medium">{roleData.jobTitle}</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">Department</p>
+            <p className="font-medium">{roleData.department}</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">Start date</p>
+            <p className="font-medium">
+              {roleData.startDate ? format(roleData.startDate, "PPP") : "Not set"}
+            </p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">Manager</p>
+            {manager && (
+              <div className="flex items-center gap-2 mt-1">
+                <Avatar className="h-6 w-6">
+                  <AvatarImage src={manager.avatar} />
+                  <AvatarFallback className="text-xs">
+                    {manager.firstName[0]}
+                    {manager.lastName[0]}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="font-medium">
+                  {manager.firstName} {manager.lastName}
+                </span>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Compensation Information */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between py-3">
+          <CardTitle className="text-sm font-medium">Compensation Information</CardTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onEditStep(3)}
+            className="h-8"
+          >
+            <Edit2 className="h-3 w-3 mr-1" />
+            Edit
+          </Button>
+        </CardHeader>
+        <CardContent className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <p className="text-muted-foreground">Salary</p>
+            <p className="font-medium">
+              {formatSalary()} / {compensationData.payFrequency}
+            </p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">Employee type</p>
+            <p className="font-medium">{compensationData.employeeType}</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">Tax status</p>
+            <p className="font-medium">{compensationData.taxExemptionStatus || "Not set"}</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Offer Letter Information */}
+      {basicData.sendOfferLetter && (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between py-3">
+            <CardTitle className="text-sm font-medium">Offer Letter</CardTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onEditStep(4)}
+              className="h-8"
+            >
+              <Edit2 className="h-3 w-3 mr-1" />
+              Edit
+            </Button>
+          </CardHeader>
+          <CardContent className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <p className="text-muted-foreground">Template</p>
+              <p className="font-medium">
+                {offerData.templateId === "new"
+                  ? offerData.templateTitle || "New template"
+                  : offerData.templateId}
+              </p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Expiration</p>
+              <p className="font-medium">
+                {offerData.expirationDate
+                  ? format(offerData.expirationDate, "PPP")
+                  : "Not set"}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* What happens next */}
+      <Card className="bg-muted/50">
+        <CardHeader className="py-3">
+          <CardTitle className="text-sm font-medium flex items-center gap-2">
+            <Check className="h-4 w-4 text-primary" />
+            Here's what happens next
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm">
+          <div className="flex items-start gap-3">
+            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <Mail className="h-3 w-3 text-primary" />
+            </div>
+            <div>
+              <p className="font-medium">Offer letter sent</p>
+              <p className="text-muted-foreground">
+                An offer letter will be sent to {basicData.email}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <FileText className="h-3 w-3 text-primary" />
+            </div>
+            <div>
+              <p className="font-medium">Documents prepared</p>
+              <p className="text-muted-foreground">
+                Onboarding documents will be prepared automatically
+              </p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <UserCheck className="h-3 w-3 text-primary" />
+            </div>
+            <div>
+              <p className="font-medium">Onboarding starts</p>
+              <p className="text-muted-foreground">
+                Once accepted, the onboarding process will begin
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Note */}
+      <div className="space-y-2">
+        <Label>Add a note for the employee (optional)</Label>
+        <Textarea
+          placeholder="Write a personal welcome message..."
+          value={note}
+          onChange={(e) => onNoteChange(e.target.value)}
+          className="min-h-[100px]"
+        />
+      </div>
+    </div>
+  );
+}
