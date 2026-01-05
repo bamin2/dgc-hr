@@ -1,10 +1,10 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { 
   AppRole, 
   CurrentUser, 
   mockCurrentUser, 
-  mockUserRoles, 
-  managementRoles,
   UserRole 
 } from '@/data/roles';
 
@@ -20,11 +20,75 @@ interface RoleContextType {
   setCurrentUserRole: (role: AppRole) => void; // For demo purposes
 }
 
+const managementRoles: AppRole[] = ['hr', 'manager', 'admin'];
+
 const RoleContext = createContext<RoleContextType | undefined>(undefined);
 
 export function RoleProvider({ children }: { children: React.ReactNode }) {
+  const { user, profile } = useAuth();
   const [currentUser, setCurrentUser] = useState<CurrentUser>(mockCurrentUser);
-  const [userRoles, setUserRoles] = useState<UserRole[]>(mockUserRoles);
+  const [userRoles, setUserRoles] = useState<UserRole[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch current user's role from the database
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      if (!user) {
+        setCurrentUser(mockCurrentUser);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        // Fetch user's role from user_roles table
+        const { data: roleData, error: roleError } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .single();
+
+        const role: AppRole = roleError || !roleData ? 'employee' : roleData.role;
+
+        // Update current user with profile and role info
+        setCurrentUser({
+          id: user.id,
+          name: profile 
+            ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || user.email || 'User'
+            : user.email || 'User',
+          email: user.email || '',
+          role,
+          avatar: profile?.avatar_url || '',
+        });
+      } catch (error) {
+        console.error('Error fetching user role:', error);
+      }
+
+      setLoading(false);
+    };
+
+    fetchUserRole();
+  }, [user, profile]);
+
+  // Fetch all user roles for employee management
+  useEffect(() => {
+    const fetchAllRoles = async () => {
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('id, user_id, role');
+
+      if (!error && data) {
+        setUserRoles(data.map(r => ({
+          id: r.id,
+          userId: r.user_id,
+          role: r.role,
+        })));
+      }
+    };
+
+    fetchAllRoles();
+  }, [user]);
 
   const hasRole = useCallback((role: AppRole) => {
     return currentUser.role === role;
@@ -39,16 +103,29 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
     return userRole?.role || 'employee';
   }, [userRoles]);
 
-  const updateEmployeeRole = useCallback((employeeId: string, newRole: AppRole) => {
-    setUserRoles(prev => {
-      const existing = prev.find(ur => ur.userId === employeeId);
-      if (existing) {
-        return prev.map(ur => 
-          ur.userId === employeeId ? { ...ur, role: newRole } : ur
-        );
-      }
-      return [...prev, { id: `role-${employeeId}`, userId: employeeId, role: newRole }];
-    });
+  const updateEmployeeRole = useCallback(async (employeeId: string, newRole: AppRole) => {
+    // Update in database
+    const { error } = await supabase
+      .from('user_roles')
+      .upsert({
+        user_id: employeeId,
+        role: newRole,
+      }, {
+        onConflict: 'user_id',
+      });
+
+    if (!error) {
+      // Update local state
+      setUserRoles(prev => {
+        const existing = prev.find(ur => ur.userId === employeeId);
+        if (existing) {
+          return prev.map(ur => 
+            ur.userId === employeeId ? { ...ur, role: newRole } : ur
+          );
+        }
+        return [...prev, { id: `role-${employeeId}`, userId: employeeId, role: newRole }];
+      });
+    }
   }, []);
 
   // For demo purposes - allows switching the current user's role
