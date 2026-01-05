@@ -46,17 +46,17 @@ export function PositionFormDialog({
   isLoading,
 }: PositionFormDialogProps) {
   const [title, setTitle] = useState('');
-  const [departmentId, setDepartmentId] = useState<string>('');
+  const [departmentId, setDepartmentId] = useState<string>('none');
   const [level, setLevel] = useState<number>(1);
 
   useEffect(() => {
     if (position) {
       setTitle(position.title);
-      setDepartmentId(position.department_id || '');
+      setDepartmentId(position.department_id || 'none');
       setLevel(position.level ?? 1);
     } else {
       setTitle('');
-      setDepartmentId('');
+      setDepartmentId('none');
       setLevel(1);
     }
   }, [position, open]);
@@ -67,7 +67,7 @@ export function PositionFormDialog({
     
     await onSubmit({
       title: title.trim(),
-      department_id: departmentId || null,
+      department_id: departmentId === 'none' ? null : departmentId,
       level,
     });
   };
@@ -98,7 +98,7 @@ export function PositionFormDialog({
                 <SelectValue placeholder="Select department (optional)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">No department</SelectItem>
+                <SelectItem value="none">No department</SelectItem>
                 {departments.map((dept) => (
                   <SelectItem key={dept.id} value={dept.id}>
                     {dept.name}
