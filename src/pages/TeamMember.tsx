@@ -155,7 +155,7 @@ export default function TeamMember() {
     });
   };
 
-  const handleBulkSalaryUpdate = (updates: { id: string; newSalary: number }[]) => {
+  const handleBulkSalaryUpdate = (updates: { id: string; previousSalary: number | null; newSalary: number; changeType: string; reason?: string }[]) => {
     setMembers((prev) =>
       prev.map((m) => {
         const update = updates.find((u) => u.id === m.id);
@@ -166,6 +166,7 @@ export default function TeamMember() {
       })
     );
     setSelectedMembers([]);
+    // Note: In production, this would also persist the salary history to the database
   };
 
   // Get selected member objects for the dialog

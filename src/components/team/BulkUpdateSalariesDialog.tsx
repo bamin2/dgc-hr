@@ -13,16 +13,27 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { type TeamMember } from "@/data/team";
 import { toast } from "@/hooks/use-toast";
+import { SalaryChangeType } from "@/hooks/useSalaryHistory";
 
 type UpdateType = 'fixed' | 'percentage' | 'custom';
+
+const changeTypeOptions: { value: SalaryChangeType; label: string }[] = [
+  { value: 'adjustment', label: 'Adjustment' },
+  { value: 'promotion', label: 'Promotion' },
+  { value: 'annual_review', label: 'Annual Review' },
+  { value: 'correction', label: 'Correction' },
+  { value: 'bulk_update', label: 'Bulk Update' },
+];
 
 interface BulkUpdateSalariesDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   selectedMembers: TeamMember[];
-  onUpdate: (updates: { id: string; newSalary: number }[]) => void;
+  onUpdate: (updates: { id: string; previousSalary: number | null; newSalary: number; changeType: SalaryChangeType; reason?: string }[]) => void;
 }
 
 export function BulkUpdateSalariesDialog({
@@ -35,6 +46,8 @@ export function BulkUpdateSalariesDialog({
   const [fixedAmount, setFixedAmount] = useState('');
   const [percentage, setPercentage] = useState('');
   const [customSalaries, setCustomSalaries] = useState<Record<string, string>>({});
+  const [changeType, setChangeType] = useState<SalaryChangeType>('bulk_update');
+  const [reason, setReason] = useState('');
 
   // Reset state when dialog opens
   useEffect(() => {
@@ -42,6 +55,8 @@ export function BulkUpdateSalariesDialog({
       setUpdateType('fixed');
       setFixedAmount('');
       setPercentage('');
+      setChangeType('bulk_update');
+      setReason('');
       // Initialize custom salaries with current values
       const initial: Record<string, string> = {};
       selectedMembers.forEach(member => {
@@ -95,7 +110,10 @@ export function BulkUpdateSalariesDialog({
   const handleSubmit = () => {
     const updates = selectedMembers.map(member => ({
       id: member.id,
+      previousSalary: member.salary || null,
       newSalary: getNewSalary(member),
+      changeType,
+      reason: reason.trim() || undefined,
     }));
     
     onUpdate(updates);
@@ -159,6 +177,35 @@ export function BulkUpdateSalariesDialog({
                 </Label>
               </div>
             </RadioGroup>
+          </div>
+
+          {/* Change Type and Reason */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Change Type</Label>
+              <Select value={changeType} onValueChange={(v) => setChangeType(v as SalaryChangeType)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {changeTypeOptions.map(option => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="reason">Reason (optional)</Label>
+              <Textarea
+                id="reason"
+                placeholder="e.g., Annual salary review 2026"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                className="h-[38px] min-h-[38px] resize-none"
+              />
+            </div>
           </div>
 
           {/* Fixed Amount Input */}
