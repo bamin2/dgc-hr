@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { format } from "date-fns";
+import { format, differenceInCalendarDays } from "date-fns";
+import { DateRange } from "react-day-picker";
 import { Calendar as CalendarIcon, Clock, Paperclip, Upload, X, Folder } from "lucide-react";
 import {
   Dialog,
@@ -33,19 +34,28 @@ interface RequestTimeOffDialogProps {
 
 export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialogProps) {
   const [timeOffType, setTimeOffType] = useState<TimeOffType>("paid_time_off");
-  const [selectedDates, setSelectedDates] = useState<Date | undefined>(new Date());
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: new Date(),
+    to: undefined,
+  });
   const [note, setNote] = useState("");
   const [files, setFiles] = useState<File[]>([]);
 
   const handleSubmit = () => {
-    // Handle form submission
-    console.log({ timeOffType, selectedDates, note, files });
+    console.log({ timeOffType, dateRange, note, files });
     onOpenChange(false);
   };
 
-  const clearDate = () => setSelectedDates(undefined);
+  const clearDates = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setDateRange(undefined);
+  };
 
-  const daysCount = selectedDates ? 1 : 0;
+  const daysCount = dateRange?.from
+    ? dateRange.to
+      ? differenceInCalendarDays(dateRange.to, dateRange.from) + 1
+      : 1
+    : 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -84,30 +94,38 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
                   variant="outline"
                   className={cn(
                     "w-full justify-between text-left font-normal",
-                    !selectedDates && "text-muted-foreground"
+                    !dateRange?.from && "text-muted-foreground"
                   )}
                 >
                   <div className="flex items-center gap-2">
                     <CalendarIcon className="h-4 w-4" />
-                    {selectedDates ? format(selectedDates, "MMM dd, yyyy") : "Select date"}
+                    {dateRange?.from ? (
+                      dateRange.to ? (
+                        <>
+                          {format(dateRange.from, "MMM dd")} - {format(dateRange.to, "MMM dd, yyyy")}
+                        </>
+                      ) : (
+                        format(dateRange.from, "MMM dd, yyyy")
+                      )
+                    ) : (
+                      "Select dates"
+                    )}
                   </div>
-                  {selectedDates && (
+                  {dateRange?.from && (
                     <X
                       className="h-4 w-4 opacity-50 hover:opacity-100"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        clearDate();
-                      }}
+                      onClick={clearDates}
                     />
                   )}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
-                  mode="single"
-                  selected={selectedDates}
-                  onSelect={setSelectedDates}
+                  mode="range"
+                  selected={dateRange}
+                  onSelect={setDateRange}
                   initialFocus
+                  numberOfMonths={1}
                   className="pointer-events-auto"
                 />
               </PopoverContent>
