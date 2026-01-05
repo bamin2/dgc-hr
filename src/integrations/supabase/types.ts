@@ -128,6 +128,36 @@ export type Database = {
         }
         Relationships: []
       }
+      company_settings_audit: {
+        Row: {
+          changed_at: string | null
+          changed_by: string | null
+          company_settings_id: string
+          field_name: string
+          id: string
+          new_value: string | null
+          old_value: string | null
+        }
+        Insert: {
+          changed_at?: string | null
+          changed_by?: string | null
+          company_settings_id: string
+          field_name: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+        }
+        Update: {
+          changed_at?: string | null
+          changed_by?: string | null
+          company_settings_id?: string
+          field_name?: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+        }
+        Relationships: []
+      }
       deduction_templates: {
         Row: {
           amount: number
@@ -381,6 +411,75 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          created_at: string | null
+          email_document_expiration: boolean | null
+          email_leave_approvals: boolean | null
+          email_leave_submissions: boolean | null
+          email_new_employee: boolean | null
+          email_payroll_reminders: boolean | null
+          email_system_announcements: boolean | null
+          email_weekly_summary: boolean | null
+          id: string
+          push_enabled: boolean | null
+          push_new_leave_requests: boolean | null
+          push_payroll_deadlines: boolean | null
+          push_system_updates: boolean | null
+          push_urgent_approvals: boolean | null
+          quiet_hours_enabled: boolean | null
+          quiet_hours_end: string | null
+          quiet_hours_start: string | null
+          updated_at: string | null
+          user_id: string
+          weekend_notifications: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          email_document_expiration?: boolean | null
+          email_leave_approvals?: boolean | null
+          email_leave_submissions?: boolean | null
+          email_new_employee?: boolean | null
+          email_payroll_reminders?: boolean | null
+          email_system_announcements?: boolean | null
+          email_weekly_summary?: boolean | null
+          id?: string
+          push_enabled?: boolean | null
+          push_new_leave_requests?: boolean | null
+          push_payroll_deadlines?: boolean | null
+          push_system_updates?: boolean | null
+          push_urgent_approvals?: boolean | null
+          quiet_hours_enabled?: boolean | null
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          updated_at?: string | null
+          user_id: string
+          weekend_notifications?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          email_document_expiration?: boolean | null
+          email_leave_approvals?: boolean | null
+          email_leave_submissions?: boolean | null
+          email_new_employee?: boolean | null
+          email_payroll_reminders?: boolean | null
+          email_system_announcements?: boolean | null
+          email_weekly_summary?: boolean | null
+          id?: string
+          push_enabled?: boolean | null
+          push_new_leave_requests?: boolean | null
+          push_payroll_deadlines?: boolean | null
+          push_system_updates?: boolean | null
+          push_urgent_approvals?: boolean | null
+          quiet_hours_enabled?: boolean | null
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          updated_at?: string | null
+          user_id?: string
+          weekend_notifications?: boolean | null
+        }
+        Relationships: []
+      }
       payroll_records: {
         Row: {
           base_salary: number
@@ -516,7 +615,9 @@ export type Database = {
           employee_id: string | null
           first_name: string | null
           id: string
+          job_title: string | null
           last_name: string | null
+          phone: string | null
           updated_at: string
         }
         Insert: {
@@ -526,7 +627,9 @@ export type Database = {
           employee_id?: string | null
           first_name?: string | null
           id: string
+          job_title?: string | null
           last_name?: string | null
+          phone?: string | null
           updated_at?: string
         }
         Update: {
@@ -536,7 +639,9 @@ export type Database = {
           employee_id?: string | null
           first_name?: string | null
           id?: string
+          job_title?: string | null
           last_name?: string | null
+          phone?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -592,6 +697,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_preferences: {
+        Row: {
+          compact_mode: boolean | null
+          created_at: string | null
+          date_format: string | null
+          default_page: string | null
+          first_day_of_week: string | null
+          id: string
+          items_per_page: number | null
+          language: string | null
+          theme: string | null
+          time_format: string | null
+          timezone: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          compact_mode?: boolean | null
+          created_at?: string | null
+          date_format?: string | null
+          default_page?: string | null
+          first_day_of_week?: string | null
+          id?: string
+          items_per_page?: number | null
+          language?: string | null
+          theme?: string | null
+          time_format?: string | null
+          timezone?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          compact_mode?: boolean | null
+          created_at?: string | null
+          date_format?: string | null
+          default_page?: string | null
+          first_day_of_week?: string | null
+          id?: string
+          items_per_page?: number | null
+          language?: string | null
+          theme?: string | null
+          time_format?: string | null
+          timezone?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {

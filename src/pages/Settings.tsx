@@ -8,12 +8,11 @@ import {
   UserPreferencesForm, 
   NotificationSettingsForm, 
   IntegrationsGrid,
-  SecuritySettings 
+  SecuritySettings,
+  AuditLogCard
 } from '@/components/settings';
 import { PayrollSettingsTab } from '@/components/settings/payroll';
 import { 
-  userPreferences as initialUserPreferences, 
-  notificationSettings as initialNotificationSettings,
   integrations as initialIntegrations,
   securitySessions as initialSessions,
   CompanySettings,
@@ -21,6 +20,8 @@ import {
   NotificationSettings
 } from '@/data/settings';
 import { useCompanySettings } from '@/contexts/CompanySettingsContext';
+import { useUserPreferences } from '@/hooks/useUserPreferences';
+import { useNotificationPreferences } from '@/hooks/useNotificationPreferences';
 import { useRole } from '@/contexts/RoleContext';
 import { Settings, Building2, User, Bell, Puzzle, Shield, Save, Wallet, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -51,25 +52,51 @@ const SettingsPageSkeleton = () => (
 );
 
 const SettingsPage = () => {
-  const { settings: globalSettings, updateSettings: updateGlobalSettings, isLoading, isSaving } = useCompanySettings();
+  const { settings: globalSettings, updateSettings: updateGlobalSettings, isLoading: companyLoading, isSaving: companySaving } = useCompanySettings();
+  const { preferences: dbUserPreferences, updatePreferences, isLoading: prefsLoading, isSaving: prefsSaving } = useUserPreferences();
+  const { settings: dbNotificationSettings, updateSettings: updateNotifications, isLoading: notifLoading, isSaving: notifSaving } = useNotificationPreferences();
   const { canManageRoles } = useRole();
   
-  // Initialize local state from global context
+  // Local state for form editing
   const [companySettings, setCompanySettings] = useState<CompanySettings>(globalSettings);
-  const [userPreferences, setUserPreferences] = useState<UserPreferences>(initialUserPreferences);
-  const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>(initialNotificationSettings);
+  const [userPreferences, setUserPreferences] = useState<UserPreferences>(dbUserPreferences);
+  const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>(dbNotificationSettings);
   const [integrations, setIntegrations] = useState(initialIntegrations);
   const [sessions, setSessions] = useState(initialSessions);
   const [activeTab, setActiveTab] = useState(canManageRoles ? 'company' : 'preferences');
 
-  // Sync local state with global context when it changes
+  // Sync local state with database when data loads
   useEffect(() => {
     setCompanySettings(globalSettings);
   }, [globalSettings]);
 
+  useEffect(() => {
+    setUserPreferences(dbUserPreferences);
+  }, [dbUserPreferences]);
+
+  useEffect(() => {
+    setNotificationSettings(dbNotificationSettings);
+  }, [dbNotificationSettings]);
+
+  const isLoading = companyLoading || prefsLoading || notifLoading;
+  const isSaving = companySaving || prefsSaving || notifSaving;
+
   const handleSave = async () => {
     try {
-      await updateGlobalSettings(companySettings);
+      const updates: Promise<void>[] = [];
+      
+      // Save user preferences
+      updates.push(updatePreferences(userPreferences));
+      
+      // Save notification preferences
+      updates.push(updateNotifications(notificationSettings));
+      
+      // Save company settings if admin
+      if (canManageRoles) {
+        updates.push(updateGlobalSettings(companySettings));
+      }
+
+      await Promise.all(updates);
       toast.success('Settings saved successfully');
     } catch (error) {
       console.error('Failed to save settings:', error);
@@ -144,16 +171,14 @@ const SettingsPage = () => {
                   </p>
                 </div>
               </div>
-              {canManageRoles && (
-                <Button onClick={handleSave} disabled={isSaving}>
-                  {isSaving ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <Save className="h-4 w-4 mr-2" />
-                  )}
-                  {isSaving ? 'Saving...' : 'Save Changes'}
-                </Button>
-              )}
+              <Button onClick={handleSave} disabled={isSaving}>
+                {isSaving ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4 mr-2" />
+                )}
+                {isSaving ? 'Saving...' : 'Save Changes'}
+              </Button>
             </div>
 
             {/* Tabs */}
@@ -175,11 +200,12 @@ const SettingsPage = () => {
               </TabsList>
 
               {canManageRoles && (
-                <TabsContent value="company" className="mt-6">
+                <TabsContent value="company" className="mt-6 space-y-6">
                   <CompanyProfileForm 
                     settings={companySettings} 
                     onChange={handleCompanySettingsChange} 
                   />
+                  <AuditLogCard />
                 </TabsContent>
               )}
 
