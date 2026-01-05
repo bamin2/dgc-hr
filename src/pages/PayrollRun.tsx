@@ -299,34 +299,50 @@ export default function PayrollRun() {
                     </div>
                     
                     {/* Earnings Section */}
-                    <div className="grid grid-cols-3 gap-2 text-sm">
-                      <div>
-                        <p className="text-muted-foreground text-xs">Base Salary</p>
-                        <p className="font-medium">${record.baseSalary.toLocaleString()}</p>
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground mb-2">EARNINGS</p>
+                      <div className="grid grid-cols-3 gap-2 text-sm">
+                        <div>
+                          <p className="text-muted-foreground text-xs">Base Salary</p>
+                          <p className="font-medium">${record.baseSalary.toLocaleString()}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground text-xs">Overtime</p>
+                          <p className="font-medium">${record.overtime.toLocaleString()}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground text-xs">Bonuses</p>
+                          <p className="font-medium">${record.bonuses.toLocaleString()}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-muted-foreground text-xs">Overtime</p>
-                        <p className="font-medium">${record.overtime.toLocaleString()}</p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground text-xs">Bonuses</p>
-                        <p className="font-medium">${record.bonuses.toLocaleString()}</p>
+                    </div>
+
+                    {/* Allowances Section */}
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground mb-2">ALLOWANCES</p>
+                      <div className="text-sm">
+                        <p className="text-xs text-muted-foreground italic">
+                          Allowances from employee templates will appear here
+                        </p>
                       </div>
                     </div>
                     
                     {/* Deductions Section */}
-                    <div className="grid grid-cols-3 gap-2 text-sm">
-                      <div>
-                        <p className="text-muted-foreground text-xs">Tax</p>
-                        <p className="font-medium text-destructive">-${record.deductions.tax.toLocaleString()}</p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground text-xs">Insurance</p>
-                        <p className="font-medium text-destructive">-${record.deductions.insurance.toLocaleString()}</p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground text-xs">Other</p>
-                        <p className="font-medium text-destructive">-${record.deductions.other.toLocaleString()}</p>
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground mb-2">DEDUCTIONS</p>
+                      <div className="grid grid-cols-3 gap-2 text-sm">
+                        <div>
+                          <p className="text-muted-foreground text-xs">Tax</p>
+                          <p className="font-medium text-destructive">-${record.deductions.tax.toLocaleString()}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground text-xs">Insurance</p>
+                          <p className="font-medium text-destructive">-${record.deductions.insurance.toLocaleString()}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground text-xs">Other</p>
+                          <p className="font-medium text-destructive">-${record.deductions.other.toLocaleString()}</p>
+                        </div>
                       </div>
                     </div>
                     
@@ -353,6 +369,12 @@ export default function PayrollRun() {
                     <span className="text-muted-foreground">Total Earnings</span>
                     <span className="font-medium">
                       ${selectedRecords.reduce((sum, r) => sum + r.baseSalary + r.overtime + r.bonuses, 0).toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Total Allowances</span>
+                    <span className="font-medium text-emerald-500">
+                      $0
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
