@@ -116,9 +116,10 @@ export function useUpdateLeaveType() {
         .update(payload)
         .eq('id', id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) throw new Error('Leave type not found or update failed');
       return parseLeaveType(data);
     },
     onSuccess: () => {
