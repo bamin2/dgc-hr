@@ -21,19 +21,32 @@ import {
   LeaveRequestsTable,
   AttendanceCalendar,
   CorrectionsTab,
+  EditAttendanceDialog,
+  DeleteAttendanceDialog,
 } from '@/components/attendance';
-import { useCurrentMonthAttendance, useTodayAttendance } from '@/hooks/useAttendanceRecords';
+import {
+  useCurrentMonthAttendance,
+  useTodayAttendance,
+  AttendanceRecord,
+} from '@/hooks/useAttendanceRecords';
 import { useLeaveRequests, usePendingLeaveRequests, LeaveRequestStatus } from '@/hooks/useLeaveRequests';
 import { useLeaveBalanceSummary } from '@/hooks/useLeaveBalances';
 import { useDepartmentsManagement } from '@/hooks/useDepartmentsManagement';
+import { useRole } from '@/contexts/RoleContext';
 
 export default function Attendance() {
   const navigate = useNavigate();
+  const { canEditEmployees } = useRole();
   const [activeTab, setActiveTab] = useState('overview');
   const [searchQuery, setSearchQuery] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('all-departments');
   const [statusFilter, setStatusFilter] = useState('all');
   const [leaveStatusFilter, setLeaveStatusFilter] = useState<LeaveRequestStatus | 'all'>('all');
+
+  // Admin dialog state
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState<AttendanceRecord | null>(null);
 
   // Fetch data from database
   const { data: todayAttendance, isLoading: todayLoading } = useTodayAttendance();
@@ -53,8 +66,8 @@ export default function Attendance() {
 
     const fullName = `${employee.first_name} ${employee.last_name}`.toLowerCase();
     const matchesSearch = fullName.includes(searchQuery.toLowerCase());
-    const matchesDepartment = departmentFilter === 'all-departments' || 
-      employee.department?.id === departmentFilter;
+    const matchesDepartment =
+      departmentFilter === 'all-departments' || employee.department?.id === departmentFilter;
     const matchesStatus = statusFilter === 'all' || record.status === statusFilter;
 
     return matchesSearch && matchesDepartment && matchesStatus;
@@ -72,6 +85,22 @@ export default function Attendance() {
     return matchesSearch && matchesStatus;
   });
 
+  // Admin action handlers
+  const handleAddRecord = () => {
+    setSelectedRecord(null);
+    setEditDialogOpen(true);
+  };
+
+  const handleEditRecord = (record: AttendanceRecord) => {
+    setSelectedRecord(record);
+    setEditDialogOpen(true);
+  };
+
+  const handleDeleteRecord = (record: AttendanceRecord) => {
+    setSelectedRecord(record);
+    setDeleteDialogOpen(true);
+  };
+
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />
@@ -86,13 +115,21 @@ export default function Attendance() {
                 Manage employee attendance and leave requests
               </p>
             </div>
-            <Button
-              className="bg-primary hover:bg-primary/90"
-              onClick={() => navigate('/attendance/leave/request')}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Request Leave
-            </Button>
+            <div className="flex gap-2">
+              {canEditEmployees && (
+                <Button variant="outline" onClick={handleAddRecord}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Record
+                </Button>
+              )}
+              <Button
+                className="bg-primary hover:bg-primary/90"
+                onClick={() => navigate('/attendance/leave/request')}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Request Leave
+              </Button>
+            </div>
           </div>
 
           {/* Tabs */}
@@ -118,9 +155,9 @@ export default function Attendance() {
                         <CardTitle className="text-base font-semibold">
                           Today's Attendance
                         </CardTitle>
-                        <Button 
-                          variant="link" 
-                          className="text-primary p-0 h-auto" 
+                        <Button
+                          variant="link"
+                          className="text-primary p-0 h-auto"
                           onClick={() => setActiveTab('attendance')}
                         >
                           View All
@@ -143,10 +180,7 @@ export default function Attendance() {
 
                 {/* Leave Balance */}
                 <div>
-                  <LeaveBalanceCard 
-                    balances={leaveBalances} 
-                    isLoading={balancesLoading} 
-                  />
+                  <LeaveBalanceCard balances={leaveBalances} isLoading={balancesLoading} />
                 </div>
               </div>
 
@@ -157,9 +191,9 @@ export default function Attendance() {
                     <CardTitle className="text-base font-semibold">
                       Pending Leave Requests
                     </CardTitle>
-                    <Button 
-                      variant="link" 
-                      className="text-primary p-0 h-auto" 
+                    <Button
+                      variant="link"
+                      className="text-primary p-0 h-auto"
                       onClick={() => setActiveTab('leave-requests')}
                     >
                       View All
@@ -197,16 +231,23 @@ export default function Attendance() {
                   ))}
                 </div>
               ) : (
-                <AttendanceTable records={filteredAttendance.slice(0, 20)} />
+                <AttendanceTable
+                  records={filteredAttendance.slice(0, 20)}
+                  showActions={canEditEmployees}
+                  onEdit={handleEditRecord}
+                  onDelete={handleDeleteRecord}
+                />
               )}
             </TabsContent>
 
             {/* Leave Requests Tab */}
             <TabsContent value="leave-requests" className="space-y-6">
               <div className="flex flex-col sm:flex-row gap-3">
-                <Select 
-                  value={leaveStatusFilter} 
-                  onValueChange={(value) => setLeaveStatusFilter(value as LeaveRequestStatus | 'all')}
+                <Select
+                  value={leaveStatusFilter}
+                  onValueChange={(value) =>
+                    setLeaveStatusFilter(value as LeaveRequestStatus | 'all')
+                  }
                 >
                   <SelectTrigger className="w-full sm:w-[180px]">
                     <SelectValue placeholder="Filter by status" />
@@ -242,6 +283,18 @@ export default function Attendance() {
           </Tabs>
         </main>
       </div>
+
+      {/* Admin Dialogs */}
+      <EditAttendanceDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        record={selectedRecord}
+      />
+      <DeleteAttendanceDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        record={selectedRecord}
+      />
     </div>
   );
 }
