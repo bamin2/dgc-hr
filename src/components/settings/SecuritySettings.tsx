@@ -5,11 +5,11 @@ import { Label } from '@/components/ui/label';
 import { SettingsCard } from './SettingsCard';
 import { SessionCard } from './SessionCard';
 import { Lock, Shield, Laptop, History } from 'lucide-react';
-import { SecuritySession } from '@/data/settings';
+import { UserSession } from '@/hooks/useUserSessions';
 import { toast } from 'sonner';
 
 interface SecuritySettingsProps {
-  sessions: SecuritySession[];
+  sessions: UserSession[];
   onRevokeSession: (id: string) => void;
   onRevokeAllSessions: () => void;
 }
