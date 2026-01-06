@@ -20,8 +20,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Search, Loader2, Plus } from "lucide-react";
 import { useAllEmployeeBalances, AllEmployeeBalance } from "@/hooks/useLeaveBalanceAdjustments";
-import { useLeaveTypes } from "@/hooks/useLeaveTypes";
+import { useLeaveTypes, LeaveType } from "@/hooks/useLeaveTypes";
 import { BalanceAdjustmentDialog } from "./BalanceAdjustmentDialog";
+import { AssignLeaveBalanceDialog } from "./AssignLeaveBalanceDialog";
 
 export function EmployeeBalancesTab() {
   const currentYear = new Date().getFullYear();
@@ -31,6 +32,10 @@ export function EmployeeBalancesTab() {
   const [selectedBalance, setSelectedBalance] = useState<{
     employee: AllEmployeeBalance;
     balanceIndex: number;
+  } | null>(null);
+  const [assignBalance, setAssignBalance] = useState<{
+    employee: AllEmployeeBalance;
+    leaveType: LeaveType;
   } | null>(null);
 
   const { data: employees, isLoading } = useAllEmployeeBalances(year);
@@ -185,6 +190,7 @@ export function EmployeeBalancesTab() {
                             variant="ghost"
                             size="sm"
                             className="h-auto py-1 px-2 text-xs text-muted-foreground"
+                            onClick={() => setAssignBalance({ employee, leaveType: lt })}
                           >
                             <Plus className="w-3 h-3 mr-1" />
                             Assign
@@ -206,6 +212,18 @@ export function EmployeeBalancesTab() {
           onOpenChange={(open) => !open && setSelectedBalance(null)}
           employee={selectedBalance.employee}
           balance={selectedBalance.employee.balances[selectedBalance.balanceIndex]}
+        />
+      )}
+
+      {assignBalance && (
+        <AssignLeaveBalanceDialog
+          open={!!assignBalance}
+          onOpenChange={(open) => !open && setAssignBalance(null)}
+          employeeId={assignBalance.employee.employee_id}
+          employeeName={assignBalance.employee.employee_name}
+          employeeAvatar={assignBalance.employee.employee_avatar}
+          leaveType={assignBalance.leaveType}
+          year={year}
         />
       )}
     </div>
