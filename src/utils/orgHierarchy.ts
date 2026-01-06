@@ -1,6 +1,16 @@
 import { Employee } from "@/hooks/useEmployees";
 import { OrgEmployee } from "@/components/employees/OrgChartNode";
 
+// Top-level positions that should appear at the root of org chart
+const TOP_LEVEL_POSITIONS = [
+  "ceo",
+  "chief executive officer",
+  "md",
+  "managing director",
+  "president",
+  "chairman",
+];
+
 /**
  * Convert an Employee to OrgEmployee format
  */
@@ -17,10 +27,42 @@ export function employeeToOrgEmployee(employee: Employee): OrgEmployee {
 }
 
 /**
- * Find the root employee (CEO - no managerId)
+ * Check if a position is a top-level executive position
+ */
+function isTopLevelPosition(position: string): boolean {
+  const normalizedPosition = position.toLowerCase().trim();
+  return TOP_LEVEL_POSITIONS.some(
+    (topPos) =>
+      normalizedPosition === topPos || normalizedPosition.includes(topPos)
+  );
+}
+
+/**
+ * Find root employees (CEO, MD - top-level executives without a manager)
+ */
+export function findRootEmployees(employees: Employee[]): Employee[] {
+  // First, find employees without a manager AND with top-level positions
+  const topLevelRoots = employees.filter(
+    (emp) => !emp.managerId && isTopLevelPosition(emp.position)
+  );
+
+  // If we found top-level executives, return them
+  if (topLevelRoots.length > 0) {
+    return topLevelRoots;
+  }
+
+  // Fallback: find the first employee without a manager
+  const rootWithoutManager = employees.find((emp) => !emp.managerId);
+  return rootWithoutManager ? [rootWithoutManager] : [];
+}
+
+/**
+ * Find the root employee (legacy - returns first root only)
+ * @deprecated Use findRootEmployees for multi-root support
  */
 export function findRootEmployee(employees: Employee[]): Employee | undefined {
-  return employees.find((emp) => !emp.managerId);
+  const roots = findRootEmployees(employees);
+  return roots[0];
 }
 
 /**
@@ -31,26 +73,40 @@ export function getDirectReports(employees: Employee[], managerId: string): Empl
 }
 
 /**
- * Build a tree structure from flat employee array
+ * Build a single org tree node recursively
+ */
+function buildNode(employee: Employee, employees: Employee[]): OrgEmployee {
+  const orgEmployee = employeeToOrgEmployee(employee);
+  const directReports = getDirectReports(employees, employee.id);
+
+  if (directReports.length > 0) {
+    orgEmployee.children = directReports.map((report) =>
+      buildNode(report, employees)
+    );
+  }
+
+  return orgEmployee;
+}
+
+/**
+ * Build multiple org trees for multi-root support (CEO & MD side by side)
+ */
+export function buildOrgTrees(employees: Employee[]): OrgEmployee[] {
+  if (employees.length === 0) return [];
+
+  const roots = findRootEmployees(employees);
+  if (roots.length === 0) return [];
+
+  return roots.map((root) => buildNode(root, employees));
+}
+
+/**
+ * Build a tree structure from flat employee array (legacy single-root)
+ * @deprecated Use buildOrgTrees for multi-root support
  */
 export function buildOrgTree(employees: Employee[]): OrgEmployee | null {
-  if (employees.length === 0) return null;
-
-  const root = findRootEmployee(employees);
-  if (!root) return null;
-
-  const buildNode = (employee: Employee): OrgEmployee => {
-    const orgEmployee = employeeToOrgEmployee(employee);
-    const directReports = getDirectReports(employees, employee.id);
-    
-    if (directReports.length > 0) {
-      orgEmployee.children = directReports.map(buildNode);
-    }
-    
-    return orgEmployee;
-  };
-
-  return buildNode(root);
+  const trees = buildOrgTrees(employees);
+  return trees[0] || null;
 }
 
 /**
@@ -94,18 +150,7 @@ export function buildOrgTreeFromEmployee(
   const startingEmployee = employees.find((e) => e.id === startingEmployeeId);
   if (!startingEmployee) return null;
 
-  const buildNode = (employee: Employee): OrgEmployee => {
-    const orgEmployee = employeeToOrgEmployee(employee);
-    const directReports = getDirectReports(employees, employee.id);
-
-    if (directReports.length > 0) {
-      orgEmployee.children = directReports.map(buildNode);
-    }
-
-    return orgEmployee;
-  };
-
-  return buildNode(startingEmployee);
+  return buildNode(startingEmployee, employees);
 }
 
 /**
