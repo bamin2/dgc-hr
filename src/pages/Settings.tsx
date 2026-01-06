@@ -15,7 +15,6 @@ import {
 import { PayrollSettingsTab } from '@/components/settings/payroll';
 import { 
   integrations as initialIntegrations,
-  securitySessions as initialSessions,
   CompanySettings,
   UserPreferences,
   NotificationSettings
@@ -23,6 +22,7 @@ import {
 import { useCompanySettings } from '@/contexts/CompanySettingsContext';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { useNotificationPreferences } from '@/hooks/useNotificationPreferences';
+import { useUserSessions } from '@/hooks/useUserSessions';
 import { useRole } from '@/contexts/RoleContext';
 import { Settings, Building2, User, Bell, Puzzle, Shield, Save, Wallet, Loader2, Network } from 'lucide-react';
 import { toast } from 'sonner';
@@ -56,6 +56,7 @@ const SettingsPage = () => {
   const { settings: globalSettings, updateSettings: updateGlobalSettings, isLoading: companyLoading, isSaving: companySaving } = useCompanySettings();
   const { preferences: dbUserPreferences, updatePreferences, isLoading: prefsLoading, isSaving: prefsSaving } = useUserPreferences();
   const { settings: dbNotificationSettings, updateSettings: updateNotifications, isLoading: notifLoading, isSaving: notifSaving } = useNotificationPreferences();
+  const { sessions, isLoading: sessionsLoading, revokeSession, revokeAllSessions } = useUserSessions();
   const { canManageRoles } = useRole();
   
   // Local state for form editing
@@ -63,7 +64,6 @@ const SettingsPage = () => {
   const [userPreferences, setUserPreferences] = useState<UserPreferences>(dbUserPreferences);
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>(dbNotificationSettings);
   const [integrations, setIntegrations] = useState(initialIntegrations);
-  const [sessions, setSessions] = useState(initialSessions);
   const [activeTab, setActiveTab] = useState(canManageRoles ? 'company' : 'preferences');
 
   // Sync local state with database when data loads
@@ -79,7 +79,7 @@ const SettingsPage = () => {
     setNotificationSettings(dbNotificationSettings);
   }, [dbNotificationSettings]);
 
-  const isLoading = companyLoading || prefsLoading || notifLoading;
+  const isLoading = companyLoading || prefsLoading || notifLoading || sessionsLoading;
   const isSaving = companySaving || prefsSaving || notifSaving;
 
   const handleSave = async () => {
@@ -128,12 +128,12 @@ const SettingsPage = () => {
   };
 
   const handleRevokeSession = (id: string) => {
-    setSessions(prev => prev.filter(s => s.id !== id));
+    revokeSession(id);
     toast.success('Session revoked');
   };
 
   const handleRevokeAllSessions = () => {
-    setSessions(prev => prev.filter(s => s.isCurrent));
+    revokeAllSessions();
     toast.success('All other sessions revoked');
   };
 

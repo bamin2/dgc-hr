@@ -2088,6 +2088,45 @@ export type Database = {
         }
         Relationships: []
       }
+      user_sessions: {
+        Row: {
+          browser: string | null
+          created_at: string | null
+          device: string | null
+          id: string
+          ip_address: unknown
+          is_current: boolean | null
+          last_active: string | null
+          location: string | null
+          session_token: string
+          user_id: string
+        }
+        Insert: {
+          browser?: string | null
+          created_at?: string | null
+          device?: string | null
+          id?: string
+          ip_address?: unknown
+          is_current?: boolean | null
+          last_active?: string | null
+          location?: string | null
+          session_token: string
+          user_id: string
+        }
+        Update: {
+          browser?: string | null
+          created_at?: string | null
+          device?: string | null
+          id?: string
+          ip_address?: unknown
+          is_current?: boolean | null
+          last_active?: string | null
+          location?: string | null
+          session_token?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
