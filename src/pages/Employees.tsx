@@ -19,6 +19,7 @@ import {
 } from "@/hooks/useEmployees";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { useRole } from "@/contexts/RoleContext";
 
 type TabType = 'directory' | 'org-chart';
 
@@ -29,6 +30,7 @@ const tabs: { id: TabType; label: string; icon: React.ElementType }[] = [
 
 export default function Employees() {
   const navigate = useNavigate();
+  const { canEditEmployees } = useRole();
   
   // Fetch employees from Supabase
   const { data: employees = [], isLoading, error } = useEmployees();
@@ -216,16 +218,18 @@ export default function Employees() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <h1 className="text-2xl font-semibold text-foreground">People Directory</h1>
             
-            <div className="flex items-center gap-3">
-              <Button variant="outline" onClick={handleExport} className="gap-2">
-                <Upload className="h-4 w-4" />
-                Export
-              </Button>
-              <Button onClick={handleAddNew} className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white">
-                <Plus className="h-4 w-4" />
-                Add Employee
-              </Button>
-            </div>
+            {canEditEmployees && (
+              <div className="flex items-center gap-3">
+                <Button variant="outline" onClick={handleExport} className="gap-2">
+                  <Upload className="h-4 w-4" />
+                  Export
+                </Button>
+                <Button onClick={handleAddNew} className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white">
+                  <Plus className="h-4 w-4" />
+                  Add Employee
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* Loading State */}
@@ -302,6 +306,7 @@ export default function Employees() {
                     onView={handleView}
                     onEdit={handleEdit}
                     onDelete={handleDelete}
+                    canEdit={canEditEmployees}
                   />
                   <TablePagination
                     currentPage={currentPage}

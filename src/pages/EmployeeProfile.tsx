@@ -29,6 +29,7 @@ import { StatusBadge, EmployeeForm, RoleBadge, RoleSelectorWithDescription, Crea
 import { useEmployee, useUpdateEmployee, Employee } from "@/hooks/useEmployees";
 import { AppRole, roleDescriptions } from "@/data/roles";
 import { useRole } from "@/contexts/RoleContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { toast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -36,12 +37,18 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function EmployeeProfile() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getEmployeeRole, updateEmployeeRole, canManageRoles } = useRole();
+  const { getEmployeeRole, updateEmployeeRole, canManageRoles, canEditEmployees } = useRole();
+  const { profile } = useAuth();
   const { data: employee, isLoading, error } = useEmployee(id);
   const updateEmployee = useUpdateEmployee();
   const [formOpen, setFormOpen] = useState(false);
   const [createLoginOpen, setCreateLoginOpen] = useState(false);
   const employeeRole = id ? getEmployeeRole(id) : 'employee';
+  
+  // Check if viewing own profile
+  const isOwnProfile = profile?.employee_id === id;
+  // Full access if: viewing own profile OR has HR/Admin role
+  const hasFullAccess = isOwnProfile || canEditEmployees;
 
   if (isLoading) {
     return (
@@ -169,20 +176,22 @@ export default function EmployeeProfile() {
                   </div>
                 </div>
                 
-                <div className="flex gap-2">
-                  <Button variant="outline" className="gap-2" onClick={() => setFormOpen(true)}>
-                    <Pencil className="h-4 w-4" />
-                    Edit
-                  </Button>
-                  <Button variant="outline" className="gap-2">
-                    <MessageSquare className="h-4 w-4" />
-                    Message
-                  </Button>
-                  <Button variant="outline" className="gap-2 text-destructive hover:text-destructive">
-                    <UserX className="h-4 w-4" />
-                    Deactivate
-                  </Button>
-                </div>
+                {canEditEmployees && (
+                  <div className="flex gap-2">
+                    <Button variant="outline" className="gap-2" onClick={() => setFormOpen(true)}>
+                      <Pencil className="h-4 w-4" />
+                      Edit
+                    </Button>
+                    <Button variant="outline" className="gap-2">
+                      <MessageSquare className="h-4 w-4" />
+                      Message
+                    </Button>
+                    <Button variant="outline" className="gap-2 text-destructive hover:text-destructive">
+                      <UserX className="h-4 w-4" />
+                      Deactivate
+                    </Button>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -198,22 +207,26 @@ export default function EmployeeProfile() {
                 <Briefcase className="h-4 w-4" />
                 Employment
               </TabsTrigger>
-              <TabsTrigger value="documents" className="gap-2">
-                <FileText className="h-4 w-4" />
-                Documents
-              </TabsTrigger>
-              <TabsTrigger value="timeoff" className="gap-2">
-                <Clock className="h-4 w-4" />
-                Time Off
-              </TabsTrigger>
-              <TabsTrigger value="activity" className="gap-2">
-                <Activity className="h-4 w-4" />
-                Activity
-              </TabsTrigger>
-              <TabsTrigger value="roles" className="gap-2">
-                <Shield className="h-4 w-4" />
-                Roles
-              </TabsTrigger>
+              {hasFullAccess && (
+                <>
+                  <TabsTrigger value="documents" className="gap-2">
+                    <FileText className="h-4 w-4" />
+                    Documents
+                  </TabsTrigger>
+                  <TabsTrigger value="timeoff" className="gap-2">
+                    <Clock className="h-4 w-4" />
+                    Time Off
+                  </TabsTrigger>
+                  <TabsTrigger value="activity" className="gap-2">
+                    <Activity className="h-4 w-4" />
+                    Activity
+                  </TabsTrigger>
+                  <TabsTrigger value="roles" className="gap-2">
+                    <Shield className="h-4 w-4" />
+                    Roles
+                  </TabsTrigger>
+                </>
+              )}
             </TabsList>
 
             <TabsContent value="overview" className="space-y-6">
@@ -281,7 +294,7 @@ export default function EmployeeProfile() {
 
             <TabsContent value="employment" className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Job Details */}
+                {/* Job Details - Always visible */}
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base font-medium flex items-center gap-2">
@@ -301,209 +314,219 @@ export default function EmployeeProfile() {
                   </CardContent>
                 </Card>
 
-                {/* Compensation */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base font-medium flex items-center gap-2">
-                      <CreditCard className="h-4 w-4 text-primary" />
-                      Compensation
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <InfoRow 
-                      label="Annual Salary" 
-                      value={employee.salary ? `$${employee.salary.toLocaleString()}` : 'Not specified'} 
-                    />
-                    <InfoRow label="Pay Frequency" value="Monthly" />
-                    <InfoRow label="Bank Account" value="••••••1234" />
-                  </CardContent>
-                </Card>
+                {/* Compensation - Only for own profile or HR/Admin */}
+                {hasFullAccess && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base font-medium flex items-center gap-2">
+                        <CreditCard className="h-4 w-4 text-primary" />
+                        Compensation
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <InfoRow 
+                        label="Annual Salary" 
+                        value={employee.salary ? `$${employee.salary.toLocaleString()}` : 'Not specified'} 
+                      />
+                      <InfoRow label="Pay Frequency" value="Monthly" />
+                      <InfoRow label="Bank Account" value="••••••1234" />
+                    </CardContent>
+                  </Card>
+                )}
               </div>
 
-              {/* Salary History */}
-              <SalaryHistoryCard employeeId={employee.id} />
-            </TabsContent>
-
-            <TabsContent value="documents">
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <FileText className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium mb-1">No documents uploaded</h3>
-                  <p className="text-muted-foreground mb-4">
-                    Upload contracts, certificates, and other important documents
-                  </p>
-                  <Button variant="outline">Upload Document</Button>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="timeoff">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="text-sm text-muted-foreground mb-1">Annual Leave</div>
-                    <div className="text-2xl font-bold text-foreground">12 days</div>
-                    <div className="text-xs text-muted-foreground">remaining of 20</div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="text-sm text-muted-foreground mb-1">Sick Leave</div>
-                    <div className="text-2xl font-bold text-foreground">8 days</div>
-                    <div className="text-xs text-muted-foreground">remaining of 10</div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="text-sm text-muted-foreground mb-1">Personal Leave</div>
-                    <div className="text-2xl font-bold text-foreground">3 days</div>
-                    <div className="text-xs text-muted-foreground">remaining of 5</div>
-                  </CardContent>
-                </Card>
-              </div>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Leave History</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground text-sm">No leave requests found.</p>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="activity">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Recent Activity</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <ActivityItem
-                    date="Today"
-                    action="Clocked in at 9:02 AM"
-                  />
-                  <ActivityItem
-                    date="Yesterday"
-                    action="Submitted expense report for $234.50"
-                  />
-                  <ActivityItem
-                    date="2 days ago"
-                    action="Completed onboarding training module"
-                  />
-                  <ActivityItem
-                    date="1 week ago"
-                    action="Updated profile information"
-                  />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="roles" className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Current Role */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base font-medium flex items-center gap-2">
-                      <Shield className="h-4 w-4 text-primary" />
-                      Current Role
-                    </CardTitle>
-                    <CardDescription>
-                      The employee's current access level and permissions
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <RoleBadge role={employeeRole} />
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {roleDescriptions[employeeRole]}
-                    </p>
-                  </CardContent>
-                </Card>
-
-                {/* Role Assignment */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base font-medium flex items-center gap-2">
-                      <Shield className="h-4 w-4 text-primary" />
-                      Assign Role
-                    </CardTitle>
-                    <CardDescription>
-                      {canManageRoles 
-                        ? "Change this employee's role and permissions"
-                        : "Only HR and Admin can change roles"
-                      }
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <RoleSelectorWithDescription
-                      value={employeeRole}
-                      onValueChange={(newRole: AppRole) => {
-                        if (id) {
-                          updateEmployeeRole(id, newRole);
-                          toast({
-                            title: "Role updated",
-                            description: `${employee.firstName}'s role has been changed to ${newRole}.`,
-                          });
-                        }
-                      }}
-                      disabled={!canManageRoles}
-                    />
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Create Login (HR/Admin only) */}
-              {canManageRoles && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base font-medium flex items-center gap-2">
-                      <KeyRound className="h-4 w-4 text-primary" />
-                      Account Access
-                    </CardTitle>
-                    <CardDescription>
-                      Create login credentials for this employee to access the system
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Button 
-                      variant="outline" 
-                      className="gap-2"
-                      onClick={() => setCreateLoginOpen(true)}
-                    >
-                      <KeyRound className="h-4 w-4" />
-                      Create Login
-                    </Button>
-                  </CardContent>
-                </Card>
+              {/* Salary History - Only for own profile or HR/Admin */}
+              {hasFullAccess && (
+                <SalaryHistoryCard employeeId={employee.id} />
               )}
-
-              {/* Role Permissions Info */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base font-medium">Role Permissions</CardTitle>
-                  <CardDescription>
-                    What each role can access in the system
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {(['employee', 'manager', 'hr', 'admin'] as AppRole[]).map((role) => (
-                      <div 
-                        key={role} 
-                        className={`p-4 rounded-lg border ${role === employeeRole ? 'border-primary bg-primary/5' : 'border-border'}`}
-                      >
-                        <div className="flex items-center gap-2 mb-2">
-                          <RoleBadge role={role} />
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          {roleDescriptions[role]}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
             </TabsContent>
+
+            {hasFullAccess && (
+              <>
+                <TabsContent value="documents">
+                  <Card>
+                    <CardContent className="py-12 text-center">
+                      <FileText className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium mb-1">No documents uploaded</h3>
+                      <p className="text-muted-foreground mb-4">
+                        Upload contracts, certificates, and other important documents
+                      </p>
+                      {canEditEmployees && (
+                        <Button variant="outline">Upload Document</Button>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="timeoff">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="text-sm text-muted-foreground mb-1">Annual Leave</div>
+                        <div className="text-2xl font-bold text-foreground">12 days</div>
+                        <div className="text-xs text-muted-foreground">remaining of 20</div>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="text-sm text-muted-foreground mb-1">Sick Leave</div>
+                        <div className="text-2xl font-bold text-foreground">8 days</div>
+                        <div className="text-xs text-muted-foreground">remaining of 10</div>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="text-sm text-muted-foreground mb-1">Personal Leave</div>
+                        <div className="text-2xl font-bold text-foreground">3 days</div>
+                        <div className="text-xs text-muted-foreground">remaining of 5</div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">Leave History</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-muted-foreground text-sm">No leave requests found.</p>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="activity">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">Recent Activity</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <ActivityItem
+                        date="Today"
+                        action="Clocked in at 9:02 AM"
+                      />
+                      <ActivityItem
+                        date="Yesterday"
+                        action="Submitted expense report for $234.50"
+                      />
+                      <ActivityItem
+                        date="2 days ago"
+                        action="Completed onboarding training module"
+                      />
+                      <ActivityItem
+                        date="1 week ago"
+                        action="Updated profile information"
+                      />
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="roles" className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Current Role */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-base font-medium flex items-center gap-2">
+                          <Shield className="h-4 w-4 text-primary" />
+                          Current Role
+                        </CardTitle>
+                        <CardDescription>
+                          The employee's current access level and permissions
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="flex items-center gap-3">
+                          <RoleBadge role={employeeRole} />
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {roleDescriptions[employeeRole]}
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    {/* Role Assignment */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-base font-medium flex items-center gap-2">
+                          <Shield className="h-4 w-4 text-primary" />
+                          Assign Role
+                        </CardTitle>
+                        <CardDescription>
+                          {canManageRoles 
+                            ? "Change this employee's role and permissions"
+                            : "Only HR and Admin can change roles"
+                          }
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <RoleSelectorWithDescription
+                          value={employeeRole}
+                          onValueChange={(newRole: AppRole) => {
+                            if (id) {
+                              updateEmployeeRole(id, newRole);
+                              toast({
+                                title: "Role updated",
+                                description: `${employee.firstName}'s role has been changed to ${newRole}.`,
+                              });
+                            }
+                          }}
+                          disabled={!canManageRoles}
+                        />
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Create Login (HR/Admin only) */}
+                  {canManageRoles && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-base font-medium flex items-center gap-2">
+                          <KeyRound className="h-4 w-4 text-primary" />
+                          Account Access
+                        </CardTitle>
+                        <CardDescription>
+                          Create login credentials for this employee to access the system
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <Button 
+                          variant="outline" 
+                          className="gap-2"
+                          onClick={() => setCreateLoginOpen(true)}
+                        >
+                          <KeyRound className="h-4 w-4" />
+                          Create Login
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Role Permissions Info */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base font-medium">Role Permissions</CardTitle>
+                      <CardDescription>
+                        What each role can access in the system
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {(['employee', 'manager', 'hr', 'admin'] as AppRole[]).map((role) => (
+                          <div 
+                            key={role} 
+                            className={`p-4 rounded-lg border ${role === employeeRole ? 'border-primary bg-primary/5' : 'border-border'}`}
+                          >
+                            <div className="flex items-center gap-2 mb-2">
+                              <RoleBadge role={role} />
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              {roleDescriptions[role]}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </>
+            )}
           </Tabs>
         </main>
       </div>
