@@ -23,6 +23,7 @@ export function useClockInOut() {
       return data;
     },
     enabled: !!user?.id,
+    staleTime: 1000 * 60 * 10, // 10 minutes - profile rarely changes
   });
 
   const employeeId = profile?.employee_id;
@@ -46,6 +47,7 @@ export function useClockInOut() {
       return data;
     },
     enabled: !!employeeId,
+    staleTime: 1000 * 30, // 30 seconds
   });
 
   // Clock in mutation
