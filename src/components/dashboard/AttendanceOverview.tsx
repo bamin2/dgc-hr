@@ -4,7 +4,15 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useTodayAttendance } from "@/hooks/useDashboardMetrics";
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
+
+const parseTimeToTodayDate = (timeStr: string | null | undefined): Date | null => {
+  if (!timeStr) return null;
+  const today = format(new Date(), "yyyy-MM-dd");
+  const cleanTime = timeStr.split(".")[0];
+  const date = new Date(`${today}T${cleanTime}`);
+  return isNaN(date.getTime()) ? null : date;
+};
 
 const statusStyles = {
   present: "bg-success/10 text-success border-success/20",
@@ -83,9 +91,8 @@ export function AttendanceOverview() {
           </p>
         ) : (
           records.map((record) => {
-            const checkInTime = record.check_in 
-              ? format(parseISO(record.check_in), 'hh:mm a')
-              : '--:--';
+            const checkInDate = parseTimeToTodayDate(record.check_in);
+            const checkInTime = checkInDate ? format(checkInDate, "hh:mm a") : "--:--";
             const status = record.status as keyof typeof statusStyles;
             
             return (
