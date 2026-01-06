@@ -9,14 +9,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, User, Briefcase } from "lucide-react";
+import { Calendar, User } from "lucide-react";
 import {
   type EmployeeDepartureData,
   type DepartureReason,
   type NoticePeriodStatus,
-  departureReasons,
-  noticePeriodStatuses,
-} from "@/data/offboarding";
+} from "./OffboardingWizard";
+import {
+  departureReasonOptions,
+  noticePeriodStatusOptions,
+} from "@/hooks/useOffboarding";
 
 interface EmployeeInfo {
   firstName: string;
@@ -108,7 +110,7 @@ export function OffboardingEmployeeStep({
                   <SelectValue placeholder="Select reason" />
                 </SelectTrigger>
                 <SelectContent>
-                  {departureReasons.map((reason) => (
+                  {departureReasonOptions.map((reason) => (
                     <SelectItem key={reason.value} value={reason.value}>
                       {reason.label}
                     </SelectItem>
@@ -130,7 +132,7 @@ export function OffboardingEmployeeStep({
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
               <SelectContent>
-                {noticePeriodStatuses.map((status) => (
+                {noticePeriodStatusOptions.map((status) => (
                   <SelectItem key={status.value} value={status.value}>
                     {status.label}
                   </SelectItem>

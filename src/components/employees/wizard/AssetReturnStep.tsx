@@ -19,12 +19,8 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Package, Plus, Trash2, CheckCircle2 } from "lucide-react";
-import {
-  type AssetItem,
-  type AssetCondition,
-  type AssetType,
-  assetConditions,
-} from "@/data/offboarding";
+import { type AssetItem, type AssetCondition, type AssetType } from "./OffboardingWizard";
+import { assetConditionOptions } from "@/hooks/useOffboarding";
 import { Badge } from "@/components/ui/badge";
 
 interface AssetReturnStepProps {
@@ -182,7 +178,7 @@ export function AssetReturnStep({ assets, onAssetsChange }: AssetReturnStepProps
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {assetConditions.map((condition) => (
+                        {assetConditionOptions.map((condition) => (
                           <SelectItem key={condition.value} value={condition.value}>
                             <span className={`px-2 py-0.5 rounded text-xs ${conditionColors[condition.value]}`}>
                               {condition.label}

@@ -23,6 +23,7 @@ export function OffboardingDialog({
   if (!member) return null;
 
   const employeeInfo = {
+    id: member.id,
     firstName: member.firstName,
     lastName: member.lastName,
     email: member.email,
