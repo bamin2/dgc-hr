@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { addDays, format, getDay, parseISO } from 'date-fns';
+import { addDays, differenceInDays, format, getDay, parseISO } from 'date-fns';
 
 export interface PublicHoliday {
   id: string;
@@ -166,6 +166,92 @@ export function calculateGroupedHolidayCompensation(
     }
   }
   
+  return results;
+}
+
+// Calculate compensation for holidays, intelligently grouping only consecutive holidays
+// Non-consecutive holidays (like New Year vs Labour Day) are compensated individually
+export function calculateHolidaysCompensation(
+  holidays: { name: string; date: Date }[],
+  weekendDays: number[] = [5, 6],
+  existingUsedDates: Set<string> = new Set()
+): Array<{
+  name: string;
+  date: Date;
+  observedDate: Date;
+  isCompensated: boolean;
+  reason: string | null;
+}> {
+  if (holidays.length === 0) return [];
+
+  // Sort holidays by date
+  const sorted = [...holidays].sort((a, b) => a.date.getTime() - b.date.getTime());
+
+  // Group consecutive holidays (within 1 day of each other)
+  const groups: Array<{ name: string; date: Date }[]> = [];
+  let currentGroup: typeof groups[0] = [];
+
+  for (const holiday of sorted) {
+    if (currentGroup.length === 0) {
+      currentGroup = [holiday];
+    } else {
+      const lastDate = currentGroup[currentGroup.length - 1].date;
+      const daysDiff = differenceInDays(holiday.date, lastDate);
+
+      if (daysDiff <= 1) {
+        // Consecutive, add to current group
+        currentGroup.push(holiday);
+      } else {
+        // Not consecutive, start new group
+        groups.push(currentGroup);
+        currentGroup = [holiday];
+      }
+    }
+  }
+  if (currentGroup.length > 0) {
+    groups.push(currentGroup);
+  }
+
+  // Process each group
+  const usedDates = new Set(existingUsedDates);
+  const results: Array<{
+    name: string;
+    date: Date;
+    observedDate: Date;
+    isCompensated: boolean;
+    reason: string | null;
+  }> = [];
+
+  for (const group of groups) {
+    if (group.length === 1) {
+      // Single holiday - calculate individually (compensate right after the holiday)
+      const result = calculateObservedDate(
+        group[0].date,
+        weekendDays,
+        usedDates
+      );
+      usedDates.add(format(result.observedDate, 'yyyy-MM-dd'));
+      results.push({
+        name: group[0].name,
+        date: group[0].date,
+        observedDate: result.observedDate,
+        isCompensated: result.isCompensated,
+        reason: result.reason,
+      });
+    } else {
+      // Grouped consecutive holidays - use grouped logic
+      const groupResults = calculateGroupedHolidayCompensation(
+        group,
+        weekendDays,
+        usedDates
+      );
+      groupResults.forEach((r) => {
+        usedDates.add(format(r.observedDate, 'yyyy-MM-dd'));
+        results.push(r);
+      });
+    }
+  }
+
   return results;
 }
 
