@@ -19,7 +19,8 @@ export interface PublicHoliday {
 export function calculateObservedDate(
   holidayDate: Date,
   weekendDays: number[] = [5, 6], // Default: Friday-Saturday
-  usedDates: Set<string> = new Set()
+  usedDates: Set<string> = new Set(),
+  earliestCompensationDate?: Date // Start compensation from this date
 ): { observedDate: Date; isCompensated: boolean; reason: string | null } {
   const dayOfWeek = getDay(holidayDate); // 0=Sunday, 1=Monday, ..., 6=Saturday
   
@@ -34,21 +35,25 @@ export function calculateObservedDate(
     isCompensated = true;
     reason = `Moved from ${dayNames[dayOfWeek]}`;
     
-    // Find next working day
-    let daysToAdd = 1;
-    while (true) {
-      observedDate = addDays(holidayDate, daysToAdd);
-      const newDayOfWeek = getDay(observedDate);
-      const dateStr = format(observedDate, 'yyyy-MM-dd');
+    // Start from earliestCompensationDate if provided, otherwise day after holiday
+    const startDate = earliestCompensationDate && earliestCompensationDate > holidayDate 
+      ? earliestCompensationDate 
+      : addDays(holidayDate, 1);
+    
+    let currentDate = startDate;
+    let attempts = 0;
+    
+    while (attempts < 30) {
+      const currentDayOfWeek = getDay(currentDate);
+      const dateStr = format(currentDate, 'yyyy-MM-dd');
       
       // Check if it's a working day and not already used
-      if (!weekendDays.includes(newDayOfWeek) && !usedDates.has(dateStr)) {
+      if (!weekendDays.includes(currentDayOfWeek) && !usedDates.has(dateStr)) {
+        observedDate = currentDate;
         break;
       }
-      daysToAdd++;
-      
-      // Safety limit
-      if (daysToAdd > 14) break;
+      currentDate = addDays(currentDate, 1);
+      attempts++;
     }
   } else {
     // Not a weekend, check if the date is already used
@@ -73,6 +78,95 @@ export function calculateObservedDate(
   }
   
   return { observedDate, isCompensated, reason };
+}
+
+// Calculate compensation for grouped holidays (e.g., multi-day Eid)
+// Compensation days only start after ALL original holiday days are complete
+export function calculateGroupedHolidayCompensation(
+  holidayDates: { name: string; date: Date }[],
+  weekendDays: number[] = [5, 6],
+  existingObservedDates: Set<string> = new Set()
+): Array<{
+  name: string;
+  date: Date;
+  observedDate: Date;
+  isCompensated: boolean;
+  reason: string | null;
+}> {
+  if (holidayDates.length === 0) return [];
+  
+  // Sort by date
+  const sorted = [...holidayDates].sort((a, b) => a.date.getTime() - b.date.getTime());
+  
+  // Find the last day of the holiday group
+  const lastHolidayDate = sorted[sorted.length - 1].date;
+  
+  // Compensation can only start from the day after the last holiday
+  const earliestCompensationDate = addDays(lastHolidayDate, 1);
+  
+  const usedDates = new Set(existingObservedDates);
+  const results: Array<{
+    name: string;
+    date: Date;
+    observedDate: Date;
+    isCompensated: boolean;
+    reason: string | null;
+  }> = [];
+  
+  for (const holiday of sorted) {
+    const dayOfWeek = getDay(holiday.date);
+    
+    if (weekendDays.includes(dayOfWeek)) {
+      // Weekend - needs compensation after all holidays
+      const { observedDate, isCompensated, reason } = calculateObservedDate(
+        holiday.date,
+        weekendDays,
+        usedDates,
+        earliestCompensationDate
+      );
+      
+      // Mark this date as used
+      usedDates.add(format(observedDate, 'yyyy-MM-dd'));
+      
+      results.push({
+        name: holiday.name,
+        date: holiday.date,
+        observedDate,
+        isCompensated,
+        reason,
+      });
+    } else {
+      // Working day - observed on same date (unless conflict)
+      const dateStr = format(holiday.date, 'yyyy-MM-dd');
+      if (usedDates.has(dateStr)) {
+        const { observedDate, isCompensated, reason } = calculateObservedDate(
+          holiday.date,
+          weekendDays,
+          usedDates,
+          earliestCompensationDate
+        );
+        usedDates.add(format(observedDate, 'yyyy-MM-dd'));
+        results.push({
+          name: holiday.name,
+          date: holiday.date,
+          observedDate,
+          isCompensated,
+          reason,
+        });
+      } else {
+        usedDates.add(dateStr);
+        results.push({
+          name: holiday.name,
+          date: holiday.date,
+          observedDate: holiday.date,
+          isCompensated: false,
+          reason: null,
+        });
+      }
+    }
+  }
+  
+  return results;
 }
 
 // Fetch holidays for a specific year

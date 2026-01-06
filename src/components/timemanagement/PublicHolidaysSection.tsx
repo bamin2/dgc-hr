@@ -37,6 +37,7 @@ import {
   useDeletePublicHoliday,
   useSyncPublicHolidaysToLeave,
   calculateObservedDate,
+  calculateGroupedHolidayCompensation,
   PublicHoliday,
 } from '@/hooks/usePublicHolidays';
 import { useCompanySettingsDb } from '@/hooks/useCompanySettingsDb';
@@ -69,23 +70,32 @@ export function PublicHolidaysSection({ className }: PublicHolidaysSectionProps)
   const handleAddHoliday = () => {
     if (!newHolidayName || !newHolidayDate) return;
     
-    // Get all existing observed dates for conflict checking
-    const usedDates = new Set(holidays?.map(h => h.observed_date) || []);
+    // Get all existing holidays plus the new one
+    const allHolidayDates = [
+      ...(holidays?.map(h => ({ name: h.name, date: parseISO(h.date) })) || []),
+      { name: newHolidayName, date: newHolidayDate }
+    ];
     
-    // Calculate observed date
-    const { observedDate, isCompensated, reason } = calculateObservedDate(
-      newHolidayDate,
-      weekendDays,
-      usedDates
+    // Calculate grouped compensation for all holidays
+    const compensationResults = calculateGroupedHolidayCompensation(
+      allHolidayDates,
+      weekendDays
     );
+    
+    // Find the result for the new holiday
+    const newHolidayResult = compensationResults.find(
+      r => format(r.date, 'yyyy-MM-dd') === format(newHolidayDate, 'yyyy-MM-dd') && r.name === newHolidayName
+    );
+    
+    if (!newHolidayResult) return;
     
     createHoliday.mutate({
       name: newHolidayName,
       date: format(newHolidayDate, 'yyyy-MM-dd'),
-      observed_date: format(observedDate, 'yyyy-MM-dd'),
+      observed_date: format(newHolidayResult.observedDate, 'yyyy-MM-dd'),
       year: newHolidayDate.getFullYear(),
-      is_compensated: isCompensated,
-      compensation_reason: reason,
+      is_compensated: newHolidayResult.isCompensated,
+      compensation_reason: newHolidayResult.reason,
     }, {
       onSuccess: () => {
         setNewHolidayName('');
@@ -98,25 +108,33 @@ export function PublicHolidaysSection({ className }: PublicHolidaysSectionProps)
   const handleUpdateHoliday = () => {
     if (!editingHoliday || !newHolidayName || !newHolidayDate) return;
     
-    // Get all existing observed dates except the current one
-    const usedDates = new Set(
-      holidays?.filter(h => h.id !== editingHoliday.id).map(h => h.observed_date) || []
+    // Get all holidays, replacing the edited one with new values
+    const allHolidayDates = [
+      ...(holidays?.filter(h => h.id !== editingHoliday.id).map(h => ({ name: h.name, date: parseISO(h.date) })) || []),
+      { name: newHolidayName, date: newHolidayDate }
+    ];
+    
+    // Calculate grouped compensation for all holidays
+    const compensationResults = calculateGroupedHolidayCompensation(
+      allHolidayDates,
+      weekendDays
     );
     
-    const { observedDate, isCompensated, reason } = calculateObservedDate(
-      newHolidayDate,
-      weekendDays,
-      usedDates
+    // Find the result for the edited holiday
+    const editedHolidayResult = compensationResults.find(
+      r => format(r.date, 'yyyy-MM-dd') === format(newHolidayDate, 'yyyy-MM-dd') && r.name === newHolidayName
     );
+    
+    if (!editedHolidayResult) return;
     
     updateHoliday.mutate({
       id: editingHoliday.id,
       name: newHolidayName,
       date: format(newHolidayDate, 'yyyy-MM-dd'),
-      observed_date: format(observedDate, 'yyyy-MM-dd'),
+      observed_date: format(editedHolidayResult.observedDate, 'yyyy-MM-dd'),
       year: newHolidayDate.getFullYear(),
-      is_compensated: isCompensated,
-      compensation_reason: reason,
+      is_compensated: editedHolidayResult.isCompensated,
+      compensation_reason: editedHolidayResult.reason,
     }, {
       onSuccess: () => {
         setEditingHoliday(null);
@@ -319,23 +337,29 @@ export function PublicHolidaysSection({ className }: PublicHolidaysSectionProps)
               <div className="p-3 rounded-lg bg-muted/50 text-sm">
                 <p className="text-muted-foreground">
                   {(() => {
-                    const usedDates = new Set(
-                      holidays
+                    // Calculate grouped compensation including this new/edited holiday
+                    const allHolidayDates = [
+                      ...(holidays
                         ?.filter(h => !editingHoliday || h.id !== editingHoliday.id)
-                        .map(h => h.observed_date) || []
-                    );
-                    const { observedDate, isCompensated, reason } = calculateObservedDate(
-                      newHolidayDate,
-                      weekendDays,
-                      usedDates
+                        .map(h => ({ name: h.name, date: parseISO(h.date) })) || []),
+                      { name: newHolidayName || 'New Holiday', date: newHolidayDate }
+                    ];
+                    
+                    const compensationResults = calculateGroupedHolidayCompensation(
+                      allHolidayDates,
+                      weekendDays
                     );
                     
-                    if (isCompensated) {
+                    const result = compensationResults.find(
+                      r => format(r.date, 'yyyy-MM-dd') === format(newHolidayDate, 'yyyy-MM-dd')
+                    );
+                    
+                    if (result?.isCompensated) {
                       return (
                         <>
                           <span className="text-amber-600 font-medium">Weekend Compensation: </span>
-                          Observed on {format(observedDate, 'EEEE, MMM d, yyyy')}
-                          {reason && <span className="block text-xs mt-1">{reason}</span>}
+                          Observed on {format(result.observedDate, 'EEEE, MMM d, yyyy')}
+                          {result.reason && <span className="block text-xs mt-1">{result.reason}</span>}
                         </>
                       );
                     }
