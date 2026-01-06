@@ -1,76 +1,340 @@
-# Fix: Reset password shows generic non‑2xx error
+# Plan: Auto-Create Login Account When Adding Employee/Team Member
 
-## What’s happening
-- The edge function `reset-employee-password` is returning **404** with JSON:
-  - `{ "error": "Employee does not have an associated user account" }`
-- In the client (`ResetPasswordDialog.tsx`), `supabase.functions.invoke(...)` surfaces this as `error` (non‑2xx), and the UI currently only shows `error.message`, which is the generic: **“Edge Function returned a non-2xx status code”**.
-- Edge logs confirm the underlying cause: the profiles lookup returns 0 rows (PGRST116) because the employee has no `profiles` row yet (i.e., no auth account).
+## Overview
 
-## Goals
-1. Show the **real server error message** in the toast/dialog instead of the generic one.
-2. Reduce noisy edge logs by avoiding `.single()` when 0 rows is expected.
-3. Improve UX by disabling/hiding **Reset Password** when the employee doesn’t yet have an account (and guiding HR to “Create Login” instead).
+Currently, adding an employee only creates a record in the `employees` table. The user must then manually click "Create Login" to create an auth account. This plan modifies the flow to automatically create the auth account when adding an employee.
 
-## Changes
+---
 
-### 1) Edge function: use `maybeSingle()` for profile lookup
-**File:** `supabase/functions/reset-employee-password/index.ts`
-- Change:
-  - `.single()` -> `.maybeSingle()`
-- Update the not-found branch to be explicit:
-  - Return 404 with error like: `No user account exists for this employee. Use "Create Login" first.`
-- Logging:
-  - Log a concise message for not found (avoid logging the full PGRST116 error object).
+## Current Architecture
 
-Why: `PGRST116` is expected when there is no matching profile; `maybeSingle()` avoids treating this as an error.
+```
+employees table                    auth.users
++------------------+               +------------------+
+| id (uuid)        |               | id (uuid)        |
+| email            |               | email            |
+| first_name       |               | user_metadata    |
+| ...              |               | ...              |
++------------------+               +------------------+
+        |                                   |
+        |                                   v
+        |                          profiles table
+        |                          +------------------+
+        +------------------------->| id (uuid) = auth.users.id
+                                   | employee_id (uuid) ---> employees.id
+                                   | email            |
+                                   +------------------+
+```
 
-### 2) Client: parse error response body from `functions.invoke`
-**File:** `src/components/employees/ResetPasswordDialog.tsx`
-- When `error` is present:
-  - Attempt to extract JSON from `error.context` (Supabase Functions errors typically carry the `Response`).
-  - Prefer server message: `body.error`.
-  - Fallback to `error.message`.
+**Current Flow:**
+1. Create employee in `employees` table
+2. (Later) HR clicks "Create Login" which:
+   - Creates auth user via `auth.admin.createUser()`
+   - Trigger creates `profiles` row
+   - Edge function links `profiles.employee_id` to the employee
 
-Implementation approach:
-- Add a small helper inside the component (or shared util later):
-  - If `error.context?.response` exists: `await error.context.response.json()`
-  - Else if `error.context` is a `Response`: `await error.context.json()`
-  - Else: return `null`
+---
 
-Then:
-```ts
-if (error) {
-  const serverMsg = await extractFunctionsErrorMessage(error)
-  toast.error(serverMsg ?? error.message ?? "Failed to reset password")
-  return
+## New Architecture
+
+### Flow After Changes
+
+```
+AddTeamMemberWizard / EmployeeForm
+           |
+           v
+   Call create-employee-with-login edge function
+           |
+           +---> 1. Create auth user (auto-generates password)
+           |
+           +---> 2. Trigger creates profiles row
+           |
+           +---> 3. Create employee record with user_id linked
+           |
+           +---> 4. Update profiles.employee_id
+           |
+           v
+   Return { employee, tempPassword }
+```
+
+---
+
+## Implementation Details
+
+### Part 1: Create New Edge Function `create-employee-with-login`
+
+**File:** `supabase/functions/create-employee-with-login/index.ts`
+
+This edge function will:
+1. Verify caller has HR/Admin role
+2. Generate a secure temporary password
+3. Create auth user via `auth.admin.createUser()`
+4. Create employee record with the new `user_id`
+5. Update `profiles.employee_id` to link to the employee
+6. Return the employee data and temporary password
+
+**Request body:**
+```typescript
+{
+  first_name: string;
+  last_name: string;
+  email: string;
+  preferred_name?: string;
+  worker_type?: string;
+  country?: string;
+  join_date?: string;
+  department_id?: string;
+  position_id?: string;
+  manager_id?: string;
+  work_location?: string;
+  salary?: number;
+  pay_frequency?: string;
+  employment_type?: string;
+  // ... other employee fields
 }
 ```
 
-### 3) Client: disable/hide Reset Password when no account exists
+**Response:**
+```typescript
+{
+  success: true;
+  employee: { id: string; ... };
+  tempPassword: string;  // Show to HR once, they share with employee
+  userId: string;
+}
+```
+
+**Password generation:**
+```typescript
+function generateTempPassword(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+  let password = '';
+  for (let i = 0; i < 12; i++) {
+    password += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return password;
+}
+```
+
+---
+
+### Part 2: Update AddTeamMemberWizard
+
+**File:** `src/components/team/wizard/AddTeamMemberWizard.tsx`
+
+Changes:
+1. Replace direct Supabase insert with edge function call
+2. Show temporary password in a dialog after successful creation
+3. Add a "Copy Password" button so HR can share it with the employee
+
+**New flow in `handleSubmit()`:**
+```typescript
+const { data, error } = await supabase.functions.invoke('create-employee-with-login', {
+  body: {
+    first_name: basicData.firstName,
+    last_name: basicData.lastName,
+    email: basicData.email,
+    // ... all other employee fields
+  }
+});
+
+if (data?.success) {
+  // Show dialog with temporary password
+  setTempPassword(data.tempPassword);
+  setShowPasswordDialog(true);
+}
+```
+
+---
+
+### Part 3: Create TempPasswordDialog Component
+
+**File:** `src/components/team/wizard/TempPasswordDialog.tsx`
+
+A dialog that:
+- Shows after successful employee creation
+- Displays the employee name and temporary password
+- Has a "Copy to Clipboard" button
+- Shows a warning: "Please share this password with the employee. It will not be shown again."
+- "Done" button closes dialog and navigates to team page
+
+```
++----------------------------------------------------------+
+|  Account Created Successfully                      [X]   |
++----------------------------------------------------------+
+|                                                          |
+|  A login account has been created for:                   |
+|  John Doe (john.doe@company.com)                         |
+|                                                          |
+|  Temporary Password:                                     |
+|  +--------------------------------------------------+    |
+|  |  xK7mNp3qR2sT                         [Copy]     |    |
+|  +--------------------------------------------------+    |
+|                                                          |
+|  ! Please share this password with the employee.         |
+|    They should change it after first login.              |
+|    This password will not be shown again.                |
+|                                                          |
+|                                       [Done]             |
++----------------------------------------------------------+
+```
+
+---
+
+### Part 4: Update EmployeeForm (for adding via Employees page)
+
+**File:** `src/components/employees/EmployeeForm.tsx`
+
+Same changes as AddTeamMemberWizard:
+1. Call edge function instead of direct insert
+2. Show temp password dialog on success
+
+---
+
+### Part 5: Update useCreateEmployee Hook
+
+**File:** `src/hooks/useEmployees.ts`
+
+Create a new hook `useCreateEmployeeWithLogin` that:
+1. Calls the edge function
+2. Returns the employee data and temp password
+3. Handles errors appropriately
+
+```typescript
+export function useCreateEmployeeWithLogin() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (employeeData: CreateEmployeeData) => {
+      const { data, error } = await supabase.functions.invoke(
+        'create-employee-with-login',
+        { body: employeeData }
+      );
+
+      if (error) throw error;
+      if (!data.success) throw new Error(data.error);
+      
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["employees"] });
+      queryClient.invalidateQueries({ queryKey: ["team-members"] });
+    },
+  });
+}
+```
+
+---
+
+### Part 6: Update config.toml
+
+**File:** `supabase/config.toml`
+
+Add the new edge function:
+```toml
+[functions.create-employee-with-login]
+verify_jwt = false
+```
+
+---
+
+### Part 7: Clean Up Account Access Section
+
 **File:** `src/pages/EmployeeProfile.tsx`
-- In the “Account Access” card, add a `useQuery` to check if a profile exists:
-  - `supabase.from('profiles').select('id').eq('employee_id', employee.id).maybeSingle()`
-- Derive:
-  - `const hasAccount = !!profileRow?.id`
-- UI behavior:
-  - If `!hasAccount`: disable Reset Password and show helper text “No account yet — create login first”.
-  - If `hasAccount`: enable Reset Password.
 
-Optional UX:
-- If `hasAccount`, disable “Create Login” and show “Account already exists”.
+Since accounts are now auto-created:
+- "Create Login" button is no longer needed for new employees
+- Keep it only as a fallback for legacy employees without accounts
+- Show account status: "Account Active" or "No Account (Legacy)"
 
-### 4) (Optional but recommended) Apply same error parsing to Create Login
-**File:** `src/components/employees/CreateLoginDialog.tsx`
-- Handle non‑2xx the same way so HR sees real messages.
+---
 
-## Testing checklist
-1. HR/Admin resets password for an employee **with** a user account → success.
-2. HR/Admin resets password for an employee **without** a user account → button disabled OR meaningful toast “Use Create Login first.”
-3. Non HR/Admin attempts reset → 403 with meaningful toast (not generic).
-4. Edge logs no longer include `PGRST116` for expected not-found.
+## Updated Account Access UI
+
+```
++----------------------------------------------------------+
+| Account Access                                           |
+| Manage login credentials for this employee               |
++----------------------------------------------------------+
+|                                                          |
+| Status: Account Active (created on Jan 5, 2026)          |
+|                                                          |
+| [Reset Password]                                         |
+|                                                          |
++----------------------------------------------------------+
+```
+
+For legacy employees without accounts:
+```
++----------------------------------------------------------+
+| Account Access                                           |
+| Manage login credentials for this employee               |
++----------------------------------------------------------+
+|                                                          |
+| Status: No Account                                       |
+| This employee was added before auto-login was enabled.   |
+|                                                          |
+| [Create Login]  [Reset Password (disabled)]              |
+|                                                          |
++----------------------------------------------------------+
+```
+
+---
+
+## Files to Create
+
+| File | Description |
+|------|-------------|
+| `supabase/functions/create-employee-with-login/index.ts` | Edge function to create employee + auth account |
+| `src/components/team/wizard/TempPasswordDialog.tsx` | Dialog showing temporary password after creation |
+
+---
+
+## Files to Modify
+
+| File | Changes |
+|------|---------|
+| `supabase/config.toml` | Add new edge function config |
+| `src/hooks/useEmployees.ts` | Add `useCreateEmployeeWithLogin` hook |
+| `src/components/team/wizard/AddTeamMemberWizard.tsx` | Use new hook, show temp password dialog |
+| `src/components/team/wizard/index.ts` | Export TempPasswordDialog |
+| `src/components/employees/EmployeeForm.tsx` | Use new hook, show temp password dialog |
+| `src/pages/EmployeeProfile.tsx` | Update Account Access section UI |
+
+---
+
+## Security Considerations
+
+1. **Temp password shown once** - After the dialog is closed, the password cannot be retrieved
+2. **HR/Admin only** - Edge function verifies caller has appropriate role
+3. **Force password change** - (Optional future enhancement) Set flag to require password change on first login
+4. **Audit log** - Edge function logs account creation events
+
+---
+
+## Error Handling
+
+1. **Duplicate email** - If auth user with email already exists, show clear error
+2. **Database errors** - If employee creation fails after auth user created, rollback by deleting the auth user
+3. **Network errors** - Show retry option
+
+---
+
+## Testing Checklist
+
+1. Add team member via wizard - should show temp password dialog
+2. Add employee via EmployeeForm - should show temp password dialog
+3. Copy password button works
+4. Employee can log in with temp password
+5. Reset Password still works for existing accounts
+6. Legacy employees without accounts show "Create Login" option
+
+---
 
 ## Critical Files for Implementation
-- `supabase/functions/reset-employee-password/index.ts` — switch profile lookup to `maybeSingle` + clearer error.
-- `src/components/employees/ResetPasswordDialog.tsx` — extract server error body for non‑2xx.
-- `src/pages/EmployeeProfile.tsx` — detect whether employee has an account and gate Reset Password.
-- `src/components/employees/CreateLoginDialog.tsx` — (optional) consistent non‑2xx error display.
+
+- `supabase/functions/create-employee-with-login/index.ts` - New edge function (core logic)
+- `src/components/team/wizard/TempPasswordDialog.tsx` - New UI component for password display
+- `src/components/team/wizard/AddTeamMemberWizard.tsx` - Update to use new flow
+- `src/hooks/useEmployees.ts` - Add new mutation hook
+- `src/pages/EmployeeProfile.tsx` - Update Account Access section
