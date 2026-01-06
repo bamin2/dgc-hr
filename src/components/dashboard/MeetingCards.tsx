@@ -1,20 +1,13 @@
 import { Video, MapPin, Clock } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { useCalendarEvents, getParticipantsFromEvent } from "@/hooks/useCalendarEvents";
-import { format, startOfDay, endOfDay } from "date-fns";
+import { useTodayMeetings } from "@/hooks/useCalendarEvents";
+import { format } from "date-fns";
 
 export function MeetingCards() {
-  const today = new Date();
-  const { data: events, isLoading } = useCalendarEvents(startOfDay(today), endOfDay(today));
-
-  // Filter for meetings only and sort by start time
-  const meetings = (events || [])
-    .filter(e => e.type === 'meeting')
-    .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
+  const { data: meetings = [], isLoading } = useTodayMeetings();
 
   // Find the next meeting (first one that hasn't ended yet)
   const now = new Date();
@@ -71,7 +64,6 @@ export function MeetingCards() {
         ) : (
           meetings.slice(0, 3).map((meeting, index) => {
             const isNext = index === nextMeetingIndex;
-            const participants = getParticipantsFromEvent(meeting);
             const isVideoMeeting = meeting.platform && meeting.platform !== 'in-person';
             
             return (
@@ -115,26 +107,8 @@ export function MeetingCards() {
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <div className="flex -space-x-2">
-                    {participants.slice(0, 4).map((participant, i) => (
-                      <Avatar key={participant.id || i} className="w-7 h-7 border-2 border-card">
-                        <AvatarImage src={participant.avatar || undefined} />
-                        <AvatarFallback className="text-xs bg-primary text-primary-foreground">
-                          {participant.name?.split(' ').map(n => n[0]).join('') || 'P'}
-                        </AvatarFallback>
-                      </Avatar>
-                    ))}
-                    {participants.length > 4 && (
-                      <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-xs font-medium border-2 border-card">
-                        +{participants.length - 4}
-                      </div>
-                    )}
-                    {participants.length === 0 && (
-                      <span className="text-xs text-muted-foreground">No participants</span>
-                    )}
-                  </div>
                   {isNext && (
-                    <Button size="sm" className="text-xs">
+                    <Button size="sm" className="text-xs ml-auto">
                       Join Now
                     </Button>
                   )}
