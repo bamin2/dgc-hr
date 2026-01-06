@@ -1928,6 +1928,7 @@ export type Database = {
           created_at: string
           department_id: string | null
           id: string
+          job_description: string | null
           level: number | null
           title: string
         }
@@ -1935,6 +1936,7 @@ export type Database = {
           created_at?: string
           department_id?: string | null
           id?: string
+          job_description?: string | null
           level?: number | null
           title: string
         }
@@ -1942,6 +1944,7 @@ export type Database = {
           created_at?: string
           department_id?: string | null
           id?: string
+          job_description?: string | null
           level?: number | null
           title?: string
         }
