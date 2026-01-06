@@ -50,9 +50,14 @@ Deno.serve(async (req) => {
 
     console.log('Caller user ID:', callerUser.id)
 
-    // Check if caller has HR or Admin role using the has_any_role function
-    const { data: hasRole, error: roleError } = await supabaseAdmin
-      .rpc('has_any_role', { _user_id: callerUser.id, _roles: ['hr', 'admin'] })
+    // Check if caller has HR or Admin role by querying user_roles table directly
+    const { data: roleData, error: roleError } = await supabaseAdmin
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', callerUser.id)
+      .in('role', ['hr', 'admin'])
+      .limit(1)
+      .maybeSingle()
 
     if (roleError) {
       console.error('Error checking role:', roleError)
@@ -62,7 +67,7 @@ Deno.serve(async (req) => {
       )
     }
 
-    if (!hasRole) {
+    if (!roleData) {
       console.error('User does not have required role')
       return new Response(
         JSON.stringify({ error: 'Forbidden: HR or Admin role required' }),
