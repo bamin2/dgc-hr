@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { getCountryByCode } from "@/data/countries";
+import { getCurrencyByCode } from "@/data/currencies";
 import { useActiveAllowanceTemplates } from "@/hooks/useAllowanceTemplates";
 import { useActiveDeductionTemplates } from "@/hooks/useDeductionTemplates";
 import { useDepartments, usePositions, useEmployees } from "@/hooks/useEmployees";
@@ -62,11 +63,12 @@ export function TeamFinalizeStep({
 
   const formatSalary = () => {
     const amount = parseFloat(compensationData.salary) || 0;
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      maximumFractionDigits: 0,
-    }).format(amount);
+    const currency = getCurrencyByCode(compensationData.currency);
+    return `${currency?.symbol || "$"}${amount.toLocaleString()}`;
+  };
+
+  const formatEmploymentStatus = () => {
+    return compensationData.employmentStatus === "full_time" ? "Full-Time" : "Part-Time";
   };
 
   const getFullName = () => {
@@ -201,12 +203,12 @@ export function TeamFinalizeStep({
           <div>
             <p className="text-muted-foreground">Salary</p>
             <p className="font-medium">
-              {formatSalary()} / {compensationData.payFrequency}
+              {formatSalary()} / month
             </p>
           </div>
           <div>
-            <p className="text-muted-foreground">Employee type</p>
-            <p className="font-medium">{compensationData.employeeType || "Not set"}</p>
+            <p className="text-muted-foreground">Employment status</p>
+            <p className="font-medium">{formatEmploymentStatus()}</p>
           </div>
           {selectedAllowanceNames.length > 0 && (
             <div className="col-span-2">

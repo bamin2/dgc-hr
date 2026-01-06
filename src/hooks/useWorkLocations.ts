@@ -7,6 +7,7 @@ export interface WorkLocation {
   address: string | null;
   city: string | null;
   country: string | null;
+  currency: string;
   is_remote: boolean;
   created_at: string;
   employeeCount: number;
@@ -17,6 +18,7 @@ export interface WorkLocationInput {
   address?: string | null;
   city?: string | null;
   country?: string | null;
+  currency?: string;
   is_remote?: boolean;
 }
 
@@ -48,6 +50,7 @@ async function fetchWorkLocationsWithCounts(): Promise<WorkLocation[]> {
     address: loc.address,
     city: loc.city,
     country: loc.country,
+    currency: loc.currency || "USD",
     is_remote: loc.is_remote ?? false,
     created_at: loc.created_at,
     employeeCount: countMap.get(loc.id) || 0,
@@ -73,6 +76,7 @@ export function useCreateWorkLocation() {
           address: input.address || null,
           city: input.city || null,
           country: input.country || null,
+          currency: input.currency || "USD",
           is_remote: input.is_remote ?? false,
         })
         .select()
@@ -99,6 +103,7 @@ export function useUpdateWorkLocation() {
           address: input.address,
           city: input.city,
           country: input.country,
+          currency: input.currency,
           is_remote: input.is_remote,
         })
         .eq("id", id)

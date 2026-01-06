@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { X, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,8 @@ import { useCreateEmployee, useDepartments, usePositions } from "@/hooks/useEmpl
 import { useAssignAllowances } from "@/hooks/useEmployeeAllowances";
 import { useAssignDeductions } from "@/hooks/useEmployeeDeductions";
 import { useWorkLocations } from "@/hooks/useWorkLocations";
+import { useActiveAllowanceTemplates } from "@/hooks/useAllowanceTemplates";
+import { useActiveDeductionTemplates } from "@/hooks/useDeductionTemplates";
 import { getCountryByCode } from "@/data/countries";
 
 const steps = [
@@ -34,6 +36,8 @@ export function AddTeamMemberWizard() {
   const { data: departments } = useDepartments();
   const { data: positions } = usePositions();
   const { data: workLocations } = useWorkLocations();
+  const { data: allowanceTemplates } = useActiveAllowanceTemplates();
+  const { data: deductionTemplates } = useActiveDeductionTemplates();
 
   const isSubmitting = createEmployee.isPending || 
                        assignAllowances.isPending || 
@@ -60,13 +64,45 @@ export function AddTeamMemberWizard() {
   });
 
   const [compensationData, setCompensationData] = useState<TeamCompensationData>({
-    employeeType: "",
     salary: "",
-    payFrequency: "year",
-    employmentStatus: "",
+    currency: "USD",
+    employmentStatus: "full_time",
     selectedAllowances: [],
     selectedDeductions: [],
   });
+
+  // Auto-populate allowances when templates load
+  useEffect(() => {
+    if (allowanceTemplates && compensationData.selectedAllowances.length === 0) {
+      setCompensationData(prev => ({
+        ...prev,
+        selectedAllowances: allowanceTemplates.map(t => t.id),
+      }));
+    }
+  }, [allowanceTemplates]);
+
+  // Auto-populate deductions when templates load
+  useEffect(() => {
+    if (deductionTemplates && compensationData.selectedDeductions.length === 0) {
+      setCompensationData(prev => ({
+        ...prev,
+        selectedDeductions: deductionTemplates.map(t => t.id),
+      }));
+    }
+  }, [deductionTemplates]);
+
+  // Update currency when work location changes
+  useEffect(() => {
+    if (roleData.workLocationId && workLocations) {
+      const location = workLocations.find(w => w.id === roleData.workLocationId);
+      if (location?.currency) {
+        setCompensationData(prev => ({
+          ...prev,
+          currency: location.currency,
+        }));
+      }
+    }
+  }, [roleData.workLocationId, workLocations]);
 
   const [offerData, setOfferData] = useState<TeamOfferData>({
     sendOfferLetter: true,
@@ -159,6 +195,8 @@ export function AddTeamMemberWizard() {
         manager_id: roleData.managerId || null,
         join_date: roleData.startDate?.toISOString().split('T')[0] || null,
         salary: parseFloat(compensationData.salary) || null,
+        pay_frequency: "month",
+        employment_type: compensationData.employmentStatus,
         status: 'on_boarding',
         work_location_id: roleData.workLocationId || null,
         avatar_url: basicData.avatar || null,
@@ -220,7 +258,7 @@ export function AddTeamMemberWizard() {
           <TeamCompensationStep
             data={compensationData}
             onChange={setCompensationData}
-            workerType="employee"
+            workLocationId={roleData.workLocationId}
           />
         );
       case 4:
