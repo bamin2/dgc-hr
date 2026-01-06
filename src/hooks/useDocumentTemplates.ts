@@ -8,6 +8,7 @@ export interface DocumentTemplate {
   description: string | null;
   content: string;
   is_active: boolean;
+  docx_template_url: string | null;
   created_at: string;
   updated_at: string;
 }

@@ -612,6 +612,7 @@ export type Database = {
           content: string
           created_at: string
           description: string | null
+          docx_template_url: string | null
           id: string
           is_active: boolean | null
           name: string
@@ -622,6 +623,7 @@ export type Database = {
           content: string
           created_at?: string
           description?: string | null
+          docx_template_url?: string | null
           id?: string
           is_active?: boolean | null
           name: string
@@ -632,6 +634,7 @@ export type Database = {
           content?: string
           created_at?: string
           description?: string | null
+          docx_template_url?: string | null
           id?: string
           is_active?: boolean | null
           name?: string
