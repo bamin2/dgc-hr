@@ -27,6 +27,7 @@ interface EmployeeTableProps {
   onView: (employee: Employee) => void;
   onEdit: (employee: Employee) => void;
   onDelete: (employee: Employee) => void;
+  canEdit?: boolean;
 }
 
 export function EmployeeTable({
@@ -36,6 +37,7 @@ export function EmployeeTable({
   onView,
   onEdit,
   onDelete,
+  canEdit = true,
 }: EmployeeTableProps) {
   const allSelected = employees.length > 0 && employees.every(emp => selectedEmployees.includes(emp.id));
   const someSelected = employees.some(emp => selectedEmployees.includes(emp.id)) && !allSelected;
@@ -128,22 +130,26 @@ export function EmployeeTable({
                 </TableCell>
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   <div className="flex items-center justify-end gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                      onClick={() => onDelete(employee)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                      onClick={() => onEdit(employee)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
+                    {canEdit && (
+                      <>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          onClick={() => onDelete(employee)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                          onClick={() => onEdit(employee)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      </>
+                    )}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
@@ -158,15 +164,19 @@ export function EmployeeTable({
                         <DropdownMenuItem onClick={() => onView(employee)}>
                           View Profile
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onEdit(employee)}>
-                          Edit Employee
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={() => onDelete(employee)}
-                          className="text-destructive focus:text-destructive"
-                        >
-                          Delete Employee
-                        </DropdownMenuItem>
+                        {canEdit && (
+                          <>
+                            <DropdownMenuItem onClick={() => onEdit(employee)}>
+                              Edit Employee
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => onDelete(employee)}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              Delete Employee
+                            </DropdownMenuItem>
+                          </>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>

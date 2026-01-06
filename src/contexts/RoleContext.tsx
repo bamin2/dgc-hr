@@ -15,6 +15,7 @@ interface RoleContextType {
   canAccessManagement: boolean;
   canAccessCompany: boolean;
   canManageRoles: boolean;
+  canEditEmployees: boolean;
   getEmployeeRole: (employeeId: string) => AppRole;
   updateEmployeeRole: (employeeId: string, newRole: AppRole) => void;
   setCurrentUserRole: (role: AppRole) => void; // For demo purposes
@@ -130,6 +131,7 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
   const canAccessManagement = managementRoles.includes(effectiveRole);
   const canAccessCompany = managementRoles.includes(effectiveRole);
   const canManageRoles = effectiveRole === 'hr' || effectiveRole === 'admin';
+  const canEditEmployees = effectiveRole === 'hr' || effectiveRole === 'admin';
   
   // Impersonation toggle visibility based on actual role (not effective role)
   const canImpersonate = actualRole === 'hr' || actualRole === 'admin';
@@ -191,6 +193,7 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
         canAccessManagement,
         canAccessCompany,
         canManageRoles,
+        canEditEmployees,
         getEmployeeRole,
         updateEmployeeRole,
         setCurrentUserRole,
