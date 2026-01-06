@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -21,8 +22,10 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { LeaveType, SalaryDeductionTier, useCreateLeaveType, useUpdateLeaveType } from "@/hooks/useLeaveTypes";
 import { Plus, Trash2 } from "lucide-react";
+import { PublicHolidaysSection } from "./PublicHolidaysSection";
 
 const tierSchema = z.object({
   from_days: z.coerce.number().min(0, "Must be 0 or greater"),
@@ -87,9 +90,11 @@ export function LeaveTypeFormDialog({
   onOpenChange,
   leaveType,
 }: LeaveTypeFormDialogProps) {
+  const [activeTab, setActiveTab] = useState<"settings" | "holidays">("settings");
   const createLeaveType = useCreateLeaveType();
   const updateLeaveType = useUpdateLeaveType();
   const isEditing = !!leaveType;
+  const isPublicHolidayType = leaveType?.name?.toLowerCase() === 'public holiday';
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -171,8 +176,39 @@ export function LeaveTypeFormDialog({
           </DialogTitle>
         </DialogHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {isPublicHolidayType && isEditing ? (
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "settings" | "holidays")}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="settings">Settings</TabsTrigger>
+              <TabsTrigger value="holidays">Public Holidays</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="settings" className="mt-4">
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  {renderFormFields()}
+                </form>
+              </Form>
+            </TabsContent>
+            
+            <TabsContent value="holidays" className="mt-4">
+              <PublicHolidaysSection />
+            </TabsContent>
+          </Tabs>
+        ) : (
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              {renderFormFields()}
+            </form>
+          </Form>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+
+  function renderFormFields() {
+    return (
+      <>
             {/* Basic Info */}
             <div className="space-y-4">
               <h3 className="text-sm font-medium text-muted-foreground">Basic Information</h3>
@@ -624,9 +660,7 @@ export function LeaveTypeFormDialog({
                 {isEditing ? "Save Changes" : "Create Leave Type"}
               </Button>
             </div>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
-  );
+          </>
+        );
+      }
 }

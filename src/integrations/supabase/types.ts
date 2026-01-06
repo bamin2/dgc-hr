@@ -450,6 +450,7 @@ export type Database = {
           timezone: string | null
           updated_at: string | null
           website: string | null
+          weekend_days: number[] | null
           year_founded: string | null
         }
         Insert: {
@@ -474,6 +475,7 @@ export type Database = {
           timezone?: string | null
           updated_at?: string | null
           website?: string | null
+          weekend_days?: number[] | null
           year_founded?: string | null
         }
         Update: {
@@ -498,6 +500,7 @@ export type Database = {
           timezone?: string | null
           updated_at?: string | null
           website?: string | null
+          weekend_days?: number[] | null
           year_founded?: string | null
         }
         Relationships: []
@@ -2066,6 +2069,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      public_holidays: {
+        Row: {
+          compensation_reason: string | null
+          created_at: string | null
+          date: string
+          id: string
+          is_compensated: boolean | null
+          name: string
+          observed_date: string
+          updated_at: string | null
+          year: number
+        }
+        Insert: {
+          compensation_reason?: string | null
+          created_at?: string | null
+          date: string
+          id?: string
+          is_compensated?: boolean | null
+          name: string
+          observed_date: string
+          updated_at?: string | null
+          year: number
+        }
+        Update: {
+          compensation_reason?: string | null
+          created_at?: string | null
+          date?: string
+          id?: string
+          is_compensated?: boolean | null
+          name?: string
+          observed_date?: string
+          updated_at?: string | null
+          year?: number
+        }
+        Relationships: []
       }
       salary_history: {
         Row: {

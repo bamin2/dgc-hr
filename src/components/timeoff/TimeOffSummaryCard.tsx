@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMyLeaveBalances } from "@/hooks/useLeaveBalances";
 import { useLeaveRequests } from "@/hooks/useLeaveRequests";
+import { usePublicHolidays } from "@/hooks/usePublicHolidays";
 
 interface SummaryItemProps {
   icon: React.ReactNode;
@@ -35,10 +36,17 @@ function SummaryItem({ icon, bgColor, days, label, sublabel, link }: SummaryItem
 }
 
 export function TimeOffSummaryCard() {
+  const currentYear = new Date().getFullYear();
   const { data: balances, isLoading: balancesLoading } = useMyLeaveBalances();
   const { data: leaveRequests, isLoading: requestsLoading } = useLeaveRequests();
+  const { data: publicHolidays, isLoading: holidaysLoading } = usePublicHolidays(currentYear);
 
-  const isLoading = balancesLoading || requestsLoading;
+  const isLoading = balancesLoading || requestsLoading || holidaysLoading;
+  
+  // Count remaining public holidays (observed dates that haven't passed)
+  const remainingHolidays = publicHolidays?.filter(
+    h => new Date(h.observed_date) >= new Date()
+  ).length || 0;
 
   // Find Annual Leave balance specifically for "Available to book" and "Total allowance"
   const annualLeaveBalance = balances?.find(b => b.leave_type?.name === 'Annual Leave');
@@ -114,9 +122,9 @@ export function TimeOffSummaryCard() {
         <SummaryItem
           icon={<Flag className="w-5 h-5" />}
           bgColor="bg-rose-400"
-          days={0}
+          days={remainingHolidays}
           label="national holidays"
-          sublabel="See holiday list"
+          sublabel={`${publicHolidays?.length || 0} total in ${currentYear}`}
           link="#"
         />
         

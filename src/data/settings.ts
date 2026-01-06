@@ -23,6 +23,7 @@ export interface CompanySettings {
     timezone: string;
     dateFormat: string;
     currency: string;
+    weekendDays: number[]; // 0=Sunday, 1=Monday, ..., 5=Friday, 6=Saturday
   };
 }
 
@@ -124,7 +125,8 @@ export const companySettings: CompanySettings = {
     primaryColor: '#804EEC',
     timezone: 'America/Los_Angeles',
     dateFormat: 'MM/DD/YYYY',
-    currency: 'USD'
+    currency: 'USD',
+    weekendDays: [5, 6] // Friday-Saturday
   }
 };
 
