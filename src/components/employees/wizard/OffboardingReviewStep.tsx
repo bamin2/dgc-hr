@@ -17,12 +17,14 @@ import {
   type ExitInterviewData,
   type AssetItem,
   type AccessSystem,
-  departureReasons,
-  noticePeriodStatuses,
-  interviewFormats,
-} from "@/data/offboarding";
+} from "./OffboardingWizard";
+import {
+  departureReasonOptions,
+  noticePeriodStatusOptions,
+  interviewFormatOptions,
+} from "@/hooks/useOffboarding";
+import { useEmployees } from "@/hooks/useEmployees";
 import { format } from "date-fns";
-import { mockEmployees } from "@/data/employees";
 
 interface EmployeeInfo {
   firstName: string;
@@ -51,14 +53,16 @@ export function OffboardingReviewStep({
   notes,
   onNotesChange,
 }: OffboardingReviewStepProps) {
+  const { data: employees = [] } = useEmployees();
+
   const pendingAssets = assets.filter((a) => a.condition === "pending").length;
   const returnedAssets = assets.filter((a) => a.condition === "good" || a.condition === "damaged").length;
   const scheduledSystems = systems.filter((s) => s.status === "scheduled").length;
 
-  const interviewer = mockEmployees.find((e) => e.id === interviewData.interviewer);
-  const interviewFormat = interviewFormats.find((f) => f.value === interviewData.format);
-  const departureReason = departureReasons.find((r) => r.value === departureData.departureReason);
-  const noticePeriod = noticePeriodStatuses.find((s) => s.value === departureData.noticePeriodStatus);
+  const interviewer = employees.find((e) => e.id === interviewData.interviewer);
+  const interviewFormat = interviewFormatOptions.find((f) => f.value === interviewData.format);
+  const departureReason = departureReasonOptions.find((r) => r.value === departureData.departureReason);
+  const noticePeriod = noticePeriodStatusOptions.find((s) => s.value === departureData.noticePeriodStatus);
 
   return (
     <div className="space-y-6">

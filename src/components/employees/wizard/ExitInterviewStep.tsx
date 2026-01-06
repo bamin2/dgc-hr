@@ -11,8 +11,9 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { MessageSquare, ClipboardList, Video, FileText, Users } from "lucide-react";
-import { type ExitInterviewData, type InterviewFormat, interviewFormats } from "@/data/offboarding";
-import { mockEmployees } from "@/data/employees";
+import { type ExitInterviewData, type InterviewFormat } from "./OffboardingWizard";
+import { interviewFormatOptions } from "@/hooks/useOffboarding";
+import { useEmployees } from "@/hooks/useEmployees";
 
 interface ExitInterviewStepProps {
   interviewData: ExitInterviewData;
@@ -32,6 +33,8 @@ export function ExitInterviewStep({
   interviewData,
   onInterviewDataChange,
 }: ExitInterviewStepProps) {
+  const { data: employees = [] } = useEmployees();
+
   const updateField = <K extends keyof ExitInterviewData>(
     field: K,
     value: ExitInterviewData[K]
@@ -39,7 +42,7 @@ export function ExitInterviewStep({
     onInterviewDataChange({ ...interviewData, [field]: value });
   };
 
-  const hrEmployees = mockEmployees.filter(
+  const hrEmployees = employees.filter(
     (emp) => emp.department === "Human Resources"
   );
 
@@ -97,7 +100,7 @@ export function ExitInterviewStep({
               onValueChange={(value: InterviewFormat) => updateField("format", value)}
               className="grid grid-cols-3 gap-4"
             >
-              {interviewFormats.map((format) => (
+              {interviewFormatOptions.map((format) => (
                 <div key={format.value}>
                   <RadioGroupItem
                     value={format.value}

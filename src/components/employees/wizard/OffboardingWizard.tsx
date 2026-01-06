@@ -10,13 +10,17 @@ import { AssetReturnStep } from "./AssetReturnStep";
 import { AccessRevocationStep } from "./AccessRevocationStep";
 import { OffboardingReviewStep } from "./OffboardingReviewStep";
 import {
-  type EmployeeDepartureData,
-  type ExitInterviewData,
-  type AssetItem,
-  type AccessSystem,
-  defaultAssets,
-  defaultAccessSystems,
-} from "@/data/offboarding";
+  useCreateOffboarding,
+  defaultOffboardingAssets,
+  defaultOffboardingAccessSystems,
+  type DepartureReason,
+  type NoticePeriodStatus,
+  type InterviewFormat,
+  type AssetType,
+  type AssetCondition,
+  type AccessSystemType,
+  type AccessStatus,
+} from "@/hooks/useOffboarding";
 
 const steps = [
   { label: "Employee", description: "Departure details" },
@@ -26,7 +30,46 @@ const steps = [
   { label: "Review", description: "Confirm and launch" },
 ];
 
+// Re-export types from hook for use by step components
+export type { DepartureReason, NoticePeriodStatus, InterviewFormat, AssetType, AssetCondition, AccessSystemType, AccessStatus } from "@/hooks/useOffboarding";
+
+// Local state types for the wizard
+export interface EmployeeDepartureData {
+  lastWorkingDay: string;
+  departureReason: DepartureReason;
+  resignationLetterReceived: boolean;
+  noticePeriodStatus: NoticePeriodStatus;
+  managerConfirmed: boolean;
+}
+
+export interface ExitInterviewData {
+  scheduledDate: string;
+  scheduledTime: string;
+  interviewer: string;
+  format: InterviewFormat;
+  skipInterview: boolean;
+}
+
+export interface AssetItem {
+  id: string;
+  name: string;
+  type: AssetType;
+  serialNumber: string;
+  condition: AssetCondition;
+  notes: string;
+}
+
+export interface AccessSystem {
+  id: string;
+  name: string;
+  type: AccessSystemType;
+  accessLevel: string;
+  revocationDate: string;
+  status: AccessStatus;
+}
+
 interface EmployeeInfo {
+  id: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -41,6 +84,7 @@ interface OffboardingWizardProps {
 
 export function OffboardingWizard({ employee, onComplete }: OffboardingWizardProps) {
   const [currentStep, setCurrentStep] = useState(0);
+  const createOffboarding = useCreateOffboarding();
 
   // Step 1: Departure data
   const [departureData, setDepartureData] = useState<EmployeeDepartureData>({
@@ -60,14 +104,27 @@ export function OffboardingWizard({ employee, onComplete }: OffboardingWizardPro
     skipInterview: false,
   });
 
-  // Step 3: Assets
-  const [assets, setAssets] = useState<AssetItem[]>(defaultAssets);
+  // Step 3: Assets - convert from default database format to local format
+  const [assets, setAssets] = useState<AssetItem[]>(() =>
+    defaultOffboardingAssets.map((a, index) => ({
+      id: `default-${index}`,
+      name: a.name,
+      type: a.type as AssetType,
+      serialNumber: a.serial_number || "",
+      condition: a.condition as AssetCondition,
+      notes: a.notes || "",
+    }))
+  );
 
-  // Step 4: Access systems
+  // Step 4: Access systems - convert from default database format to local format
   const [systems, setSystems] = useState<AccessSystem[]>(() =>
-    defaultAccessSystems.map((s) => ({
-      ...s,
+    defaultOffboardingAccessSystems.map((s, index) => ({
+      id: `default-${index}`,
+      name: s.name,
+      type: s.type as AccessSystemType,
+      accessLevel: s.access_level || "Standard",
       revocationDate: departureData.lastWorkingDay,
+      status: s.status as AccessStatus,
     }))
   );
   const [itContact, setItContact] = useState("");
@@ -149,12 +206,57 @@ export function OffboardingWizard({ employee, onComplete }: OffboardingWizardPro
     setCurrentStep((prev) => Math.max(prev - 1, 0));
   };
 
-  const handleLaunch = () => {
-    toast({
-      title: "Offboarding launched!",
-      description: `Offboarding process has been initiated for ${employee.firstName} ${employee.lastName}.`,
-    });
-    onComplete?.();
+  const handleLaunch = async () => {
+    try {
+      await createOffboarding.mutateAsync({
+        record: {
+          employee_id: employee.id,
+          last_working_day: departureData.lastWorkingDay,
+          departure_reason: departureData.departureReason,
+          resignation_letter_received: departureData.resignationLetterReceived,
+          notice_period_status: departureData.noticePeriodStatus,
+          manager_confirmed: departureData.managerConfirmed,
+          it_contact_id: itContact || null,
+          data_backup_required: dataBackupRequired,
+          email_forwarding: emailForwarding,
+          notes: notes || null,
+          status: "in_progress",
+        },
+        interview: {
+          scheduled_date: interviewData.scheduledDate || null,
+          scheduled_time: interviewData.scheduledTime || null,
+          interviewer_id: interviewData.interviewer || null,
+          format: interviewData.format,
+          skip_interview: interviewData.skipInterview,
+        },
+        assets: assets.map((a) => ({
+          name: a.name,
+          type: a.type,
+          serial_number: a.serialNumber || null,
+          condition: a.condition,
+          notes: a.notes || null,
+        })),
+        accessSystems: systems.map((s) => ({
+          name: s.name,
+          type: s.type,
+          access_level: s.accessLevel || null,
+          revocation_date: s.revocationDate || null,
+          status: s.status,
+        })),
+      });
+
+      toast({
+        title: "Offboarding launched!",
+        description: `Offboarding process has been initiated for ${employee.firstName} ${employee.lastName}.`,
+      });
+      onComplete?.();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create offboarding record. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const renderStepContent = () => {
@@ -236,10 +338,11 @@ export function OffboardingWizard({ employee, onComplete }: OffboardingWizardPro
         ) : (
           <Button
             onClick={handleLaunch}
+            disabled={createOffboarding.isPending}
             className="gap-2 bg-red-600 hover:bg-red-700 text-white"
           >
             <Rocket className="h-4 w-4" />
-            Launch Offboarding
+            {createOffboarding.isPending ? "Launching..." : "Launch Offboarding"}
           </Button>
         )}
       </div>

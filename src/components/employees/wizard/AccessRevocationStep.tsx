@@ -20,9 +20,9 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ShieldOff, Plus, Trash2, Mail, Cloud, Building, Globe, KeyRound } from "lucide-react";
-import { type AccessSystem, type AccessSystemType, type AccessStatus } from "@/data/offboarding";
+import { type AccessSystem, type AccessSystemType, type AccessStatus } from "./OffboardingWizard";
 import { Badge } from "@/components/ui/badge";
-import { mockEmployees } from "@/data/employees";
+import { useEmployees } from "@/hooks/useEmployees";
 
 interface AccessRevocationStepProps {
   systems: AccessSystem[];
@@ -71,8 +71,9 @@ export function AccessRevocationStep({
 }: AccessRevocationStepProps) {
   const [newSystemName, setNewSystemName] = useState("");
   const [newSystemType, setNewSystemType] = useState<AccessSystemType>("cloud");
+  const { data: employees = [] } = useEmployees();
 
-  const itEmployees = mockEmployees.filter((emp) => emp.department === "Engineering");
+  const itEmployees = employees.filter((emp) => emp.department === "Engineering");
 
   const updateSystem = (id: string, field: keyof AccessSystem, value: string) => {
     onSystemsChange(

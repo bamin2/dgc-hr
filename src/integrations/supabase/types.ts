@@ -835,6 +835,63 @@ export type Database = {
           },
         ]
       }
+      exit_interviews: {
+        Row: {
+          completed: boolean | null
+          created_at: string
+          format: Database["public"]["Enums"]["interview_format"] | null
+          id: string
+          interviewer_id: string | null
+          notes: string | null
+          offboarding_record_id: string
+          scheduled_date: string | null
+          scheduled_time: string | null
+          skip_interview: boolean | null
+          updated_at: string
+        }
+        Insert: {
+          completed?: boolean | null
+          created_at?: string
+          format?: Database["public"]["Enums"]["interview_format"] | null
+          id?: string
+          interviewer_id?: string | null
+          notes?: string | null
+          offboarding_record_id: string
+          scheduled_date?: string | null
+          scheduled_time?: string | null
+          skip_interview?: boolean | null
+          updated_at?: string
+        }
+        Update: {
+          completed?: boolean | null
+          created_at?: string
+          format?: Database["public"]["Enums"]["interview_format"] | null
+          id?: string
+          interviewer_id?: string | null
+          notes?: string | null
+          offboarding_record_id?: string
+          scheduled_date?: string | null
+          scheduled_time?: string | null
+          skip_interview?: boolean | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exit_interviews_interviewer_id_fkey"
+            columns: ["interviewer_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exit_interviews_offboarding_record_id_fkey"
+            columns: ["offboarding_record_id"]
+            isOneToOne: false
+            referencedRelation: "offboarding_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leave_balances: {
         Row: {
           created_at: string | null
@@ -1111,6 +1168,192 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      offboarding_access_systems: {
+        Row: {
+          access_level: string | null
+          created_at: string
+          id: string
+          name: string
+          offboarding_record_id: string
+          revocation_date: string | null
+          revoked_at: string | null
+          revoked_by: string | null
+          status: Database["public"]["Enums"]["access_status"]
+          type: Database["public"]["Enums"]["access_system_type"]
+          updated_at: string
+        }
+        Insert: {
+          access_level?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          offboarding_record_id: string
+          revocation_date?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          status?: Database["public"]["Enums"]["access_status"]
+          type?: Database["public"]["Enums"]["access_system_type"]
+          updated_at?: string
+        }
+        Update: {
+          access_level?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          offboarding_record_id?: string
+          revocation_date?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          status?: Database["public"]["Enums"]["access_status"]
+          type?: Database["public"]["Enums"]["access_system_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offboarding_access_systems_offboarding_record_id_fkey"
+            columns: ["offboarding_record_id"]
+            isOneToOne: false
+            referencedRelation: "offboarding_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offboarding_access_systems_revoked_by_fkey"
+            columns: ["revoked_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      offboarding_assets: {
+        Row: {
+          condition: Database["public"]["Enums"]["asset_condition"]
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          offboarding_record_id: string
+          returned_at: string | null
+          serial_number: string | null
+          type: Database["public"]["Enums"]["asset_type"]
+          updated_at: string
+        }
+        Insert: {
+          condition?: Database["public"]["Enums"]["asset_condition"]
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string | null
+          offboarding_record_id: string
+          returned_at?: string | null
+          serial_number?: string | null
+          type?: Database["public"]["Enums"]["asset_type"]
+          updated_at?: string
+        }
+        Update: {
+          condition?: Database["public"]["Enums"]["asset_condition"]
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          offboarding_record_id?: string
+          returned_at?: string | null
+          serial_number?: string | null
+          type?: Database["public"]["Enums"]["asset_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offboarding_assets_offboarding_record_id_fkey"
+            columns: ["offboarding_record_id"]
+            isOneToOne: false
+            referencedRelation: "offboarding_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      offboarding_records: {
+        Row: {
+          created_at: string
+          data_backup_required: boolean | null
+          departure_reason: Database["public"]["Enums"]["departure_reason"]
+          email_forwarding: boolean | null
+          employee_id: string
+          hr_contact_id: string | null
+          id: string
+          it_contact_id: string | null
+          last_working_day: string
+          manager_confirmed: boolean | null
+          notes: string | null
+          notice_period_status:
+            | Database["public"]["Enums"]["notice_period_status"]
+            | null
+          resignation_letter_received: boolean | null
+          status: Database["public"]["Enums"]["offboarding_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          data_backup_required?: boolean | null
+          departure_reason?: Database["public"]["Enums"]["departure_reason"]
+          email_forwarding?: boolean | null
+          employee_id: string
+          hr_contact_id?: string | null
+          id?: string
+          it_contact_id?: string | null
+          last_working_day: string
+          manager_confirmed?: boolean | null
+          notes?: string | null
+          notice_period_status?:
+            | Database["public"]["Enums"]["notice_period_status"]
+            | null
+          resignation_letter_received?: boolean | null
+          status?: Database["public"]["Enums"]["offboarding_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          data_backup_required?: boolean | null
+          departure_reason?: Database["public"]["Enums"]["departure_reason"]
+          email_forwarding?: boolean | null
+          employee_id?: string
+          hr_contact_id?: string | null
+          id?: string
+          it_contact_id?: string | null
+          last_working_day?: string
+          manager_confirmed?: boolean | null
+          notes?: string | null
+          notice_period_status?:
+            | Database["public"]["Enums"]["notice_period_status"]
+            | null
+          resignation_letter_received?: boolean | null
+          status?: Database["public"]["Enums"]["offboarding_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offboarding_records_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offboarding_records_hr_contact_id_fkey"
+            columns: ["hr_contact_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offboarding_records_it_contact_id_fkey"
+            columns: ["it_contact_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       onboarding_records: {
         Row: {
@@ -1864,6 +2107,13 @@ export type Database = {
       }
     }
     Enums: {
+      access_status: "active" | "scheduled" | "revoked"
+      access_system_type:
+        | "email"
+        | "cloud"
+        | "internal"
+        | "third_party"
+        | "physical"
       activity_type:
         | "created"
         | "status_change"
@@ -1872,6 +2122,8 @@ export type Database = {
         | "comment"
         | "updated"
       app_role: "employee" | "manager" | "hr" | "admin"
+      asset_condition: "pending" | "good" | "damaged" | "missing"
+      asset_type: "hardware" | "keycard" | "documents" | "other"
       benefit_status: "active" | "inactive" | "pending"
       benefit_type:
         | "health"
@@ -1883,6 +2135,12 @@ export type Database = {
         | "wellness"
         | "other"
       claim_status: "pending" | "approved" | "rejected" | "processing"
+      departure_reason:
+        | "resignation"
+        | "termination"
+        | "retirement"
+        | "end_of_contract"
+        | "other"
       employee_status:
         | "active"
         | "on_leave"
@@ -1895,6 +2153,9 @@ export type Database = {
       event_recurrence: "none" | "daily" | "weekly" | "monthly"
       event_type: "meeting" | "event" | "reminder" | "task"
       gender_type: "male" | "female" | "other" | "prefer_not_to_say"
+      interview_format: "in_person" | "video" | "written"
+      notice_period_status: "serving" | "waived" | "garden_leave"
+      offboarding_status: "pending" | "in_progress" | "completed" | "cancelled"
       onboarding_status:
         | "pending"
         | "scheduled"
@@ -2045,6 +2306,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      access_status: ["active", "scheduled", "revoked"],
+      access_system_type: [
+        "email",
+        "cloud",
+        "internal",
+        "third_party",
+        "physical",
+      ],
       activity_type: [
         "created",
         "status_change",
@@ -2054,6 +2323,8 @@ export const Constants = {
         "updated",
       ],
       app_role: ["employee", "manager", "hr", "admin"],
+      asset_condition: ["pending", "good", "damaged", "missing"],
+      asset_type: ["hardware", "keycard", "documents", "other"],
       benefit_status: ["active", "inactive", "pending"],
       benefit_type: [
         "health",
@@ -2066,6 +2337,13 @@ export const Constants = {
         "other",
       ],
       claim_status: ["pending", "approved", "rejected", "processing"],
+      departure_reason: [
+        "resignation",
+        "termination",
+        "retirement",
+        "end_of_contract",
+        "other",
+      ],
       employee_status: [
         "active",
         "on_leave",
@@ -2079,6 +2357,9 @@ export const Constants = {
       event_recurrence: ["none", "daily", "weekly", "monthly"],
       event_type: ["meeting", "event", "reminder", "task"],
       gender_type: ["male", "female", "other", "prefer_not_to_say"],
+      interview_format: ["in_person", "video", "written"],
+      notice_period_status: ["serving", "waived", "garden_leave"],
+      offboarding_status: ["pending", "in_progress", "completed", "cancelled"],
       onboarding_status: [
         "pending",
         "scheduled",
