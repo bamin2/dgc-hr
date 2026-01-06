@@ -1,7 +1,8 @@
 import { useState, useMemo, useEffect } from "react";
-import { Users, Building2, Loader2 } from "lucide-react";
+import { Users, Building2, Loader2, Upload } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Sidebar, Header } from "@/components/dashboard";
+import { Button } from "@/components/ui/button";
 import {
   EmployeeFilters,
   EmployeeTable,
@@ -9,6 +10,7 @@ import {
   TablePagination,
   OrgChart,
   EmployeeExportButton,
+  EmployeeImportDialog,
 } from "@/components/employees";
 import {
   useEmployees,
@@ -50,6 +52,7 @@ export default function Employees() {
   // Form modal state
   const [formOpen, setFormOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
 
   // Reset to page 1 when filters change
   useEffect(() => {
@@ -187,7 +190,13 @@ export default function Employees() {
             <h1 className="text-2xl font-semibold text-foreground">People Directory</h1>
             
             {canEditEmployees && (
-              <EmployeeExportButton employees={filteredEmployees} />
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setImportOpen(true)} className="gap-2">
+                  <Upload className="h-4 w-4" />
+                  Import
+                </Button>
+                <EmployeeExportButton employees={filteredEmployees} />
+              </div>
             )}
           </div>
 
@@ -311,6 +320,12 @@ export default function Employees() {
         onOpenChange={setFormOpen}
         employee={editingEmployee}
         onSave={handleSave}
+      />
+
+      {/* Employee Import Dialog */}
+      <EmployeeImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
       />
     </div>
   );

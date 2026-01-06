@@ -27,4 +27,5 @@ export { CreateLoginDialog } from "./CreateLoginDialog";
 export { ResetPasswordDialog } from "./ResetPasswordDialog";
 export { SalaryHistoryCard } from "./SalaryHistoryCard";
 export { EmployeeExportButton } from "./EmployeeExportButton";
+export { EmployeeImportDialog } from "./EmployeeImportDialog";
 export * from "./wizard";
