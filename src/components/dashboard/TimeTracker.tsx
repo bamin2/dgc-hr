@@ -5,6 +5,20 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useClockInOut } from "@/hooks/useClockInOut";
+import { format } from "date-fns";
+
+// Safely parse a time string (HH:mm:ss or HH:mm:ss.SSS) into a Date
+const parseTimeToDate = (timeStr: string | null | undefined): Date | null => {
+  if (!timeStr) return null;
+  try {
+    const today = format(new Date(), "yyyy-MM-dd");
+    const cleanTime = timeStr.split('.')[0]; // Remove milliseconds if present
+    const date = new Date(`${today}T${cleanTime}`);
+    return isNaN(date.getTime()) ? null : date;
+  } catch {
+    return null;
+  }
+};
 
 export function TimeTracker() {
   const { todayRecord, isLoading, isClockedIn, isClockedOut, clockIn, clockOut, employeeId } =
@@ -18,29 +32,30 @@ export function TimeTracker() {
       return;
     }
 
-    const checkInTime = new Date(todayRecord.check_in);
+    const checkInTime = parseTimeToDate(todayRecord.check_in);
+    if (!checkInTime) {
+      setSeconds(0);
+      return;
+    }
 
     if (isClockedOut && todayRecord.check_out) {
-      // Show static total time
-      const checkOutTime = new Date(todayRecord.check_out);
-      const elapsed = Math.floor((checkOutTime.getTime() - checkInTime.getTime()) / 1000);
-      setSeconds(elapsed);
+      const checkOutTime = parseTimeToDate(todayRecord.check_out);
+      if (checkOutTime) {
+        const elapsed = Math.floor((checkOutTime.getTime() - checkInTime.getTime()) / 1000);
+        setSeconds(Math.max(0, elapsed));
+      }
       return;
     }
 
     if (isClockedIn) {
-      // Calculate initial elapsed time
-      const now = new Date();
-      const elapsed = Math.floor((now.getTime() - checkInTime.getTime()) / 1000);
-      setSeconds(elapsed);
+      const updateElapsed = () => {
+        const now = new Date();
+        const elapsed = Math.floor((now.getTime() - checkInTime.getTime()) / 1000);
+        setSeconds(Math.max(0, elapsed));
+      };
 
-      // Start interval to update every second
-      const interval = setInterval(() => {
-        const current = new Date();
-        const newElapsed = Math.floor((current.getTime() - checkInTime.getTime()) / 1000);
-        setSeconds(newElapsed);
-      }, 1000);
-
+      updateElapsed();
+      const interval = setInterval(updateElapsed, 1000);
       return () => clearInterval(interval);
     }
   }, [todayRecord, isClockedIn, isClockedOut]);
