@@ -407,6 +407,7 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
                     <SelectItem value="active">Active</SelectItem>
                     <SelectItem value="probation">Probation</SelectItem>
                     <SelectItem value="on_leave">On Leave</SelectItem>
+                    <SelectItem value="resigned">Resigned</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
