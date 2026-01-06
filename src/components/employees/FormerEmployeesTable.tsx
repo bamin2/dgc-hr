@@ -167,44 +167,37 @@ export function FormerEmployeesTable() {
                         )}
                       </TableCell>
                       <TableCell>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div className="flex items-center gap-1.5">
-                                {employee.exitInterviewCompleted === true ? (
-                                  <>
-                                    <CheckCircle className="h-4 w-4 text-emerald-500" />
-                                    <span className="text-sm text-emerald-600 dark:text-emerald-400">
-                                      Completed
-                                    </span>
-                                  </>
-                                ) : employee.exitInterviewCompleted === false ? (
-                                  <>
-                                    <Clock className="h-4 w-4 text-amber-500" />
-                                    <span className="text-sm text-amber-600 dark:text-amber-400">
-                                      Pending
-                                    </span>
-                                  </>
-                                ) : (
-                                  <span className="text-muted-foreground">—</span>
-                                )}
-                              </div>
-                            </TooltipTrigger>
-                            {employee.exitInterviewNotes && (
-                              <TooltipContent
-                                side="left"
-                                className="max-w-xs"
-                              >
-                                <div className="flex items-start gap-2">
-                                  <FileText className="h-4 w-4 mt-0.5 shrink-0" />
-                                  <p className="text-sm">
-                                    {employee.exitInterviewNotes}
-                                  </p>
-                                </div>
-                              </TooltipContent>
-                            )}
-                          </Tooltip>
-                        </TooltipProvider>
+                        {employee.exitInterviewCompleted === true ? (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button className="flex items-center gap-1.5 cursor-default">
+                                  <CheckCircle className="h-4 w-4 text-emerald-500" />
+                                  <span className="text-sm text-emerald-600 dark:text-emerald-400">
+                                    Completed
+                                  </span>
+                                </button>
+                              </TooltipTrigger>
+                              {employee.exitInterviewNotes && (
+                                <TooltipContent side="left" className="max-w-xs">
+                                  <div className="flex items-start gap-2">
+                                    <FileText className="h-4 w-4 mt-0.5 shrink-0" />
+                                    <p className="text-sm">{employee.exitInterviewNotes}</p>
+                                  </div>
+                                </TooltipContent>
+                              )}
+                            </Tooltip>
+                          </TooltipProvider>
+                        ) : employee.exitInterviewCompleted === false ? (
+                          <div className="flex items-center gap-1.5">
+                            <Clock className="h-4 w-4 text-amber-500" />
+                            <span className="text-sm text-amber-600 dark:text-amber-400">
+                              Pending
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         <StatusBadge status={employee.status} />
