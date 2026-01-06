@@ -1,3 +1,28 @@
+// Dashboard Card Visibility
+export interface DashboardCardVisibility {
+  metrics: boolean;
+  timeTracker: boolean;
+  projectEvaluation: boolean;
+  calendarWidget: boolean;
+  workHoursChart: boolean;
+  dailyTimeLimits: boolean;
+  meetingCards: boolean;
+  announcements: boolean;
+  attendanceOverview: boolean;
+}
+
+export const defaultDashboardCardVisibility: DashboardCardVisibility = {
+  metrics: true,
+  timeTracker: true,
+  projectEvaluation: true,
+  calendarWidget: true,
+  workHoursChart: true,
+  dailyTimeLimits: true,
+  meetingCards: true,
+  announcements: true,
+  attendanceOverview: true,
+};
+
 // Company Settings
 export interface CompanySettings {
   id: string;
@@ -25,6 +50,7 @@ export interface CompanySettings {
     currency: string;
     weekendDays: number[]; // 0=Sunday, 1=Monday, ..., 5=Friday, 6=Saturday
   };
+  dashboardCardVisibility?: DashboardCardVisibility;
 }
 
 // User Preferences

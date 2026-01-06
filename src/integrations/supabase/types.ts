@@ -532,6 +532,7 @@ export type Database = {
           company_size: string | null
           created_at: string | null
           currency: string | null
+          dashboard_card_visibility: Json | null
           date_format: string | null
           email: string | null
           id: string
@@ -557,6 +558,7 @@ export type Database = {
           company_size?: string | null
           created_at?: string | null
           currency?: string | null
+          dashboard_card_visibility?: Json | null
           date_format?: string | null
           email?: string | null
           id?: string
@@ -582,6 +584,7 @@ export type Database = {
           company_size?: string | null
           created_at?: string | null
           currency?: string | null
+          dashboard_card_visibility?: Json | null
           date_format?: string | null
           email?: string | null
           id?: string
