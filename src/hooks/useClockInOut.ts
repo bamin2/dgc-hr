@@ -52,7 +52,7 @@ export function useClockInOut() {
   const clockIn = useMutation({
     mutationFn: async () => {
       if (!employeeId) throw new Error("No employee ID found");
-      const now = new Date().toISOString();
+      const now = format(new Date(), "HH:mm:ss");
 
       const { data, error } = await supabase
         .from("attendance_records")
@@ -88,13 +88,14 @@ export function useClockInOut() {
       if (!todayRecord?.check_in) throw new Error("No check-in record found");
 
       const now = new Date();
-      const checkInTime = new Date(todayRecord.check_in);
+      const nowTime = format(now, "HH:mm:ss");
+      const checkInTime = new Date(`${today}T${todayRecord.check_in}`);
       const workHours = (now.getTime() - checkInTime.getTime()) / (1000 * 60 * 60);
 
       const { data, error } = await supabase
         .from("attendance_records")
         .update({
-          check_out: now.toISOString(),
+          check_out: nowTime,
           work_hours: Math.round(workHours * 100) / 100,
         })
         .eq("employee_id", employeeId)
