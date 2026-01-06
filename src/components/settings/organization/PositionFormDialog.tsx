@@ -9,6 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -31,9 +32,10 @@ interface PositionFormDialogProps {
     title: string;
     department_id: string | null;
     level: number | null;
+    job_description: string | null;
   } | null;
   departments: Department[];
-  onSubmit: (data: { title: string; department_id?: string | null; level?: number | null }) => Promise<void>;
+  onSubmit: (data: { title: string; department_id?: string | null; level?: number | null; job_description?: string | null }) => Promise<void>;
   isLoading: boolean;
 }
 
@@ -48,16 +50,19 @@ export function PositionFormDialog({
   const [title, setTitle] = useState('');
   const [departmentId, setDepartmentId] = useState<string>('none');
   const [level, setLevel] = useState<number>(1);
+  const [jobDescription, setJobDescription] = useState('');
 
   useEffect(() => {
     if (position) {
       setTitle(position.title);
       setDepartmentId(position.department_id || 'none');
       setLevel(position.level ?? 1);
+      setJobDescription(position.job_description || '');
     } else {
       setTitle('');
       setDepartmentId('none');
       setLevel(1);
+      setJobDescription('');
     }
   }, [position, open]);
 
@@ -69,6 +74,7 @@ export function PositionFormDialog({
       title: title.trim(),
       department_id: departmentId === 'none' ? null : departmentId,
       level,
+      job_description: jobDescription.trim() || null,
     });
   };
 
@@ -120,6 +126,16 @@ export function PositionFormDialog({
             <p className="text-xs text-muted-foreground">
               Higher levels indicate more senior positions
             </p>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="jobDescription">Job Description</Label>
+            <Textarea
+              id="jobDescription"
+              value={jobDescription}
+              onChange={(e) => setJobDescription(e.target.value)}
+              placeholder="Describe the responsibilities, requirements, and qualifications..."
+              rows={4}
+            />
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

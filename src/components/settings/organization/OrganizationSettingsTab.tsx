@@ -1,3 +1,5 @@
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Building2, Briefcase, MapPin } from 'lucide-react';
 import { DepartmentsSection } from './DepartmentsSection';
 import { PositionsSection } from './PositionsSection';
 import { WorkLocationsSection } from './WorkLocationsSection';
@@ -12,12 +14,34 @@ export function OrganizationSettingsTab() {
         </p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <DepartmentsSection />
-        <PositionsSection />
-      </div>
-
-      <WorkLocationsSection />
+      <Tabs defaultValue="departments" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="departments" className="flex items-center gap-2">
+            <Building2 className="h-4 w-4" />
+            Departments
+          </TabsTrigger>
+          <TabsTrigger value="positions" className="flex items-center gap-2">
+            <Briefcase className="h-4 w-4" />
+            Positions
+          </TabsTrigger>
+          <TabsTrigger value="locations" className="flex items-center gap-2">
+            <MapPin className="h-4 w-4" />
+            Work Locations
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="departments" className="mt-4">
+          <DepartmentsSection />
+        </TabsContent>
+        
+        <TabsContent value="positions" className="mt-4">
+          <PositionsSection />
+        </TabsContent>
+        
+        <TabsContent value="locations" className="mt-4">
+          <WorkLocationsSection />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

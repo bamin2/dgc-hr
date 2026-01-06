@@ -1,20 +1,22 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-interface Position {
+export interface Position {
   id: string;
   title: string;
   department_id: string | null;
   department_name: string | null;
   level: number | null;
+  job_description: string | null;
   created_at: string;
   employeeCount: number;
 }
 
-interface PositionInput {
+export interface PositionInput {
   title: string;
   department_id?: string | null;
   level?: number | null;
+  job_description?: string | null;
 }
 
 async function fetchPositionsWithCounts(): Promise<Position[]> {
@@ -48,6 +50,7 @@ async function fetchPositionsWithCounts(): Promise<Position[]> {
     department_id: pos.department_id,
     department_name: (pos.departments as { name: string } | null)?.name || null,
     level: pos.level,
+    job_description: pos.job_description,
     created_at: pos.created_at,
     employeeCount: countMap.get(pos.id) || 0,
   }));
@@ -71,6 +74,7 @@ export function useCreatePosition() {
           title: input.title,
           department_id: input.department_id || null,
           level: input.level ?? 1,
+          job_description: input.job_description || null,
         })
         .select()
         .single();
@@ -96,6 +100,7 @@ export function useUpdatePosition() {
           title: input.title,
           department_id: input.department_id || null,
           level: input.level ?? 1,
+          job_description: input.job_description || null,
         })
         .eq('id', id)
         .select()

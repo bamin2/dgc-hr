@@ -24,14 +24,7 @@ import {
 import { useDepartmentsManagement } from '@/hooks/useDepartmentsManagement';
 import { PositionFormDialog } from './PositionFormDialog';
 
-interface Position {
-  id: string;
-  title: string;
-  department_id: string | null;
-  department_name: string | null;
-  level: number | null;
-  employeeCount: number;
-}
+import { Position } from '@/hooks/usePositionsManagement';
 
 export function PositionsSection() {
   const { data: positions, isLoading } = usePositionsManagement();
@@ -54,7 +47,7 @@ export function PositionsSection() {
     setFormOpen(true);
   };
 
-  const handleSubmit = async (data: { title: string; department_id?: string | null; level?: number | null }) => {
+  const handleSubmit = async (data: { title: string; department_id?: string | null; level?: number | null; job_description?: string | null }) => {
     try {
       if (editingPosition) {
         await updateMutation.mutateAsync({ id: editingPosition.id, ...data });
@@ -141,6 +134,11 @@ export function PositionsSection() {
                     {pos.department_name && (
                       <p className="text-sm text-muted-foreground">
                         {pos.department_name}
+                      </p>
+                    )}
+                    {pos.job_description && (
+                      <p className="text-sm text-muted-foreground line-clamp-1 mt-0.5">
+                        {pos.job_description}
                       </p>
                     )}
                   </div>
