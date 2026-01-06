@@ -29,8 +29,9 @@ export function employeeToOrgEmployee(employee: Employee): OrgEmployee {
 /**
  * Check if a position is a top-level executive position
  */
-function isTopLevelPosition(position: string): boolean {
-  const normalizedPosition = position.toLowerCase().trim();
+export function isTopLevelPosition(employee: { position?: string | null }): boolean {
+  if (!employee.position) return false;
+  const normalizedPosition = employee.position.toLowerCase().trim();
   return TOP_LEVEL_POSITIONS.some(
     (topPos) =>
       normalizedPosition === topPos || normalizedPosition.includes(topPos)
@@ -43,7 +44,7 @@ function isTopLevelPosition(position: string): boolean {
 export function findRootEmployees(employees: Employee[]): Employee[] {
   // First, find employees without a manager AND with top-level positions
   const topLevelRoots = employees.filter(
-    (emp) => !emp.managerId && isTopLevelPosition(emp.position)
+    (emp) => !emp.managerId && isTopLevelPosition(emp)
   );
 
   // If we found top-level executives, return them

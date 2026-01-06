@@ -178,6 +178,30 @@ export default function Employees() {
     }
   };
 
+  const handleBulkReassign = async (assignments: { employeeId: string; managerId: string }[]) => {
+    try {
+      await Promise.all(
+        assignments.map(({ employeeId, managerId }) => 
+          updateEmployee.mutateAsync({
+            id: employeeId,
+            manager_id: managerId,
+          })
+        )
+      );
+      toast({
+        title: "Managers assigned",
+        description: `Updated ${assignments.length} employee(s).`,
+      });
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to assign managers. Please try again.",
+        variant: "destructive",
+      });
+      throw err;
+    }
+  };
+
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />
@@ -312,6 +336,7 @@ export default function Employees() {
                     }
                   }}
                   onReassign={handleReassign}
+                  onBulkReassign={handleBulkReassign}
                 />
               )}
             </>
