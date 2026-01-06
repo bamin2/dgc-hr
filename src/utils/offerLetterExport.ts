@@ -5,34 +5,9 @@ import Docxtemplater from 'docxtemplater';
 import { saveAs } from 'file-saver';
 import { supabase } from '@/integrations/supabase/client';
 
-export interface DocxTemplateData {
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  phone?: string;
-  nationality?: string;
-  salary?: string;
-  startDate?: string;
-  positionTitle?: string;
-  departmentName?: string;
-  workLocationName?: string;
-  currency?: string;
-  managerFirstName?: string;
-  managerLastName?: string;
-  companyName?: string;
-  companyLegalName?: string;
-  companyEmail?: string;
-  companyPhone?: string;
-  companyStreet?: string;
-  companyCity?: string;
-  companyState?: string;
-  companyCountry?: string;
-  companyZipCode?: string;
-  signatureTitle?: string;
-  signatureName?: string;
-  currentDate?: string;
-  offerExpiryDate?: string;
-}
+// DocxTemplateData uses smart tag names (with spaces) as keys
+// e.g., "First Name", "Company Name", etc.
+export type DocxTemplateData = Record<string, string | number | undefined | null>;
 
 function getFormattedDate(): string {
   const now = new Date();
@@ -171,10 +146,14 @@ export async function exportOfferLetterToDocx(
   // Load the template with PizZip
   const zip = new PizZip(arrayBuffer);
   
-  // Create docxtemplater instance
+  // Create docxtemplater instance with custom delimiters for <<tag>> syntax
   const doc = new Docxtemplater(zip, {
     paragraphLoop: true,
     linebreaks: true,
+    delimiters: {
+      start: '<<',
+      end: '>>',
+    },
   });
 
   // Render the document with data

@@ -113,33 +113,55 @@ export function TeamOfferStep({
     try {
       const employeeName = `${basicData.firstName} ${basicData.lastName}`.trim() || "employee";
       
+      // Build company full address
+      const addressParts = [
+        companySettings?.address?.street,
+        companySettings?.address?.city,
+        companySettings?.address?.state,
+        companySettings?.address?.zipCode,
+        companySettings?.address?.country,
+      ].filter(Boolean);
+      const companyFullAddress = addressParts.join(', ');
+
+      // Build manager full name
+      const managerFullName = manager ? `${manager.firstName} ${manager.lastName}`.trim() : '';
+
+      // DocxTemplateData keys must match smart tag names exactly (without << >>)
       const docxData: DocxTemplateData = {
-        firstName: basicData.firstName,
-        lastName: basicData.lastName,
-        email: basicData.email,
-        phone: basicData.mobileNumber,
-        nationality: basicData.nationality,
-        salary: compensationData.salary ? parseFloat(compensationData.salary).toLocaleString() : '',
-        startDate: roleData.startDate ? format(roleData.startDate, 'MMMM d, yyyy') : '',
-        positionTitle: position?.title,
-        departmentName: department?.name,
-        workLocationName: workLocation?.name,
-        currency: workLocation?.currency || compensationData.currency,
-        managerFirstName: manager?.firstName,
-        managerLastName: manager?.lastName,
-        companyName: companySettings?.name,
-        companyLegalName: companySettings?.legalName || undefined,
-        companyEmail: companySettings?.email || undefined,
-        companyPhone: companySettings?.phone || undefined,
-        companyStreet: companySettings?.address?.street || undefined,
-        companyCity: companySettings?.address?.city || undefined,
-        companyState: companySettings?.address?.state || undefined,
-        companyCountry: companySettings?.address?.country || undefined,
-        companyZipCode: companySettings?.address?.zipCode || undefined,
-        signatureTitle: data.signatureTitle,
-        signatureName: data.signatureName,
-        currentDate: format(new Date(), 'MMMM d, yyyy'),
-        offerExpiryDate: data.expirationDate ? format(data.expirationDate, 'MMMM d, yyyy') : undefined,
+        // Employee fields
+        "First Name": basicData.firstName,
+        "Last Name": basicData.lastName,
+        "Full Name": `${basicData.firstName} ${basicData.lastName}`.trim(),
+        "Email": basicData.email,
+        "Phone": basicData.mobileNumber,
+        "Nationality": basicData.nationality,
+        
+        // Employment fields
+        "Job Title": position?.title,
+        "Department": department?.name,
+        "Start Date": roleData.startDate ? format(roleData.startDate, 'MMMM d, yyyy') : '',
+        "Work Location": workLocation?.name,
+        "Manager Name": managerFullName,
+        
+        // Compensation fields
+        "Salary": compensationData.salary ? parseFloat(compensationData.salary).toLocaleString() : '',
+        "Currency": workLocation?.currency || compensationData.currency,
+        
+        // Company fields
+        "Company Name": companySettings?.name,
+        "Company Legal Name": companySettings?.legalName || '',
+        "Company Address": companyFullAddress,
+        "Company Email": companySettings?.email || '',
+        "Company Phone": companySettings?.phone || '',
+        
+        // Signature fields
+        "Signature Title": data.signatureTitle,
+        "Signature Name": data.signatureName,
+        
+        // Date fields
+        "Current Date": format(new Date(), 'MMMM d, yyyy'),
+        "Current Year": format(new Date(), 'yyyy'),
+        "Offer Expiry Date": data.expirationDate ? format(data.expirationDate, 'MMMM d, yyyy') : '',
       };
 
       await exportOfferLetterToDocx(selectedTemplate.docx_template_url, docxData, employeeName);
