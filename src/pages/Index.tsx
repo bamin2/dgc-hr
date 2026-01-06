@@ -10,6 +10,7 @@ import {
   MeetingCards,
   Announcements,
   AttendanceOverview,
+  ImpersonationBanner,
 } from "@/components/dashboard";
 
 const Index = () => {
@@ -20,6 +21,9 @@ const Index = () => {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
+        {/* Impersonation Banner */}
+        <ImpersonationBanner />
+        
         {/* Header */}
         <Header />
 

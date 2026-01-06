@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Search, ChevronDown, LogOut, User, Settings } from "lucide-react";
+import { Search, ChevronDown, LogOut, User, Settings, Eye } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Switch } from "@/components/ui/switch";
 import { NotificationBell } from "@/components/notifications";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
@@ -18,7 +19,7 @@ import { RoleBadge } from "@/components/employees";
 export function Header() {
   const navigate = useNavigate();
   const { signOut, profile } = useAuth();
-  const { currentUser } = useRole();
+  const { currentUser, canImpersonate, isImpersonating, startImpersonation, stopImpersonation } = useRole();
 
   const handleSignOut = async () => {
     await signOut();
@@ -85,7 +86,7 @@ export function Header() {
                 <ChevronDown className="w-4 h-4 text-muted-foreground" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuItem onClick={() => navigate('/employees/' + currentUser.id)}>
                 <User className="w-4 h-4 mr-2" />
                 Profile
@@ -94,6 +95,37 @@ export function Header() {
                 <Settings className="w-4 h-4 mr-2" />
                 Settings
               </DropdownMenuItem>
+              {canImpersonate && (
+                <>
+                  <DropdownMenuSeparator />
+                  <div 
+                    className="flex items-center justify-between px-2 py-1.5 cursor-pointer hover:bg-accent rounded-sm"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (isImpersonating) {
+                        stopImpersonation();
+                      } else {
+                        startImpersonation();
+                      }
+                    }}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Eye className="w-4 h-4" />
+                      <span className="text-sm">View as Employee</span>
+                    </div>
+                    <Switch 
+                      checked={isImpersonating} 
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          startImpersonation();
+                        } else {
+                          stopImpersonation();
+                        }
+                      }}
+                    />
+                  </div>
+                </>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem 
                 className="text-destructive focus:text-destructive"
