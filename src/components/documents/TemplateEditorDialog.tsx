@@ -179,7 +179,8 @@ export function TemplateEditorDialog({
           <div className="space-y-2 pt-4 border-t">
             <Label>Word Template (.docx)</Label>
             <p className="text-sm text-muted-foreground">
-              Upload a .docx file with {'{placeholders}'} for Word document export (e.g., {'{firstName}'}, {'{companyName}'})
+              Upload a .docx file using the same smart tags as HTML templates (e.g., <code className="bg-muted px-1 rounded">{"<<First Name>>"}</code>, <code className="bg-muted px-1 rounded">{"<<Company Name>>"}</code>).
+              Make sure tags are typed as continuous text without styling changes inside.
             </p>
 
             {docxTemplateUrl ? (
