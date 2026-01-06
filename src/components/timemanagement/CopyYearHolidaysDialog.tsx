@@ -17,7 +17,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   usePublicHolidays,
   useBulkCreatePublicHolidays,
-  calculateGroupedHolidayCompensation,
+  calculateHolidaysCompensation,
 } from '@/hooks/usePublicHolidays';
 import { useCompanySettingsDb } from '@/hooks/useCompanySettingsDb';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -72,34 +72,27 @@ export function CopyYearHolidaysDialog({
       date: addYears(parseISO(h.date), 1),
     }));
     
-    // Combine with existing target holidays if not clearing
-    const existingTargetDates = clearExisting 
-      ? [] 
-      : (targetHolidays?.map(h => ({ name: h.name, date: parseISO(h.date) })) || []);
+    // Get existing target holidays' observed dates if not clearing
+    const existingObservedDates = clearExisting 
+      ? new Set<string>() 
+      : new Set(targetHolidays?.map(h => h.observed_date) || []);
     
-    const allHolidayDates = [...existingTargetDates, ...shiftedHolidays];
-    
-    // Calculate compensation
-    const compensationResults = calculateGroupedHolidayCompensation(
-      allHolidayDates,
-      weekendDays
+    // Calculate compensation using the new function that groups only consecutive holidays
+    const compensationResults = calculateHolidaysCompensation(
+      shiftedHolidays,
+      weekendDays,
+      existingObservedDates
     );
     
-    // Get results for new holidays only
-    const holidaysToCreate = shiftedHolidays.map(holiday => {
-      const result = compensationResults.find(
-        r => format(r.date, 'yyyy-MM-dd') === format(holiday.date, 'yyyy-MM-dd') && r.name === holiday.name
-      );
-      
-      return {
-        name: holiday.name,
-        date: format(holiday.date, 'yyyy-MM-dd'),
-        observed_date: format(result?.observedDate || holiday.date, 'yyyy-MM-dd'),
-        year: targetYear,
-        is_compensated: result?.isCompensated || false,
-        compensation_reason: result?.reason || null,
-      };
-    });
+    // Map results to create payload
+    const holidaysToCreate = compensationResults.map(result => ({
+      name: result.name,
+      date: format(result.date, 'yyyy-MM-dd'),
+      observed_date: format(result.observedDate, 'yyyy-MM-dd'),
+      year: targetYear,
+      is_compensated: result.isCompensated,
+      compensation_reason: result.reason,
+    }));
     
     bulkCreate.mutate(holidaysToCreate, {
       onSuccess: () => {
