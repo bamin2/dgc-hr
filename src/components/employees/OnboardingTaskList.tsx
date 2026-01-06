@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { OnboardingTask, TaskCategory } from "@/data/onboarding";
 import { TaskStatusBadge } from "./TaskStatusBadge";
 import { AssigneeBadge } from "./AssigneeBadge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -19,15 +18,33 @@ import {
   Shield,
   Calendar,
   CheckCircle2,
-  AlertCircle,
 } from "lucide-react";
+import { TaskCategory, TaskAssignee, TaskStatus } from "@/hooks/useOnboarding";
+
+// Legacy task interface for component compatibility
+interface LegacyTask {
+  id: string;
+  title: string;
+  description: string;
+  category: TaskCategory;
+  dueDate: string;
+  assignedTo: TaskAssignee;
+  status: TaskStatus;
+  completedAt: string | null;
+  completedBy: string | null;
+  required: boolean;
+  order: number;
+}
 
 interface OnboardingTaskListProps {
-  tasks: OnboardingTask[];
+  tasks: LegacyTask[];
   onTaskToggle?: (taskId: string, completed: boolean) => void;
 }
 
-const categoryConfig: Record<TaskCategory, { label: string; icon: React.ElementType; color: string }> = {
+const categoryConfig: Record<
+  TaskCategory,
+  { label: string; icon: React.ElementType; color: string }
+> = {
   documentation: {
     label: "Documentation",
     icon: FileText,
@@ -59,17 +76,20 @@ export function OnboardingTaskList({ tasks, onTaskToggle }: OnboardingTaskListPr
   const [expandedTask, setExpandedTask] = useState<string | null>(null);
 
   // Group tasks by category
-  const tasksByCategory = tasks.reduce((acc, task) => {
-    if (!acc[task.category]) {
-      acc[task.category] = [];
-    }
-    acc[task.category].push(task);
-    return acc;
-  }, {} as Record<TaskCategory, OnboardingTask[]>);
+  const tasksByCategory = tasks.reduce(
+    (acc, task) => {
+      if (!acc[task.category]) {
+        acc[task.category] = [];
+      }
+      acc[task.category].push(task);
+      return acc;
+    },
+    {} as Record<TaskCategory, LegacyTask[]>
+  );
 
   const categories = Object.keys(tasksByCategory) as TaskCategory[];
 
-  const getCategoryProgress = (categoryTasks: OnboardingTask[]) => {
+  const getCategoryProgress = (categoryTasks: LegacyTask[]) => {
     const completed = categoryTasks.filter((t) => t.status === "completed").length;
     return Math.round((completed / categoryTasks.length) * 100);
   };
@@ -78,6 +98,8 @@ export function OnboardingTaskList({ tasks, onTaskToggle }: OnboardingTaskListPr
     <Accordion type="multiple" defaultValue={categories} className="space-y-3">
       {categories.map((category) => {
         const config = categoryConfig[category];
+        if (!config) return null;
+        
         const categoryTasks = tasksByCategory[category];
         const progress = getCategoryProgress(categoryTasks);
         const completedCount = categoryTasks.filter((t) => t.status === "completed").length;
@@ -152,7 +174,7 @@ export function OnboardingTaskList({ tasks, onTaskToggle }: OnboardingTaskListPr
                               <span className="text-destructive text-xs">*</span>
                             )}
                           </div>
-                          
+
                           {expandedTask === task.id && (
                             <p className="text-sm text-muted-foreground mt-2">
                               {task.description}
@@ -162,10 +184,12 @@ export function OnboardingTaskList({ tasks, onTaskToggle }: OnboardingTaskListPr
                           <div className="flex items-center gap-2 mt-2 flex-wrap">
                             <AssigneeBadge assignee={task.assignedTo} />
                             <TaskStatusBadge status={task.status} />
-                            <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                              <Calendar className="w-3 h-3" />
-                              {task.dueDate}
-                            </span>
+                            {task.dueDate && (
+                              <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <Calendar className="w-3 h-3" />
+                                {task.dueDate}
+                              </span>
+                            )}
                           </div>
 
                           {task.status === "completed" && task.completedAt && (

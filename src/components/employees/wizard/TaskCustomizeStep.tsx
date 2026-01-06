@@ -1,17 +1,32 @@
 import { useState } from "react";
-import { ChevronDown, ChevronRight, FileText, GraduationCap, Settings, Users, Shield, Plus } from "lucide-react";
+import { ChevronDown, ChevronRight, FileText, GraduationCap, Settings, Users, Shield } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { OnboardingTask, TaskCategory } from "@/data/onboarding";
+import { TaskCategory, TaskAssignee } from "@/hooks/useOnboarding";
 import { AssigneeBadge } from "../AssigneeBadge";
 import { cn } from "@/lib/utils";
 
+// Local task interface for TaskCustomizeStep
+interface LocalTask {
+  id: string;
+  title: string;
+  description: string;
+  category: TaskCategory;
+  dueDate: string;
+  assignedTo: TaskAssignee;
+  status: "pending" | "in_progress" | "completed" | "skipped";
+  completedAt: string | null;
+  completedBy: string | null;
+  required: boolean;
+  order: number;
+}
+
 interface TaskCustomizeStepProps {
-  tasks: OnboardingTask[];
-  onChange: (tasks: OnboardingTask[]) => void;
+  tasks: LocalTask[];
+  onChange: (tasks: LocalTask[]) => void;
 }
 
 const categoryConfig: Record<TaskCategory, { label: string; icon: React.ComponentType<{ className?: string }>; color: string }> = {
@@ -27,13 +42,16 @@ export function TaskCustomizeStep({ tasks, onChange }: TaskCustomizeStepProps) {
     Object.keys(categoryConfig) as TaskCategory[]
   );
 
-  const tasksByCategory = tasks.reduce((acc, task) => {
-    if (!acc[task.category]) {
-      acc[task.category] = [];
-    }
-    acc[task.category].push(task);
-    return acc;
-  }, {} as Record<TaskCategory, OnboardingTask[]>);
+  const tasksByCategory = tasks.reduce(
+    (acc, task) => {
+      if (!acc[task.category]) {
+        acc[task.category] = [];
+      }
+      acc[task.category].push(task);
+      return acc;
+    },
+    {} as Record<TaskCategory, LocalTask[]>
+  );
 
   const toggleCategory = (category: TaskCategory) => {
     setOpenCategories((prev) =>

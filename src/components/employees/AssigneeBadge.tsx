@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { User, Users, UserCheck, Monitor } from "lucide-react";
-import { TaskAssignee } from "@/data/onboarding";
+import { TaskAssignee } from "@/hooks/useOnboarding";
 
 interface AssigneeBadgeProps {
   assignee: TaskAssignee;

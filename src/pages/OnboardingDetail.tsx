@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Sidebar, Header } from "@/components/dashboard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +7,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { mockOnboardingRecords, OnboardingTask } from "@/data/onboarding";
+import {
+  useOnboardingRecord,
+  useUpdateOnboardingTask,
+  calculateOnboardingProgress,
+  OnboardingTask,
+  TaskCategory,
+} from "@/hooks/useOnboarding";
 import {
   OnboardingStatusBadge,
   OnboardingTaskList,
@@ -24,25 +30,23 @@ import {
   Settings,
   Users,
   Shield,
+  Loader2,
 } from "lucide-react";
+import { format } from "date-fns";
 
 export default function OnboardingDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const record = mockOnboardingRecords.find((r) => r.id === id);
-  
-  const [tasks, setTasks] = useState<OnboardingTask[]>(record?.tasks || []);
+  const { data: record, isLoading, error } = useOnboardingRecord(id);
+  const updateTask = useUpdateOnboardingTask();
 
-  const progress = useMemo(() => {
-    if (tasks.length === 0) return 0;
-    const completed = tasks.filter((t) => t.status === "completed").length;
-    return Math.round((completed / tasks.length) * 100);
-  }, [tasks]);
+  const tasks = record?.tasks || [];
+  const progress = calculateOnboardingProgress(tasks);
 
   const categoryStats = useMemo(() => {
-    const stats = {
+    const stats: Record<TaskCategory, { total: number; completed: number }> = {
       documentation: { total: 0, completed: 0 },
       training: { total: 0, completed: 0 },
       setup: { total: 0, completed: 0 },
@@ -51,16 +55,41 @@ export default function OnboardingDetail() {
     };
 
     tasks.forEach((task) => {
-      stats[task.category].total++;
-      if (task.status === "completed") {
-        stats[task.category].completed++;
+      if (stats[task.category]) {
+        stats[task.category].total++;
+        if (task.status === "completed") {
+          stats[task.category].completed++;
+        }
       }
     });
 
     return stats;
   }, [tasks]);
 
-  if (!record) {
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return "-";
+    try {
+      return format(new Date(dateString), "MMM dd, yyyy");
+    } catch {
+      return dateString;
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen bg-background">
+        <Sidebar />
+        <div className="flex-1 flex flex-col">
+          <Header />
+          <main className="flex-1 p-6 flex items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </main>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !record) {
     return (
       <div className="flex min-h-screen bg-background">
         <Sidebar />
@@ -83,64 +112,56 @@ export default function OnboardingDetail() {
     );
   }
 
-  const handleTaskToggle = (taskId: string, completed: boolean) => {
-    setTasks((prev) =>
-      prev.map((task) =>
-        task.id === taskId
-          ? {
-              ...task,
-              status: completed ? "completed" : "pending",
-              completedAt: completed ? new Date().toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }) : null,
-              completedBy: completed ? "HR Admin" : null,
-            }
-          : task
-      )
-    );
-    toast({
-      title: completed ? "Task completed" : "Task reopened",
-      description: `Task has been marked as ${completed ? "completed" : "pending"}.`,
-    });
-  };
+  const employeeName = record.employee
+    ? `${record.employee.first_name} ${record.employee.last_name}`
+    : "Unknown Employee";
 
-  const handleMarkAllComplete = () => {
-    setTasks((prev) =>
-      prev.map((task) => ({
-        ...task,
-        status: "completed",
-        completedAt: new Date().toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }),
-        completedBy: "HR Admin",
-      }))
-    );
-    toast({
-      title: "All tasks completed",
-      description: "All onboarding tasks have been marked as complete.",
-    });
+  const employeePosition = record.employee?.position?.title || "Unknown Position";
+  const employeeDepartment = record.employee?.department?.name || "Unknown Department";
+
+  const handleTaskToggle = async (taskId: string, completed: boolean) => {
+    try {
+      await updateTask.mutateAsync({
+        taskId,
+        status: completed ? "completed" : "pending",
+      });
+      toast({
+        title: completed ? "Task completed" : "Task reopened",
+        description: `Task has been marked as ${completed ? "completed" : "pending"}.`,
+      });
+    } catch {
+      toast({
+        title: "Error",
+        description: "Failed to update task status.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSendReminder = () => {
     toast({
       title: "Reminder sent",
-      description: `A reminder has been sent to ${record.employeeName}.`,
-    });
-  };
-
-  const handleResetProgress = () => {
-    setTasks((prev) =>
-      prev.map((task) => ({
-        ...task,
-        status: "pending",
-        completedAt: null,
-        completedBy: null,
-      }))
-    );
-    toast({
-      title: "Progress reset",
-      description: "All tasks have been reset to pending status.",
+      description: `A reminder has been sent to ${employeeName}.`,
     });
   };
 
   const completedTasks = tasks.filter((t) => t.status === "completed").length;
   const totalTasks = tasks.length;
+
+  // Convert tasks to legacy format for OnboardingTaskList
+  const legacyTasks = tasks.map((task) => ({
+    id: task.id,
+    title: task.title,
+    description: task.description || "",
+    category: task.category,
+    dueDate: task.due_date || "",
+    assignedTo: task.assigned_to,
+    status: task.status,
+    completedAt: task.completed_at ? format(new Date(task.completed_at), "MMM dd, yyyy") : null,
+    completedBy: task.completed_by || null,
+    required: task.is_required ?? true,
+    order: task.task_order ?? 1,
+  }));
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -163,23 +184,22 @@ export default function OnboardingDetail() {
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
               <div className="flex items-center gap-4">
                 <Avatar className="w-16 h-16">
-                  <AvatarImage src={record.employeeAvatar} />
+                  <AvatarImage src={record.employee?.avatar_url || undefined} />
                   <AvatarFallback className="text-lg">
-                    {record.employeeName
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
+                    {record.employee
+                      ? `${record.employee.first_name[0]}${record.employee.last_name[0]}`
+                      : "?"}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <h1 className="text-2xl font-bold">{record.employeeName}</h1>
+                  <h1 className="text-2xl font-bold">{employeeName}</h1>
                   <p className="text-muted-foreground">
-                    {record.employeePosition} • {record.employeeDepartment}
+                    {employeePosition} • {employeeDepartment}
                   </p>
                   <div className="flex items-center gap-2 mt-1">
                     <OnboardingStatusBadge status={record.status} />
                     <span className="text-sm text-muted-foreground">
-                      • {record.workflow} Workflow
+                      • {record.workflow_name} Workflow
                     </span>
                   </div>
                 </div>
@@ -223,9 +243,10 @@ export default function OnboardingDetail() {
                         compliance: Shield,
                       };
                       const Icon = icons[category];
-                      const categoryProgress = stats.total > 0 
-                        ? Math.round((stats.completed / stats.total) * 100) 
-                        : 0;
+                      const categoryProgress =
+                        stats.total > 0
+                          ? Math.round((stats.completed / stats.total) * 100)
+                          : 0;
 
                       return (
                         <div key={category} className="text-center">
@@ -254,7 +275,7 @@ export default function OnboardingDetail() {
                   <CardTitle className="text-base">Onboarding Checklist</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <OnboardingTaskList tasks={tasks} onTaskToggle={handleTaskToggle} />
+                  <OnboardingTaskList tasks={legacyTasks} onTaskToggle={handleTaskToggle} />
                 </CardContent>
               </Card>
             </div>
@@ -270,26 +291,10 @@ export default function OnboardingDetail() {
                   <Button
                     variant="outline"
                     className="w-full justify-start"
-                    onClick={handleMarkAllComplete}
-                  >
-                    <CheckCircle2 className="w-4 h-4 mr-2" />
-                    Mark All Complete
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start"
                     onClick={handleSendReminder}
                   >
                     <Send className="w-4 h-4 mr-2" />
                     Send Reminder
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start text-destructive hover:text-destructive"
-                    onClick={handleResetProgress}
-                  >
-                    <RotateCcw className="w-4 h-4 mr-2" />
-                    Reset Progress
                   </Button>
                 </CardContent>
               </Card>
@@ -309,7 +314,7 @@ export default function OnboardingDetail() {
                       <div>
                         <p className="text-sm font-medium">Start Date</p>
                         <p className="text-sm text-muted-foreground">
-                          {record.startDate}
+                          {formatDate(record.start_date)}
                         </p>
                       </div>
                     </div>
@@ -318,17 +323,17 @@ export default function OnboardingDetail() {
                       <div>
                         <p className="text-sm font-medium">Scheduled Completion</p>
                         <p className="text-sm text-muted-foreground">
-                          {record.scheduledOn}
+                          {formatDate(record.scheduled_completion)}
                         </p>
                       </div>
                     </div>
-                    {record.completedOn && (
+                    {record.completed_on && (
                       <div className="flex items-start gap-3">
                         <div className="w-2 h-2 rounded-full bg-primary mt-1.5" />
                         <div>
                           <p className="text-sm font-medium">Completed On</p>
                           <p className="text-sm text-muted-foreground">
-                            {record.completedOn}
+                            {formatDate(record.completed_on)}
                           </p>
                         </div>
                       </div>
@@ -349,23 +354,23 @@ export default function OnboardingDetail() {
                   <div className="space-y-3">
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Workflow</span>
-                      <span className="font-medium">{record.workflow}</span>
+                      <span className="font-medium">{record.workflow_name}</span>
                     </div>
                     <Separator />
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Department</span>
-                      <span className="font-medium">{record.employeeDepartment}</span>
+                      <span className="font-medium">{employeeDepartment}</span>
                     </div>
                     <Separator />
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Position</span>
-                      <span className="font-medium">{record.employeePosition}</span>
+                      <span className="font-medium">{employeePosition}</span>
                     </div>
                     <Separator />
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Required Tasks</span>
                       <span className="font-medium">
-                        {tasks.filter((t) => t.required).length}
+                        {tasks.filter((t) => t.is_required).length}
                       </span>
                     </div>
                   </div>

@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { TaskStatus } from "@/data/onboarding";
+import { TaskStatus } from "@/hooks/useOnboarding";
 
 interface TaskStatusBadgeProps {
   status: TaskStatus;

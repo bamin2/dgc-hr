@@ -1,8 +1,19 @@
 import { Briefcase, Code, TrendingUp, Globe, Crown, Check } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { WorkflowTemplate, TaskCategory } from "@/data/onboarding";
+import { TaskCategory } from "@/hooks/useOnboarding";
 import { cn } from "@/lib/utils";
+
+// Template interface for WorkflowSelectStep compatibility
+interface WorkflowTemplate {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  estimatedDays: number;
+  categories: TaskCategory[];
+  tasks: { id: string; title: string; description: string; category: TaskCategory; dueDate: string; assignedTo: string; required: boolean; order: number }[];
+}
 
 interface WorkflowSelectStepProps {
   templates: WorkflowTemplate[];

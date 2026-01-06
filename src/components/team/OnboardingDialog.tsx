@@ -48,6 +48,7 @@ export function OnboardingDialog({
         </DialogHeader>
         <OnboardingWizard
           initialEmployeeDetails={initialEmployeeDetails}
+          employeeId={member.id}
           onComplete={handleComplete}
         />
       </DialogContent>
