@@ -138,6 +138,7 @@ export function TeamOfferStep({
         
         // Employment fields
         "Job Title": position?.title,
+        "Job Description": position?.job_description,
         "Department": department?.name,
         "Start Date": roleData.startDate ? format(roleData.startDate, 'MMMM d, yyyy') : '',
         "Work Location": workLocation?.name,
@@ -234,7 +235,7 @@ export function TeamOfferStep({
         salary: parseFloat(compensationData.salary) || 0,
         join_date: roleData.startDate?.toISOString(),
       },
-      position: position ? { title: position.title } : undefined,
+      position: position ? { title: position.title, job_description: position.job_description } : undefined,
       department: department ? { name: department.name } : undefined,
       workLocation: workLocation ? { 
         name: workLocation.name, 

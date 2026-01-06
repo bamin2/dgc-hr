@@ -1,0 +1,2 @@
+INSERT INTO public.smart_tags (tag, field, source, category, description, is_system, is_active)
+VALUES ('<<Job Description>>', 'job_description', 'position', 'Employment', 'Job description for the position', true, true);
