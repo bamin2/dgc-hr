@@ -405,10 +405,8 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="on_leave">On Leave</SelectItem>
-                    <SelectItem value="on_boarding">On Boarding</SelectItem>
                     <SelectItem value="probation">Probation</SelectItem>
-                    <SelectItem value="terminated">Terminated</SelectItem>
+                    <SelectItem value="on_leave">On Leave</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
