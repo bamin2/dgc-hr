@@ -358,3 +358,60 @@ export function useSyncPublicHolidaysToLeave() {
     },
   });
 }
+
+// Bulk create multiple holidays
+export function useBulkCreatePublicHolidays() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (holidays: Array<{
+      name: string;
+      date: string;
+      observed_date: string;
+      year: number;
+      is_compensated: boolean;
+      compensation_reason: string | null;
+    }>) => {
+      if (holidays.length === 0) return { count: 0, year: new Date().getFullYear() };
+      
+      const { data, error } = await supabase
+        .from('public_holidays')
+        .insert(holidays)
+        .select();
+      
+      if (error) throw error;
+      return { count: data.length, year: holidays[0].year };
+    },
+    onSuccess: ({ count, year }) => {
+      queryClient.invalidateQueries({ queryKey: ['public-holidays', year] });
+      toast.success(`Added ${count} public holiday${count !== 1 ? 's' : ''}`);
+    },
+    onError: (error: Error) => {
+      toast.error('Failed to add holidays', { description: error.message });
+    },
+  });
+}
+
+// Bulk delete multiple holidays
+export function useBulkDeletePublicHolidays() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ ids, year }: { ids: string[]; year: number }) => {
+      const { error } = await supabase
+        .from('public_holidays')
+        .delete()
+        .in('id', ids);
+      
+      if (error) throw error;
+      return { count: ids.length, year };
+    },
+    onSuccess: ({ count, year }) => {
+      queryClient.invalidateQueries({ queryKey: ['public-holidays', year] });
+      toast.success(`Deleted ${count} public holiday${count !== 1 ? 's' : ''}`);
+    },
+    onError: (error: Error) => {
+      toast.error('Failed to delete holidays', { description: error.message });
+    },
+  });
+}
