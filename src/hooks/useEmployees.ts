@@ -137,7 +137,7 @@ async function fetchDepartments() {
 async function fetchPositions() {
   const { data, error } = await supabase
     .from("positions")
-    .select("id, title, department_id")
+    .select("id, title, department_id, job_description")
     .order("title");
 
   if (error) {

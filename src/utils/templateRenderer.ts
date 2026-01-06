@@ -27,6 +27,7 @@ interface EmployeeData {
 
 interface PositionData {
   title?: string;
+  job_description?: string;
 }
 
 interface DepartmentData {
@@ -97,6 +98,7 @@ export function renderTemplate(template: string, data: RenderData): string {
   // Position fields
   if (position) {
     result = replaceTag(result, "Job Title", position.title || "");
+    result = replaceTag(result, "Job Description", position.job_description || "");
   }
 
   // Department fields

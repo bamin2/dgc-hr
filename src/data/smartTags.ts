@@ -20,6 +20,7 @@ export const smartTags: SmartTag[] = [
 
   // Employment fields
   { tag: "<<Job Title>>", field: "title", source: "position", category: "Employment", description: "Employee's job title" },
+  { tag: "<<Job Description>>", field: "job_description", source: "position", category: "Employment", description: "Job description for the position" },
   { tag: "<<Department>>", field: "name", source: "department", category: "Employment", description: "Employee's department" },
   { tag: "<<Start Date>>", field: "join_date", source: "employee", category: "Employment", description: "Employment start date" },
   { tag: "<<End Date>>", field: "end_date", source: "employee", category: "Employment", description: "Employment end date (for terminations)" },
