@@ -19,6 +19,7 @@ interface ImageCropperProps {
   onCropComplete: (croppedImageBlob: Blob) => void;
   aspectRatio?: number;
   cropShape?: 'rect' | 'round';
+  maxOutputDimension?: number;
 }
 
 export function ImageCropper({
@@ -28,6 +29,7 @@ export function ImageCropper({
   onCropComplete,
   aspectRatio = 1,
   cropShape = 'round',
+  maxOutputDimension,
 }: ImageCropperProps) {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
@@ -47,7 +49,7 @@ export function ImageCropper({
 
     setIsSaving(true);
     try {
-      const croppedBlob = await getCroppedImg(imageSrc, croppedAreaPixels);
+      const croppedBlob = await getCroppedImg(imageSrc, croppedAreaPixels, maxOutputDimension);
       onCropComplete(croppedBlob);
       onOpenChange(false);
     } catch (error) {
