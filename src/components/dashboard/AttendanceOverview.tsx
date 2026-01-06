@@ -1,48 +1,60 @@
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-
-const attendanceData = [
-  {
-    name: "Alex Thompson",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50",
-    checkIn: "08:45 AM",
-    status: "On Time",
-  },
-  {
-    name: "Maria Garcia",
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=50",
-    checkIn: "09:02 AM",
-    status: "On Time",
-  },
-  {
-    name: "James Wilson",
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50",
-    checkIn: "09:18 AM",
-    status: "Late",
-  },
-  {
-    name: "Emma Brown",
-    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=50",
-    checkIn: "--:--",
-    status: "Absent",
-  },
-  {
-    name: "David Lee",
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=50",
-    checkIn: "08:30 AM",
-    status: "On Time",
-  },
-];
+import { useTodayAttendance } from "@/hooks/useDashboardMetrics";
+import { format, parseISO } from "date-fns";
 
 const statusStyles = {
-  "On Time": "bg-success/10 text-success border-success/20",
-  Late: "bg-warning/10 text-warning border-warning/20",
-  Absent: "bg-destructive/10 text-destructive border-destructive/20",
+  present: "bg-success/10 text-success border-success/20",
+  late: "bg-warning/10 text-warning border-warning/20",
+  absent: "bg-destructive/10 text-destructive border-destructive/20",
+  remote: "bg-info/10 text-info border-info/20",
+};
+
+const statusLabels = {
+  present: "On Time",
+  late: "Late",
+  absent: "Absent",
+  remote: "Remote",
 };
 
 export function AttendanceOverview() {
+  const { data, isLoading } = useTodayAttendance(5);
+
+  if (isLoading) {
+    return (
+      <Card className="p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <Skeleton className="h-6 w-40 mb-1" />
+            <Skeleton className="h-4 w-28" />
+          </div>
+          <Skeleton className="h-4 w-32" />
+        </div>
+        <div className="space-y-3">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="flex items-center justify-between py-2 px-3">
+              <div className="flex items-center gap-3">
+                <Skeleton className="w-9 h-9 rounded-full" />
+                <div>
+                  <Skeleton className="h-4 w-28 mb-1" />
+                  <Skeleton className="h-3 w-20" />
+                </div>
+              </div>
+              <Skeleton className="h-5 w-16" />
+            </div>
+          ))}
+        </div>
+      </Card>
+    );
+  }
+
+  const records = data?.records || [];
+  const presentCount = data?.presentCount || 0;
+  const absentCount = data?.absentCount || 0;
+
   return (
     <Card className="p-6">
       <div className="flex items-center justify-between mb-6">
@@ -55,51 +67,62 @@ export function AttendanceOverview() {
         <div className="flex items-center gap-2 text-xs">
           <span className="flex items-center gap-1">
             <div className="w-2 h-2 rounded-full bg-success" />
-            <span className="text-muted-foreground">236 Present</span>
+            <span className="text-muted-foreground">{presentCount} Present</span>
           </span>
           <span className="flex items-center gap-1">
             <div className="w-2 h-2 rounded-full bg-destructive" />
-            <span className="text-muted-foreground">12 Absent</span>
+            <span className="text-muted-foreground">{absentCount} Absent</span>
           </span>
         </div>
       </div>
 
       <div className="space-y-3">
-        {attendanceData.map((employee) => (
-          <div
-            key={employee.name}
-            className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-secondary/30 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <Avatar className="w-9 h-9">
-                <AvatarImage src={employee.avatar} />
-                <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                  {employee.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <p className="text-sm font-medium text-foreground">
-                  {employee.name}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Check-in: {employee.checkIn}
-                </p>
+        {records.length === 0 ? (
+          <p className="text-center text-muted-foreground py-4">
+            No attendance records for today
+          </p>
+        ) : (
+          records.map((record) => {
+            const checkInTime = record.check_in 
+              ? format(parseISO(record.check_in), 'hh:mm a')
+              : '--:--';
+            const status = record.status as keyof typeof statusStyles;
+            
+            return (
+              <div
+                key={record.id}
+                className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-secondary/30 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <Avatar className="w-9 h-9">
+                    <AvatarImage src={record.employee?.avatar_url || undefined} />
+                    <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                      {record.employee?.first_name?.[0] || ''}
+                      {record.employee?.last_name?.[0] || ''}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="text-sm font-medium text-foreground">
+                      {record.employee?.first_name} {record.employee?.last_name}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Check-in: {checkInTime}
+                    </p>
+                  </div>
+                </div>
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    "text-xs font-medium",
+                    statusStyles[status] || statusStyles.present
+                  )}
+                >
+                  {statusLabels[status] || status}
+                </Badge>
               </div>
-            </div>
-            <Badge
-              variant="outline"
-              className={cn(
-                "text-xs font-medium",
-                statusStyles[employee.status as keyof typeof statusStyles]
-              )}
-            >
-              {employee.status}
-            </Badge>
-          </div>
-        ))}
+            );
+          })
+        )}
       </div>
     </Card>
   );
