@@ -2688,6 +2688,7 @@ export type Database = {
         | "on_boarding"
         | "probation"
         | "terminated"
+        | "resigned"
       employment_type: "full_time" | "part_time" | "contract"
       enrollment_status: "active" | "pending" | "cancelled" | "expired"
       event_color: "green" | "orange" | "coral" | "mint" | "blue" | "purple"
@@ -2900,6 +2901,7 @@ export const Constants = {
         "on_boarding",
         "probation",
         "terminated",
+        "resigned",
       ],
       employment_type: ["full_time", "part_time", "contract"],
       enrollment_status: ["active", "pending", "cancelled", "expired"],

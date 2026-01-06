@@ -64,6 +64,7 @@ export function EmployeeFilters({
             <SelectItem value="on_boarding">On Boarding</SelectItem>
             <SelectItem value="probation">Probation</SelectItem>
             <SelectItem value="on_leave">On Leave</SelectItem>
+            <SelectItem value="resigned">Resigned</SelectItem>
             <SelectItem value="terminated">Terminated</SelectItem>
           </SelectContent>
         </Select>
