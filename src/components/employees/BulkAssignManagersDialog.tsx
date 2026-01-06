@@ -176,7 +176,7 @@ export function BulkAssignManagersDialog({
           )}
         </div>
 
-        <ScrollArea className="flex-1 border rounded-md">
+        <ScrollArea className="flex-1 min-h-0 border rounded-md overflow-hidden">
           <div className="p-4 space-y-2">
             {/* Select All Header */}
             <div className="flex items-center gap-3 pb-2 border-b">
