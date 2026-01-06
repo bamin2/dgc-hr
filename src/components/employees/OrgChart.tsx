@@ -1,13 +1,15 @@
 import { useState, useMemo, useRef } from "react";
-import { Search, Pencil } from "lucide-react";
+import { Search, Pencil, Users } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { OrgChartTree } from "./OrgChartTree";
 import { OrgChartControls } from "./OrgChartControls";
 import { OrgChartExportButton } from "./OrgChartExportButton";
+import { BulkAssignManagersDialog } from "./BulkAssignManagersDialog";
 import { OrgEmployee } from "./OrgChartNode";
 import { Employee } from "@/hooks/useEmployees";
-import { buildOrgTrees, getAllDescendantIds, wouldCreateCircularReference } from "@/utils/orgHierarchy";
+import { buildOrgTrees, getAllDescendantIds, wouldCreateCircularReference, isTopLevelPosition } from "@/utils/orgHierarchy";
 import { toast } from "@/hooks/use-toast";
 import {
   AlertDialog,
@@ -25,11 +27,13 @@ interface OrgChartProps {
   onView?: (employee: OrgEmployee) => void;
   onEdit?: (employee: OrgEmployee) => void;
   onReassign?: (employeeId: string, newManagerId: string) => void;
+  onBulkReassign?: (assignments: { employeeId: string; managerId: string }[]) => Promise<void>;
 }
 
-export function OrgChart({ employees, onView, onEdit, onReassign }: OrgChartProps) {
+export function OrgChart({ employees, onView, onEdit, onReassign, onBulkReassign }: OrgChartProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [zoom, setZoom] = useState(1);
+  const [bulkAssignOpen, setBulkAssignOpen] = useState(false);
   const chartRef = useRef<HTMLDivElement>(null);
 
   // Drag and drop state
@@ -45,6 +49,12 @@ export function OrgChart({ employees, onView, onEdit, onReassign }: OrgChartProp
 
   // Build org trees from employees array (supports multiple roots)
   const orgTrees = useMemo(() => buildOrgTrees(employees), [employees]);
+
+  // Count unassigned employees (excluding top-level positions)
+  const unassignedCount = useMemo(() => 
+    employees.filter(e => !e.managerId && !isTopLevelPosition(e)).length,
+    [employees]
+  );
 
   const handleZoomIn = () => setZoom((prev) => Math.min(prev + 0.1, 1.5));
   const handleZoomOut = () => setZoom((prev) => Math.max(prev - 0.1, 0.5));
@@ -139,6 +149,13 @@ export function OrgChart({ employees, onView, onEdit, onReassign }: OrgChartProp
           />
         </div>
         <OrgChartExportButton employees={employees} />
+        {unassignedCount > 0 && onBulkReassign && (
+          <Button variant="outline" onClick={() => setBulkAssignOpen(true)} className="gap-2">
+            <Users className="h-4 w-4" />
+            Bulk Assign
+            <Badge variant="secondary" className="ml-1">{unassignedCount}</Badge>
+          </Button>
+        )}
         <Button variant="outline" onClick={handleEditOrgChart} className="gap-2">
           <Pencil className="h-4 w-4" />
           Edit ORG Chart
@@ -224,6 +241,16 @@ export function OrgChart({ employees, onView, onEdit, onReassign }: OrgChartProp
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Bulk Assign Managers Dialog */}
+      {onBulkReassign && (
+        <BulkAssignManagersDialog
+          open={bulkAssignOpen}
+          onOpenChange={setBulkAssignOpen}
+          employees={employees}
+          onAssign={onBulkReassign}
+        />
+      )}
     </div>
   );
 }

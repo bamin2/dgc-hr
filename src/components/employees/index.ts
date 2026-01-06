@@ -29,4 +29,5 @@ export { SalaryHistoryCard } from "./SalaryHistoryCard";
 export { EmployeeExportButton } from "./EmployeeExportButton";
 export { EmployeeImportDialog } from "./EmployeeImportDialog";
 export { ImportHistoryDialog } from "./ImportHistoryDialog";
+export { BulkAssignManagersDialog } from "./BulkAssignManagersDialog";
 export * from "./wizard";
