@@ -1,5 +1,12 @@
 import { format, addDays } from "date-fns";
 
+// Helper to replace both plain and HTML-encoded versions of tags
+function replaceTag(content: string, tag: string, value: string): string {
+  const plainPattern = new RegExp(`<<${tag}>>`, 'g');
+  const encodedPattern = new RegExp(`&lt;&lt;${tag}&gt;&gt;`, 'g');
+  return content.replace(plainPattern, value).replace(encodedPattern, value);
+}
+
 interface EmployeeData {
   first_name?: string;
   last_name?: string;
@@ -69,57 +76,58 @@ export function renderTemplate(template: string, data: RenderData): string {
 
   // Employee fields
   if (employee) {
-    result = result.replace(/<<First Name>>/g, employee.first_name || "");
-    result = result.replace(/<<Last Name>>/g, employee.last_name || "");
-    result = result.replace(/<<Full Name>>/g, `${employee.first_name || ""} ${employee.last_name || ""}`.trim());
-    result = result.replace(/<<Email>>/g, employee.email || "");
-    result = result.replace(/<<Phone>>/g, employee.phone || "");
-    result = result.replace(/<<Address>>/g, employee.address || "");
-    result = result.replace(/<<Nationality>>/g, employee.nationality || "");
-    result = result.replace(/<<Employee Code>>/g, employee.employee_code || "");
-    result = result.replace(/<<Date of Birth>>/g, employee.date_of_birth ? format(new Date(employee.date_of_birth), "MMMM d, yyyy") : "");
-    result = result.replace(/<<Start Date>>/g, employee.join_date ? format(new Date(employee.join_date), "MMMM d, yyyy") : "");
-    result = result.replace(/<<Salary>>/g, employee.salary?.toLocaleString() || "");
-    result = result.replace(/<<Contract Period>>/g, employee.contract_period || "One Year");
-    result = result.replace(/<<Probation Period>>/g, employee.probation_period || "3 months");
-    result = result.replace(/<<Notice Period>>/g, employee.notice_period || "30 days");
-    result = result.replace(/<<Net Allowances>>/g, employee.net_allowances?.toLocaleString() || "0");
-    result = result.replace(/<<Annual Leave Days>>/g, employee.annual_leave_days?.toString() || "21");
+    result = replaceTag(result, "First Name", employee.first_name || "");
+    result = replaceTag(result, "Last Name", employee.last_name || "");
+    result = replaceTag(result, "Full Name", `${employee.first_name || ""} ${employee.last_name || ""}`.trim());
+    result = replaceTag(result, "Email", employee.email || "");
+    result = replaceTag(result, "Phone", employee.phone || "");
+    result = replaceTag(result, "Address", employee.address || "");
+    result = replaceTag(result, "Nationality", employee.nationality || "");
+    result = replaceTag(result, "Employee Code", employee.employee_code || "");
+    result = replaceTag(result, "Date of Birth", employee.date_of_birth ? format(new Date(employee.date_of_birth), "MMMM d, yyyy") : "");
+    result = replaceTag(result, "Start Date", employee.join_date ? format(new Date(employee.join_date), "MMMM d, yyyy") : "");
+    result = replaceTag(result, "Salary", employee.salary?.toLocaleString() || "");
+    result = replaceTag(result, "Contract Period", employee.contract_period || "One Year");
+    result = replaceTag(result, "Probation Period", employee.probation_period || "3 months");
+    result = replaceTag(result, "Notice Period", employee.notice_period || "30 days");
+    result = replaceTag(result, "Net Allowances", employee.net_allowances?.toLocaleString() || "0");
+    result = replaceTag(result, "Annual Leave Days", employee.annual_leave_days?.toString() || "21");
   }
 
   // Position fields
   if (position) {
-    result = result.replace(/<<Job Title>>/g, position.title || "");
+    result = replaceTag(result, "Job Title", position.title || "");
   }
 
   // Department fields
   if (department) {
-    result = result.replace(/<<Department>>/g, department.name || "");
+    result = replaceTag(result, "Department", department.name || "");
   }
 
   // Work location fields
   if (workLocation) {
-    result = result.replace(/<<Work Location>>/g, workLocation.name || "");
-    result = result.replace(/<<Currency>>/g, workLocation.currency || "USD");
+    result = replaceTag(result, "Work Location", workLocation.name || "");
+    result = replaceTag(result, "Currency", workLocation.currency || "USD");
   }
 
   // Manager fields
   if (manager) {
-    result = result.replace(/<<Manager Name>>/g, `${manager.first_name || ""} ${manager.last_name || ""}`.trim());
+    result = replaceTag(result, "Manager Name", `${manager.first_name || ""} ${manager.last_name || ""}`.trim());
   }
 
   // Company fields
   if (company) {
-    result = result.replace(/<<Company Name>>/g, company.name || "");
-    result = result.replace(/<<Company Legal Name>>/g, company.legal_name || company.name || "");
-    result = result.replace(/<<Company Email>>/g, company.email || "");
-    result = result.replace(/<<Company Phone>>/g, company.phone || "");
+    result = replaceTag(result, "Company Name", company.name || "");
+    result = replaceTag(result, "Company Legal Name", company.legal_name || company.name || "");
+    result = replaceTag(result, "Company Email", company.email || "");
+    result = replaceTag(result, "Company Phone", company.phone || "");
     
     // Handle company logo - render as image tag for HTML templates
     if (company.logo_url) {
-      result = result.replace(/<<Company Logo>>/g, `<img src="${company.logo_url}" alt="${company.name || 'Company'} Logo" style="max-height: 80px; width: auto;" />`);
+      const logoImg = `<img src="${company.logo_url}" alt="${company.name || 'Company'} Logo" style="max-height: 80px; width: auto;" />`;
+      result = replaceTag(result, "Company Logo", logoImg);
     } else {
-      result = result.replace(/<<Company Logo>>/g, "");
+      result = replaceTag(result, "Company Logo", "");
     }
     
     const addressParts = [
@@ -129,20 +137,20 @@ export function renderTemplate(template: string, data: RenderData): string {
       company.address_zip_code,
       company.address_country
     ].filter(Boolean);
-    result = result.replace(/<<Company Address>>/g, addressParts.join(", "));
+    result = replaceTag(result, "Company Address", addressParts.join(", "));
   }
 
   // End date (for experience certificates)
-  result = result.replace(/<<End Date>>/g, endDate ? format(new Date(endDate), "MMMM d, yyyy") : "Present");
+  result = replaceTag(result, "End Date", endDate ? format(new Date(endDate), "MMMM d, yyyy") : "Present");
 
   // Signature fields
-  result = result.replace(/<<Signature Title>>/g, data.signatureTitle || "");
-  result = result.replace(/<<Signature Name>>/g, data.signatureName || "");
+  result = replaceTag(result, "Signature Title", data.signatureTitle || "");
+  result = replaceTag(result, "Signature Name", data.signatureName || "");
 
   // System fields
-  result = result.replace(/<<Current Date>>/g, format(new Date(), "MMMM d, yyyy"));
-  result = result.replace(/<<Current Year>>/g, new Date().getFullYear().toString());
-  result = result.replace(/<<Offer Expiry Date>>/g, format(addDays(new Date(), offerExpiryDays), "MMMM d, yyyy"));
+  result = replaceTag(result, "Current Date", format(new Date(), "MMMM d, yyyy"));
+  result = replaceTag(result, "Current Year", new Date().getFullYear().toString());
+  result = replaceTag(result, "Offer Expiry Date", format(addDays(new Date(), offerExpiryDays), "MMMM d, yyyy"));
 
   return result;
 }
