@@ -1,5 +1,3 @@
-import HTMLtoDOCX from 'html-to-docx';
-
 function getFormattedDate(): string {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -20,6 +18,7 @@ export async function exportOfferLetterToWord(
     <!DOCTYPE html>
     <html>
       <head>
+        <meta charset="UTF-8">
         <style>
           body { font-family: Arial, sans-serif; font-size: 12pt; line-height: 1.5; }
           h1 { font-size: 18pt; }
@@ -31,20 +30,17 @@ export async function exportOfferLetterToWord(
     </html>
   `;
 
-  // Convert HTML to DOCX blob
-  const docxBlob = await HTMLtoDOCX(fullHtml, null, {
-    table: { row: { cantSplit: true } },
-    footer: true,
-    pageNumber: true,
-  });
+  // Dynamically import libraries to avoid breaking the app
+  const [{ saveAs }, htmlDocxModule] = await Promise.all([
+    import('file-saver'),
+    import('html-docx-js/dist/html-docx')
+  ]);
+  
+  const htmlDocx = htmlDocxModule.default;
 
+  // Convert HTML to DOCX blob using browser-compatible library
+  const docxBlob = htmlDocx.asBlob(fullHtml);
+  
   // Download the file
-  const url = URL.createObjectURL(docxBlob as Blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  saveAs(docxBlob, filename);
 }
