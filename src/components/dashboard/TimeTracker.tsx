@@ -1,24 +1,49 @@
 import { useState, useEffect } from "react";
-import { Play, Pause, Coffee } from "lucide-react";
+import { Play, Square } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { useClockInOut } from "@/hooks/useClockInOut";
 
 export function TimeTracker() {
-  const [isRunning, setIsRunning] = useState(false);
-  const [seconds, setSeconds] = useState(14523); // Start at 04:02:03
+  const { todayRecord, isLoading, isClockedIn, isClockedOut, clockIn, clockOut, employeeId } =
+    useClockInOut();
+  const [seconds, setSeconds] = useState(0);
 
+  // Calculate and update elapsed time
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
-    if (isRunning) {
-      interval = setInterval(() => {
-        setSeconds((s) => s + 1);
-      }, 1000);
+    if (!todayRecord?.check_in) {
+      setSeconds(0);
+      return;
     }
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [isRunning]);
+
+    const checkInTime = new Date(todayRecord.check_in);
+
+    if (isClockedOut && todayRecord.check_out) {
+      // Show static total time
+      const checkOutTime = new Date(todayRecord.check_out);
+      const elapsed = Math.floor((checkOutTime.getTime() - checkInTime.getTime()) / 1000);
+      setSeconds(elapsed);
+      return;
+    }
+
+    if (isClockedIn) {
+      // Calculate initial elapsed time
+      const now = new Date();
+      const elapsed = Math.floor((now.getTime() - checkInTime.getTime()) / 1000);
+      setSeconds(elapsed);
+
+      // Start interval to update every second
+      const interval = setInterval(() => {
+        const current = new Date();
+        const newElapsed = Math.floor((current.getTime() - checkInTime.getTime()) / 1000);
+        setSeconds(newElapsed);
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [todayRecord, isClockedIn, isClockedOut]);
 
   const formatTime = (totalSeconds: number) => {
     const hours = Math.floor(totalSeconds / 3600);
@@ -33,6 +58,25 @@ export function TimeTracker() {
 
   const time = formatTime(seconds);
 
+  const handleButtonClick = () => {
+    if (!isClockedIn && !isClockedOut) {
+      clockIn.mutate();
+    } else if (isClockedIn) {
+      clockOut.mutate();
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <Card className="p-6 bg-gradient-to-br from-primary via-primary to-primary/80">
+        <Skeleton className="h-6 w-32 bg-white/20 mb-2" />
+        <Skeleton className="h-4 w-24 bg-white/20 mb-6" />
+        <Skeleton className="h-16 w-full bg-white/20 mb-6" />
+        <Skeleton className="h-14 w-14 rounded-full bg-white/20 mx-auto" />
+      </Card>
+    );
+  }
+
   return (
     <Card className="p-6 bg-gradient-to-br from-primary via-primary to-primary/80 text-primary-foreground overflow-hidden relative">
       {/* Background Pattern */}
@@ -45,12 +89,18 @@ export function TimeTracker() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h3 className="text-lg font-semibold opacity-90">Time Tracker</h3>
-            <p className="text-sm opacity-70">Today's work session</p>
+            <p className="text-sm opacity-70">
+              {isClockedOut
+                ? "Completed for today"
+                : isClockedIn
+                ? "Currently working"
+                : "Today's work session"}
+            </p>
           </div>
           <div
             className={cn(
               "w-3 h-3 rounded-full",
-              isRunning ? "bg-green-400 animate-pulse" : "bg-white/50"
+              isClockedIn ? "bg-green-400 animate-pulse" : "bg-white/50"
             )}
           />
         </div>
@@ -80,28 +130,29 @@ export function TimeTracker() {
         </div>
 
         {/* Controls */}
-        <div className="flex items-center justify-center gap-3">
-          <Button
-            onClick={() => setIsRunning(!isRunning)}
-            className={cn(
-              "w-14 h-14 rounded-full shadow-lg transition-transform hover:scale-105",
-              isRunning
-                ? "bg-white/20 hover:bg-white/30"
-                : "bg-white text-primary hover:bg-white/90"
-            )}
-          >
-            {isRunning ? (
-              <Pause className="w-6 h-6" />
-            ) : (
-              <Play className="w-6 h-6 ml-1" />
-            )}
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white"
-          >
-            <Coffee className="w-5 h-5" />
-          </Button>
+        <div className="flex items-center justify-center">
+          {!employeeId ? (
+            <p className="text-sm opacity-70">No employee profile linked</p>
+          ) : isClockedOut ? (
+            <p className="text-sm opacity-70">You've completed your work session</p>
+          ) : (
+            <Button
+              onClick={handleButtonClick}
+              disabled={clockIn.isPending || clockOut.isPending}
+              className={cn(
+                "w-14 h-14 rounded-full shadow-lg transition-transform hover:scale-105",
+                isClockedIn
+                  ? "bg-white/20 hover:bg-white/30"
+                  : "bg-white text-primary hover:bg-white/90"
+              )}
+            >
+              {isClockedIn ? (
+                <Square className="w-6 h-6" />
+              ) : (
+                <Play className="w-6 h-6 ml-1" />
+              )}
+            </Button>
+          )}
         </div>
       </div>
     </Card>
