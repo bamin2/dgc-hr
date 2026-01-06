@@ -18,6 +18,7 @@ import {
   UserX,
   Shield,
   KeyRound,
+  RotateCcw,
 } from "lucide-react";
 import { Sidebar, Header } from "@/components/dashboard";
 import { Button } from "@/components/ui/button";
@@ -25,7 +26,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { StatusBadge, EmployeeForm, RoleBadge, RoleSelectorWithDescription, CreateLoginDialog, SalaryHistoryCard } from "@/components/employees";
+import { StatusBadge, EmployeeForm, RoleBadge, RoleSelectorWithDescription, CreateLoginDialog, ResetPasswordDialog, SalaryHistoryCard } from "@/components/employees";
 import { useEmployee, useUpdateEmployee, Employee } from "@/hooks/useEmployees";
 import { AppRole, roleDescriptions } from "@/data/roles";
 import { useRole } from "@/contexts/RoleContext";
@@ -37,18 +38,21 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function EmployeeProfile() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getEmployeeRole, updateEmployeeRole, canManageRoles, canEditEmployees } = useRole();
+  const { getEmployeeRole, updateEmployeeRole, canManageRoles, canEditEmployees, isTeamMember } = useRole();
   const { profile } = useAuth();
   const { data: employee, isLoading, error } = useEmployee(id);
   const updateEmployee = useUpdateEmployee();
   const [formOpen, setFormOpen] = useState(false);
   const [createLoginOpen, setCreateLoginOpen] = useState(false);
+  const [resetPasswordOpen, setResetPasswordOpen] = useState(false);
   const employeeRole = id ? getEmployeeRole(id) : 'employee';
   
   // Check if viewing own profile
   const isOwnProfile = profile?.employee_id === id;
-  // Full access if: viewing own profile OR has HR/Admin role
-  const hasFullAccess = isOwnProfile || canEditEmployees;
+  // Check if this employee is a team member of the current user (for managers)
+  const isTeamMemberOfCurrentUser = id ? isTeamMember(id) : false;
+  // Full access if: viewing own profile OR has HR/Admin role OR is manager viewing their team member
+  const hasFullAccess = isOwnProfile || canEditEmployees || isTeamMemberOfCurrentUser;
 
   if (isLoading) {
     return (
@@ -473,7 +477,7 @@ export default function EmployeeProfile() {
                     </Card>
                   </div>
 
-                  {/* Create Login (HR/Admin only) */}
+                  {/* Account Access (HR/Admin only) */}
                   {canManageRoles && (
                     <Card>
                       <CardHeader>
@@ -482,10 +486,10 @@ export default function EmployeeProfile() {
                           Account Access
                         </CardTitle>
                         <CardDescription>
-                          Create login credentials for this employee to access the system
+                          Manage login credentials for this employee
                         </CardDescription>
                       </CardHeader>
-                      <CardContent>
+                      <CardContent className="flex gap-3">
                         <Button 
                           variant="outline" 
                           className="gap-2"
@@ -493,6 +497,14 @@ export default function EmployeeProfile() {
                         >
                           <KeyRound className="h-4 w-4" />
                           Create Login
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          className="gap-2"
+                          onClick={() => setResetPasswordOpen(true)}
+                        >
+                          <RotateCcw className="h-4 w-4" />
+                          Reset Password
                         </Button>
                       </CardContent>
                     </Card>
@@ -541,6 +553,17 @@ export default function EmployeeProfile() {
       <CreateLoginDialog
         open={createLoginOpen}
         onOpenChange={setCreateLoginOpen}
+        employee={{
+          id: employee.id,
+          firstName: employee.firstName,
+          lastName: employee.lastName,
+          email: employee.email,
+        }}
+      />
+
+      <ResetPasswordDialog
+        open={resetPasswordOpen}
+        onOpenChange={setResetPasswordOpen}
         employee={{
           id: employee.id,
           firstName: employee.firstName,
