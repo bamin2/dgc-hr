@@ -1,5 +1,6 @@
 import { DepartmentsSection } from './DepartmentsSection';
 import { PositionsSection } from './PositionsSection';
+import { WorkLocationsSection } from './WorkLocationsSection';
 
 export function OrganizationSettingsTab() {
   return (
@@ -7,7 +8,7 @@ export function OrganizationSettingsTab() {
       <div>
         <h3 className="text-lg font-medium">Organization Structure</h3>
         <p className="text-sm text-muted-foreground">
-          Manage departments and job positions for your organization.
+          Manage departments, job positions and work locations for your organization.
         </p>
       </div>
 
@@ -15,6 +16,8 @@ export function OrganizationSettingsTab() {
         <DepartmentsSection />
         <PositionsSection />
       </div>
+
+      <WorkLocationsSection />
     </div>
   );
 }

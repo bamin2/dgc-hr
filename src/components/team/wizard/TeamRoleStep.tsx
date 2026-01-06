@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { Label } from "@/components/ui/label";
@@ -17,14 +16,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { departments, jobTitles, workLocations } from "@/hooks/useTeamMembers";
-import { mockEmployees } from "@/data/employees";
+import { useDepartments, usePositions, useEmployees } from "@/hooks/useEmployees";
+import { useWorkLocations } from "@/hooks/useWorkLocations";
 
 export interface TeamRoleData {
-  workLocation: string;
-  jobTitle: string;
-  department: string;
+  workLocationId: string;
+  positionId: string;
+  departmentId: string;
   managerId: string;
   startDate: Date | undefined;
 }
@@ -35,6 +35,11 @@ interface TeamRoleStepProps {
 }
 
 export function TeamRoleStep({ data, onChange }: TeamRoleStepProps) {
+  const { data: departments, isLoading: depsLoading } = useDepartments();
+  const { data: positions, isLoading: posLoading } = usePositions();
+  const { data: employees, isLoading: empLoading } = useEmployees();
+  const { data: workLocations, isLoading: locLoading } = useWorkLocations();
+
   const updateField = <K extends keyof TeamRoleData>(
     field: K,
     value: TeamRoleData[K]
@@ -42,11 +47,28 @@ export function TeamRoleStep({ data, onChange }: TeamRoleStepProps) {
     onChange({ ...data, [field]: value });
   };
 
-  const managers = mockEmployees.filter(
-    (emp) => emp.position.includes("Manager") || emp.position.includes("Director")
-  );
+  const selectedManager = employees?.find((e) => e.id === data.managerId);
 
-  const selectedManager = managers.find((m) => m.id === data.managerId);
+  const isLoading = depsLoading || posLoading || empLoading || locLoading;
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <Skeleton className="h-6 w-40 mb-2" />
+          <Skeleton className="h-4 w-60" />
+        </div>
+        <div className="space-y-4">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -63,36 +85,37 @@ export function TeamRoleStep({ data, onChange }: TeamRoleStepProps) {
       <div className="space-y-2">
         <Label>Work location</Label>
         <Select
-          value={data.workLocation}
-          onValueChange={(value) => updateField("workLocation", value)}
+          value={data.workLocationId}
+          onValueChange={(value) => updateField("workLocationId", value)}
         >
           <SelectTrigger>
             <SelectValue placeholder="Select location" />
           </SelectTrigger>
           <SelectContent>
-            {workLocations.map((location) => (
-              <SelectItem key={location} value={location}>
-                {location}
+            {workLocations?.map((location) => (
+              <SelectItem key={location.id} value={location.id}>
+                {location.name}
+                {location.city && ` - ${location.city}`}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
 
-      {/* Job Title */}
+      {/* Job Title (Position) */}
       <div className="space-y-2">
         <Label>Job title</Label>
         <Select
-          value={data.jobTitle}
-          onValueChange={(value) => updateField("jobTitle", value)}
+          value={data.positionId}
+          onValueChange={(value) => updateField("positionId", value)}
         >
           <SelectTrigger>
             <SelectValue placeholder="Select job title" />
           </SelectTrigger>
           <SelectContent>
-            {jobTitles.map((title) => (
-              <SelectItem key={title} value={title}>
-                {title}
+            {positions?.map((position) => (
+              <SelectItem key={position.id} value={position.id}>
+                {position.title}
               </SelectItem>
             ))}
           </SelectContent>
@@ -103,25 +126,25 @@ export function TeamRoleStep({ data, onChange }: TeamRoleStepProps) {
       <div className="space-y-2">
         <Label>Department</Label>
         <Select
-          value={data.department}
-          onValueChange={(value) => updateField("department", value)}
+          value={data.departmentId}
+          onValueChange={(value) => updateField("departmentId", value)}
         >
           <SelectTrigger>
             <SelectValue placeholder="Select department" />
           </SelectTrigger>
           <SelectContent>
-            {departments.map((dept) => (
-              <SelectItem key={dept} value={dept}>
-                {dept}
+            {departments?.map((dept) => (
+              <SelectItem key={dept.id} value={dept.id}>
+                {dept.name}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
 
-      {/* Manager */}
+      {/* Manager (Optional) */}
       <div className="space-y-2">
-        <Label>Manager</Label>
+        <Label>Manager (optional)</Label>
         <Select
           value={data.managerId}
           onValueChange={(value) => updateField("managerId", value)}
@@ -145,18 +168,18 @@ export function TeamRoleStep({ data, onChange }: TeamRoleStepProps) {
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            {managers.map((manager) => (
-              <SelectItem key={manager.id} value={manager.id}>
+            {employees?.map((employee) => (
+              <SelectItem key={employee.id} value={employee.id}>
                 <div className="flex items-center gap-2">
                   <Avatar className="h-6 w-6">
-                    <AvatarImage src={manager.avatar} />
+                    <AvatarImage src={employee.avatar} />
                     <AvatarFallback className="text-xs">
-                      {manager.firstName[0]}
-                      {manager.lastName[0]}
+                      {employee.firstName[0]}
+                      {employee.lastName[0]}
                     </AvatarFallback>
                   </Avatar>
                   <span>
-                    {manager.firstName} {manager.lastName}
+                    {employee.firstName} {employee.lastName}
                   </span>
                 </div>
               </SelectItem>

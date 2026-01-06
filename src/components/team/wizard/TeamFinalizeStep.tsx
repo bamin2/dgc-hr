@@ -6,10 +6,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { countries, getCountryByCode } from "@/data/countries";
-import { mockEmployees } from "@/data/employees";
+import { getCountryByCode } from "@/data/countries";
 import { useActiveAllowanceTemplates } from "@/hooks/useAllowanceTemplates";
 import { useActiveDeductionTemplates } from "@/hooks/useDeductionTemplates";
+import { useDepartments, usePositions, useEmployees } from "@/hooks/useEmployees";
+import { useWorkLocations } from "@/hooks/useWorkLocations";
 import { TeamBasicData } from "./TeamBasicStep";
 import { TeamRoleData } from "./TeamRoleStep";
 import { TeamCompensationData } from "./TeamCompensationStep";
@@ -36,9 +37,20 @@ export function TeamFinalizeStep({
 }: TeamFinalizeStepProps) {
   const country = getCountryByCode(basicData.nationality);
   const phoneCountry = getCountryByCode(basicData.mobileCountryCode);
-  const manager = mockEmployees.find((e) => e.id === roleData.managerId);
+  
+  // Fetch reference data to resolve IDs to names
+  const { data: departments } = useDepartments();
+  const { data: positions } = usePositions();
+  const { data: employees } = useEmployees();
+  const { data: workLocations } = useWorkLocations();
   const { data: allowanceTemplates } = useActiveAllowanceTemplates();
   const { data: deductionTemplates } = useActiveDeductionTemplates();
+
+  // Resolve IDs to display values
+  const department = departments?.find(d => d.id === roleData.departmentId);
+  const position = positions?.find(p => p.id === roleData.positionId);
+  const manager = employees?.find(e => e.id === roleData.managerId);
+  const workLocation = workLocations?.find(w => w.id === roleData.workLocationId);
 
   const selectedAllowanceNames = (allowanceTemplates || [])
     .filter(t => compensationData.selectedAllowances.includes(t.id))
@@ -133,11 +145,15 @@ export function TeamFinalizeStep({
         <CardContent className="grid grid-cols-2 gap-4 text-sm">
           <div>
             <p className="text-muted-foreground">Job title</p>
-            <p className="font-medium">{roleData.jobTitle}</p>
+            <p className="font-medium">{position?.title || "Not set"}</p>
           </div>
           <div>
             <p className="text-muted-foreground">Department</p>
-            <p className="font-medium">{roleData.department}</p>
+            <p className="font-medium">{department?.name || "Not set"}</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">Work location</p>
+            <p className="font-medium">{workLocation?.name || "Not set"}</p>
           </div>
           <div>
             <p className="text-muted-foreground">Start date</p>
@@ -147,7 +163,7 @@ export function TeamFinalizeStep({
           </div>
           <div>
             <p className="text-muted-foreground">Manager</p>
-            {manager && (
+            {manager ? (
               <div className="flex items-center gap-2 mt-1">
                 <Avatar className="h-6 w-6">
                   <AvatarImage src={manager.avatar} />
@@ -160,6 +176,8 @@ export function TeamFinalizeStep({
                   {manager.firstName} {manager.lastName}
                 </span>
               </div>
+            ) : (
+              <p className="font-medium">Not set</p>
             )}
           </div>
         </CardContent>

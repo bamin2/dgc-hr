@@ -730,6 +730,7 @@ export type Database = {
           updated_at: string
           user_id: string | null
           work_location: string | null
+          work_location_id: string | null
           worker_type: Database["public"]["Enums"]["worker_type"] | null
         }
         Insert: {
@@ -767,6 +768,7 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
           work_location?: string | null
+          work_location_id?: string | null
           worker_type?: Database["public"]["Enums"]["worker_type"] | null
         }
         Update: {
@@ -804,6 +806,7 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
           work_location?: string | null
+          work_location_id?: string | null
           worker_type?: Database["public"]["Enums"]["worker_type"] | null
         }
         Relationships: [
@@ -826,6 +829,13 @@ export type Database = {
             columns: ["position_id"]
             isOneToOne: false
             referencedRelation: "positions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employees_work_location_id_fkey"
+            columns: ["work_location_id"]
+            isOneToOne: false
+            referencedRelation: "work_locations"
             referencedColumns: ["id"]
           },
         ]
@@ -2258,6 +2268,36 @@ export type Database = {
           location?: string | null
           session_token?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      work_locations: {
+        Row: {
+          address: string | null
+          city: string | null
+          country: string | null
+          created_at: string
+          id: string
+          is_remote: boolean | null
+          name: string
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          id?: string
+          is_remote?: boolean | null
+          name: string
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          id?: string
+          is_remote?: boolean | null
+          name?: string
         }
         Relationships: []
       }
