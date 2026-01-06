@@ -64,3 +64,40 @@ export async function getCroppedImg(
     );
   });
 }
+
+export async function resizeImage(
+  imageSrc: string,
+  maxDimension: number
+): Promise<Blob> {
+  const image = await createImage(imageSrc);
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+
+  if (!ctx) {
+    throw new Error('Could not get canvas context');
+  }
+
+  // Calculate output dimensions maintaining aspect ratio
+  let outputWidth = image.width;
+  let outputHeight = image.height;
+
+  if (outputWidth > maxDimension || outputHeight > maxDimension) {
+    const scale = maxDimension / Math.max(outputWidth, outputHeight);
+    outputWidth = Math.round(outputWidth * scale);
+    outputHeight = Math.round(outputHeight * scale);
+  }
+
+  canvas.width = outputWidth;
+  canvas.height = outputHeight;
+
+  // Draw the full image scaled to output dimensions
+  ctx.drawImage(image, 0, 0, outputWidth, outputHeight);
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => (blob ? resolve(blob) : reject(new Error('Canvas is empty'))),
+      'image/jpeg',
+      0.9
+    );
+  });
+}

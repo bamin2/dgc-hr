@@ -2,9 +2,9 @@ import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Upload, X, Loader2 } from 'lucide-react';
-import { ImageCropper } from '@/components/ui/image-cropper';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { resizeImage } from '@/utils/cropImage';
 
 interface LogoUploadProps {
   value: string;
@@ -21,8 +21,6 @@ export const LogoUpload = ({
   fallback = 'FT',
   size = 'lg'
 }: LogoUploadProps) => {
-  const [cropperOpen, setCropperOpen] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string>('');
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -32,7 +30,7 @@ export const LogoUpload = ({
     lg: 'h-28 w-28'
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       // Validate file type
@@ -48,11 +46,20 @@ export const LogoUpload = ({
       }
       
       const reader = new FileReader();
-      reader.onloadend = () => {
+      reader.onloadend = async () => {
         const result = reader.result as string;
         if (result) {
-          setSelectedImage(result);
-          setCropperOpen(true);
+          setIsUploading(true);
+          try {
+            // Resize the full image to fit within 400x400
+            const resizedBlob = await resizeImage(result, 400);
+            await uploadLogo(resizedBlob);
+          } catch (error) {
+            console.error('Error processing image:', error);
+            toast.error('Failed to process image');
+          } finally {
+            setIsUploading(false);
+          }
         }
       };
       reader.onerror = () => {
@@ -66,9 +73,7 @@ export const LogoUpload = ({
     }
   };
 
-  const handleCropComplete = async (croppedBlob: Blob) => {
-    setIsUploading(true);
-    
+  const uploadLogo = async (imageBlob: Blob) => {
     try {
       // Generate unique filename
       const fileName = `company/logo-${Date.now()}.jpg`;
@@ -84,7 +89,7 @@ export const LogoUpload = ({
       // Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(fileName, croppedBlob, {
+        .upload(fileName, imageBlob, {
           cacheControl: '3600',
           upsert: true,
           contentType: 'image/jpeg',
@@ -105,8 +110,6 @@ export const LogoUpload = ({
     } catch (error) {
       console.error('Upload error:', error);
       toast.error('Failed to upload logo');
-    } finally {
-      setIsUploading(false);
     }
   };
 
@@ -161,24 +164,9 @@ export const LogoUpload = ({
               </Button>
             )}
           </div>
-          <p className="text-xs text-muted-foreground">PNG, JPG up to 5MB. Images auto-resized to 400×400 max.</p>
+          <p className="text-xs text-muted-foreground">PNG, JPG up to 5MB. Auto-resized to 400×400 max.</p>
         </div>
       </div>
-
-      <ImageCropper
-        open={cropperOpen}
-        onOpenChange={(open) => {
-          setCropperOpen(open);
-          if (!open) {
-            setSelectedImage('');
-          }
-        }}
-        imageSrc={selectedImage}
-        onCropComplete={handleCropComplete}
-        aspectRatio={1}
-        cropShape="rect"
-        maxOutputDimension={400}
-      />
     </>
   );
 };
