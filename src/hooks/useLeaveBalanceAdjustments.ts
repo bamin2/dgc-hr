@@ -252,12 +252,11 @@ export function useBulkInitializeBalances() {
 
       if (empError) throw empError;
 
-      // Fetch all active leave types with max_days_per_year
+      // Fetch all active leave types (including those without max_days_per_year)
       const { data: leaveTypes, error: ltError } = await supabase
         .from('leave_types')
         .select('id, max_days_per_year')
-        .eq('is_active', true)
-        .not('max_days_per_year', 'is', null);
+        .eq('is_active', true);
 
       if (ltError) throw ltError;
 
@@ -287,12 +286,12 @@ export function useBulkInitializeBalances() {
       for (const emp of employees || []) {
         for (const lt of leaveTypes || []) {
           const key = `${emp.id}-${lt.id}`;
-          if (!existingSet.has(key) && lt.max_days_per_year) {
+          if (!existingSet.has(key)) {
             toCreate.push({
               employee_id: emp.id,
               leave_type_id: lt.id,
               year,
-              total_days: lt.max_days_per_year,
+              total_days: lt.max_days_per_year || 0, // Use 0 for leave types without max_days_per_year
               used_days: 0,
               pending_days: 0,
             });

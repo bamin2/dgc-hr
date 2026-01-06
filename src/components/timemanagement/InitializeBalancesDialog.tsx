@@ -30,9 +30,8 @@ export function InitializeBalancesDialog({
   const { data: leaveTypes } = useLeaveTypes();
   const { mutate: initialize, isPending } = useBulkInitializeBalances();
 
-  const leaveTypesWithDays = leaveTypes?.filter(
-    (lt) => lt.max_days_per_year !== null && lt.max_days_per_year > 0
-  );
+  // Show all active leave types - those without max_days_per_year will be initialized with 0 days
+  const activeLeaveTypes = leaveTypes?.filter((lt) => lt.is_active !== false);
 
   const handleInitialize = () => {
     initialize(
@@ -65,7 +64,7 @@ export function InitializeBalancesDialog({
                   Leave types to initialize:
                 </p>
                 <div className="space-y-1.5">
-                  {leaveTypesWithDays?.map((lt) => (
+                  {activeLeaveTypes?.map((lt) => (
                     <div
                       key={lt.id}
                       className="flex items-center justify-between py-1.5 px-3 bg-muted/50 rounded-md"
@@ -77,8 +76,8 @@ export function InitializeBalancesDialog({
                         />
                         <span className="text-sm">{lt.name}</span>
                       </div>
-                      <Badge variant="secondary" className="text-xs">
-                        {lt.max_days_per_year} days
+                      <Badge variant={lt.max_days_per_year ? "secondary" : "outline"} className="text-xs">
+                        {lt.max_days_per_year ? `${lt.max_days_per_year} days` : "0 days"}
                       </Badge>
                     </div>
                   ))}
