@@ -1,12 +1,14 @@
-import { useMemo } from "react";
+import { useMemo, useRef, useState } from "react";
 import { format, differenceInDays } from "date-fns";
-import { CalendarIcon, Eye } from "lucide-react";
+import { CalendarIcon, Eye, Download, Loader2 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { toast } from "@/hooks/use-toast";
+import { exportOfferLetterToPdf } from "@/utils/offerLetterExport";
 import {
   Popover,
   PopoverContent,
@@ -53,6 +55,9 @@ export function TeamOfferStep({
   roleData,
   compensationData,
 }: TeamOfferStepProps) {
+  const previewRef = useRef<HTMLDivElement>(null);
+  const [isExporting, setIsExporting] = useState(false);
+
   const { data: templates } = useDocumentTemplates();
   const { settings: companySettings } = useCompanySettingsDb();
   const { data: departments } = useDepartments();
@@ -64,6 +69,29 @@ export function TeamOfferStep({
   const offerTemplates = useMemo(() => {
     return templates?.filter(t => t.category === "offer_letter" && t.is_active) || [];
   }, [templates]);
+
+  const handleDownloadPdf = async () => {
+    if (!previewRef.current) return;
+    
+    setIsExporting(true);
+    try {
+      const employeeName = `${basicData.firstName} ${basicData.lastName}`.trim() || "employee";
+      await exportOfferLetterToPdf(previewRef.current, employeeName);
+      toast({
+        title: "PDF downloaded",
+        description: "The offer letter has been downloaded successfully.",
+      });
+    } catch (error) {
+      console.error("Failed to export PDF:", error);
+      toast({
+        title: "Export failed",
+        description: "Failed to generate PDF. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const updateField = <K extends keyof TeamOfferData>(
     field: K,
@@ -279,14 +307,35 @@ export function TeamOfferStep({
               <div className="border rounded-lg bg-card">
                 <ScrollArea className="h-[400px]">
                   <div 
-                    className="p-6 prose prose-sm max-w-none dark:prose-invert"
+                    ref={previewRef}
+                    className="p-6 prose prose-sm max-w-none dark:prose-invert bg-white text-black"
                     dangerouslySetInnerHTML={{ __html: previewContent }}
                   />
                 </ScrollArea>
               </div>
-              <p className="text-xs text-muted-foreground">
-                This preview shows the offer letter with data from the previous steps filled in.
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-muted-foreground">
+                  This preview shows the offer letter with data from the previous steps filled in.
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDownloadPdf}
+                  disabled={isExporting}
+                >
+                  {isExporting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="mr-2 h-4 w-4" />
+                      Download PDF
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           )}
 
