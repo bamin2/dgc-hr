@@ -12,6 +12,7 @@ import { TeamFinalizeStep } from "./TeamFinalizeStep";
 import { useCreateEmployee, useDepartments, usePositions } from "@/hooks/useEmployees";
 import { useAssignAllowances } from "@/hooks/useEmployeeAllowances";
 import { useAssignDeductions } from "@/hooks/useEmployeeDeductions";
+import { useWorkLocations } from "@/hooks/useWorkLocations";
 import { getCountryByCode } from "@/data/countries";
 
 const steps = [
@@ -32,6 +33,7 @@ export function AddTeamMemberWizard() {
   const assignDeductions = useAssignDeductions();
   const { data: departments } = useDepartments();
   const { data: positions } = usePositions();
+  const { data: workLocations } = useWorkLocations();
 
   const isSubmitting = createEmployee.isPending || 
                        assignAllowances.isPending || 
@@ -50,9 +52,9 @@ export function AddTeamMemberWizard() {
   });
 
   const [roleData, setRoleData] = useState<TeamRoleData>({
-    workLocation: "",
-    jobTitle: "",
-    department: "",
+    workLocationId: "",
+    positionId: "",
+    departmentId: "",
     managerId: "",
     startDate: undefined,
   });
@@ -94,7 +96,7 @@ export function AddTeamMemberWizard() {
         }
         return true;
       case 2:
-        if (!roleData.jobTitle || !roleData.department) {
+        if (!roleData.positionId || !roleData.departmentId) {
           toast({
             title: "Required fields missing",
             description: "Please fill in job title and department.",
@@ -137,15 +139,14 @@ export function AddTeamMemberWizard() {
 
   const handleSubmit = async () => {
     try {
-      // Find department and position IDs
-      const departmentId = departments?.find(d => d.name === roleData.department)?.id;
-      const positionId = positions?.find(p => p.title === roleData.jobTitle)?.id;
-
       // Combine phone with country code
       const country = getCountryByCode(basicData.mobileCountryCode);
       const fullPhone = basicData.mobileNumber 
         ? `${country?.dialCode || ""} ${basicData.mobileNumber}`.trim()
         : null;
+
+      // Get position title for offer step
+      const position = positions?.find(p => p.id === roleData.positionId);
 
       // Create the employee
       const newEmployee = await createEmployee.mutateAsync({
@@ -153,13 +154,13 @@ export function AddTeamMemberWizard() {
         last_name: basicData.lastName,
         email: basicData.email,
         phone: fullPhone,
-        department_id: departmentId || null,
-        position_id: positionId || null,
+        department_id: roleData.departmentId || null,
+        position_id: roleData.positionId || null,
         manager_id: roleData.managerId || null,
         join_date: roleData.startDate?.toISOString().split('T')[0] || null,
         salary: parseFloat(compensationData.salary) || null,
         status: 'on_boarding',
-        location: roleData.workLocation || null,
+        work_location_id: roleData.workLocationId || null,
         avatar_url: basicData.avatar || null,
         nationality: basicData.nationality || null,
         // Note: secondName would need a DB column - storing in preferred_name for now
@@ -205,6 +206,9 @@ export function AddTeamMemberWizard() {
     setCurrentStep(step);
   };
 
+  // Get position title for offer step
+  const positionTitle = positions?.find(p => p.id === roleData.positionId)?.title || "";
+
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
@@ -224,7 +228,7 @@ export function AddTeamMemberWizard() {
           <TeamOfferStep
             data={offerData}
             onChange={setOfferData}
-            defaultJobTitle={roleData.jobTitle}
+            defaultJobTitle={positionTitle}
             defaultManagerId={roleData.managerId}
           />
         );
