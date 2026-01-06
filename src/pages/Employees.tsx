@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { Users, Building2, Loader2, Upload } from "lucide-react";
+import { Users, Building2, Loader2, Upload, History } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Sidebar, Header } from "@/components/dashboard";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import {
   OrgChart,
   EmployeeExportButton,
   EmployeeImportDialog,
+  ImportHistoryDialog,
 } from "@/components/employees";
 import {
   useEmployees,
@@ -53,7 +54,7 @@ export default function Employees() {
   const [formOpen, setFormOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [importOpen, setImportOpen] = useState(false);
-
+  const [historyOpen, setHistoryOpen] = useState(false);
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
@@ -191,6 +192,10 @@ export default function Employees() {
             
             {canEditEmployees && (
               <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setHistoryOpen(true)} className="gap-2">
+                  <History className="h-4 w-4" />
+                  Import History
+                </Button>
                 <Button variant="outline" onClick={() => setImportOpen(true)} className="gap-2">
                   <Upload className="h-4 w-4" />
                   Import
@@ -326,6 +331,12 @@ export default function Employees() {
       <EmployeeImportDialog
         open={importOpen}
         onOpenChange={setImportOpen}
+      />
+
+      {/* Import History Dialog */}
+      <ImportHistoryDialog
+        open={historyOpen}
+        onOpenChange={setHistoryOpen}
       />
     </div>
   );

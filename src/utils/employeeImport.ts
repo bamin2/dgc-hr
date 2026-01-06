@@ -30,6 +30,12 @@ export interface MappedEmployee {
   dbRecord: TablesInsert<"employees"> | null;
 }
 
+// Result of duplicate email validation
+export interface DuplicateEmailResult {
+  duplicatesInDb: string[];
+  duplicatesInFile: { email: string; rows: number[] }[];
+}
+
 // Parse CSV content into rows
 export function parseCSV(content: string): string[][] {
   const lines = content.split(/\r?\n/).filter(line => line.trim());
@@ -173,8 +179,45 @@ function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
+// Check for duplicate emails against database and within file
+export function checkDuplicateEmails(
+  parsedEmployees: ParsedEmployee[],
+  existingEmails: string[]
+): DuplicateEmailResult {
+  const existingEmailsLower = existingEmails.map(e => e.toLowerCase());
+  const duplicatesInDb: string[] = [];
+  const emailRowMap: Record<string, number[]> = {};
+  
+  parsedEmployees.forEach((emp, index) => {
+    const email = emp.email.toLowerCase().trim();
+    if (!email) return;
+    
+    // Check against database
+    if (existingEmailsLower.includes(email) && !duplicatesInDb.includes(email)) {
+      duplicatesInDb.push(email);
+    }
+    
+    // Track occurrences in file
+    if (!emailRowMap[email]) {
+      emailRowMap[email] = [];
+    }
+    emailRowMap[email].push(index + 1); // 1-indexed row
+  });
+  
+  // Find duplicates within file
+  const duplicatesInFile = Object.entries(emailRowMap)
+    .filter(([, rows]) => rows.length > 1)
+    .map(([email, rows]) => ({ email, rows }));
+  
+  return { duplicatesInDb, duplicatesInFile };
+}
+
 // Validate a parsed employee row
-export function validateEmployee(parsed: ParsedEmployee): ValidationResult {
+export function validateEmployee(
+  parsed: ParsedEmployee,
+  existingEmails: string[] = [],
+  emailsInCurrentBatch: string[] = []
+): ValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
   
@@ -186,6 +229,18 @@ export function validateEmployee(parsed: ParsedEmployee): ValidationResult {
     errors.push('Email is required');
   } else if (!isValidEmail(parsed.email)) {
     errors.push('Invalid email format');
+  } else {
+    const emailLower = parsed.email.toLowerCase().trim();
+    
+    // Check against database
+    if (existingEmails.map(e => e.toLowerCase()).includes(emailLower)) {
+      errors.push('Email already exists in database');
+    }
+    
+    // Check against current batch (earlier rows)
+    if (emailsInCurrentBatch.map(e => e.toLowerCase()).includes(emailLower)) {
+      errors.push('Duplicate email in this file');
+    }
   }
   
   // Warnings for optional but recommended fields
