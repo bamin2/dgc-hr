@@ -839,6 +839,48 @@ export type Database = {
           },
         ]
       }
+      employee_imports: {
+        Row: {
+          created_at: string | null
+          failed_records: number
+          filename: string | null
+          id: string
+          imported_at: string | null
+          imported_by: string | null
+          rolled_back_at: string | null
+          rolled_back_by: string | null
+          status: string | null
+          successful_records: number
+          total_records: number
+        }
+        Insert: {
+          created_at?: string | null
+          failed_records?: number
+          filename?: string | null
+          id?: string
+          imported_at?: string | null
+          imported_by?: string | null
+          rolled_back_at?: string | null
+          rolled_back_by?: string | null
+          status?: string | null
+          successful_records: number
+          total_records: number
+        }
+        Update: {
+          created_at?: string | null
+          failed_records?: number
+          filename?: string | null
+          id?: string
+          imported_at?: string | null
+          imported_by?: string | null
+          rolled_back_at?: string | null
+          rolled_back_by?: string | null
+          status?: string | null
+          successful_records?: number
+          total_records?: number
+        }
+        Relationships: []
+      }
       employees: {
         Row: {
           address: string | null
@@ -856,6 +898,7 @@ export type Database = {
           first_name: string
           gender: Database["public"]["Enums"]["gender_type"] | null
           id: string
+          import_batch_id: string | null
           join_date: string | null
           last_name: string
           location: string | null
@@ -894,6 +937,7 @@ export type Database = {
           first_name: string
           gender?: Database["public"]["Enums"]["gender_type"] | null
           id?: string
+          import_batch_id?: string | null
           join_date?: string | null
           last_name: string
           location?: string | null
@@ -932,6 +976,7 @@ export type Database = {
           first_name?: string
           gender?: Database["public"]["Enums"]["gender_type"] | null
           id?: string
+          import_batch_id?: string | null
           join_date?: string | null
           last_name?: string
           location?: string | null
@@ -958,6 +1003,13 @@ export type Database = {
             columns: ["department_id"]
             isOneToOne: false
             referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employees_import_batch_id_fkey"
+            columns: ["import_batch_id"]
+            isOneToOne: false
+            referencedRelation: "employee_imports"
             referencedColumns: ["id"]
           },
           {

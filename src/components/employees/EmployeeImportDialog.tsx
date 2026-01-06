@@ -71,13 +71,20 @@ export function EmployeeImportDialog({ open, onOpenChange }: EmployeeImportDialo
     const rows = parseCSV(content);
     const parsed = parseCSVToEmployees(rows);
     
-    const preview = parsed.map(p => ({
-      parsed: p,
-      validation: validateEmployee(p),
-    }));
+    // Get existing emails for duplicate checking
+    const existingEmails = existingEmployees.map(e => e.email);
+    
+    // Validate each row with duplicate checking
+    const preview = parsed.map((p, index) => {
+      const emailsBeforeThisRow = parsed.slice(0, index).map(e => e.email);
+      return {
+        parsed: p,
+        validation: validateEmployee(p, existingEmails, emailsBeforeThisRow),
+      };
+    });
     
     setPreviewData(preview);
-  }, []);
+  }, [existingEmployees]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -127,7 +134,12 @@ export function EmployeeImportDialog({ open, onOpenChange }: EmployeeImportDialo
       .filter((r): r is NonNullable<typeof r> => r !== null);
 
     try {
-      await bulkCreate.mutateAsync(dbRecords);
+      await bulkCreate.mutateAsync({
+        employees: dbRecords,
+        filename: file?.name || "unknown.csv",
+        totalRecords: previewData.length,
+        failedRecords: invalidRows.length,
+      });
       toast({
         title: "Import successful",
         description: `${dbRecords.length} employees imported successfully`,
