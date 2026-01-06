@@ -1,5 +1,38 @@
 import { toPng } from 'html-to-image';
 import { jsPDF } from 'jspdf';
+import PizZip from 'pizzip';
+import Docxtemplater from 'docxtemplater';
+import { saveAs } from 'file-saver';
+import { supabase } from '@/integrations/supabase/client';
+
+export interface DocxTemplateData {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  nationality?: string;
+  salary?: string;
+  startDate?: string;
+  positionTitle?: string;
+  departmentName?: string;
+  workLocationName?: string;
+  currency?: string;
+  managerFirstName?: string;
+  managerLastName?: string;
+  companyName?: string;
+  companyLegalName?: string;
+  companyEmail?: string;
+  companyPhone?: string;
+  companyStreet?: string;
+  companyCity?: string;
+  companyState?: string;
+  companyCountry?: string;
+  companyZipCode?: string;
+  signatureTitle?: string;
+  signatureName?: string;
+  currentDate?: string;
+  offerExpiryDate?: string;
+}
 
 function getFormattedDate(): string {
   const now = new Date();
@@ -106,4 +139,46 @@ export async function exportOfferLetterToPdf(
   });
 
   pdf.save(filename);
+}
+
+export async function exportOfferLetterToDocx(
+  docxTemplateUrl: string,
+  data: DocxTemplateData,
+  employeeName: string
+): Promise<void> {
+  const sanitizedName = employeeName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  const filename = `offer-letter-${sanitizedName}-${getFormattedDate()}.docx`;
+
+  // Download the template from Supabase Storage
+  const { data: fileData, error } = await supabase.storage
+    .from('docx-templates')
+    .download(docxTemplateUrl);
+
+  if (error || !fileData) {
+    throw new Error(`Failed to download template: ${error?.message || 'Unknown error'}`);
+  }
+
+  // Convert blob to ArrayBuffer
+  const arrayBuffer = await fileData.arrayBuffer();
+  
+  // Load the template with PizZip
+  const zip = new PizZip(arrayBuffer);
+  
+  // Create docxtemplater instance
+  const doc = new Docxtemplater(zip, {
+    paragraphLoop: true,
+    linebreaks: true,
+  });
+
+  // Render the document with data
+  doc.render(data);
+
+  // Generate the output document
+  const outputBlob = doc.getZip().generate({
+    type: 'blob',
+    mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  });
+
+  // Trigger download
+  saveAs(outputBlob, filename);
 }

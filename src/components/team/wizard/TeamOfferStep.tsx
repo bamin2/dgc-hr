@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { format, differenceInDays } from "date-fns";
-import { CalendarIcon, Eye, Download, Loader2 } from "lucide-react";
+import { CalendarIcon, Eye, Download, Loader2, FileText, ChevronDown } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "@/hooks/use-toast";
-import { exportOfferLetterToPdf } from "@/utils/offerLetterExport";
+import { exportOfferLetterToPdf, exportOfferLetterToDocx, DocxTemplateData } from "@/utils/offerLetterExport";
 import {
   Popover,
   PopoverContent,
@@ -21,6 +21,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { useDocumentTemplates } from "@/hooks/useDocumentTemplates";
 import { useCompanySettingsDb } from "@/hooks/useCompanySettingsDb";
@@ -93,6 +99,66 @@ export function TeamOfferStep({
     }
   };
 
+  const handleDownloadDocx = async () => {
+    if (!selectedTemplate?.docx_template_url) {
+      toast({
+        title: "No Word template",
+        description: "No Word template has been uploaded for this offer letter template.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsExporting(true);
+    try {
+      const employeeName = `${basicData.firstName} ${basicData.lastName}`.trim() || "employee";
+      
+      const docxData: DocxTemplateData = {
+        firstName: basicData.firstName,
+        lastName: basicData.lastName,
+        email: basicData.email,
+        phone: basicData.mobileNumber,
+        nationality: basicData.nationality,
+        salary: compensationData.salary ? parseFloat(compensationData.salary).toLocaleString() : '',
+        startDate: roleData.startDate ? format(roleData.startDate, 'MMMM d, yyyy') : '',
+        positionTitle: position?.title,
+        departmentName: department?.name,
+        workLocationName: workLocation?.name,
+        currency: workLocation?.currency || compensationData.currency,
+        managerFirstName: manager?.firstName,
+        managerLastName: manager?.lastName,
+        companyName: companySettings?.name,
+        companyLegalName: companySettings?.legalName || undefined,
+        companyEmail: companySettings?.email || undefined,
+        companyPhone: companySettings?.phone || undefined,
+        companyStreet: companySettings?.address?.street || undefined,
+        companyCity: companySettings?.address?.city || undefined,
+        companyState: companySettings?.address?.state || undefined,
+        companyCountry: companySettings?.address?.country || undefined,
+        companyZipCode: companySettings?.address?.zipCode || undefined,
+        signatureTitle: data.signatureTitle,
+        signatureName: data.signatureName,
+        currentDate: format(new Date(), 'MMMM d, yyyy'),
+        offerExpiryDate: data.expirationDate ? format(data.expirationDate, 'MMMM d, yyyy') : undefined,
+      };
+
+      await exportOfferLetterToDocx(selectedTemplate.docx_template_url, docxData, employeeName);
+      toast({
+        title: "Word document downloaded",
+        description: "The offer letter has been downloaded as a Word document.",
+      });
+    } catch (error) {
+      console.error("Failed to export DOCX:", error);
+      toast({
+        title: "Export failed",
+        description: "Failed to generate Word document. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const updateField = <K extends keyof TeamOfferData>(
     field: K,
     value: TeamOfferData[K]
@@ -104,6 +170,8 @@ export function TeamOfferStep({
   const selectedTemplate = useMemo(() => {
     return offerTemplates.find(t => t.id === data.templateId);
   }, [offerTemplates, data.templateId]);
+
+  const hasDocxTemplate = !!selectedTemplate?.docx_template_url;
 
   // Get related data for preview
   const position = useMemo(() => 
@@ -317,24 +385,41 @@ export function TeamOfferStep({
                 <p className="text-xs text-muted-foreground">
                   This preview shows the offer letter with data from the previous steps filled in.
                 </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleDownloadPdf}
-                  disabled={isExporting}
-                >
-                  {isExporting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Generating...
-                    </>
-                  ) : (
-                    <>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" disabled={isExporting}>
+                      {isExporting ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Download className="mr-2 h-4 w-4" />
+                          Download
+                          <ChevronDown className="ml-2 h-4 w-4" />
+                        </>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={handleDownloadPdf}>
                       <Download className="mr-2 h-4 w-4" />
-                      Download PDF
-                    </>
-                  )}
-                </Button>
+                      Download as PDF
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={handleDownloadDocx}
+                      disabled={!hasDocxTemplate}
+                      className={!hasDocxTemplate ? "opacity-50" : ""}
+                    >
+                      <FileText className="mr-2 h-4 w-4" />
+                      Download as Word (.docx)
+                      {!hasDocxTemplate && (
+                        <span className="ml-2 text-xs text-muted-foreground">(No template)</span>
+                      )}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           )}

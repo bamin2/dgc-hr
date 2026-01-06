@@ -70,6 +70,7 @@ export function TemplateEditorDialog({
       description: description || null,
       content,
       is_active: isActive,
+      docx_template_url: template?.docx_template_url || null,
     });
   };
 
