@@ -12,6 +12,7 @@ import { TeamFinalizeStep } from "./TeamFinalizeStep";
 import { useCreateEmployee, useDepartments, usePositions } from "@/hooks/useEmployees";
 import { useAssignAllowances } from "@/hooks/useEmployeeAllowances";
 import { useAssignDeductions } from "@/hooks/useEmployeeDeductions";
+import { getCountryByCode } from "@/data/countries";
 
 const steps = [
   { id: 1, label: "Team Basic" },
@@ -38,13 +39,14 @@ export function AddTeamMemberWizard() {
 
   // Step data
   const [basicData, setBasicData] = useState<TeamBasicData>({
+    avatar: "",
     firstName: "",
+    secondName: "",
     lastName: "",
-    preferredName: "",
-    workerType: "employee",
-    country: "US",
+    nationality: "",
     email: "",
-    sendOfferLetter: true,
+    mobileCountryCode: "US",
+    mobileNumber: "",
   });
 
   const [roleData, setRoleData] = useState<TeamRoleData>({
@@ -65,6 +67,8 @@ export function AddTeamMemberWizard() {
   });
 
   const [offerData, setOfferData] = useState<TeamOfferData>({
+    sendOfferLetter: true,
+    setupBackgroundChecks: false,
     templateId: "",
     templateTitle: "",
     expirationDate: undefined,
@@ -137,11 +141,18 @@ export function AddTeamMemberWizard() {
       const departmentId = departments?.find(d => d.name === roleData.department)?.id;
       const positionId = positions?.find(p => p.title === roleData.jobTitle)?.id;
 
+      // Combine phone with country code
+      const country = getCountryByCode(basicData.mobileCountryCode);
+      const fullPhone = basicData.mobileNumber 
+        ? `${country?.dialCode || ""} ${basicData.mobileNumber}`.trim()
+        : null;
+
       // Create the employee
       const newEmployee = await createEmployee.mutateAsync({
         first_name: basicData.firstName,
         last_name: basicData.lastName,
         email: basicData.email,
+        phone: fullPhone,
         department_id: departmentId || null,
         position_id: positionId || null,
         manager_id: roleData.managerId || null,
@@ -149,6 +160,10 @@ export function AddTeamMemberWizard() {
         salary: parseFloat(compensationData.salary) || null,
         status: 'on_boarding',
         location: roleData.workLocation || null,
+        avatar_url: basicData.avatar || null,
+        nationality: basicData.nationality || null,
+        // Note: secondName would need a DB column - storing in preferred_name for now
+        preferred_name: basicData.secondName || null,
       });
 
       // Assign allowances if any were selected
@@ -201,7 +216,7 @@ export function AddTeamMemberWizard() {
           <TeamCompensationStep
             data={compensationData}
             onChange={setCompensationData}
-            workerType={basicData.workerType}
+            workerType="employee"
           />
         );
       case 4:

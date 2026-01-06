@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { format } from "date-fns";
 import { CalendarIcon, Bold, Italic, AlignLeft, AlignCenter, AlignRight } from "lucide-react";
 import { Label } from "@/components/ui/label";
@@ -6,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Popover,
   PopoverContent,
@@ -24,6 +24,8 @@ import { offerTemplates } from "@/hooks/useTeamMembers";
 import { mockEmployees } from "@/data/employees";
 
 export interface TeamOfferData {
+  sendOfferLetter: boolean;
+  setupBackgroundChecks: boolean;
   templateId: string;
   templateTitle: string;
   expirationDate: Date | undefined;
@@ -95,6 +97,37 @@ export function TeamOfferStep({
         <p className="text-sm text-muted-foreground mt-1">
           Configure the offer letter template and content
         </p>
+      </div>
+
+      {/* Hiring Options - Moved from Basic Step */}
+      <div className="space-y-3 p-4 rounded-lg border bg-muted/30">
+        <Label className="text-base font-medium">Hiring options (optional)</Label>
+        <div className="space-y-3">
+          <div className="flex items-center space-x-3">
+            <Checkbox
+              id="sendOffer"
+              checked={data.sendOfferLetter}
+              onCheckedChange={(checked) =>
+                updateField("sendOfferLetter", checked as boolean)
+              }
+            />
+            <Label htmlFor="sendOffer" className="cursor-pointer text-sm font-normal">
+              Send an offer letter
+            </Label>
+          </div>
+          <div className="flex items-center space-x-3">
+            <Checkbox
+              id="backgroundChecks"
+              checked={data.setupBackgroundChecks}
+              onCheckedChange={(checked) =>
+                updateField("setupBackgroundChecks", checked as boolean)
+              }
+            />
+            <Label htmlFor="backgroundChecks" className="cursor-pointer text-sm font-normal">
+              Set up background checks
+            </Label>
+          </div>
+        </div>
       </div>
 
       {/* Template Selection */}
