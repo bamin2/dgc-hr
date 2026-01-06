@@ -23,7 +23,7 @@ function SummaryItem({ icon, bgColor, days, label, sublabel, link }: SummaryItem
       </div>
       <div className="flex-1 text-white">
         <p className="font-semibold">
-          <span className="text-xl">{days}</span> days {label}
+          <span className="text-xl">{days}</span> {label}
         </p>
         {link ? (
           <a href="#" className="text-sm opacity-80 hover:underline">{sublabel}</a>
@@ -95,35 +95,35 @@ export function TimeOffSummaryCard() {
           icon={<Check className="w-5 h-5" />}
           bgColor="bg-primary"
           days={totalAvailable}
-          label="paid time off"
+          label="days paid time off"
           sublabel="Available to book"
         />
         <SummaryItem
           icon={<Clock className="w-5 h-5" />}
           bgColor="bg-blue-500"
           days={totalPending}
-          label="pending approval"
+          label="days pending approval"
           sublabel="Awaiting manager approval"
         />
         <SummaryItem
           icon={<Calendar className="w-5 h-5" />}
           bgColor="bg-orange-500"
           days={bookedDays}
-          label="booked"
+          label="days booked"
           sublabel={`${totalUsed}d used`}
         />
         <SummaryItem
           icon={<Briefcase className="w-5 h-5" />}
           bgColor="bg-teal-500"
           days={totalDays}
-          label="per year"
+          label="days per year"
           sublabel="Total allowance"
         />
         <SummaryItem
           icon={<Flag className="w-5 h-5" />}
           bgColor="bg-rose-400"
           days={remainingHolidays}
-          label="national holidays"
+          label="Public Holidays"
           sublabel={`${publicHolidays?.length || 0} total in ${currentYear}`}
           link="#"
         />
