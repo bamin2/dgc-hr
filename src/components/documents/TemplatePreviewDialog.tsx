@@ -1,0 +1,89 @@
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { DocumentTemplate } from "@/hooks/useDocumentTemplates";
+import { renderTemplate } from "@/utils/templateRenderer";
+import { useCompanySettings } from "@/contexts/CompanySettingsContext";
+import { TemplateCategoryBadge } from "./TemplateCategoryBadge";
+
+interface TemplatePreviewDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  template: DocumentTemplate | null;
+}
+
+// Sample employee data for preview
+const sampleEmployee = {
+  first_name: "John",
+  last_name: "Doe",
+  email: "john.doe@example.com",
+  phone: "+1 555-0123",
+  address: "123 Main Street, City",
+  nationality: "American",
+  employee_code: "EMP-001",
+  date_of_birth: "1990-05-15",
+  join_date: "2024-01-15",
+  salary: 5000,
+};
+
+const samplePosition = { title: "Software Engineer" };
+const sampleDepartment = { name: "Engineering" };
+const sampleWorkLocation = { name: "Headquarters", currency: "USD" };
+const sampleManager = { first_name: "Jane", last_name: "Smith" };
+
+export function TemplatePreviewDialog({
+  open,
+  onOpenChange,
+  template,
+}: TemplatePreviewDialogProps) {
+  const { settings } = useCompanySettings();
+
+  if (!template) return null;
+
+  const renderedContent = renderTemplate(template.content, {
+    employee: sampleEmployee,
+    position: samplePosition,
+    department: sampleDepartment,
+    workLocation: sampleWorkLocation,
+    manager: sampleManager,
+    company: settings || {
+      name: "Company Name",
+      legal_name: "Company Legal Name",
+      email: "info@company.com",
+      phone: "+1 555-0000",
+      address_street: "100 Business Ave",
+      address_city: "Business City",
+      address_state: "State",
+      address_country: "Country",
+      address_zip_code: "12345",
+    },
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-3xl max-h-[85vh]">
+        <DialogHeader>
+          <div className="flex items-center gap-3">
+            <DialogTitle>{template.name}</DialogTitle>
+            <TemplateCategoryBadge category={template.category} />
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Preview with sample data
+          </p>
+        </DialogHeader>
+
+        <ScrollArea className="h-[60vh]">
+          <div className="bg-white dark:bg-card border rounded-lg p-8 shadow-sm">
+            <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-foreground">
+              {renderedContent}
+            </pre>
+          </div>
+        </ScrollArea>
+      </DialogContent>
+    </Dialog>
+  );
+}
