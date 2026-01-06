@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { Plus, Upload, Users, Building2, Loader2 } from "lucide-react";
+import { Upload, Users, Building2, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Sidebar, Header } from "@/components/dashboard";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,6 @@ import {
 } from "@/components/employees";
 import {
   useEmployees,
-  useCreateEmployee,
   useUpdateEmployee,
   useDeleteEmployee,
   Employee,
@@ -34,7 +33,6 @@ export default function Employees() {
   
   // Fetch employees from Supabase
   const { data: employees = [], isLoading, error } = useEmployees();
-  const createEmployee = useCreateEmployee();
   const updateEmployee = useUpdateEmployee();
   const deleteEmployee = useDeleteEmployee();
   
@@ -118,57 +116,34 @@ export default function Employees() {
     }
   };
 
-  const handleAddNew = () => {
-    setEditingEmployee(null);
-    setFormOpen(true);
-  };
 
   const handleSave = async (data: Partial<Employee>) => {
+    if (!editingEmployee) return;
+    
     try {
-      if (editingEmployee) {
-        await updateEmployee.mutateAsync({
-          id: editingEmployee.id,
-          first_name: data.firstName,
-          last_name: data.lastName,
-          email: data.email,
-          phone: data.phone,
-          department_id: data.departmentId || null,
-          position_id: data.positionId || null,
-          status: data.status as any,
-          date_of_birth: data.dateOfBirth || null,
-          gender: data.gender as any || null,
-          address: data.address || null,
-          nationality: data.nationality || null,
-          avatar_url: data.avatar || null,
-        });
-        toast({
-          title: "Employee updated",
-          description: `${data.firstName} ${data.lastName}'s information has been updated.`,
-        });
-      } else {
-        await createEmployee.mutateAsync({
-          first_name: data.firstName!,
-          last_name: data.lastName!,
-          email: data.email!,
-          phone: data.phone,
-          department_id: data.departmentId || null,
-          position_id: data.positionId || null,
-          status: (data.status as any) || 'on_boarding',
-          date_of_birth: data.dateOfBirth || null,
-          gender: data.gender as any || null,
-          address: data.address || null,
-          nationality: data.nationality || null,
-          avatar_url: data.avatar || null,
-        });
-        toast({
-          title: "Employee added",
-          description: `${data.firstName} ${data.lastName} has been added to the directory.`,
-        });
-      }
+      await updateEmployee.mutateAsync({
+        id: editingEmployee.id,
+        first_name: data.firstName,
+        last_name: data.lastName,
+        email: data.email,
+        phone: data.phone,
+        department_id: data.departmentId || null,
+        position_id: data.positionId || null,
+        status: data.status as any,
+        date_of_birth: data.dateOfBirth || null,
+        gender: data.gender as any || null,
+        address: data.address || null,
+        nationality: data.nationality || null,
+        avatar_url: data.avatar || null,
+      });
+      toast({
+        title: "Employee updated",
+        description: `${data.firstName} ${data.lastName}'s information has been updated.`,
+      });
     } catch (err) {
       toast({
         title: "Error",
-        description: "Failed to save employee. Please try again.",
+        description: "Failed to update employee. Please try again.",
         variant: "destructive",
       });
     }
@@ -219,16 +194,10 @@ export default function Employees() {
             <h1 className="text-2xl font-semibold text-foreground">People Directory</h1>
             
             {canEditEmployees && (
-              <div className="flex items-center gap-3">
-                <Button variant="outline" onClick={handleExport} className="gap-2">
-                  <Upload className="h-4 w-4" />
-                  Export
-                </Button>
-                <Button onClick={handleAddNew} className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white">
-                  <Plus className="h-4 w-4" />
-                  Add Employee
-                </Button>
-              </div>
+              <Button variant="outline" onClick={handleExport} className="gap-2">
+                <Upload className="h-4 w-4" />
+                Export
+              </Button>
             )}
           </div>
 
