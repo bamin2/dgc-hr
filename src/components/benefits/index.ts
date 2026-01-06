@@ -9,3 +9,4 @@ export { EnrollmentsTable } from './EnrollmentsTable';
 export { ClaimsTable } from './ClaimsTable';
 export { BenefitsCostChart } from './BenefitsCostChart';
 export { EnrollmentForm } from './EnrollmentForm';
+export { CreateBenefitPlanDialog } from './CreateBenefitPlanDialog';

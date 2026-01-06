@@ -432,6 +432,7 @@ export type Database = {
           features: string[] | null
           id: string
           name: string
+          policy_document_url: string | null
           provider: string
           status: Database["public"]["Enums"]["benefit_status"]
           type: Database["public"]["Enums"]["benefit_type"]
@@ -444,6 +445,7 @@ export type Database = {
           features?: string[] | null
           id?: string
           name: string
+          policy_document_url?: string | null
           provider: string
           status?: Database["public"]["Enums"]["benefit_status"]
           type: Database["public"]["Enums"]["benefit_type"]
@@ -456,6 +458,7 @@ export type Database = {
           features?: string[] | null
           id?: string
           name?: string
+          policy_document_url?: string | null
           provider?: string
           status?: Database["public"]["Enums"]["benefit_status"]
           type?: Database["public"]["Enums"]["benefit_type"]
