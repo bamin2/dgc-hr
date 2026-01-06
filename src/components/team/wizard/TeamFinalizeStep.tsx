@@ -56,13 +56,23 @@ export function TeamFinalizeStep({
   const workLocation = workLocations?.find(w => w.id === roleData.workLocationId);
   const offerTemplate = documentTemplates?.find(t => t.id === offerData.templateId);
 
-  const selectedAllowanceNames = (allowanceTemplates || [])
-    .filter(t => compensationData.selectedAllowances.includes(t.id))
-    .map(t => t.name);
+  // Get allowance names from the new structure
+  const allowanceNames = compensationData.allowances.map(a => {
+    if (a.isCustom) {
+      return a.customName || "Custom Allowance";
+    }
+    const template = allowanceTemplates?.find(t => t.id === a.templateId);
+    return template?.name || "Unknown";
+  });
 
-  const selectedDeductionNames = (deductionTemplates || [])
-    .filter(t => compensationData.selectedDeductions.includes(t.id))
-    .map(t => t.name);
+  // Get deduction names from the new structure
+  const deductionNames = compensationData.deductions.map(d => {
+    if (d.isCustom) {
+      return d.customName || "Custom Deduction";
+    }
+    const template = deductionTemplates?.find(t => t.id === d.templateId);
+    return template?.name || "Unknown";
+  });
 
   const formatSalary = () => {
     const amount = parseFloat(compensationData.salary) || 0;
@@ -204,7 +214,7 @@ export function TeamFinalizeStep({
         </CardHeader>
         <CardContent className="grid grid-cols-2 gap-4 text-sm">
           <div>
-            <p className="text-muted-foreground">Salary</p>
+            <p className="text-muted-foreground">Basic Salary</p>
             <p className="font-medium">
               {formatSalary()} / month
             </p>
@@ -213,24 +223,24 @@ export function TeamFinalizeStep({
             <p className="text-muted-foreground">Employment status</p>
             <p className="font-medium">{formatEmploymentStatus()}</p>
           </div>
-          {selectedAllowanceNames.length > 0 && (
+          {allowanceNames.length > 0 && (
             <div className="col-span-2">
               <p className="text-muted-foreground mb-1">Allowances</p>
               <div className="flex flex-wrap gap-1">
-                {selectedAllowanceNames.map(name => (
-                  <Badge key={name} variant="secondary" className="text-xs font-normal">
+                {allowanceNames.map((name, idx) => (
+                  <Badge key={idx} variant="secondary" className="text-xs font-normal">
                     {name}
                   </Badge>
                 ))}
               </div>
             </div>
           )}
-          {selectedDeductionNames.length > 0 && (
+          {deductionNames.length > 0 && (
             <div className="col-span-2">
               <p className="text-muted-foreground mb-1">Deductions</p>
               <div className="flex flex-wrap gap-1">
-                {selectedDeductionNames.map(name => (
-                  <Badge key={name} variant="outline" className="text-xs font-normal">
+                {deductionNames.map((name, idx) => (
+                  <Badge key={idx} variant="outline" className="text-xs font-normal">
                     {name}
                   </Badge>
                 ))}

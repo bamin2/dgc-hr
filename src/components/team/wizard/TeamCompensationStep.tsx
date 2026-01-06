@@ -1,5 +1,7 @@
+import { useState, useMemo } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -7,19 +9,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MultiSelect } from "@/components/ui/multi-select";
+import { Card, CardContent } from "@/components/ui/card";
 import { useActiveAllowanceTemplates } from "@/hooks/useAllowanceTemplates";
 import { useActiveDeductionTemplates } from "@/hooks/useDeductionTemplates";
 import { useWorkLocations } from "@/hooks/useWorkLocations";
-import { Skeleton } from "@/components/ui/skeleton";
 import { getCurrencyByCode } from "@/data/currencies";
+import { Plus, X } from "lucide-react";
+import { AddAllowanceDialog, AllowanceEntry } from "./AddAllowanceDialog";
+import { AddDeductionDialog, DeductionEntry } from "./AddDeductionDialog";
 
 export interface TeamCompensationData {
   salary: string;
   currency: string;
   employmentStatus: "full_time" | "part_time";
-  selectedAllowances: string[];
-  selectedDeductions: string[];
+  allowances: AllowanceEntry[];
+  deductions: DeductionEntry[];
 }
 
 interface TeamCompensationStepProps {
@@ -33,9 +37,87 @@ export function TeamCompensationStep({
   onChange,
   workLocationId,
 }: TeamCompensationStepProps) {
-  const { data: allowanceTemplates, isLoading: loadingAllowances } = useActiveAllowanceTemplates();
-  const { data: deductionTemplates, isLoading: loadingDeductions } = useActiveDeductionTemplates();
+  const [showAllowanceDialog, setShowAllowanceDialog] = useState(false);
+  const [showDeductionDialog, setShowDeductionDialog] = useState(false);
+
+  const { data: allowanceTemplates } = useActiveAllowanceTemplates();
+  const { data: deductionTemplates } = useActiveDeductionTemplates();
   const { data: workLocations } = useWorkLocations();
+
+  const workLocation = workLocations?.find((w) => w.id === workLocationId);
+  const currency = getCurrencyByCode(data.currency) || getCurrencyByCode("USD");
+
+  const baseSalary = parseFloat(data.salary) || 0;
+
+  // Calculate allowance amounts
+  const { totalAllowances, allowanceBreakdown } = useMemo(() => {
+    let total = 0;
+    const breakdown = data.allowances.map((a) => {
+      let amount = 0;
+      let name = a.customName || "";
+
+      if (a.isCustom) {
+        amount = a.amount;
+        name = a.customName || "Custom Allowance";
+      } else {
+        const template = allowanceTemplates?.find((t) => t.id === a.templateId);
+        if (template) {
+          name = template.name;
+          if (template.amount_type === "fixed") {
+            amount = template.amount;
+          } else {
+            // Percentage-based
+            const base =
+              template.percentage_of === "base_salary" ? baseSalary : baseSalary;
+            amount = (base * template.amount) / 100;
+          }
+        }
+      }
+
+      total += amount;
+      return { ...a, calculatedAmount: amount, displayName: name };
+    });
+
+    return { totalAllowances: total, allowanceBreakdown: breakdown };
+  }, [data.allowances, allowanceTemplates, baseSalary]);
+
+  const totalGrossPay = baseSalary + totalAllowances;
+
+  // Calculate deduction amounts
+  const { totalDeductions, deductionBreakdown } = useMemo(() => {
+    let total = 0;
+    const breakdown = data.deductions.map((d) => {
+      let amount = 0;
+      let name = d.customName || "";
+
+      if (d.isCustom) {
+        amount = d.amount;
+        name = d.customName || "Custom Deduction";
+      } else {
+        const template = deductionTemplates?.find((t) => t.id === d.templateId);
+        if (template) {
+          name = template.name;
+          if (template.amount_type === "fixed") {
+            amount = template.amount;
+          } else {
+            // Percentage-based - calculate from gross
+            const base =
+              template.percentage_of === "base_salary"
+                ? baseSalary
+                : totalGrossPay;
+            amount = (base * template.amount) / 100;
+          }
+        }
+      }
+
+      total += amount;
+      return { ...d, calculatedAmount: amount, displayName: name };
+    });
+
+    return { totalDeductions: total, deductionBreakdown: breakdown };
+  }, [data.deductions, deductionTemplates, baseSalary, totalGrossPay]);
+
+  const totalNetPay = totalGrossPay - totalDeductions;
 
   const updateField = <K extends keyof TeamCompensationData>(
     field: K,
@@ -44,25 +126,41 @@ export function TeamCompensationStep({
     onChange({ ...data, [field]: value });
   };
 
-  // Get currency from work location
-  const workLocation = workLocations?.find(w => w.id === workLocationId);
-  const currency = getCurrencyByCode(data.currency) || getCurrencyByCode("USD");
+  const handleAddAllowance = (allowance: AllowanceEntry) => {
+    updateField("allowances", [...data.allowances, allowance]);
+  };
 
-  const allowanceOptions = (allowanceTemplates || []).map(t => ({
-    value: t.id,
-    label: t.name,
-    description: t.amount_type === 'fixed' 
-      ? `${currency?.symbol || "$"}${t.amount.toLocaleString()}`
-      : `${t.amount}% of ${t.percentage_of?.replace('_', ' ')}`,
-  }));
+  const handleRemoveAllowance = (id: string) => {
+    updateField(
+      "allowances",
+      data.allowances.filter((a) => a.id !== id)
+    );
+  };
 
-  const deductionOptions = (deductionTemplates || []).map(t => ({
-    value: t.id,
-    label: t.name,
-    description: t.amount_type === 'fixed' 
-      ? `${currency?.symbol || "$"}${t.amount.toLocaleString()}`
-      : `${t.amount}% of ${t.percentage_of?.replace('_', ' ')}`,
-  }));
+  const handleAddDeduction = (deduction: DeductionEntry) => {
+    updateField("deductions", [...data.deductions, deduction]);
+  };
+
+  const handleRemoveDeduction = (id: string) => {
+    updateField(
+      "deductions",
+      data.deductions.filter((d) => d.id !== id)
+    );
+  };
+
+  const existingAllowanceTemplateIds = data.allowances
+    .filter((a) => !a.isCustom && a.templateId)
+    .map((a) => a.templateId!);
+
+  const existingDeductionTemplateIds = data.deductions
+    .filter((d) => !d.isCustom && d.templateId)
+    .map((d) => d.templateId!);
+
+  const formatCurrency = (amount: number) =>
+    `${currency?.symbol || "$"}${amount.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
 
   return (
     <div className="space-y-6">
@@ -73,31 +171,6 @@ export function TeamCompensationStep({
         <p className="text-sm text-muted-foreground mt-1">
           Set up salary and payment information
         </p>
-      </div>
-
-      {/* Salary */}
-      <div className="space-y-2">
-        <Label>Salary *</Label>
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
-              {currency?.symbol || "$"}
-            </span>
-            <Input
-              type="text"
-              placeholder="0.00"
-              value={data.salary}
-              onChange={(e) => updateField("salary", e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <span className="text-muted-foreground whitespace-nowrap">/ month</span>
-        </div>
-        {workLocation && (
-          <p className="text-xs text-muted-foreground">
-            Currency based on {workLocation.name} ({data.currency})
-          </p>
-        )}
       </div>
 
       {/* Employment Status */}
@@ -119,43 +192,205 @@ export function TeamCompensationStep({
         </Select>
       </div>
 
-      {/* Allowances */}
+      {/* Basic Salary */}
       <div className="space-y-2">
-        <Label>Allowances</Label>
-        {loadingAllowances ? (
-          <Skeleton className="h-10 w-full" />
-        ) : (
-          <MultiSelect
-            options={allowanceOptions}
-            selected={data.selectedAllowances}
-            onChange={(selected) => updateField("selectedAllowances", selected)}
-            placeholder="Select allowances..."
-            emptyMessage="No allowance templates available. Create them in Settings."
-          />
+        <Label>Basic Salary *</Label>
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
+              {currency?.symbol || "$"}
+            </span>
+            <Input
+              type="text"
+              placeholder="0.00"
+              value={data.salary}
+              onChange={(e) => updateField("salary", e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <span className="text-muted-foreground whitespace-nowrap">
+            / month
+          </span>
+        </div>
+        {workLocation && (
+          <p className="text-xs text-muted-foreground">
+            Currency based on {workLocation.name} ({data.currency})
+          </p>
         )}
-        <p className="text-xs text-muted-foreground">
-          All active allowances are pre-selected. You can modify as needed.
-        </p>
       </div>
 
-      {/* Deductions */}
-      <div className="space-y-2">
-        <Label>Deductions</Label>
-        {loadingDeductions ? (
-          <Skeleton className="h-10 w-full" />
+      {/* Allowances */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <Label>Allowances</Label>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setShowAllowanceDialog(true)}
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Add Allowance
+          </Button>
+        </div>
+
+        {data.allowances.length > 0 ? (
+          <div className="border rounded-lg divide-y">
+            {allowanceBreakdown.map((a) => (
+              <div
+                key={a.id}
+                className="flex items-center justify-between px-3 py-2"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">{a.displayName}</span>
+                  {a.isCustom && (
+                    <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                      custom
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">
+                    {formatCurrency(a.calculatedAmount)}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={() => handleRemoveAllowance(a.id)}
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+            <div className="flex items-center justify-between px-3 py-2 bg-muted/50">
+              <span className="text-sm text-muted-foreground">Subtotal</span>
+              <span className="text-sm font-medium">
+                {formatCurrency(totalAllowances)}
+              </span>
+            </div>
+          </div>
         ) : (
-          <MultiSelect
-            options={deductionOptions}
-            selected={data.selectedDeductions}
-            onChange={(selected) => updateField("selectedDeductions", selected)}
-            placeholder="Select deductions..."
-            emptyMessage="No deduction templates available. Create them in Settings."
-          />
+          <div className="border rounded-lg px-3 py-4 text-sm text-muted-foreground text-center">
+            No allowances added
+          </div>
         )}
-        <p className="text-xs text-muted-foreground">
-          All active deductions are pre-selected. You can modify as needed.
-        </p>
       </div>
+
+      {/* Total Gross Pay */}
+      <Card className="bg-primary/5 border-primary/20">
+        <CardContent className="py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-semibold text-foreground">Total Gross Pay</p>
+              <p className="text-xs text-muted-foreground">
+                Basic Salary + Allowances
+              </p>
+            </div>
+            <p className="text-xl font-bold text-primary">
+              {formatCurrency(totalGrossPay)}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Deductions */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <Label>Deductions</Label>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setShowDeductionDialog(true)}
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Add Deduction
+          </Button>
+        </div>
+
+        {data.deductions.length > 0 ? (
+          <div className="border rounded-lg divide-y">
+            {deductionBreakdown.map((d) => (
+              <div
+                key={d.id}
+                className="flex items-center justify-between px-3 py-2"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">{d.displayName}</span>
+                  {d.isCustom && (
+                    <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                      custom
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-destructive">
+                    -{formatCurrency(d.calculatedAmount)}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={() => handleRemoveDeduction(d.id)}
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+            <div className="flex items-center justify-between px-3 py-2 bg-muted/50">
+              <span className="text-sm text-muted-foreground">Subtotal</span>
+              <span className="text-sm font-medium text-destructive">
+                -{formatCurrency(totalDeductions)}
+              </span>
+            </div>
+          </div>
+        ) : (
+          <div className="border rounded-lg px-3 py-4 text-sm text-muted-foreground text-center">
+            No deductions added
+          </div>
+        )}
+      </div>
+
+      {/* Total Net Monthly Pay */}
+      <Card className="bg-green-500/10 border-green-500/20">
+        <CardContent className="py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-semibold text-foreground">
+                Total Net Monthly Pay
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Total Gross Pay - Deductions
+              </p>
+            </div>
+            <p className="text-xl font-bold text-green-600 dark:text-green-400">
+              {formatCurrency(totalNetPay)}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Dialogs */}
+      <AddAllowanceDialog
+        open={showAllowanceDialog}
+        onOpenChange={setShowAllowanceDialog}
+        onAdd={handleAddAllowance}
+        currency={data.currency}
+        existingTemplateIds={existingAllowanceTemplateIds}
+      />
+
+      <AddDeductionDialog
+        open={showDeductionDialog}
+        onOpenChange={setShowDeductionDialog}
+        onAdd={handleAddDeduction}
+        currency={data.currency}
+        existingTemplateIds={existingDeductionTemplateIds}
+      />
     </div>
   );
 }

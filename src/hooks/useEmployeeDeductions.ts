@@ -26,11 +26,17 @@ export function useEmployeeDeductions(employeeId?: string) {
   });
 }
 
+interface DeductionInput {
+  templateId?: string;
+  customName?: string;
+  customAmount?: number;
+}
+
 export function useAssignDeductions() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ employeeId, deductionTemplateIds }: { employeeId: string; deductionTemplateIds: string[] }) => {
+    mutationFn: async ({ employeeId, deductions }: { employeeId: string; deductions: DeductionInput[] }) => {
       // First, delete existing deductions for this employee
       await supabase
         .from('employee_deductions')
@@ -38,13 +44,15 @@ export function useAssignDeductions() {
         .eq('employee_id', employeeId);
       
       // Then insert the new ones
-      if (deductionTemplateIds.length > 0) {
+      if (deductions.length > 0) {
         const { error } = await supabase
           .from('employee_deductions')
           .insert(
-            deductionTemplateIds.map(templateId => ({
+            deductions.map(d => ({
               employee_id: employeeId,
-              deduction_template_id: templateId,
+              deduction_template_id: d.templateId || null,
+              custom_name: d.customName || null,
+              custom_amount: d.customAmount || null,
             }))
           );
         
@@ -63,12 +71,18 @@ export function useAddEmployeeDeduction() {
   return useMutation({
     mutationFn: async (deduction: {
       employee_id: string;
-      deduction_template_id: string;
+      deduction_template_id?: string;
+      custom_name?: string;
       custom_amount?: number;
     }) => {
       const { data, error } = await supabase
         .from('employee_deductions')
-        .insert(deduction)
+        .insert({
+          employee_id: deduction.employee_id,
+          deduction_template_id: deduction.deduction_template_id || null,
+          custom_name: deduction.custom_name || null,
+          custom_amount: deduction.custom_amount || null,
+        })
         .select()
         .single();
       

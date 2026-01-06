@@ -13,8 +13,6 @@ import { useCreateEmployee, useDepartments, usePositions } from "@/hooks/useEmpl
 import { useAssignAllowances } from "@/hooks/useEmployeeAllowances";
 import { useAssignDeductions } from "@/hooks/useEmployeeDeductions";
 import { useWorkLocations } from "@/hooks/useWorkLocations";
-import { useActiveAllowanceTemplates } from "@/hooks/useAllowanceTemplates";
-import { useActiveDeductionTemplates } from "@/hooks/useDeductionTemplates";
 import { getCountryByCode } from "@/data/countries";
 
 const steps = [
@@ -36,8 +34,6 @@ export function AddTeamMemberWizard() {
   const { data: departments } = useDepartments();
   const { data: positions } = usePositions();
   const { data: workLocations } = useWorkLocations();
-  const { data: allowanceTemplates } = useActiveAllowanceTemplates();
-  const { data: deductionTemplates } = useActiveDeductionTemplates();
 
   const isSubmitting = createEmployee.isPending || 
                        assignAllowances.isPending || 
@@ -67,29 +63,9 @@ export function AddTeamMemberWizard() {
     salary: "",
     currency: "USD",
     employmentStatus: "full_time",
-    selectedAllowances: [],
-    selectedDeductions: [],
+    allowances: [],
+    deductions: [],
   });
-
-  // Auto-populate allowances when templates load
-  useEffect(() => {
-    if (allowanceTemplates && compensationData.selectedAllowances.length === 0) {
-      setCompensationData(prev => ({
-        ...prev,
-        selectedAllowances: allowanceTemplates.map(t => t.id),
-      }));
-    }
-  }, [allowanceTemplates]);
-
-  // Auto-populate deductions when templates load
-  useEffect(() => {
-    if (deductionTemplates && compensationData.selectedDeductions.length === 0) {
-      setCompensationData(prev => ({
-        ...prev,
-        selectedDeductions: deductionTemplates.map(t => t.id),
-      }));
-    }
-  }, [deductionTemplates]);
 
   // Update currency when work location changes
   useEffect(() => {
@@ -177,9 +153,6 @@ export function AddTeamMemberWizard() {
         ? `${country?.dialCode || ""} ${basicData.mobileNumber}`.trim()
         : null;
 
-      // Get position title for offer step
-      const position = positions?.find(p => p.id === roleData.positionId);
-
       // Create the employee
       const newEmployee = await createEmployee.mutateAsync({
         first_name: basicData.firstName,
@@ -197,23 +170,30 @@ export function AddTeamMemberWizard() {
         work_location_id: roleData.workLocationId || null,
         avatar_url: basicData.avatar || null,
         nationality: basicData.nationality || null,
-        // Note: secondName would need a DB column - storing in preferred_name for now
         preferred_name: basicData.secondName || null,
       });
 
-      // Assign allowances if any were selected
-      if (compensationData.selectedAllowances.length > 0) {
+      // Assign allowances (both template-based and custom)
+      if (compensationData.allowances.length > 0) {
         await assignAllowances.mutateAsync({
           employeeId: newEmployee.id,
-          allowanceTemplateIds: compensationData.selectedAllowances,
+          allowances: compensationData.allowances.map(a => ({
+            templateId: a.isCustom ? undefined : a.templateId,
+            customName: a.isCustom ? a.customName : undefined,
+            customAmount: a.amount,
+          })),
         });
       }
 
-      // Assign deductions if any were selected
-      if (compensationData.selectedDeductions.length > 0) {
+      // Assign deductions (both template-based and custom)
+      if (compensationData.deductions.length > 0) {
         await assignDeductions.mutateAsync({
           employeeId: newEmployee.id,
-          deductionTemplateIds: compensationData.selectedDeductions,
+          deductions: compensationData.deductions.map(d => ({
+            templateId: d.isCustom ? undefined : d.templateId,
+            customName: d.isCustom ? d.customName : undefined,
+            customAmount: d.amount,
+          })),
         });
       }
 

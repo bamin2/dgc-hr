@@ -5,3 +5,5 @@ export { TeamRoleStep, type TeamRoleData } from './TeamRoleStep';
 export { TeamCompensationStep, type TeamCompensationData } from './TeamCompensationStep';
 export { TeamOfferStep, type TeamOfferData } from './TeamOfferStep';
 export { TeamFinalizeStep } from './TeamFinalizeStep';
+export { AddAllowanceDialog, type AllowanceEntry } from './AddAllowanceDialog';
+export { AddDeductionDialog, type DeductionEntry } from './AddDeductionDialog';

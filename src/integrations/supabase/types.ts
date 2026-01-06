@@ -644,27 +644,30 @@ export type Database = {
       }
       employee_allowances: {
         Row: {
-          allowance_template_id: string
+          allowance_template_id: string | null
           created_at: string | null
           custom_amount: number | null
+          custom_name: string | null
           effective_date: string | null
           employee_id: string
           end_date: string | null
           id: string
         }
         Insert: {
-          allowance_template_id: string
+          allowance_template_id?: string | null
           created_at?: string | null
           custom_amount?: number | null
+          custom_name?: string | null
           effective_date?: string | null
           employee_id: string
           end_date?: string | null
           id?: string
         }
         Update: {
-          allowance_template_id?: string
+          allowance_template_id?: string | null
           created_at?: string | null
           custom_amount?: number | null
+          custom_name?: string | null
           effective_date?: string | null
           employee_id?: string
           end_date?: string | null
@@ -691,7 +694,8 @@ export type Database = {
         Row: {
           created_at: string | null
           custom_amount: number | null
-          deduction_template_id: string
+          custom_name: string | null
+          deduction_template_id: string | null
           effective_date: string | null
           employee_id: string
           end_date: string | null
@@ -700,7 +704,8 @@ export type Database = {
         Insert: {
           created_at?: string | null
           custom_amount?: number | null
-          deduction_template_id: string
+          custom_name?: string | null
+          deduction_template_id?: string | null
           effective_date?: string | null
           employee_id: string
           end_date?: string | null
@@ -709,7 +714,8 @@ export type Database = {
         Update: {
           created_at?: string | null
           custom_amount?: number | null
-          deduction_template_id?: string
+          custom_name?: string | null
+          deduction_template_id?: string | null
           effective_date?: string | null
           employee_id?: string
           end_date?: string | null
