@@ -37,8 +37,8 @@ async function fetchFormerEmployees(): Promise<FormerEmployee[]> {
       avatar_url,
       join_date,
       status,
-      department:departments(name),
-      position:positions(title)
+      department:departments!employees_department_id_fkey(name),
+      position:positions!employees_position_id_fkey(title)
     `)
     .in("status", ["resigned", "terminated"]);
 

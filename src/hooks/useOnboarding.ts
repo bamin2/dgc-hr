@@ -122,8 +122,8 @@ export function useOnboardingRecords() {
             last_name,
             email,
             avatar_url,
-            department:departments(name),
-            position:positions(title)
+            department:departments!employees_department_id_fkey(name),
+            position:positions!employees_position_id_fkey(title)
           )
         `)
         .order("created_at", { ascending: false });
@@ -151,8 +151,8 @@ export function useOnboardingRecord(id: string | undefined) {
             last_name,
             email,
             avatar_url,
-            department:departments(name),
-            position:positions(title)
+            department:departments!employees_department_id_fkey(name),
+            position:positions!employees_position_id_fkey(title)
           )
         `)
         .eq("id", id)

@@ -61,8 +61,8 @@ export function useOffboardingRecords() {
             first_name,
             last_name,
             email,
-            department:departments(name),
-            position:positions(title)
+            department:departments!employees_department_id_fkey(name),
+            position:positions!employees_position_id_fkey(title)
           )
         `)
         .order("created_at", { ascending: false });
@@ -89,8 +89,8 @@ export function useOffboardingRecord(id: string | undefined) {
             first_name,
             last_name,
             email,
-            department:departments(name),
-            position:positions(title)
+            department:departments!employees_department_id_fkey(name),
+            position:positions!employees_position_id_fkey(title)
           )
         `)
         .eq("id", id)
