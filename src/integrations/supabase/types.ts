@@ -923,6 +923,71 @@ export type Database = {
           },
         ]
       }
+      leave_balance_adjustments: {
+        Row: {
+          adjusted_by: string | null
+          adjustment_days: number
+          adjustment_type: string
+          created_at: string | null
+          employee_id: string
+          id: string
+          leave_balance_id: string
+          leave_type_id: string
+          reason: string | null
+        }
+        Insert: {
+          adjusted_by?: string | null
+          adjustment_days: number
+          adjustment_type: string
+          created_at?: string | null
+          employee_id: string
+          id?: string
+          leave_balance_id: string
+          leave_type_id: string
+          reason?: string | null
+        }
+        Update: {
+          adjusted_by?: string | null
+          adjustment_days?: number
+          adjustment_type?: string
+          created_at?: string | null
+          employee_id?: string
+          id?: string
+          leave_balance_id?: string
+          leave_type_id?: string
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_balance_adjustments_adjusted_by_fkey"
+            columns: ["adjusted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_balance_adjustments_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_balance_adjustments_leave_balance_id_fkey"
+            columns: ["leave_balance_id"]
+            isOneToOne: false
+            referencedRelation: "leave_balances"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_balance_adjustments_leave_type_id_fkey"
+            columns: ["leave_type_id"]
+            isOneToOne: false
+            referencedRelation: "leave_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leave_balances: {
         Row: {
           created_at: string | null
@@ -1049,40 +1114,64 @@ export type Database = {
       }
       leave_types: {
         Row: {
+          allow_carryover: boolean | null
           color: string | null
+          count_weekends: boolean | null
           created_at: string | null
           description: string | null
+          document_required_after_days: number | null
           id: string
           is_active: boolean | null
           is_paid: boolean | null
+          max_carryover_days: number | null
+          max_consecutive_days: number | null
           max_days_per_year: number | null
+          min_days_notice: number | null
           name: string
           requires_approval: boolean | null
+          requires_document: boolean | null
           updated_at: string | null
+          visible_to_employees: boolean | null
         }
         Insert: {
+          allow_carryover?: boolean | null
           color?: string | null
+          count_weekends?: boolean | null
           created_at?: string | null
           description?: string | null
+          document_required_after_days?: number | null
           id?: string
           is_active?: boolean | null
           is_paid?: boolean | null
+          max_carryover_days?: number | null
+          max_consecutive_days?: number | null
           max_days_per_year?: number | null
+          min_days_notice?: number | null
           name: string
           requires_approval?: boolean | null
+          requires_document?: boolean | null
           updated_at?: string | null
+          visible_to_employees?: boolean | null
         }
         Update: {
+          allow_carryover?: boolean | null
           color?: string | null
+          count_weekends?: boolean | null
           created_at?: string | null
           description?: string | null
+          document_required_after_days?: number | null
           id?: string
           is_active?: boolean | null
           is_paid?: boolean | null
+          max_carryover_days?: number | null
+          max_consecutive_days?: number | null
           max_days_per_year?: number | null
+          min_days_notice?: number | null
           name?: string
           requires_approval?: boolean | null
+          requires_document?: boolean | null
           updated_at?: string | null
+          visible_to_employees?: boolean | null
         }
         Relationships: []
       }

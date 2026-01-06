@@ -32,6 +32,7 @@ import Notifications from "./pages/Notifications";
 import Calendar from "./pages/Calendar";
 import Projects from "./pages/Projects";
 import TimeOff from "./pages/TimeOff";
+import TimeManagement from "./pages/TimeManagement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -77,6 +78,7 @@ const App = () => (
                 <Route path="/team" element={<ProtectedRoute requiredRoles={['manager', 'hr', 'admin']}><TeamMember /></ProtectedRoute>} />
                 <Route path="/team/add" element={<ProtectedRoute requiredRoles={['manager', 'hr', 'admin']}><AddTeamMember /></ProtectedRoute>} />
                 <Route path="/reports" element={<ProtectedRoute requiredRoles={['manager', 'hr', 'admin']}><Reports /></ProtectedRoute>} />
+                <Route path="/time-management" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><TimeManagement /></ProtectedRoute>} />
                 
                 {/* Protected routes - Admin only */}
                 <Route path="/settings" element={<ProtectedRoute requiredRoles={['admin']}><Settings /></ProtectedRoute>} />
