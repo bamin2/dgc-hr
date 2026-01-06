@@ -31,9 +31,12 @@ export const smartTags: SmartTag[] = [
   { tag: "<<Notice Period>>", field: "notice_period", source: "employee", category: "Employment", description: "Required notice period" },
 
   // Compensation fields
+  { tag: "<<Basic Salary>>", field: "basic_salary", source: "employee", category: "Compensation", description: "Base salary before allowances" },
   { tag: "<<Salary>>", field: "salary", source: "employee", category: "Compensation", description: "Monthly salary amount" },
   { tag: "<<Currency>>", field: "currency", source: "work_location", category: "Compensation", description: "Salary currency" },
+  { tag: "<<Total Allowances>>", field: "total_allowances", source: "employee", category: "Compensation", description: "Sum of all monthly allowances" },
   { tag: "<<Net Allowances>>", field: "net_allowances", source: "employee", category: "Compensation", description: "Total monthly allowances" },
+  { tag: "<<Net Salary>>", field: "net_salary", source: "employee", category: "Compensation", description: "Take-home pay after deductions" },
   { tag: "<<Annual Leave Days>>", field: "annual_leave_days", source: "employee", category: "Compensation", description: "Number of annual leave days" },
 
   // Company fields

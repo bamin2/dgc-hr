@@ -18,6 +18,9 @@ interface EmployeeData {
   date_of_birth?: string;
   join_date?: string;
   salary?: number;
+  basic_salary?: number;
+  total_allowances?: number;
+  net_salary?: number;
   contract_period?: string;
   probation_period?: string;
   notice_period?: string;
@@ -88,6 +91,9 @@ export function renderTemplate(template: string, data: RenderData): string {
     result = replaceTag(result, "Date of Birth", employee.date_of_birth ? format(new Date(employee.date_of_birth), "MMMM d, yyyy") : "");
     result = replaceTag(result, "Start Date", employee.join_date ? format(new Date(employee.join_date), "MMMM d, yyyy") : "");
     result = replaceTag(result, "Salary", employee.salary?.toLocaleString() || "");
+    result = replaceTag(result, "Basic Salary", employee.basic_salary?.toLocaleString() || employee.salary?.toLocaleString() || "");
+    result = replaceTag(result, "Total Allowances", employee.total_allowances?.toLocaleString() || "0");
+    result = replaceTag(result, "Net Salary", employee.net_salary?.toLocaleString() || "");
     result = replaceTag(result, "Contract Period", employee.contract_period || "One Year");
     result = replaceTag(result, "Probation Period", employee.probation_period || "3 months");
     result = replaceTag(result, "Notice Period", employee.notice_period || "30 days");
