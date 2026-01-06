@@ -12,3 +12,5 @@ export { AttendanceCorrectionDialog } from './AttendanceCorrectionDialog';
 export { ReviewCorrectionDialog } from './ReviewCorrectionDialog';
 export { AttendanceCorrectionsTable } from './AttendanceCorrectionsTable';
 export { CorrectionsTab } from './CorrectionsTab';
+export { EditAttendanceDialog } from './EditAttendanceDialog';
+export { DeleteAttendanceDialog } from './DeleteAttendanceDialog';

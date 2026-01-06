@@ -7,14 +7,30 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import { AttendanceStatusBadge } from './AttendanceStatusBadge';
 import { AttendanceRecord } from '@/hooks/useAttendanceRecords';
 
 interface AttendanceTableProps {
   records: AttendanceRecord[];
+  showActions?: boolean;
+  onEdit?: (record: AttendanceRecord) => void;
+  onDelete?: (record: AttendanceRecord) => void;
 }
 
-export function AttendanceTable({ records }: AttendanceTableProps) {
+export function AttendanceTable({
+  records,
+  showActions = false,
+  onEdit,
+  onDelete,
+}: AttendanceTableProps) {
   return (
     <div className="rounded-lg border bg-card">
       <Table>
@@ -27,12 +43,16 @@ export function AttendanceTable({ records }: AttendanceTableProps) {
             <TableHead>Check Out</TableHead>
             <TableHead>Work Hours</TableHead>
             <TableHead>Status</TableHead>
+            {showActions && <TableHead className="w-[70px]">Actions</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
           {records.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+              <TableCell
+                colSpan={showActions ? 8 : 7}
+                className="text-center py-8 text-muted-foreground"
+              >
                 No attendance records found
               </TableCell>
             </TableRow>
@@ -46,12 +66,13 @@ export function AttendanceTable({ records }: AttendanceTableProps) {
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar className="h-8 w-8">
-                        <AvatarImage 
-                          src={employee.avatar_url || undefined} 
-                          alt={`${employee.first_name} ${employee.last_name}`} 
+                        <AvatarImage
+                          src={employee.avatar_url || undefined}
+                          alt={`${employee.first_name} ${employee.last_name}`}
                         />
                         <AvatarFallback>
-                          {employee.first_name[0]}{employee.last_name[0]}
+                          {employee.first_name[0]}
+                          {employee.last_name[0]}
                         </AvatarFallback>
                       </Avatar>
                       <div>
@@ -80,6 +101,31 @@ export function AttendanceTable({ records }: AttendanceTableProps) {
                   <TableCell>
                     <AttendanceStatusBadge status={record.status} />
                   </TableCell>
+                  {showActions && (
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Actions</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => onEdit?.(record)}>
+                            <Pencil className="mr-2 h-4 w-4" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => onDelete?.(record)}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  )}
                 </TableRow>
               );
             })
