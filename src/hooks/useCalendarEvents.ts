@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
+import { startOfDay, endOfDay } from "date-fns";
 
 export type EventType = Database["public"]["Enums"]["event_type"];
 export type EventPlatform = Database["public"]["Enums"]["event_platform"];
@@ -87,7 +88,7 @@ export function useCalendarEvents(startDate?: Date, endDate?: Date) {
               first_name,
               last_name,
               avatar_url,
-              department:departments(name)
+              department:departments!employees_department_id_fkey(name)
             )
           )
         `)
@@ -134,7 +135,7 @@ export function useCalendarEvent(id: string | undefined) {
               first_name,
               last_name,
               avatar_url,
-              department:departments(name)
+              department:departments!employees_department_id_fkey(name)
             )
           )
         `)
@@ -285,5 +286,37 @@ export function getEventsForDate(events: CalendarEvent[], date: Date) {
       eventDate.getMonth() === date.getMonth() &&
       eventDate.getDate() === date.getDate()
     );
+  });
+}
+
+// Optimized hook for dashboard - fetches only today's meetings with minimal data
+export interface TodayMeeting {
+  id: string;
+  title: string;
+  start_time: string;
+  end_time: string;
+  type: EventType;
+  platform: EventPlatform | null;
+  location: string | null;
+}
+
+export function useTodayMeetings() {
+  const today = new Date();
+
+  return useQuery({
+    queryKey: ["today-meetings"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("calendar_events")
+        .select("id, title, start_time, end_time, type, platform, location")
+        .eq("type", "meeting")
+        .gte("start_time", startOfDay(today).toISOString())
+        .lte("start_time", endOfDay(today).toISOString())
+        .order("start_time");
+
+      if (error) throw error;
+      return data as TodayMeeting[];
+    },
+    staleTime: 1000 * 60 * 2, // 2 minutes
   });
 }
