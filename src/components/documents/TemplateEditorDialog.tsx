@@ -21,6 +21,9 @@ import { SmartTagsPanel } from "./SmartTagsPanel";
 import { templateCategories } from "./TemplateCategoryBadge";
 import { DocumentTemplate, DocumentTemplateInput } from "@/hooks/useDocumentTemplates";
 import { RichTextEditor, insertIntoRichTextEditor } from "./RichTextEditor";
+import { FileText, X, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface TemplateEditorDialogProps {
   open: boolean;
@@ -42,6 +45,8 @@ export function TemplateEditorDialog({
   const [description, setDescription] = useState("");
   const [content, setContent] = useState("");
   const [isActive, setIsActive] = useState(true);
+  const [docxTemplateUrl, setDocxTemplateUrl] = useState<string | null>(null);
+  const [isUploadingDocx, setIsUploadingDocx] = useState(false);
 
   useEffect(() => {
     if (template) {
@@ -50,14 +55,48 @@ export function TemplateEditorDialog({
       setDescription(template.description || "");
       setContent(template.content);
       setIsActive(template.is_active);
+      setDocxTemplateUrl(template.docx_template_url);
     } else {
       setName("");
       setCategory("offer_letter");
       setDescription("");
       setContent("");
       setIsActive(true);
+      setDocxTemplateUrl(null);
     }
   }, [template, open]);
+
+  const handleDocxUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.endsWith('.docx')) {
+      toast.error('Please upload a .docx file');
+      return;
+    }
+
+    setIsUploadingDocx(true);
+    try {
+      const fileName = `${Date.now()}-${file.name}`;
+      const { data, error } = await supabase.storage
+        .from('docx-templates')
+        .upload(fileName, file);
+
+      if (error) throw error;
+
+      const { data: urlData } = supabase.storage
+        .from('docx-templates')
+        .getPublicUrl(data.path);
+
+      setDocxTemplateUrl(urlData.publicUrl);
+      toast.success('DOCX template uploaded');
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('Failed to upload template');
+    } finally {
+      setIsUploadingDocx(false);
+    }
+  };
 
   const handleInsertTag = (tag: string) => {
     insertIntoRichTextEditor(tag);
@@ -70,7 +109,7 @@ export function TemplateEditorDialog({
       description: description || null,
       content,
       is_active: isActive,
-      docx_template_url: template?.docx_template_url || null,
+      docx_template_url: docxTemplateUrl,
     });
   };
 
@@ -135,6 +174,41 @@ export function TemplateEditorDialog({
           <div className="flex items-center gap-2">
             <Switch id="is_active" checked={isActive} onCheckedChange={setIsActive} />
             <Label htmlFor="is_active">Active template</Label>
+          </div>
+
+          <div className="space-y-2 pt-4 border-t">
+            <Label>Word Template (.docx)</Label>
+            <p className="text-sm text-muted-foreground">
+              Upload a .docx file with {'{placeholders}'} for Word document export (e.g., {'{firstName}'}, {'{companyName}'})
+            </p>
+
+            {docxTemplateUrl ? (
+              <div className="flex items-center gap-2 p-3 border rounded-md bg-muted/50">
+                <FileText className="h-5 w-5 text-blue-600" />
+                <span className="text-sm flex-1 truncate">
+                  {docxTemplateUrl.split('/').pop()}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setDocxTemplateUrl(null)}
+                  type="button"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Input
+                  type="file"
+                  accept=".docx"
+                  onChange={handleDocxUpload}
+                  disabled={isUploadingDocx}
+                  className="cursor-pointer"
+                />
+                {isUploadingDocx && <Loader2 className="h-4 w-4 animate-spin" />}
+              </div>
+            )}
           </div>
         </div>
 
