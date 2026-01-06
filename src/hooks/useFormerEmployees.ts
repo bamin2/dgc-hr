@@ -23,6 +23,8 @@ export interface FormerEmployee {
 }
 
 async function fetchFormerEmployees(): Promise<FormerEmployee[]> {
+  console.log("[Former Employees] Starting fetch...");
+  
   // Fetch employees with resigned or terminated status
   const { data: employees, error: empError } = await supabase
     .from("employees")
@@ -40,8 +42,17 @@ async function fetchFormerEmployees(): Promise<FormerEmployee[]> {
     `)
     .in("status", ["resigned", "terminated"]);
 
-  if (empError) throw empError;
-  if (!employees || employees.length === 0) return [];
+  if (empError) {
+    console.error("[Former Employees] Error fetching employees:", empError);
+    throw empError;
+  }
+  
+  console.log("[Former Employees] Found employees:", employees?.length);
+  
+  if (!employees || employees.length === 0) {
+    console.log("[Former Employees] No former employees found");
+    return [];
+  }
 
   // Get employee IDs for offboarding lookup
   const employeeIds = employees.map((e) => e.id);
@@ -57,7 +68,12 @@ async function fetchFormerEmployees(): Promise<FormerEmployee[]> {
     `)
     .in("employee_id", employeeIds);
 
-  if (offError) throw offError;
+  if (offError) {
+    console.error("[Former Employees] Error fetching offboarding records:", offError);
+    throw offError;
+  }
+  
+  console.log("[Former Employees] Found offboarding records:", offboardingRecords?.length);
 
   // Get offboarding record IDs for exit interview lookup
   const offboardingIds = offboardingRecords?.map((o) => o.id) || [];
@@ -74,7 +90,12 @@ async function fetchFormerEmployees(): Promise<FormerEmployee[]> {
       `)
       .in("offboarding_record_id", offboardingIds);
 
-    if (intError) throw intError;
+    if (intError) {
+      console.error("[Former Employees] Error fetching exit interviews:", intError);
+      throw intError;
+    }
+    
+    console.log("[Former Employees] Found exit interviews:", interviews?.length);
     exitInterviews = interviews || [];
   }
 

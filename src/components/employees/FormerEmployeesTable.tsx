@@ -1,4 +1,4 @@
-import { Search, Users, FileText, CheckCircle, Clock } from "lucide-react";
+import { Search, Users, FileText, CheckCircle, Clock, AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
@@ -62,9 +62,23 @@ export function FormerEmployeesTable() {
   }
 
   if (error) {
+    console.error("[FormerEmployeesTable] Error:", error);
+    const isPermissionError = 
+      error.message?.includes("permission") || 
+      error.message?.includes("policy") ||
+      error.message?.includes("RLS");
+    
     return (
       <div className="text-center py-12">
-        <p className="text-destructive">Failed to load former employees.</p>
+        <AlertCircle className="h-12 w-12 text-destructive/50 mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-foreground mb-1">
+          Unable to load former employees
+        </h3>
+        <p className="text-muted-foreground text-sm">
+          {isPermissionError
+            ? "You don't have permission to view this data. Only HR and Admin can access former employee records."
+            : "An error occurred while loading the data. Please try again."}
+        </p>
       </div>
     );
   }
