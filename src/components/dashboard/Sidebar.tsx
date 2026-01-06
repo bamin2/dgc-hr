@@ -34,12 +34,12 @@ const mainMenuItems = [
   { icon: Users, label: "Employees", path: "/employees" },
   { icon: Calendar, label: "Calendar", path: "/calendar" },
   { icon: Briefcase, label: "Projects", path: "/projects" },
+  { icon: Clock, label: "Time Off", path: "/time-off" },
 ];
 
 // MANAGEMENT - HR & Manager roles only
 const managementMenuItems = [
   { icon: UsersRound, label: "Team Member", path: "/team" },
-  { icon: Clock, label: "Time Off", path: "/time-off" },
   { icon: FileText, label: "Reports", path: "/reports" },
   { icon: Wallet, label: "Payrolls", path: "/payroll" },
   { icon: Gift, label: "Benefits", path: "/benefits" },
