@@ -33,7 +33,7 @@ export async function exportOfferLetterToWord(
   // Dynamically import libraries to avoid breaking the app
   const [{ saveAs }, htmlDocxModule] = await Promise.all([
     import('file-saver'),
-    import('html-docx-js/dist/html-docx')
+    import('html-docx-fixed')
   ]);
   
   const htmlDocx = htmlDocxModule.default;
