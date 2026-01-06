@@ -1,6 +1,31 @@
+import { saveAs } from 'file-saver';
+
 function getFormattedDate(): string {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
+// Load vendor script once and cache the promise
+let scriptLoadPromise: Promise<void> | null = null;
+
+function loadHtmlDocxScript(): Promise<void> {
+  if (scriptLoadPromise) return scriptLoadPromise;
+  
+  scriptLoadPromise = new Promise((resolve, reject) => {
+    // Check if already loaded
+    if ((window as any).htmlDocx) {
+      resolve();
+      return;
+    }
+    
+    const script = document.createElement('script');
+    script.src = '/vendor/html-docx.js';
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('Failed to load Word export library'));
+    document.head.appendChild(script);
+  });
+  
+  return scriptLoadPromise;
 }
 
 export async function exportOfferLetterToWord(
@@ -30,15 +55,15 @@ export async function exportOfferLetterToWord(
     </html>
   `;
 
-  // Dynamically import libraries to avoid breaking the app
-  const [{ saveAs }, htmlDocxModule] = await Promise.all([
-    import('file-saver'),
-    import('html-docx-fixed')
-  ]);
+  // Load the vendor script at runtime (avoids Vite parsing issues)
+  await loadHtmlDocxScript();
   
-  const htmlDocx = htmlDocxModule.default;
+  const htmlDocx = (window as any).htmlDocx;
+  if (!htmlDocx) {
+    throw new Error('Word export library not available');
+  }
 
-  // Convert HTML to DOCX blob using browser-compatible library
+  // Convert HTML to DOCX blob
   const docxBlob = htmlDocx.asBlob(fullHtml);
   
   // Download the file
