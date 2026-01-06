@@ -20,6 +20,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useDepartments, usePositions, useEmployees } from "@/hooks/useEmployees";
 import { useWorkLocations } from "@/hooks/useWorkLocations";
+import { isInactiveEmployee } from "@/utils/orgHierarchy";
 
 export interface TeamRoleData {
   workLocationId: string;
@@ -47,7 +48,9 @@ export function TeamRoleStep({ data, onChange }: TeamRoleStepProps) {
     onChange({ ...data, [field]: value });
   };
 
-  const selectedManager = employees?.find((e) => e.id === data.managerId);
+  // Filter out inactive employees from manager options
+  const activeEmployees = employees?.filter(e => !isInactiveEmployee(e)) || [];
+  const selectedManager = activeEmployees.find((e) => e.id === data.managerId);
 
   const isLoading = depsLoading || posLoading || empLoading || locLoading;
 
@@ -168,7 +171,7 @@ export function TeamRoleStep({ data, onChange }: TeamRoleStepProps) {
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            {employees?.map((employee) => (
+            {activeEmployees.map((employee) => (
               <SelectItem key={employee.id} value={employee.id}>
                 <div className="flex items-center gap-2">
                   <Avatar className="h-6 w-6">

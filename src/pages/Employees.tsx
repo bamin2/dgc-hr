@@ -22,6 +22,7 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useRole } from "@/contexts/RoleContext";
+import { filterActiveEmployees, isInactiveEmployee } from "@/utils/orgHierarchy";
 
 type TabType = 'directory' | 'org-chart';
 
@@ -44,6 +45,7 @@ export default function Employees() {
   const [departmentFilter, setDepartmentFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [entityFilter, setEntityFilter] = useState('all');
+  const [showInactive, setShowInactive] = useState(false);
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   
   // Pagination state
@@ -58,11 +60,16 @@ export default function Employees() {
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, departmentFilter, statusFilter, entityFilter]);
+  }, [searchQuery, departmentFilter, statusFilter, entityFilter, showInactive]);
 
-  // Filter employees
+  // Filter employees for directory
   const filteredEmployees = useMemo(() => {
     let result = [...employees];
+
+    // Hide inactive employees unless toggle is on
+    if (!showInactive) {
+      result = result.filter(emp => !isInactiveEmployee(emp));
+    }
 
     // Search filter
     if (searchQuery) {
@@ -85,7 +92,13 @@ export default function Employees() {
     }
 
     return result;
-  }, [employees, searchQuery, departmentFilter, statusFilter]);
+  }, [employees, searchQuery, departmentFilter, statusFilter, showInactive]);
+
+  // Active employees only for org chart (never show resigned/terminated)
+  const activeEmployeesForOrgChart = useMemo(() => 
+    filterActiveEmployees(employees),
+    [employees]
+  );
 
   // Paginate employees
   const totalPages = Math.ceil(filteredEmployees.length / entriesPerPage);
@@ -282,6 +295,8 @@ export default function Employees() {
                   onStatusChange={setStatusFilter}
                   entityFilter={entityFilter}
                   onEntityChange={setEntityFilter}
+                  showInactive={showInactive}
+                  onShowInactiveChange={setShowInactive}
                 />
               </div>
 
@@ -323,13 +338,13 @@ export default function Employees() {
 
               {activeTab === 'org-chart' && (
                 <OrgChart
-                  employees={employees}
+                  employees={activeEmployeesForOrgChart}
                   onView={(orgEmployee) => {
                     navigate(`/employees/${orgEmployee.id}`);
                   }}
                   onEdit={(orgEmployee) => {
                     // Find the full employee record by ID
-                    const employee = employees.find(e => e.id === orgEmployee.id);
+                    const employee = activeEmployeesForOrgChart.find(e => e.id === orgEmployee.id);
                     if (employee) {
                       setEditingEmployee(employee);
                       setFormOpen(true);

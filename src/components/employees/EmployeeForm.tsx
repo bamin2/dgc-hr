@@ -22,7 +22,7 @@ import { ImageCropper } from "@/components/ui/image-cropper";
 import { Employee, useDepartments, usePositions, useEmployees } from "@/hooks/useEmployees";
 import { useAvatarUpload } from "@/hooks/useAvatarUpload";
 import { toast } from "@/hooks/use-toast";
-import { wouldCreateCircularReference } from "@/utils/orgHierarchy";
+import { wouldCreateCircularReference, isInactiveEmployee } from "@/utils/orgHierarchy";
 
 interface EmployeeFormProps {
   open: boolean;
@@ -78,9 +78,10 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
     managerId: '',
   });
 
-  // Filter potential managers - exclude self and employees that would create circular reference
+  // Filter potential managers - exclude inactive, self, and employees that would create circular reference
   const potentialManagers = allEmployees.filter((emp) => {
-    if (!employee) return true; // If adding new employee, all can be managers
+    if (isInactiveEmployee(emp)) return false; // Exclude inactive employees
+    if (!employee) return true; // If adding new employee, all active can be managers
     if (emp.id === employee.id) return false; // Can't be own manager
     return !wouldCreateCircularReference(allEmployees, employee.id, emp.id);
   });

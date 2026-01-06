@@ -11,6 +11,24 @@ const TOP_LEVEL_POSITIONS = [
   "chairman",
 ];
 
+// Inactive statuses - employees with these statuses should be hidden
+const INACTIVE_STATUSES = ["resigned", "terminated"];
+
+/**
+ * Check if an employee has an inactive status (resigned/terminated)
+ */
+export function isInactiveEmployee(employee: { status?: string | null }): boolean {
+  if (!employee.status) return false;
+  return INACTIVE_STATUSES.includes(employee.status.toLowerCase());
+}
+
+/**
+ * Filter out inactive (resigned/terminated) employees
+ */
+export function filterActiveEmployees<T extends { status?: string | null }>(employees: T[]): T[] {
+  return employees.filter(emp => !isInactiveEmployee(emp));
+}
+
 /**
  * Convert an Employee to OrgEmployee format
  */
