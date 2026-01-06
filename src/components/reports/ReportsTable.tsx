@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { ReportTypeBadge } from './ReportTypeBadge';
 import { Download, Eye, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
-import type { ReportSummary } from '@/data/reports';
+import type { ReportSummary } from '@/hooks/useReportAnalytics';
 
 interface ReportsTableProps {
   reports: ReportSummary[];

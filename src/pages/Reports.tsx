@@ -3,7 +3,7 @@ import { Sidebar } from '@/components/dashboard/Sidebar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { RefreshCw, Plus } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import {
   ReportsMetrics,
   AttendanceChart,
@@ -19,19 +19,13 @@ import {
   DepartmentSalaryTable,
   SalaryChangeTypeChart,
 } from '@/components/reports';
-import {
-  reportsList,
-  generateAttendanceReportData,
-  generatePayrollReportData,
-  departmentStats,
-  leaveReportData,
-  getReportDashboardStats,
-  type ReportType,
-  type ReportPeriod
-} from '@/data/reports';
+import { useReportAnalytics, reportsList, type ReportSummary } from '@/hooks/useReportAnalytics';
 import { useToast } from '@/hooks/use-toast';
 import { DateRange } from 'react-day-picker';
 import { useSalaryAnalytics } from '@/hooks/useSalaryAnalytics';
+
+type ReportType = 'attendance' | 'payroll' | 'benefits' | 'employees' | 'leave';
+type ReportPeriod = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'custom';
 
 const Reports = () => {
   const { toast } = useToast();
@@ -43,10 +37,15 @@ const Reports = () => {
   const [periodFilter, setPeriodFilter] = useState<ReportPeriod>('monthly');
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
-  // Data
-  const stats = getReportDashboardStats();
-  const attendanceData = generateAttendanceReportData();
-  const payrollData = generatePayrollReportData();
+  // Data from hooks
+  const { 
+    stats, 
+    attendanceData, 
+    payrollData, 
+    departmentStats, 
+    leaveData,
+    refetch 
+  } = useReportAnalytics();
   
   // Salary Analytics
   const salaryAnalytics = useSalaryAnalytics();
@@ -87,6 +86,7 @@ const Reports = () => {
   };
 
   const handleRefresh = () => {
+    refetch();
     toast({
       title: 'Data Refreshed',
       description: 'Report data has been updated.'
@@ -137,7 +137,7 @@ const Reports = () => {
                 <div className="lg:col-span-2">
                   <DepartmentTable data={departmentStats} />
                 </div>
-                <LeaveChart data={leaveReportData} />
+                <LeaveChart data={leaveData} />
               </div>
             </TabsContent>
 
@@ -273,7 +273,7 @@ const Reports = () => {
               </div>
               
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <LeaveChart data={leaveReportData} />
+                <LeaveChart data={leaveData} />
                 
                 <Card className="border-border/50">
                   <CardHeader>
@@ -281,7 +281,7 @@ const Reports = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {leaveReportData.map((leave) => (
+                      {leaveData.map((leave) => (
                         <div key={leave.type} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                           <div>
                             <p className="font-medium">{leave.type}</p>
@@ -306,26 +306,26 @@ const Reports = () => {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                     <div>
                       <p className="text-3xl font-bold text-blue-600">
-                        {leaveReportData.reduce((sum, l) => sum + l.taken, 0)}
+                        {leaveData.reduce((sum, l) => sum + l.taken, 0)}
                       </p>
                       <p className="text-sm text-muted-foreground">Total Days Taken</p>
                     </div>
                     <div>
                       <p className="text-3xl font-bold text-emerald-600">
-                        {leaveReportData.reduce((sum, l) => sum + l.remaining, 0)}
+                        {leaveData.reduce((sum, l) => sum + l.remaining, 0)}
                       </p>
                       <p className="text-sm text-muted-foreground">Days Remaining</p>
                     </div>
                     <div>
                       <p className="text-3xl font-bold text-amber-600">
-                        {leaveReportData.reduce((sum, l) => sum + l.pending, 0)}
+                        {leaveData.reduce((sum, l) => sum + l.pending, 0)}
                       </p>
                       <p className="text-sm text-muted-foreground">Pending Requests</p>
                     </div>
                     <div>
                       <p className="text-3xl font-bold text-purple-600">
-                        {Math.round((leaveReportData.reduce((sum, l) => sum + l.taken, 0) / 
-                          (leaveReportData.reduce((sum, l) => sum + l.taken + l.remaining, 0))) * 100)}%
+                        {Math.round((leaveData.reduce((sum, l) => sum + l.taken, 0) / 
+                          (leaveData.reduce((sum, l) => sum + l.taken + l.remaining, 0) || 1)) * 100)}%
                       </p>
                       <p className="text-sm text-muted-foreground">Utilization Rate</p>
                     </div>

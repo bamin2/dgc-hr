@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 import { Calendar, Wallet, Gift, Users, Clock } from 'lucide-react';
-import type { ReportType } from '@/data/reports';
+import type { ReportType } from '@/hooks/useReportAnalytics';
 
 interface ReportTypeBadgeProps {
   type: ReportType;

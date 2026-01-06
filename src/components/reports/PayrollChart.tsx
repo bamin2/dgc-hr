@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import type { PayrollReportData } from '@/data/reports';
+import type { PayrollReportData } from '@/hooks/useReportAnalytics';
 
 interface PayrollChartProps {
   data: PayrollReportData[];

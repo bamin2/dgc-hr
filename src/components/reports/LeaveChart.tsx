@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import type { LeaveReportData } from '@/data/reports';
+import type { LeaveReportData } from '@/hooks/useReportAnalytics';
 
 interface LeaveChartProps {
   data: LeaveReportData[];

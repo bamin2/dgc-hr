@@ -1,7 +1,7 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import type { DepartmentStats } from '@/data/reports';
+import type { DepartmentStats } from '@/hooks/useReportAnalytics';
 
 interface DepartmentTableProps {
   data: DepartmentStats[];
