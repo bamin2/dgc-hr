@@ -426,12 +426,15 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
               </div>
               <div className="space-y-2">
                 <Label htmlFor="manager">Manager</Label>
-                <Select value={formData.managerId || ''} onValueChange={(v) => handleChange('managerId', v)}>
+                <Select 
+                  value={formData.managerId || '__none__'} 
+                  onValueChange={(v) => handleChange('managerId', v === '__none__' ? '' : v)}
+                >
                   <SelectTrigger id="manager">
                     <SelectValue placeholder="Select manager" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No Manager</SelectItem>
+                    <SelectItem value="__none__">No Manager</SelectItem>
                     {potentialManagers.map((emp) => (
                       <SelectItem key={emp.id} value={emp.id}>
                         <div className="flex items-center gap-2">
