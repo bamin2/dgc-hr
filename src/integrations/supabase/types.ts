@@ -1120,6 +1120,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           document_required_after_days: number | null
+          has_salary_deduction: boolean | null
           id: string
           is_active: boolean | null
           is_paid: boolean | null
@@ -1130,6 +1131,7 @@ export type Database = {
           name: string
           requires_approval: boolean | null
           requires_document: boolean | null
+          salary_deduction_tiers: Json | null
           updated_at: string | null
           visible_to_employees: boolean | null
         }
@@ -1140,6 +1142,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           document_required_after_days?: number | null
+          has_salary_deduction?: boolean | null
           id?: string
           is_active?: boolean | null
           is_paid?: boolean | null
@@ -1150,6 +1153,7 @@ export type Database = {
           name: string
           requires_approval?: boolean | null
           requires_document?: boolean | null
+          salary_deduction_tiers?: Json | null
           updated_at?: string | null
           visible_to_employees?: boolean | null
         }
@@ -1160,6 +1164,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           document_required_after_days?: number | null
+          has_salary_deduction?: boolean | null
           id?: string
           is_active?: boolean | null
           is_paid?: boolean | null
@@ -1170,6 +1175,7 @@ export type Database = {
           name?: string
           requires_approval?: boolean | null
           requires_document?: boolean | null
+          salary_deduction_tiers?: Json | null
           updated_at?: string | null
           visible_to_employees?: boolean | null
         }

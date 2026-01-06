@@ -1,6 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Json } from '@/integrations/supabase/types';
+
+export interface SalaryDeductionTier {
+  from_days: number;
+  to_days: number;
+  deduction_percentage: number;
+}
 
 export interface LeaveType {
   id: string;
@@ -22,6 +29,18 @@ export interface LeaveType {
   max_carryover_days: number | null;
   min_days_notice: number | null;
   max_consecutive_days: number | null;
+  // Salary deduction settings
+  has_salary_deduction: boolean | null;
+  salary_deduction_tiers: SalaryDeductionTier[] | null;
+}
+
+function parseLeaveType(data: any): LeaveType {
+  return {
+    ...data,
+    salary_deduction_tiers: Array.isArray(data.salary_deduction_tiers) 
+      ? data.salary_deduction_tiers as SalaryDeductionTier[]
+      : [],
+  };
 }
 
 export function useLeaveTypes() {
@@ -35,7 +54,7 @@ export function useLeaveTypes() {
         .order('name');
 
       if (error) throw error;
-      return data as LeaveType[];
+      return (data || []).map(parseLeaveType);
     },
   });
 }
@@ -50,7 +69,7 @@ export function useAllLeaveTypes() {
         .order('name');
 
       if (error) throw error;
-      return data as LeaveType[];
+      return (data || []).map(parseLeaveType);
     },
   });
 }
@@ -60,14 +79,18 @@ export function useCreateLeaveType() {
 
   return useMutation({
     mutationFn: async (leaveType: Omit<LeaveType, 'id' | 'created_at' | 'updated_at'>) => {
+      const payload = {
+        ...leaveType,
+        salary_deduction_tiers: (leaveType.salary_deduction_tiers || []) as unknown as Json,
+      };
       const { data, error } = await supabase
         .from('leave_types')
-        .insert([leaveType])
+        .insert([payload])
         .select()
         .single();
 
       if (error) throw error;
-      return data;
+      return parseLeaveType(data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['leave-types'] });
@@ -84,15 +107,19 @@ export function useUpdateLeaveType() {
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<LeaveType> & { id: string }) => {
+      const payload = {
+        ...updates,
+        salary_deduction_tiers: (updates.salary_deduction_tiers || []) as unknown as Json,
+      };
       const { data, error } = await supabase
         .from('leave_types')
-        .update(updates)
+        .update(payload)
         .eq('id', id)
         .select()
         .single();
 
       if (error) throw error;
-      return data;
+      return parseLeaveType(data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['leave-types'] });
