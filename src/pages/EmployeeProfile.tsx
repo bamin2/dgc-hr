@@ -27,7 +27,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { StatusBadge, EmployeeForm, RoleBadge, RoleSelectorWithDescription, CreateLoginDialog, ResetPasswordDialog, SalaryHistoryCard } from "@/components/employees";
-import { useEmployee, useUpdateEmployee, Employee } from "@/hooks/useEmployees";
+import { useEmployee, useUpdateEmployee, useEmployees, Employee } from "@/hooks/useEmployees";
 import { AppRole, roleDescriptions } from "@/data/roles";
 import { useRole } from "@/contexts/RoleContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -41,6 +41,7 @@ export default function EmployeeProfile() {
   const { getEmployeeRole, updateEmployeeRole, canManageRoles, canEditEmployees, isTeamMember } = useRole();
   const { profile } = useAuth();
   const { data: employee, isLoading, error } = useEmployee(id);
+  const { data: allEmployees = [] } = useEmployees();
   const updateEmployee = useUpdateEmployee();
   const [formOpen, setFormOpen] = useState(false);
   const [createLoginOpen, setCreateLoginOpen] = useState(false);
@@ -314,7 +315,11 @@ export default function EmployeeProfile() {
                       label="Join Date" 
                       value={format(new Date(employee.joinDate), 'MMMM d, yyyy')} 
                     />
-                    <InfoRow label="Manager" value={employee.manager || 'Not assigned'} />
+                    <InfoRow label="Manager" value={(() => {
+                      if (!employee.managerId) return 'Not assigned';
+                      const mgr = allEmployees.find(e => e.id === employee.managerId);
+                      return mgr ? `${mgr.firstName} ${mgr.lastName}` : employee.manager || 'Not assigned';
+                    })()} />
                   </CardContent>
                 </Card>
 
