@@ -1,11 +1,12 @@
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Header } from "@/components/dashboard/Header";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { FileText, Users, History } from "lucide-react";
+import { FileText, Users, History, Calendar } from "lucide-react";
 import {
   LeaveTypePoliciesTab,
   EmployeeBalancesTab,
   AdjustmentHistoryTab,
+  PublicHolidaysTab,
 } from "@/components/timemanagement";
 
 export default function TimeManagement() {
@@ -41,6 +42,13 @@ export default function TimeManagement() {
                 Employee Balances
               </TabsTrigger>
               <TabsTrigger
+                value="holidays"
+                className="relative rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none pb-3 px-0 text-muted-foreground data-[state=active]:text-primary"
+              >
+                <Calendar className="w-4 h-4 mr-2" />
+                Public Holidays
+              </TabsTrigger>
+              <TabsTrigger
                 value="history"
                 className="relative rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none pb-3 px-0 text-muted-foreground data-[state=active]:text-primary"
               >
@@ -55,6 +63,10 @@ export default function TimeManagement() {
 
             <TabsContent value="balances" className="mt-6">
               <EmployeeBalancesTab />
+            </TabsContent>
+
+            <TabsContent value="holidays" className="mt-6">
+              <PublicHolidaysTab />
             </TabsContent>
 
             <TabsContent value="history" className="mt-6">

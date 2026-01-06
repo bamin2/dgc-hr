@@ -8,3 +8,8 @@ export { AdjustmentHistoryTab } from './AdjustmentHistoryTab';
 export { InitializeBalancesDialog } from './InitializeBalancesDialog';
 export { ProcessRolloverDialog } from './ProcessRolloverDialog';
 export { PublicHolidaysSection } from './PublicHolidaysSection';
+export { PublicHolidaysTab } from './PublicHolidaysTab';
+export { HolidaysTable } from './HolidaysTable';
+export { HolidayFormDialog } from './HolidayFormDialog';
+export { BulkAddHolidaysDialog } from './BulkAddHolidaysDialog';
+export { CopyYearHolidaysDialog } from './CopyYearHolidaysDialog';
