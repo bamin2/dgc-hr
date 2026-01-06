@@ -18,6 +18,12 @@ interface RoleContextType {
   getEmployeeRole: (employeeId: string) => AppRole;
   updateEmployeeRole: (employeeId: string, newRole: AppRole) => void;
   setCurrentUserRole: (role: AppRole) => void; // For demo purposes
+  // Impersonation
+  isImpersonating: boolean;
+  actualRole: AppRole;
+  canImpersonate: boolean;
+  startImpersonation: () => void;
+  stopImpersonation: () => void;
 }
 
 const managementRoles: AppRole[] = ['hr', 'manager', 'admin'];
@@ -37,6 +43,10 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<CurrentUser>(mockCurrentUser);
   const [userRoles, setUserRoles] = useState<UserRole[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Impersonation state
+  const [isImpersonating, setIsImpersonating] = useState(false);
+  const [actualRole, setActualRole] = useState<AppRole>('employee');
 
   // Fetch current user's role from the database
   useEffect(() => {
@@ -108,9 +118,34 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
     return currentUser.role === role;
   }, [currentUser.role]);
 
-  const canAccessManagement = managementRoles.includes(currentUser.role);
-  const canAccessCompany = managementRoles.includes(currentUser.role);
-  const canManageRoles = currentUser.role === 'hr' || currentUser.role === 'admin';
+  // Update actualRole when user role changes (but not during impersonation)
+  useEffect(() => {
+    if (!isImpersonating && currentUser.role) {
+      setActualRole(currentUser.role);
+    }
+  }, [currentUser.role, isImpersonating]);
+
+  // Use effective role for permissions (respects impersonation)
+  const effectiveRole = isImpersonating ? 'employee' : currentUser.role;
+  const canAccessManagement = managementRoles.includes(effectiveRole);
+  const canAccessCompany = managementRoles.includes(effectiveRole);
+  const canManageRoles = effectiveRole === 'hr' || effectiveRole === 'admin';
+  
+  // Impersonation toggle visibility based on actual role (not effective role)
+  const canImpersonate = actualRole === 'hr' || actualRole === 'admin';
+
+  const startImpersonation = useCallback(() => {
+    if (!isImpersonating) {
+      setActualRole(currentUser.role);
+      setIsImpersonating(true);
+      setCurrentUser(prev => ({ ...prev, role: 'employee' }));
+    }
+  }, [currentUser.role, isImpersonating]);
+
+  const stopImpersonation = useCallback(() => {
+    setIsImpersonating(false);
+    setCurrentUser(prev => ({ ...prev, role: actualRole }));
+  }, [actualRole]);
 
   const getEmployeeRole = useCallback((employeeId: string): AppRole => {
     const userRole = userRoles.find(ur => ur.userId === employeeId);
@@ -159,6 +194,11 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
         getEmployeeRole,
         updateEmployeeRole,
         setCurrentUserRole,
+        isImpersonating,
+        actualRole,
+        canImpersonate,
+        startImpersonation,
+        stopImpersonation,
       }}
     >
       {children}

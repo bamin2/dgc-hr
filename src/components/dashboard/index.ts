@@ -11,3 +11,4 @@ export { DailyTimeLimits } from "./DailyTimeLimits";
 export { MeetingCards } from "./MeetingCards";
 export { Announcements } from "./Announcements";
 export { AttendanceOverview } from "./AttendanceOverview";
+export { ImpersonationBanner } from "./ImpersonationBanner";
