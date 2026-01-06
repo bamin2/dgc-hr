@@ -1,4 +1,4 @@
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import {
@@ -21,7 +21,14 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { LeaveType, useCreateLeaveType, useUpdateLeaveType } from "@/hooks/useLeaveTypes";
+import { LeaveType, SalaryDeductionTier, useCreateLeaveType, useUpdateLeaveType } from "@/hooks/useLeaveTypes";
+import { Plus, Trash2 } from "lucide-react";
+
+const tierSchema = z.object({
+  from_days: z.coerce.number().min(0, "Must be 0 or greater"),
+  to_days: z.coerce.number().min(1, "Must be at least 1"),
+  deduction_percentage: z.coerce.number().min(0).max(100, "Must be 0-100"),
+});
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -40,6 +47,9 @@ const formSchema = z.object({
   max_carryover_days: z.coerce.number().min(0).optional().nullable(),
   min_days_notice: z.coerce.number().min(0).optional(),
   max_consecutive_days: z.coerce.number().min(1).optional().nullable(),
+  // Salary deduction settings
+  has_salary_deduction: z.boolean(),
+  salary_deduction_tiers: z.array(tierSchema),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -56,6 +66,8 @@ interface LeaveTypeFormDialogProps {
     max_carryover_days?: number | null;
     min_days_notice?: number;
     max_consecutive_days?: number | null;
+    has_salary_deduction?: boolean;
+    salary_deduction_tiers?: SalaryDeductionTier[] | null;
   };
 }
 
@@ -97,18 +109,37 @@ export function LeaveTypeFormDialog({
       max_carryover_days: leaveType?.max_carryover_days || null,
       min_days_notice: leaveType?.min_days_notice ?? 1,
       max_consecutive_days: leaveType?.max_consecutive_days || null,
+      has_salary_deduction: leaveType?.has_salary_deduction ?? false,
+      salary_deduction_tiers: leaveType?.salary_deduction_tiers || [],
     },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "salary_deduction_tiers",
   });
 
   const onSubmit = async (values: FormValues) => {
     try {
+      // Ensure tiers have proper numeric values
+      const cleanedTiers: SalaryDeductionTier[] = values.salary_deduction_tiers.map(tier => ({
+        from_days: Number(tier.from_days),
+        to_days: Number(tier.to_days),
+        deduction_percentage: Number(tier.deduction_percentage),
+      }));
+
+      const payload = {
+        ...values,
+        salary_deduction_tiers: cleanedTiers,
+      };
+
       if (isEditing) {
         await updateLeaveType.mutateAsync({
           id: leaveType.id,
-          ...values,
+          ...payload,
         });
       } else {
-        await createLeaveType.mutateAsync(values as any);
+        await createLeaveType.mutateAsync(payload as any);
       }
       onOpenChange(false);
       form.reset();
@@ -119,6 +150,17 @@ export function LeaveTypeFormDialog({
 
   const requiresDocument = form.watch("requires_document");
   const allowCarryover = form.watch("allow_carryover");
+  const hasSalaryDeduction = form.watch("has_salary_deduction");
+
+  const addTier = () => {
+    const lastTier = fields[fields.length - 1];
+    const nextFromDays = lastTier ? lastTier.to_days + 1 : 0;
+    append({
+      from_days: nextFromDays,
+      to_days: nextFromDays + 15,
+      deduction_percentage: 0,
+    });
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -419,6 +461,130 @@ export function LeaveTypeFormDialog({
                     </FormItem>
                   )}
                 />
+              )}
+            </div>
+
+            <Separator />
+
+            {/* Salary Deduction Policy */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-medium text-muted-foreground">Salary Deduction Policy</h3>
+
+              <FormField
+                control={form.control}
+                name="has_salary_deduction"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between rounded-lg border p-3">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-sm">Enable Salary Deductions</FormLabel>
+                      <FormDescription className="text-xs">
+                        Apply salary deductions based on days utilized
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              {hasSalaryDeduction && (
+                <div className="space-y-3">
+                  <FormDescription>
+                    Configure deduction tiers based on total days utilized. The deduction percentage will be applied to salary when the employee's usage falls within that range.
+                  </FormDescription>
+
+                  {fields.length > 0 && (
+                    <div className="rounded-lg border">
+                      <div className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 p-3 bg-muted/50 text-xs font-medium text-muted-foreground border-b">
+                        <span>From Days</span>
+                        <span>To Days</span>
+                        <span>Deduction %</span>
+                        <span className="w-8"></span>
+                      </div>
+                      <div className="divide-y">
+                        {fields.map((field, index) => (
+                          <div key={field.id} className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 p-3 items-center">
+                            <FormField
+                              control={form.control}
+                              name={`salary_deduction_tiers.${index}.from_days`}
+                              render={({ field }) => (
+                                <FormItem className="space-y-0">
+                                  <FormControl>
+                                    <Input
+                                      type="number"
+                                      min={0}
+                                      className="h-9"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name={`salary_deduction_tiers.${index}.to_days`}
+                              render={({ field }) => (
+                                <FormItem className="space-y-0">
+                                  <FormControl>
+                                    <Input
+                                      type="number"
+                                      min={1}
+                                      className="h-9"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name={`salary_deduction_tiers.${index}.deduction_percentage`}
+                              render={({ field }) => (
+                                <FormItem className="space-y-0">
+                                  <FormControl>
+                                    <div className="relative">
+                                      <Input
+                                        type="number"
+                                        min={0}
+                                        max={100}
+                                        className="h-9 pr-8"
+                                        {...field}
+                                      />
+                                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                                        %
+                                      </span>
+                                    </div>
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-9 w-9 text-muted-foreground hover:text-destructive"
+                              onClick={() => remove(index)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={addTier}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Tier
+                  </Button>
+                </div>
               )}
             </div>
 
