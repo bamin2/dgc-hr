@@ -18,6 +18,7 @@ import {
   Puzzle,
   Receipt,
   HelpCircle,
+  ClipboardCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -40,6 +41,7 @@ const mainMenuItems = [
 // MANAGEMENT - HR & Manager roles only
 const managementMenuItems = [
   { icon: UsersRound, label: "Team Member", path: "/team" },
+  { icon: ClipboardCheck, label: "Attendance", path: "/attendance" },
   { icon: Clock, label: "Time Management", path: "/time-management" },
   { icon: FileText, label: "Reports", path: "/reports" },
   { icon: Wallet, label: "Payrolls", path: "/payroll" },
