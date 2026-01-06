@@ -13,3 +13,5 @@ export { HolidaysTable } from './HolidaysTable';
 export { HolidayFormDialog } from './HolidayFormDialog';
 export { BulkAddHolidaysDialog } from './BulkAddHolidaysDialog';
 export { CopyYearHolidaysDialog } from './CopyYearHolidaysDialog';
+export { AttendanceTab } from './AttendanceTab';
+export { LeavesTab } from './LeavesTab';
