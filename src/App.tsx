@@ -19,7 +19,7 @@ import AddTeamMember from "./pages/AddTeamMember";
 import Payroll from "./pages/Payroll";
 import PayrollRun from "./pages/PayrollRun";
 import Payslip from "./pages/Payslip";
-import Attendance from "./pages/Attendance";
+
 import LeaveRequest from "./pages/LeaveRequest";
 import LeaveDetail from "./pages/LeaveDetail";
 import Benefits from "./pages/Benefits";
@@ -56,7 +56,7 @@ const App = () => (
                 <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
                 <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
                 <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
-                <Route path="/attendance" element={<ProtectedRoute><Attendance /></ProtectedRoute>} />
+                <Route path="/attendance" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><TimeManagement /></ProtectedRoute>} />
                 <Route path="/time-off" element={<ProtectedRoute><TimeOff /></ProtectedRoute>} />
                 <Route path="/benefits" element={<ProtectedRoute><Benefits /></ProtectedRoute>} />
                 <Route path="/benefits/plans/:id" element={<ProtectedRoute><BenefitDetail /></ProtectedRoute>} />
