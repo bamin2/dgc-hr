@@ -2277,6 +2277,7 @@ export type Database = {
           city: string | null
           country: string | null
           created_at: string
+          currency: string | null
           id: string
           is_remote: boolean | null
           name: string
@@ -2286,6 +2287,7 @@ export type Database = {
           city?: string | null
           country?: string | null
           created_at?: string
+          currency?: string | null
           id?: string
           is_remote?: boolean | null
           name: string
@@ -2295,6 +2297,7 @@ export type Database = {
           city?: string | null
           country?: string | null
           created_at?: string
+          currency?: string | null
           id?: string
           is_remote?: boolean | null
           name?: string

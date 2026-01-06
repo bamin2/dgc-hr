@@ -10,14 +10,14 @@ import {
 import { MultiSelect } from "@/components/ui/multi-select";
 import { useActiveAllowanceTemplates } from "@/hooks/useAllowanceTemplates";
 import { useActiveDeductionTemplates } from "@/hooks/useDeductionTemplates";
-import { PayFrequency } from "@/hooks/useTeamMembers";
+import { useWorkLocations } from "@/hooks/useWorkLocations";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getCurrencyByCode } from "@/data/currencies";
 
 export interface TeamCompensationData {
-  employeeType: string;
   salary: string;
-  payFrequency: PayFrequency;
-  employmentStatus: string;
+  currency: string;
+  employmentStatus: "full_time" | "part_time";
   selectedAllowances: string[];
   selectedDeductions: string[];
 }
@@ -25,27 +25,17 @@ export interface TeamCompensationData {
 interface TeamCompensationStepProps {
   data: TeamCompensationData;
   onChange: (data: TeamCompensationData) => void;
-  workerType: string;
+  workLocationId: string;
 }
-
-const employeeTypes = [
-  "Software Engineer",
-  "Designer",
-  "Product Manager",
-  "Marketing Specialist",
-  "Sales Representative",
-  "HR Specialist",
-  "Financial Analyst",
-  "Operations Manager",
-];
 
 export function TeamCompensationStep({
   data,
   onChange,
-  workerType,
+  workLocationId,
 }: TeamCompensationStepProps) {
   const { data: allowanceTemplates, isLoading: loadingAllowances } = useActiveAllowanceTemplates();
   const { data: deductionTemplates, isLoading: loadingDeductions } = useActiveDeductionTemplates();
+  const { data: workLocations } = useWorkLocations();
 
   const updateField = <K extends keyof TeamCompensationData>(
     field: K,
@@ -54,24 +44,15 @@ export function TeamCompensationStep({
     onChange({ ...data, [field]: value });
   };
 
-  const getEmploymentStatus = () => {
-    switch (workerType) {
-      case "employee":
-        return "Full-time Employee";
-      case "contractor_individual":
-        return "Independent Contractor";
-      case "contractor_business":
-        return "Business Contractor";
-      default:
-        return "Employee";
-    }
-  };
+  // Get currency from work location
+  const workLocation = workLocations?.find(w => w.id === workLocationId);
+  const currency = getCurrencyByCode(data.currency) || getCurrencyByCode("USD");
 
   const allowanceOptions = (allowanceTemplates || []).map(t => ({
     value: t.id,
     label: t.name,
     description: t.amount_type === 'fixed' 
-      ? `$${t.amount.toLocaleString()}`
+      ? `${currency?.symbol || "$"}${t.amount.toLocaleString()}`
       : `${t.amount}% of ${t.percentage_of?.replace('_', ' ')}`,
   }));
 
@@ -79,7 +60,7 @@ export function TeamCompensationStep({
     value: t.id,
     label: t.name,
     description: t.amount_type === 'fixed' 
-      ? `$${t.amount.toLocaleString()}`
+      ? `${currency?.symbol || "$"}${t.amount.toLocaleString()}`
       : `${t.amount}% of ${t.percentage_of?.replace('_', ' ')}`,
   }));
 
@@ -94,76 +75,48 @@ export function TeamCompensationStep({
         </p>
       </div>
 
-      {/* Employee Type */}
-      <div className="space-y-2">
-        <Label>Employee type</Label>
-        <Select
-          value={data.employeeType}
-          onValueChange={(value) => updateField("employeeType", value)}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select type" />
-          </SelectTrigger>
-          <SelectContent>
-            {employeeTypes.map((type) => (
-              <SelectItem key={type} value={type}>
-                {type}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
       {/* Salary */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label>Amount</Label>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-              $
+      <div className="space-y-2">
+        <Label>Salary *</Label>
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
+              {currency?.symbol || "$"}
             </span>
             <Input
               type="text"
               placeholder="0.00"
               value={data.salary}
               onChange={(e) => updateField("salary", e.target.value)}
-              className="pl-7"
+              className="pl-10"
             />
           </div>
+          <span className="text-muted-foreground whitespace-nowrap">/ month</span>
         </div>
-        <div className="space-y-2">
-          <Label>Per</Label>
-          <Select
-            value={data.payFrequency}
-            onValueChange={(value) =>
-              updateField("payFrequency", value as PayFrequency)
-            }
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="hour">Hour</SelectItem>
-              <SelectItem value="day">Day</SelectItem>
-              <SelectItem value="week">Week</SelectItem>
-              <SelectItem value="month">Month</SelectItem>
-              <SelectItem value="year">Year</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        {workLocation && (
+          <p className="text-xs text-muted-foreground">
+            Currency based on {workLocation.name} ({data.currency})
+          </p>
+        )}
       </div>
 
-      {/* Employment Status (Read-only) */}
+      {/* Employment Status */}
       <div className="space-y-2">
-        <Label>Employment status</Label>
-        <Input
-          value={getEmploymentStatus()}
-          disabled
-          className="bg-muted"
-        />
-        <p className="text-xs text-muted-foreground">
-          Based on worker type selection
-        </p>
+        <Label>Employment status *</Label>
+        <Select
+          value={data.employmentStatus}
+          onValueChange={(value) =>
+            updateField("employmentStatus", value as "full_time" | "part_time")
+          }
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="full_time">Full-Time</SelectItem>
+            <SelectItem value="part_time">Part-Time</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Allowances */}
@@ -181,7 +134,7 @@ export function TeamCompensationStep({
           />
         )}
         <p className="text-xs text-muted-foreground">
-          Add allowances that will be included in this employee's payroll
+          All active allowances are pre-selected. You can modify as needed.
         </p>
       </div>
 
@@ -200,7 +153,7 @@ export function TeamCompensationStep({
           />
         )}
         <p className="text-xs text-muted-foreground">
-          Add deductions that will be applied during payroll processing
+          All active deductions are pre-selected. You can modify as needed.
         </p>
       </div>
     </div>

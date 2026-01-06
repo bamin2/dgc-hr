@@ -12,7 +12,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CountrySelect } from "@/components/ui/country-select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { WorkLocation, WorkLocationInput } from "@/hooks/useWorkLocations";
+import { currencies, getCurrencyForCountry } from "@/data/currencies";
 
 interface WorkLocationFormDialogProps {
   open: boolean;
@@ -33,6 +41,7 @@ export function WorkLocationFormDialog({
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [country, setCountry] = useState("");
+  const [currency, setCurrency] = useState("USD");
   const [isRemote, setIsRemote] = useState(false);
 
   useEffect(() => {
@@ -41,15 +50,25 @@ export function WorkLocationFormDialog({
       setAddress(workLocation.address || "");
       setCity(workLocation.city || "");
       setCountry(workLocation.country || "");
+      setCurrency(workLocation.currency || "USD");
       setIsRemote(workLocation.is_remote);
     } else {
       setName("");
       setAddress("");
       setCity("");
       setCountry("");
+      setCurrency("USD");
       setIsRemote(false);
     }
   }, [workLocation, open]);
+
+  // Auto-update currency when country changes
+  useEffect(() => {
+    if (country && !workLocation) {
+      const defaultCurrency = getCurrencyForCountry(country);
+      setCurrency(defaultCurrency);
+    }
+  }, [country, workLocation]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,6 +77,7 @@ export function WorkLocationFormDialog({
       address: address || null,
       city: city || null,
       country: country || null,
+      currency,
       is_remote: isRemote,
     });
   };
@@ -120,6 +140,25 @@ export function WorkLocationFormDialog({
                   placeholder="Select country"
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Currency</Label>
+              <Select value={currency} onValueChange={setCurrency}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select currency" />
+                </SelectTrigger>
+                <SelectContent>
+                  {currencies.map((cur) => (
+                    <SelectItem key={cur.code} value={cur.code}>
+                      {cur.code} - {cur.name} ({cur.symbol})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Used for salary display in this location
+              </p>
             </div>
 
             <div className="flex items-center space-x-2">
