@@ -606,6 +606,39 @@ export type Database = {
           },
         ]
       }
+      document_templates: {
+        Row: {
+          category: string
+          content: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          content: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          content?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       employee_allowances: {
         Row: {
           allowance_template_id: string
@@ -932,6 +965,58 @@ export type Database = {
             columns: ["offboarding_record_id"]
             isOneToOne: false
             referencedRelation: "offboarding_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      generated_documents: {
+        Row: {
+          content: string
+          employee_id: string | null
+          generated_at: string
+          generated_by: string | null
+          id: string
+          name: string
+          template_id: string | null
+        }
+        Insert: {
+          content: string
+          employee_id?: string | null
+          generated_at?: string
+          generated_by?: string | null
+          id?: string
+          name: string
+          template_id?: string | null
+        }
+        Update: {
+          content?: string
+          employee_id?: string | null
+          generated_at?: string
+          generated_by?: string | null
+          id?: string
+          name?: string
+          template_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "generated_documents_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "generated_documents_generated_by_fkey"
+            columns: ["generated_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "generated_documents_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "document_templates"
             referencedColumns: ["id"]
           },
         ]
