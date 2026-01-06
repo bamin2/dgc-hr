@@ -27,15 +27,24 @@ import { filterActiveEmployees } from "@/utils/orgHierarchy";
 
 type TabType = 'directory' | 'org-chart' | 'former-employees';
 
-const tabs: { id: TabType; label: string; icon: React.ElementType }[] = [
-  { id: 'directory', label: 'People Directory', icon: Users },
-  { id: 'org-chart', label: 'ORG Chart', icon: Building2 },
-  { id: 'former-employees', label: 'Former Employees', icon: Archive },
-];
-
 export default function Employees() {
   const navigate = useNavigate();
   const { canEditEmployees } = useRole();
+  
+  // Build tabs dynamically based on user role
+  const tabs = useMemo(() => {
+    const baseTabs: { id: TabType; label: string; icon: React.ElementType }[] = [
+      { id: 'directory', label: 'People Directory', icon: Users },
+      { id: 'org-chart', label: 'ORG Chart', icon: Building2 },
+    ];
+    
+    // Only show Former Employees tab to HR/Admin users
+    if (canEditEmployees) {
+      baseTabs.push({ id: 'former-employees', label: 'Former Employees', icon: Archive });
+    }
+    
+    return baseTabs;
+  }, [canEditEmployees]);
   
   // Fetch employees from Supabase
   const { data: employees = [], isLoading, error } = useEmployees();
