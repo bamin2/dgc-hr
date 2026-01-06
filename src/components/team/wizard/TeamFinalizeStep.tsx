@@ -12,6 +12,7 @@ import { useActiveAllowanceTemplates } from "@/hooks/useAllowanceTemplates";
 import { useActiveDeductionTemplates } from "@/hooks/useDeductionTemplates";
 import { useDepartments, usePositions, useEmployees } from "@/hooks/useEmployees";
 import { useWorkLocations } from "@/hooks/useWorkLocations";
+import { useDocumentTemplates } from "@/hooks/useDocumentTemplates";
 import { TeamBasicData } from "./TeamBasicStep";
 import { TeamRoleData } from "./TeamRoleStep";
 import { TeamCompensationData } from "./TeamCompensationStep";
@@ -46,12 +47,14 @@ export function TeamFinalizeStep({
   const { data: workLocations } = useWorkLocations();
   const { data: allowanceTemplates } = useActiveAllowanceTemplates();
   const { data: deductionTemplates } = useActiveDeductionTemplates();
+  const { data: documentTemplates } = useDocumentTemplates();
 
   // Resolve IDs to display values
   const department = departments?.find(d => d.id === roleData.departmentId);
   const position = positions?.find(p => p.id === roleData.positionId);
   const manager = employees?.find(e => e.id === roleData.managerId);
   const workLocation = workLocations?.find(w => w.id === roleData.workLocationId);
+  const offerTemplate = documentTemplates?.find(t => t.id === offerData.templateId);
 
   const selectedAllowanceNames = (allowanceTemplates || [])
     .filter(t => compensationData.selectedAllowances.includes(t.id))
@@ -256,9 +259,7 @@ export function TeamFinalizeStep({
             <div>
               <p className="text-muted-foreground">Template</p>
               <p className="font-medium">
-                {offerData.templateId === "new"
-                  ? offerData.templateTitle || "New template"
-                  : offerData.templateId}
+                {offerTemplate?.name || "Not selected"}
               </p>
             </div>
             <div>
@@ -269,6 +270,15 @@ export function TeamFinalizeStep({
                   : "Not set"}
               </p>
             </div>
+            {offerData.signatureName && (
+              <div>
+                <p className="text-muted-foreground">Signature</p>
+                <p className="font-medium">
+                  {offerData.signatureName}
+                  {offerData.signatureTitle && ` (${offerData.signatureTitle})`}
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
