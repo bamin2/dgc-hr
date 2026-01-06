@@ -7,3 +7,4 @@ export { AssignLeaveBalanceDialog } from './AssignLeaveBalanceDialog';
 export { AdjustmentHistoryTab } from './AdjustmentHistoryTab';
 export { InitializeBalancesDialog } from './InitializeBalancesDialog';
 export { ProcessRolloverDialog } from './ProcessRolloverDialog';
+export { PublicHolidaysSection } from './PublicHolidaysSection';

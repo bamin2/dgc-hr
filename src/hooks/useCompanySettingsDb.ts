@@ -25,6 +25,7 @@ interface DbCompanySettings {
   timezone: string | null;
   date_format: string | null;
   currency: string | null;
+  weekend_days: number[] | null;
   created_at: string;
   updated_at: string;
 }
@@ -55,6 +56,7 @@ function transformFromDb(row: DbCompanySettings): CompanySettings {
       timezone: row.timezone || 'America/Los_Angeles',
       dateFormat: row.date_format || 'MM/DD/YYYY',
       currency: row.currency || 'USD',
+      weekendDays: row.weekend_days || [5, 6],
     },
   };
 }
@@ -87,6 +89,7 @@ function transformToDb(settings: Partial<CompanySettings>): Record<string, unkno
     if (settings.branding.timezone !== undefined) db.timezone = settings.branding.timezone;
     if (settings.branding.dateFormat !== undefined) db.date_format = settings.branding.dateFormat;
     if (settings.branding.currency !== undefined) db.currency = settings.branding.currency;
+    if (settings.branding.weekendDays !== undefined) db.weekend_days = settings.branding.weekendDays;
   }
   
   return db;

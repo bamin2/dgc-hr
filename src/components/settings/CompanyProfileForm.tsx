@@ -3,9 +3,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SettingsCard } from './SettingsCard';
 import { LogoUpload } from './LogoUpload';
-import { Building2, Phone, Palette } from 'lucide-react';
+import { Building2, Phone, Palette, Calendar } from 'lucide-react';
 import { CountrySelect } from '@/components/ui/country-select';
 import { CurrencySelect } from '@/components/ui/currency-select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { 
   CompanySettings, 
   industries, 
@@ -13,6 +14,16 @@ import {
   timezones, 
   dateFormats 
 } from '@/data/settings';
+
+const weekDays = [
+  { value: 0, label: 'Sunday' },
+  { value: 1, label: 'Monday' },
+  { value: 2, label: 'Tuesday' },
+  { value: 3, label: 'Wednesday' },
+  { value: 4, label: 'Thursday' },
+  { value: 5, label: 'Friday' },
+  { value: 6, label: 'Saturday' },
+];
 
 interface CompanyProfileFormProps {
   settings: CompanySettings;
@@ -31,11 +42,19 @@ export const CompanyProfileForm = ({ settings, onChange }: CompanyProfileFormPro
     });
   };
 
-  const updateBranding = (field: string, value: string) => {
+  const updateBranding = (field: string, value: string | number[]) => {
     onChange({ 
       ...settings, 
       branding: { ...settings.branding, [field]: value } 
     });
+  };
+
+  const toggleWeekendDay = (day: number) => {
+    const currentDays = settings.branding.weekendDays || [5, 6];
+    const newDays = currentDays.includes(day)
+      ? currentDays.filter(d => d !== day)
+      : [...currentDays, day].sort((a, b) => a - b);
+    updateBranding('weekendDays', newDays);
   };
 
   return (
@@ -248,6 +267,38 @@ export const CompanyProfileForm = ({ settings, onChange }: CompanyProfileFormPro
                 onValueChange={(v) => updateBranding('currency', v)}
                 placeholder="Select currency"
               />
+            </div>
+          </div>
+        </div>
+      </SettingsCard>
+
+      <SettingsCard 
+        title="Work Schedule" 
+        description="Configure your company's work week"
+        icon={Calendar}
+      >
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label>Weekend Days</Label>
+            <p className="text-xs text-muted-foreground mb-3">
+              Select the days that are considered weekends for your company. Public holidays falling on these days will be compensated.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              {weekDays.map((day) => (
+                <div key={day.value} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`weekend-${day.value}`}
+                    checked={settings.branding.weekendDays?.includes(day.value)}
+                    onCheckedChange={() => toggleWeekendDay(day.value)}
+                  />
+                  <Label
+                    htmlFor={`weekend-${day.value}`}
+                    className="text-sm font-normal cursor-pointer"
+                  >
+                    {day.label}
+                  </Label>
+                </div>
+              ))}
             </div>
           </div>
         </div>
