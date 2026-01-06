@@ -47,6 +47,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log('Auth event:', event);
+        
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -59,9 +61,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setProfile(null);
         }
 
-        // Handle password recovery event
-        if (event === 'PASSWORD_RECOVERY') {
-          // User clicked magic link, they can now update password
+        // Handle specific auth events
+        if (event === 'TOKEN_REFRESHED') {
+          console.log('Token refreshed successfully');
+        }
+        
+        if (event === 'SIGNED_OUT') {
+          setProfile(null);
         }
       }
     );
@@ -76,7 +82,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    // Periodic session validity check every 5 minutes
+    const sessionCheckInterval = setInterval(async () => {
+      const { data: { session: currentSession }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.warn('Session check failed:', error.message);
+      } else if (!currentSession && session) {
+        // Session was lost, update state
+        console.warn('Session expired');
+        setSession(null);
+        setUser(null);
+        setProfile(null);
+      }
+    }, 5 * 60 * 1000);
+
+    return () => {
+      subscription.unsubscribe();
+      clearInterval(sessionCheckInterval);
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
