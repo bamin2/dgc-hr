@@ -135,42 +135,49 @@ export function useAllEmployeeBalances(year: number = new Date().getFullYear()) 
   return useQuery({
     queryKey: ['all-employee-balances', year],
     queryFn: async () => {
-      // Fetch all leave balances with employee and leave type info
+      // First fetch all employees
+      const { data: employees, error: empError } = await supabase
+        .from('employees')
+        .select(`
+          id,
+          first_name,
+          last_name,
+          avatar_url,
+          department:departments!employees_department_id_fkey(name)
+        `)
+        .eq('status', 'active');
+
+      if (empError) throw empError;
+
+      // Then fetch leave balances for the year
       const { data: balances, error } = await supabase
         .from('leave_balances')
         .select(`
           *,
-          employee:employees!leave_balances_employee_id_fkey(
-            id, 
-            first_name, 
-            last_name, 
-            avatar_url,
-            department:departments(name)
-          ),
           leave_type:leave_types!leave_balances_leave_type_id_fkey(id, name, color)
         `)
         .eq('year', year);
 
       if (error) throw error;
 
-      // Group by employee
+      // Build employee map from employees list first
       const employeeMap = new Map<string, AllEmployeeBalance>();
 
+      employees?.forEach((emp: any) => {
+        employeeMap.set(emp.id, {
+          employee_id: emp.id,
+          employee_name: `${emp.first_name} ${emp.last_name}`,
+          employee_avatar: emp.avatar_url,
+          department: emp.department?.name || null,
+          balances: [],
+        });
+      });
+
+      // Add balances to their respective employees
       balances?.forEach((balance: any) => {
-        const empId = balance.employee?.id;
-        if (!empId) return;
+        const emp = employeeMap.get(balance.employee_id);
+        if (!emp) return;
 
-        if (!employeeMap.has(empId)) {
-          employeeMap.set(empId, {
-            employee_id: empId,
-            employee_name: `${balance.employee.first_name} ${balance.employee.last_name}`,
-            employee_avatar: balance.employee.avatar_url,
-            department: balance.employee.department?.name || null,
-            balances: [],
-          });
-        }
-
-        const emp = employeeMap.get(empId)!;
         emp.balances.push({
           leave_type_id: balance.leave_type?.id,
           leave_type_name: balance.leave_type?.name || 'Unknown',
@@ -184,6 +191,45 @@ export function useAllEmployeeBalances(year: number = new Date().getFullYear()) 
       });
 
       return Array.from(employeeMap.values());
+    },
+  });
+}
+
+export interface CreateLeaveBalanceInput {
+  employee_id: string;
+  leave_type_id: string;
+  year: number;
+  total_days: number;
+}
+
+export function useCreateLeaveBalance() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: CreateLeaveBalanceInput) => {
+      const { data, error } = await supabase
+        .from('leave_balances')
+        .insert([{
+          employee_id: input.employee_id,
+          leave_type_id: input.leave_type_id,
+          year: input.year,
+          total_days: input.total_days,
+          used_days: 0,
+          pending_days: 0,
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['all-employee-balances'] });
+      queryClient.invalidateQueries({ queryKey: ['leave-balances'] });
+      toast.success('Leave balance assigned successfully');
+    },
+    onError: (error) => {
+      toast.error(`Failed to assign balance: ${error.message}`);
     },
   });
 }

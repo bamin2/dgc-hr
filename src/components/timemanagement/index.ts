@@ -3,4 +3,5 @@ export { LeaveTypeCard } from './LeaveTypeCard';
 export { LeaveTypeFormDialog } from './LeaveTypeFormDialog';
 export { EmployeeBalancesTab } from './EmployeeBalancesTab';
 export { BalanceAdjustmentDialog } from './BalanceAdjustmentDialog';
+export { AssignLeaveBalanceDialog } from './AssignLeaveBalanceDialog';
 export { AdjustmentHistoryTab } from './AdjustmentHistoryTab';
