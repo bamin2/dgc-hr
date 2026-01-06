@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { Users, Building2, Loader2, Upload, History } from "lucide-react";
+import { Users, Building2, Loader2, Upload, History, Archive } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Sidebar, Header } from "@/components/dashboard";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import {
   EmployeeExportButton,
   EmployeeImportDialog,
   ImportHistoryDialog,
+  FormerEmployeesTable,
 } from "@/components/employees";
 import {
   useEmployees,
@@ -22,13 +23,14 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useRole } from "@/contexts/RoleContext";
-import { filterActiveEmployees, isInactiveEmployee } from "@/utils/orgHierarchy";
+import { filterActiveEmployees } from "@/utils/orgHierarchy";
 
-type TabType = 'directory' | 'org-chart';
+type TabType = 'directory' | 'org-chart' | 'former-employees';
 
 const tabs: { id: TabType; label: string; icon: React.ElementType }[] = [
   { id: 'directory', label: 'People Directory', icon: Users },
   { id: 'org-chart', label: 'ORG Chart', icon: Building2 },
+  { id: 'former-employees', label: 'Former Employees', icon: Archive },
 ];
 
 export default function Employees() {
@@ -45,7 +47,6 @@ export default function Employees() {
   const [departmentFilter, setDepartmentFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [entityFilter, setEntityFilter] = useState('all');
-  const [showInactive, setShowInactive] = useState(false);
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   
   // Pagination state
@@ -60,16 +61,17 @@ export default function Employees() {
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, departmentFilter, statusFilter, entityFilter, showInactive]);
+  }, [searchQuery, departmentFilter, statusFilter, entityFilter]);
 
-  // Filter employees for directory
+  // Active employees only (filter out resigned/terminated)
+  const activeEmployees = useMemo(() => 
+    filterActiveEmployees(employees),
+    [employees]
+  );
+
+  // Filter employees for directory (only active employees)
   const filteredEmployees = useMemo(() => {
-    let result = [...employees];
-
-    // Hide inactive employees unless toggle is on
-    if (!showInactive) {
-      result = result.filter(emp => !isInactiveEmployee(emp));
-    }
+    let result = [...activeEmployees];
 
     // Search filter
     if (searchQuery) {
@@ -92,13 +94,8 @@ export default function Employees() {
     }
 
     return result;
-  }, [employees, searchQuery, departmentFilter, statusFilter, showInactive]);
+  }, [activeEmployees, searchQuery, departmentFilter, statusFilter]);
 
-  // Active employees only for org chart (never show resigned/terminated)
-  const activeEmployeesForOrgChart = useMemo(() => 
-    filterActiveEmployees(employees),
-    [employees]
-  );
 
   // Paginate employees
   const totalPages = Math.ceil(filteredEmployees.length / entriesPerPage);
@@ -295,8 +292,6 @@ export default function Employees() {
                   onStatusChange={setStatusFilter}
                   entityFilter={entityFilter}
                   onEntityChange={setEntityFilter}
-                  showInactive={showInactive}
-                  onShowInactiveChange={setShowInactive}
                 />
               </div>
 
@@ -338,13 +333,13 @@ export default function Employees() {
 
               {activeTab === 'org-chart' && (
                 <OrgChart
-                  employees={activeEmployeesForOrgChart}
+                  employees={activeEmployees}
                   onView={(orgEmployee) => {
                     navigate(`/employees/${orgEmployee.id}`);
                   }}
                   onEdit={(orgEmployee) => {
                     // Find the full employee record by ID
-                    const employee = activeEmployeesForOrgChart.find(e => e.id === orgEmployee.id);
+                    const employee = activeEmployees.find(e => e.id === orgEmployee.id);
                     if (employee) {
                       setEditingEmployee(employee);
                       setFormOpen(true);
@@ -353,6 +348,10 @@ export default function Employees() {
                   onReassign={handleReassign}
                   onBulkReassign={handleBulkReassign}
                 />
+              )}
+
+              {activeTab === 'former-employees' && (
+                <FormerEmployeesTable />
               )}
             </>
           )}

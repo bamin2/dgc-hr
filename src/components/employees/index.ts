@@ -30,4 +30,5 @@ export { EmployeeExportButton } from "./EmployeeExportButton";
 export { EmployeeImportDialog } from "./EmployeeImportDialog";
 export { ImportHistoryDialog } from "./ImportHistoryDialog";
 export { BulkAssignManagersDialog } from "./BulkAssignManagersDialog";
+export { FormerEmployeesTable } from "./FormerEmployeesTable";
 export * from "./wizard";

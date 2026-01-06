@@ -7,8 +7,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { useDepartments } from "@/hooks/useEmployees";
 
 // Keep entities as static for now (could be moved to DB later)
@@ -27,8 +25,6 @@ interface EmployeeFiltersProps {
   onStatusChange: (value: string) => void;
   entityFilter: string;
   onEntityChange: (value: string) => void;
-  showInactive?: boolean;
-  onShowInactiveChange?: (value: boolean) => void;
 }
 
 export function EmployeeFilters({
@@ -40,8 +36,6 @@ export function EmployeeFilters({
   onStatusChange,
   entityFilter,
   onEntityChange,
-  showInactive,
-  onShowInactiveChange,
 }: EmployeeFiltersProps) {
   const { data: departments = [] } = useDepartments();
 
@@ -70,12 +64,6 @@ export function EmployeeFilters({
             <SelectItem value="on_boarding">On Boarding</SelectItem>
             <SelectItem value="probation">Probation</SelectItem>
             <SelectItem value="on_leave">On Leave</SelectItem>
-            {showInactive && (
-              <>
-                <SelectItem value="resigned">Resigned</SelectItem>
-                <SelectItem value="terminated">Terminated</SelectItem>
-              </>
-            )}
           </SelectContent>
         </Select>
         
@@ -106,20 +94,6 @@ export function EmployeeFilters({
             ))}
           </SelectContent>
         </Select>
-
-        {/* Show inactive toggle */}
-        {onShowInactiveChange && (
-          <div className="flex items-center gap-2 ml-2">
-            <Switch
-              id="show-inactive"
-              checked={showInactive}
-              onCheckedChange={onShowInactiveChange}
-            />
-            <Label htmlFor="show-inactive" className="text-sm text-muted-foreground cursor-pointer">
-              Show resigned/terminated
-            </Label>
-          </div>
-        )}
       </div>
     </div>
   );
