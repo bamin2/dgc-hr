@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { format } from 'date-fns';
-import type { AttendanceReportData } from '@/data/reports';
+import type { AttendanceReportData } from '@/hooks/useReportAnalytics';
 
 interface AttendanceChartProps {
   data: AttendanceReportData[];

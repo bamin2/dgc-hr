@@ -1,7 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { Users, UserCheck, DollarSign, Clock, FileWarning, Wallet } from 'lucide-react';
+import { Users, UserCheck, DollarSign, Clock, Wallet } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { ReportDashboardStats } from '@/data/reports';
+import type { ReportDashboardStats } from '@/hooks/useReportAnalytics';
 
 interface ReportsMetricsProps {
   stats: ReportDashboardStats;

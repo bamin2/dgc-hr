@@ -6,7 +6,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Search, CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import type { ReportType, ReportPeriod } from '@/data/reports';
+import type { ReportType, ReportPeriod } from '@/hooks/useReportAnalytics';
 import { DateRange } from 'react-day-picker';
 
 interface ReportsFiltersProps {
