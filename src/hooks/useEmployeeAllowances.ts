@@ -26,11 +26,17 @@ export function useEmployeeAllowances(employeeId?: string) {
   });
 }
 
+interface AllowanceInput {
+  templateId?: string;
+  customName?: string;
+  customAmount?: number;
+}
+
 export function useAssignAllowances() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ employeeId, allowanceTemplateIds }: { employeeId: string; allowanceTemplateIds: string[] }) => {
+    mutationFn: async ({ employeeId, allowances }: { employeeId: string; allowances: AllowanceInput[] }) => {
       // First, delete existing allowances for this employee
       await supabase
         .from('employee_allowances')
@@ -38,13 +44,15 @@ export function useAssignAllowances() {
         .eq('employee_id', employeeId);
       
       // Then insert the new ones
-      if (allowanceTemplateIds.length > 0) {
+      if (allowances.length > 0) {
         const { error } = await supabase
           .from('employee_allowances')
           .insert(
-            allowanceTemplateIds.map(templateId => ({
+            allowances.map(a => ({
               employee_id: employeeId,
-              allowance_template_id: templateId,
+              allowance_template_id: a.templateId || null,
+              custom_name: a.customName || null,
+              custom_amount: a.customAmount || null,
             }))
           );
         
@@ -63,12 +71,18 @@ export function useAddEmployeeAllowance() {
   return useMutation({
     mutationFn: async (allowance: {
       employee_id: string;
-      allowance_template_id: string;
+      allowance_template_id?: string;
+      custom_name?: string;
       custom_amount?: number;
     }) => {
       const { data, error } = await supabase
         .from('employee_allowances')
-        .insert(allowance)
+        .insert({
+          employee_id: allowance.employee_id,
+          allowance_template_id: allowance.allowance_template_id || null,
+          custom_name: allowance.custom_name || null,
+          custom_amount: allowance.custom_amount || null,
+        })
         .select()
         .single();
       
