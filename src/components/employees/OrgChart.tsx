@@ -7,7 +7,7 @@ import { OrgChartControls } from "./OrgChartControls";
 import { OrgChartExportButton } from "./OrgChartExportButton";
 import { OrgEmployee } from "./OrgChartNode";
 import { Employee } from "@/hooks/useEmployees";
-import { buildOrgTree, getAllDescendantIds, wouldCreateCircularReference } from "@/utils/orgHierarchy";
+import { buildOrgTrees, getAllDescendantIds, wouldCreateCircularReference } from "@/utils/orgHierarchy";
 import { toast } from "@/hooks/use-toast";
 import {
   AlertDialog,
@@ -43,8 +43,8 @@ export function OrgChart({ employees, onView, onEdit, onReassign }: OrgChartProp
     newManagerName: string;
   } | null>(null);
 
-  // Build org tree from employees array
-  const orgData = useMemo(() => buildOrgTree(employees), [employees]);
+  // Build org trees from employees array (supports multiple roots)
+  const orgTrees = useMemo(() => buildOrgTrees(employees), [employees]);
 
   const handleZoomIn = () => setZoom((prev) => Math.min(prev + 0.1, 1.5));
   const handleZoomOut = () => setZoom((prev) => Math.max(prev - 0.1, 0.5));
@@ -117,10 +117,10 @@ export function OrgChart({ employees, onView, onEdit, onReassign }: OrgChartProp
     setPendingReassignment(null);
   };
 
-  if (!orgData) {
+  if (orgTrees.length === 0) {
     return (
       <div className="flex items-center justify-center h-96 text-muted-foreground">
-        No organizational data available. Add a CEO to get started.
+        No organizational data available. Add a CEO or Managing Director to get started.
       </div>
     );
   }
@@ -166,17 +166,23 @@ export function OrgChart({ employees, onView, onEdit, onReassign }: OrgChartProp
             transformOrigin: "top center",
           }}
         >
-          <OrgChartTree
-            employee={orgData}
-            onView={onView}
-            onEdit={onEdit}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-            onDrop={handleDrop}
-            draggedEmployeeId={draggedEmployeeId}
-            descendantIds={descendantIds}
-            isRoot={true}
-          />
+          {/* Multiple roots (CEO & MD) displayed side by side */}
+          <div className="flex gap-16 items-start">
+            {orgTrees.map((rootEmployee) => (
+              <OrgChartTree
+                key={rootEmployee.id}
+                employee={rootEmployee}
+                onView={onView}
+                onEdit={onEdit}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
+                onDrop={handleDrop}
+                draggedEmployeeId={draggedEmployeeId}
+                descendantIds={descendantIds}
+                isRoot={true}
+              />
+            ))}
+          </div>
         </div>
 
         {/* Zoom Controls */}
