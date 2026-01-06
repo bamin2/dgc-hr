@@ -42,13 +42,20 @@ export function TimeOffMonthCalendar() {
     
     return leaveRequests
       .filter(r => r.status === 'approved' || r.status === 'pending')
-      .map(request => ({
-        id: request.id,
-        title: `${request.employee?.first_name || ''} - ${request.leave_type?.name || 'Leave'}`,
-        startDate: parseISO(request.start_date),
-        endDate: parseISO(request.end_date),
-        color: request.leave_type?.color || '#3b82f6',
-      }));
+      .map(request => {
+        const isPublicHoliday = request.leave_type?.name === 'Public Holiday';
+        const title = isPublicHoliday && request.reason
+          ? request.reason
+          : `${request.employee?.first_name || ''} - ${request.leave_type?.name || 'Leave'}`;
+        
+        return {
+          id: request.id,
+          title,
+          startDate: parseISO(request.start_date),
+          endDate: parseISO(request.end_date),
+          color: request.leave_type?.color || '#3b82f6',
+        };
+      });
   }, [leaveRequests]);
 
   const monthStart = startOfMonth(currentDate);
