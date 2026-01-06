@@ -65,6 +65,7 @@ export interface UpdateEventInput extends Partial<CreateEventInput> {
 export function useCalendarEvents(startDate?: Date, endDate?: Date) {
   return useQuery({
     queryKey: ["calendar-events", startDate?.toISOString(), endDate?.toISOString()],
+    staleTime: 1000 * 60 * 2, // 2 minutes
     queryFn: async () => {
       let query = supabase
         .from("calendar_events")

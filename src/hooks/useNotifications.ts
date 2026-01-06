@@ -56,6 +56,7 @@ export function useNotifications() {
 
   const query = useQuery({
     queryKey: ['notifications', user?.id],
+    staleTime: 1000 * 60, // 1 minute
     queryFn: async () => {
       if (!user?.id) throw new Error('No user');
 
@@ -150,6 +151,7 @@ export function useUnreadNotificationsCount() {
 
   return useQuery({
     queryKey: ['notifications-unread-count', user?.id],
+    staleTime: 1000 * 60, // 1 minute
     queryFn: async () => {
       if (!user?.id) return 0;
 
