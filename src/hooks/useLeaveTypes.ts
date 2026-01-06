@@ -13,6 +13,15 @@ export interface LeaveType {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  // Policy settings
+  count_weekends: boolean | null;
+  requires_document: boolean | null;
+  document_required_after_days: number | null;
+  visible_to_employees: boolean | null;
+  allow_carryover: boolean | null;
+  max_carryover_days: number | null;
+  min_days_notice: number | null;
+  max_consecutive_days: number | null;
 }
 
 export function useLeaveTypes() {
