@@ -233,3 +233,94 @@ export function useCreateLeaveBalance() {
     },
   });
 }
+
+export interface BulkInitializeResult {
+  created: number;
+  skipped: number;
+}
+
+export function useBulkInitializeBalances() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ year }: { year: number }): Promise<BulkInitializeResult> => {
+      // Fetch all active employees
+      const { data: employees, error: empError } = await supabase
+        .from('employees')
+        .select('id')
+        .eq('status', 'active');
+
+      if (empError) throw empError;
+
+      // Fetch all active leave types with max_days_per_year
+      const { data: leaveTypes, error: ltError } = await supabase
+        .from('leave_types')
+        .select('id, max_days_per_year')
+        .eq('is_active', true)
+        .not('max_days_per_year', 'is', null);
+
+      if (ltError) throw ltError;
+
+      // Fetch existing balances for this year
+      const { data: existingBalances, error: balError } = await supabase
+        .from('leave_balances')
+        .select('employee_id, leave_type_id')
+        .eq('year', year);
+
+      if (balError) throw balError;
+
+      // Create a set of existing balance keys
+      const existingSet = new Set(
+        existingBalances?.map(b => `${b.employee_id}-${b.leave_type_id}`) || []
+      );
+
+      // Build list of balances to create
+      const toCreate: {
+        employee_id: string;
+        leave_type_id: string;
+        year: number;
+        total_days: number;
+        used_days: number;
+        pending_days: number;
+      }[] = [];
+
+      for (const emp of employees || []) {
+        for (const lt of leaveTypes || []) {
+          const key = `${emp.id}-${lt.id}`;
+          if (!existingSet.has(key) && lt.max_days_per_year) {
+            toCreate.push({
+              employee_id: emp.id,
+              leave_type_id: lt.id,
+              year,
+              total_days: lt.max_days_per_year,
+              used_days: 0,
+              pending_days: 0,
+            });
+          }
+        }
+      }
+
+      if (toCreate.length > 0) {
+        const { error: insertError } = await supabase
+          .from('leave_balances')
+          .insert(toCreate);
+
+        if (insertError) throw insertError;
+      }
+
+      const totalPossible = (employees?.length || 0) * (leaveTypes?.length || 0);
+      return {
+        created: toCreate.length,
+        skipped: totalPossible - toCreate.length,
+      };
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['all-employee-balances'] });
+      queryClient.invalidateQueries({ queryKey: ['leave-balances'] });
+      toast.success(`Initialized ${result.created} leave balances`);
+    },
+    onError: (error) => {
+      toast.error(`Failed to initialize balances: ${error.message}`);
+    },
+  });
+}

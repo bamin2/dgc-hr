@@ -18,11 +18,13 @@ import {
 } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Search, Loader2, Plus } from "lucide-react";
+import { Search, Loader2, Plus, Sparkles, RotateCcw } from "lucide-react";
 import { useAllEmployeeBalances, AllEmployeeBalance } from "@/hooks/useLeaveBalanceAdjustments";
 import { useLeaveTypes, LeaveType } from "@/hooks/useLeaveTypes";
 import { BalanceAdjustmentDialog } from "./BalanceAdjustmentDialog";
 import { AssignLeaveBalanceDialog } from "./AssignLeaveBalanceDialog";
+import { InitializeBalancesDialog } from "./InitializeBalancesDialog";
+import { ProcessRolloverDialog } from "./ProcessRolloverDialog";
 
 export function EmployeeBalancesTab() {
   const currentYear = new Date().getFullYear();
@@ -37,6 +39,8 @@ export function EmployeeBalancesTab() {
     employee: AllEmployeeBalance;
     leaveType: LeaveType;
   } | null>(null);
+  const [showInitialize, setShowInitialize] = useState(false);
+  const [showRollover, setShowRollover] = useState(false);
 
   const { data: employees, isLoading } = useAllEmployeeBalances(year);
   const { data: leaveTypes } = useLeaveTypes();
@@ -106,6 +110,26 @@ export function EmployeeBalancesTab() {
             ))}
           </SelectContent>
         </Select>
+
+        <div className="flex-1" />
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowInitialize(true)}
+        >
+          <Sparkles className="w-4 h-4 mr-2" />
+          Initialize Balances
+        </Button>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowRollover(true)}
+        >
+          <RotateCcw className="w-4 h-4 mr-2" />
+          Process Rollover
+        </Button>
       </div>
 
       {/* Table */}
@@ -226,6 +250,19 @@ export function EmployeeBalancesTab() {
           year={year}
         />
       )}
+
+      <InitializeBalancesDialog
+        open={showInitialize}
+        onOpenChange={setShowInitialize}
+        year={year}
+        employeeCount={employees?.length || 0}
+      />
+
+      <ProcessRolloverDialog
+        open={showRollover}
+        onOpenChange={setShowRollover}
+        fromYear={year}
+      />
     </div>
   );
 }
