@@ -28,6 +28,11 @@ const sampleEmployee = {
   date_of_birth: "1990-05-15",
   join_date: "2024-01-15",
   salary: 5000,
+  contract_period: "One Year",
+  probation_period: "3 months",
+  notice_period: "30 days",
+  net_allowances: 1500,
+  annual_leave_days: 21,
 };
 
 const samplePosition = { title: "Software Engineer" };
@@ -55,6 +60,7 @@ export function TemplatePreviewDialog({
       legal_name: "Company Legal Name",
       email: "info@company.com",
       phone: "+1 555-0000",
+      logo_url: "",
       address_street: "100 Business Ave",
       address_city: "Business City",
       address_state: "State",
@@ -78,9 +84,10 @@ export function TemplatePreviewDialog({
 
         <ScrollArea className="h-[60vh]">
           <div className="bg-white dark:bg-card border rounded-lg p-8 shadow-sm">
-            <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-foreground">
-              {renderedContent}
-            </pre>
+            <div 
+              className="prose prose-sm dark:prose-invert max-w-none"
+              dangerouslySetInnerHTML={{ __html: renderedContent }}
+            />
           </div>
         </ScrollArea>
       </DialogContent>
