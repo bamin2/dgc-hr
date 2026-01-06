@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Upload, FileSpreadsheet, Download, CheckCircle2, XCircle, AlertTriangle, Loader2 } from "lucide-react";
+import { Upload, FileSpreadsheet, Download, CheckCircle2, XCircle, AlertTriangle, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -16,7 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
 import { useDepartments, usePositions, useEmployees } from "@/hooks/useEmployees";
@@ -41,10 +41,13 @@ interface PreviewRow {
   validation: ValidationResult;
 }
 
+const ROWS_PER_PAGE = 20;
+
 export function EmployeeImportDialog({ open, onOpenChange }: EmployeeImportDialogProps) {
   const [file, setFile] = useState<File | null>(null);
   const [previewData, setPreviewData] = useState<PreviewRow[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   
   const { data: departments = [] } = useDepartments();
   const { data: positions = [] } = usePositions();
@@ -54,6 +57,12 @@ export function EmployeeImportDialog({ open, onOpenChange }: EmployeeImportDialo
   const validRows = previewData.filter(r => r.validation.valid);
   const invalidRows = previewData.filter(r => !r.validation.valid);
   const warningRows = previewData.filter(r => r.validation.warnings.length > 0);
+  
+  const totalPages = Math.ceil(previewData.length / ROWS_PER_PAGE);
+  const paginatedData = previewData.slice(
+    (currentPage - 1) * ROWS_PER_PAGE,
+    currentPage * ROWS_PER_PAGE
+  );
 
   const handleFileSelect = useCallback(async (selectedFile: File) => {
     if (!selectedFile.name.endsWith('.csv')) {
@@ -84,6 +93,7 @@ export function EmployeeImportDialog({ open, onOpenChange }: EmployeeImportDialo
     });
     
     setPreviewData(preview);
+    setCurrentPage(1);
   }, [existingEmployees]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
@@ -157,6 +167,7 @@ export function EmployeeImportDialog({ open, onOpenChange }: EmployeeImportDialo
   const handleClose = () => {
     setFile(null);
     setPreviewData([]);
+    setCurrentPage(1);
     onOpenChange(false);
   };
 
@@ -238,49 +249,90 @@ export function EmployeeImportDialog({ open, onOpenChange }: EmployeeImportDialo
             </div>
 
             {/* Preview Table */}
-            <ScrollArea className="flex-1 border rounded-md">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[50px]">Status</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Department</TableHead>
-                    <TableHead>Position</TableHead>
-                    <TableHead>Issues</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {previewData.map((row, index) => (
-                    <TableRow key={index} className={!row.validation.valid ? 'bg-destructive/5' : ''}>
-                      <TableCell>
-                        {row.validation.valid ? (
-                          <CheckCircle2 className="h-4 w-4 text-success" />
-                        ) : (
-                          <XCircle className="h-4 w-4 text-destructive" />
-                        )}
-                      </TableCell>
-                      <TableCell className="font-medium">{row.parsed.employeeName}</TableCell>
-                      <TableCell>{row.parsed.email}</TableCell>
-                      <TableCell>{row.parsed.department || '-'}</TableCell>
-                      <TableCell>{row.parsed.position || '-'}</TableCell>
-                      <TableCell>
-                        {row.validation.errors.length > 0 && (
-                          <span className="text-destructive text-xs">
-                            {row.validation.errors.join(', ')}
-                          </span>
-                        )}
-                        {row.validation.warnings.length > 0 && row.validation.errors.length === 0 && (
-                          <span className="text-warning text-xs">
-                            {row.validation.warnings.join(', ')}
-                          </span>
-                        )}
-                      </TableCell>
+            <ScrollArea className="h-[400px] border rounded-md">
+              <div className="min-w-[1000px]">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[60px] sticky left-0 bg-background">Status</TableHead>
+                      <TableHead className="min-w-[150px]">Name</TableHead>
+                      <TableHead className="min-w-[200px]">Email</TableHead>
+                      <TableHead className="min-w-[120px]">Department</TableHead>
+                      <TableHead className="min-w-[120px]">Position</TableHead>
+                      <TableHead className="min-w-[100px]">Hire Date</TableHead>
+                      <TableHead className="min-w-[100px]">Work Type</TableHead>
+                      <TableHead className="min-w-[150px]">Manager</TableHead>
+                      <TableHead className="min-w-[200px]">Issues</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedData.map((row, index) => (
+                      <TableRow key={(currentPage - 1) * ROWS_PER_PAGE + index} className={!row.validation.valid ? 'bg-destructive/5' : ''}>
+                        <TableCell className="sticky left-0 bg-background">
+                          {row.validation.valid ? (
+                            <CheckCircle2 className="h-4 w-4 text-success" />
+                          ) : (
+                            <XCircle className="h-4 w-4 text-destructive" />
+                          )}
+                        </TableCell>
+                        <TableCell className="font-medium">{row.parsed.employeeName}</TableCell>
+                        <TableCell>{row.parsed.email}</TableCell>
+                        <TableCell>{row.parsed.department || '-'}</TableCell>
+                        <TableCell>{row.parsed.position || '-'}</TableCell>
+                        <TableCell>{row.parsed.hiringDate || '-'}</TableCell>
+                        <TableCell>{row.parsed.workType || '-'}</TableCell>
+                        <TableCell>{row.parsed.directManager || '-'}</TableCell>
+                        <TableCell>
+                          {row.validation.errors.length > 0 && (
+                            <span className="text-destructive text-xs">
+                              {row.validation.errors.join(', ')}
+                            </span>
+                          )}
+                          {row.validation.warnings.length > 0 && row.validation.errors.length === 0 && (
+                            <span className="text-warning text-xs">
+                              {row.validation.warnings.join(', ')}
+                            </span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              <ScrollBar orientation="horizontal" />
             </ScrollArea>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">
+                  Showing {(currentPage - 1) * ROWS_PER_PAGE + 1}-{Math.min(currentPage * ROWS_PER_PAGE, previewData.length)} of {previewData.length} rows
+                </span>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Previous
+                  </Button>
+                  <span className="text-muted-foreground">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
 
             {/* Actions */}
             <div className="flex justify-between items-center pt-4 border-t">
