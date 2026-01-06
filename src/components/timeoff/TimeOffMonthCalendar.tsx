@@ -19,6 +19,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useLeaveRequests } from "@/hooks/useLeaveRequests";
+import { usePublicHolidays } from "@/hooks/usePublicHolidays";
 
 type ViewMode = "day" | "week" | "month";
 
@@ -34,29 +35,67 @@ export function TimeOffMonthCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>("month");
 
-  const { data: leaveRequests, isLoading } = useLeaveRequests();
+  const { data: leaveRequests, isLoading: isLoadingLeave } = useLeaveRequests();
+  const { data: publicHolidays, isLoading: isLoadingHolidays } = usePublicHolidays(currentDate.getFullYear());
 
-  // Convert leave requests to calendar events
-  const calendarEvents: CalendarEvent[] = useMemo(() => {
+  const isLoading = isLoadingLeave || isLoadingHolidays;
+
+  // Create calendar events from public holidays (original + compensated dates)
+  const holidayEvents: CalendarEvent[] = useMemo(() => {
+    if (!publicHolidays) return [];
+    
+    const events: CalendarEvent[] = [];
+    
+    for (const holiday of publicHolidays) {
+      const originalDate = parseISO(holiday.date);
+      const observedDate = parseISO(holiday.observed_date);
+      
+      // Always show on original date
+      events.push({
+        id: `holiday-original-${holiday.id}`,
+        title: holiday.name,
+        startDate: originalDate,
+        endDate: originalDate,
+        color: '#ef4444', // Red color for public holidays
+      });
+      
+      // If compensated, also show on observed date with (Compensation) suffix
+      if (holiday.is_compensated) {
+        events.push({
+          id: `holiday-comp-${holiday.id}`,
+          title: `${holiday.name} (Compensation)`,
+          startDate: observedDate,
+          endDate: observedDate,
+          color: '#ef4444',
+        });
+      }
+    }
+    
+    return events;
+  }, [publicHolidays]);
+
+  // Convert leave requests to calendar events (excluding Public Holiday leave type)
+  const leaveEvents: CalendarEvent[] = useMemo(() => {
     if (!leaveRequests) return [];
     
     return leaveRequests
-      .filter(r => r.status === 'approved' || r.status === 'pending')
-      .map(request => {
-        const isPublicHoliday = request.leave_type?.name === 'Public Holiday';
-        const title = isPublicHoliday && request.reason
-          ? request.reason
-          : `${request.employee?.first_name || ''} - ${request.leave_type?.name || 'Leave'}`;
-        
-        return {
-          id: request.id,
-          title,
-          startDate: parseISO(request.start_date),
-          endDate: parseISO(request.end_date),
-          color: request.leave_type?.color || '#3b82f6',
-        };
-      });
+      .filter(r => 
+        (r.status === 'approved' || r.status === 'pending') &&
+        r.leave_type?.name !== 'Public Holiday' // Exclude to avoid duplicates
+      )
+      .map(request => ({
+        id: request.id,
+        title: `${request.employee?.first_name || ''} - ${request.leave_type?.name || 'Leave'}`,
+        startDate: parseISO(request.start_date),
+        endDate: parseISO(request.end_date),
+        color: request.leave_type?.color || '#3b82f6',
+      }));
   }, [leaveRequests]);
+
+  // Merge all events
+  const calendarEvents = useMemo(() => {
+    return [...leaveEvents, ...holidayEvents];
+  }, [leaveEvents, holidayEvents]);
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
