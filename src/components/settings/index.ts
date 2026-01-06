@@ -11,3 +11,4 @@ export { IntegrationsGrid } from './IntegrationsGrid';
 export { SessionCard } from './SessionCard';
 export { SecuritySettings } from './SecuritySettings';
 export { AuditLogCard } from './AuditLogCard';
+export { DashboardSettingsTab } from './DashboardSettingsTab';

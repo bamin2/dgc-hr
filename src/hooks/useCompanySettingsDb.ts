@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { CompanySettings } from '@/data/settings';
+import { CompanySettings, DashboardCardVisibility, defaultDashboardCardVisibility } from '@/data/settings';
+import { Json } from '@/integrations/supabase/types';
 
 const SETTINGS_ID = '00000000-0000-0000-0000-000000000001';
 
@@ -26,6 +27,7 @@ interface DbCompanySettings {
   date_format: string | null;
   currency: string | null;
   weekend_days: number[] | null;
+  dashboard_card_visibility: Json | null;
   created_at: string;
   updated_at: string;
 }
@@ -58,6 +60,9 @@ function transformFromDb(row: DbCompanySettings): CompanySettings {
       currency: row.currency || 'USD',
       weekendDays: row.weekend_days || [5, 6],
     },
+    dashboardCardVisibility: row.dashboard_card_visibility 
+      ? (row.dashboard_card_visibility as unknown as DashboardCardVisibility)
+      : defaultDashboardCardVisibility,
   };
 }
 
@@ -90,6 +95,10 @@ function transformToDb(settings: Partial<CompanySettings>): Record<string, unkno
     if (settings.branding.dateFormat !== undefined) db.date_format = settings.branding.dateFormat;
     if (settings.branding.currency !== undefined) db.currency = settings.branding.currency;
     if (settings.branding.weekendDays !== undefined) db.weekend_days = settings.branding.weekendDays;
+  }
+
+  if (settings.dashboardCardVisibility !== undefined) {
+    db.dashboard_card_visibility = settings.dashboardCardVisibility;
   }
   
   return db;
