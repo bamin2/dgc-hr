@@ -146,6 +146,9 @@ export function TeamOfferStep({
         
         // Compensation fields
         "Salary": compensationData.salary ? parseFloat(compensationData.salary).toLocaleString() : '',
+        "Basic Salary": compensationData.salary ? parseFloat(compensationData.salary).toLocaleString() : '',
+        "Total Allowances": totalAllowances.toLocaleString(),
+        "Net Salary": totalNetPay.toLocaleString(),
         "Currency": workLocation?.currency || compensationData.currency,
         
         // Company fields
@@ -217,6 +220,39 @@ export function TeamOfferStep({
     [employees, roleData.managerId]
   );
 
+  // Calculate compensation totals
+  const { totalAllowances, totalDeductions, totalGrossPay, totalNetPay } = useMemo(() => {
+    const baseSalary = parseFloat(compensationData.salary) || 0;
+    
+    let allowancesTotal = 0;
+    compensationData.allowances.forEach(a => {
+      if (a.isCustom) {
+        allowancesTotal += a.amount;
+      } else if (a.amount) {
+        allowancesTotal += a.amount;
+      }
+    });
+    
+    let deductionsTotal = 0;
+    compensationData.deductions.forEach(d => {
+      if (d.isCustom) {
+        deductionsTotal += d.amount;
+      } else if (d.amount) {
+        deductionsTotal += d.amount;
+      }
+    });
+    
+    const gross = baseSalary + allowancesTotal;
+    const net = gross - deductionsTotal;
+    
+    return {
+      totalAllowances: allowancesTotal,
+      totalDeductions: deductionsTotal,
+      totalGrossPay: gross,
+      totalNetPay: net
+    };
+  }, [compensationData]);
+
   // Render preview with all data from previous steps
   const previewContent = useMemo(() => {
     if (!selectedTemplate) return "";
@@ -225,6 +261,8 @@ export function TeamOfferStep({
       ? Math.max(1, differenceInDays(data.expirationDate, new Date()))
       : 7;
 
+    const baseSalary = parseFloat(compensationData.salary) || 0;
+
     return renderTemplate(selectedTemplate.content, {
       employee: {
         first_name: basicData.firstName,
@@ -232,7 +270,10 @@ export function TeamOfferStep({
         email: basicData.email,
         phone: basicData.mobileNumber,
         nationality: basicData.nationality,
-        salary: parseFloat(compensationData.salary) || 0,
+        salary: baseSalary,
+        basic_salary: baseSalary,
+        total_allowances: totalAllowances,
+        net_salary: totalNetPay,
         join_date: roleData.startDate?.toISOString(),
       },
       position: position ? { title: position.title, job_description: position.job_description } : undefined,
@@ -261,7 +302,7 @@ export function TeamOfferStep({
       signatureName: data.signatureName,
       offerExpiryDays,
     });
-  }, [selectedTemplate, basicData, roleData, compensationData, data, position, department, workLocation, manager, companySettings]);
+  }, [selectedTemplate, basicData, roleData, compensationData, data, position, department, workLocation, manager, companySettings, totalAllowances, totalNetPay]);
 
   return (
     <div className="space-y-6">
