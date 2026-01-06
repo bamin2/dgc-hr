@@ -16,6 +16,10 @@ interface RoleContextType {
   canAccessCompany: boolean;
   canManageRoles: boolean;
   canEditEmployees: boolean;
+  isManager: boolean;
+  teamMemberIds: string[];
+  isTeamMember: (employeeId: string) => boolean;
+  canApproveLeaveFor: (employeeId: string) => boolean;
   getEmployeeRole: (employeeId: string) => AppRole;
   updateEmployeeRole: (employeeId: string, newRole: AppRole) => void;
   setCurrentUserRole: (role: AppRole) => void; // For demo purposes
@@ -43,6 +47,7 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
   const { user, profile } = useAuth();
   const [currentUser, setCurrentUser] = useState<CurrentUser>(mockCurrentUser);
   const [userRoles, setUserRoles] = useState<UserRole[]>([]);
+  const [teamMemberIds, setTeamMemberIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Impersonation state
@@ -115,6 +120,27 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
     fetchAllRoles();
   }, [user]);
 
+  // Fetch team members for managers
+  useEffect(() => {
+    const fetchTeamMembers = async () => {
+      if (!profile?.employee_id) {
+        setTeamMemberIds([]);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('employees')
+        .select('id')
+        .eq('manager_id', profile.employee_id);
+
+      if (!error && data) {
+        setTeamMemberIds(data.map(e => e.id));
+      }
+    };
+
+    fetchTeamMembers();
+  }, [profile?.employee_id]);
+
   const hasRole = useCallback((role: AppRole) => {
     return currentUser.role === role;
   }, [currentUser.role]);
@@ -132,9 +158,24 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
   const canAccessCompany = managementRoles.includes(effectiveRole);
   const canManageRoles = effectiveRole === 'hr' || effectiveRole === 'admin';
   const canEditEmployees = effectiveRole === 'hr' || effectiveRole === 'admin';
+  const isManager = effectiveRole === 'manager';
   
   // Impersonation toggle visibility based on actual role (not effective role)
   const canImpersonate = actualRole === 'hr' || actualRole === 'admin';
+
+  // Check if an employee is a team member (for managers)
+  const isTeamMember = useCallback((employeeId: string) => {
+    return teamMemberIds.includes(employeeId);
+  }, [teamMemberIds]);
+
+  // Check if current user can approve leave for a specific employee
+  const canApproveLeaveFor = useCallback((employeeId: string) => {
+    // HR and Admin can approve any leave
+    if (canEditEmployees) return true;
+    // Manager can approve their team members' leave
+    if (isManager && teamMemberIds.includes(employeeId)) return true;
+    return false;
+  }, [canEditEmployees, isManager, teamMemberIds]);
 
   const startImpersonation = useCallback(() => {
     if (!isImpersonating) {
@@ -194,6 +235,10 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
         canAccessCompany,
         canManageRoles,
         canEditEmployees,
+        isManager,
+        teamMemberIds,
+        isTeamMember,
+        canApproveLeaveFor,
         getEmployeeRole,
         updateEmployeeRole,
         setCurrentUserRole,
