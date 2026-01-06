@@ -17,7 +17,8 @@ function createImage(url: string): Promise<HTMLImageElement> {
 
 export async function getCroppedImg(
   imageSrc: string,
-  croppedAreaPixels: CroppedAreaPixels
+  croppedAreaPixels: CroppedAreaPixels,
+  maxDimension?: number
 ): Promise<Blob> {
   const image = await createImage(imageSrc);
   const canvas = document.createElement('canvas');
@@ -27,11 +28,21 @@ export async function getCroppedImg(
     throw new Error('Could not get canvas context');
   }
 
-  // Set canvas size to the cropped area
-  canvas.width = croppedAreaPixels.width;
-  canvas.height = croppedAreaPixels.height;
+  // Calculate output dimensions with optional resizing
+  let outputWidth = croppedAreaPixels.width;
+  let outputHeight = croppedAreaPixels.height;
 
-  // Draw the cropped portion
+  if (maxDimension && (outputWidth > maxDimension || outputHeight > maxDimension)) {
+    const scale = maxDimension / Math.max(outputWidth, outputHeight);
+    outputWidth = Math.round(outputWidth * scale);
+    outputHeight = Math.round(outputHeight * scale);
+  }
+
+  // Set canvas size to the output dimensions
+  canvas.width = outputWidth;
+  canvas.height = outputHeight;
+
+  // Draw the cropped portion scaled to output dimensions
   ctx.drawImage(
     image,
     croppedAreaPixels.x,
@@ -40,8 +51,8 @@ export async function getCroppedImg(
     croppedAreaPixels.height,
     0,
     0,
-    croppedAreaPixels.width,
-    croppedAreaPixels.height
+    outputWidth,
+    outputHeight
   );
 
   // Return as Blob

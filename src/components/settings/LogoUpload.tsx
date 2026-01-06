@@ -161,7 +161,7 @@ export const LogoUpload = ({
               </Button>
             )}
           </div>
-          <p className="text-xs text-muted-foreground">PNG, JPG up to 5MB. Square format recommended.</p>
+          <p className="text-xs text-muted-foreground">PNG, JPG up to 5MB. Images auto-resized to 400×400 max.</p>
         </div>
       </div>
 
@@ -177,6 +177,7 @@ export const LogoUpload = ({
         onCropComplete={handleCropComplete}
         aspectRatio={1}
         cropShape="rect"
+        maxOutputDimension={400}
       />
     </>
   );
