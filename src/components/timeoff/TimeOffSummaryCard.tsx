@@ -40,11 +40,20 @@ export function TimeOffSummaryCard() {
 
   const isLoading = balancesLoading || requestsLoading;
 
-  // Calculate summary from balances
-  const totalAvailable = balances?.reduce((sum, b) => sum + b.total_days - b.used_days - b.pending_days, 0) || 0;
+  // Find Annual Leave balance specifically for "Available to book" and "Total allowance"
+  const annualLeaveBalance = balances?.find(b => b.leave_type?.name === 'Annual Leave');
+  
+  // Available to book - only Annual Leave
+  const totalAvailable = annualLeaveBalance 
+    ? annualLeaveBalance.total_days - annualLeaveBalance.used_days - annualLeaveBalance.pending_days 
+    : 0;
+  
+  // Total allowance - only Annual Leave
+  const totalDays = annualLeaveBalance?.total_days || 0;
+  
+  // These remain as totals across all leave types
   const totalPending = balances?.reduce((sum, b) => sum + b.pending_days, 0) || 0;
   const totalUsed = balances?.reduce((sum, b) => sum + b.used_days, 0) || 0;
-  const totalDays = balances?.reduce((sum, b) => sum + b.total_days, 0) || 0;
 
   // Count approved upcoming leave (booked)
   const bookedDays = leaveRequests
