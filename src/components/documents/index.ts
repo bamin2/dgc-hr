@@ -3,5 +3,7 @@ export { TemplateCard } from "./TemplateCard";
 export { TemplateEditorDialog } from "./TemplateEditorDialog";
 export { TemplatePreviewDialog } from "./TemplatePreviewDialog";
 export { SmartTagsPanel } from "./SmartTagsPanel";
+export { SmartTagsTab } from "./SmartTagsTab";
+export { SmartTagFormDialog } from "./SmartTagFormDialog";
 export { TemplateCategoryBadge, templateCategories, getCategoryLabel } from "./TemplateCategoryBadge";
 export { RichTextEditor, insertIntoRichTextEditor } from "./RichTextEditor";

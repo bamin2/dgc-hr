@@ -2248,6 +2248,45 @@ export type Database = {
           },
         ]
       }
+      smart_tags: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string
+          field: string
+          id: string
+          is_active: boolean | null
+          is_system: boolean | null
+          source: string
+          tag: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description: string
+          field: string
+          id?: string
+          is_active?: boolean | null
+          is_system?: boolean | null
+          source: string
+          tag: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string
+          field?: string
+          id?: string
+          is_active?: boolean | null
+          is_system?: boolean | null
+          source?: string
+          tag?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       user_preferences: {
         Row: {
           compact_mode: boolean | null
