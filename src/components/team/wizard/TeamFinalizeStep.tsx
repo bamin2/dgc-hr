@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { countries } from "@/hooks/useTeamMembers";
+import { countries, getCountryByCode } from "@/data/countries";
 import { mockEmployees } from "@/data/employees";
 import { useActiveAllowanceTemplates } from "@/hooks/useAllowanceTemplates";
 import { useActiveDeductionTemplates } from "@/hooks/useDeductionTemplates";
@@ -34,7 +34,8 @@ export function TeamFinalizeStep({
   onNoteChange,
   onEditStep,
 }: TeamFinalizeStepProps) {
-  const country = countries.find((c) => c.code === basicData.country);
+  const country = getCountryByCode(basicData.nationality);
+  const phoneCountry = getCountryByCode(basicData.mobileCountryCode);
   const manager = mockEmployees.find((e) => e.id === roleData.managerId);
   const { data: allowanceTemplates } = useActiveAllowanceTemplates();
   const { data: deductionTemplates } = useActiveDeductionTemplates();
@@ -54,6 +55,16 @@ export function TeamFinalizeStep({
       currency: "USD",
       maximumFractionDigits: 0,
     }).format(amount);
+  };
+
+  const getFullName = () => {
+    const parts = [basicData.firstName, basicData.secondName, basicData.lastName].filter(Boolean);
+    return parts.join(" ");
+  };
+
+  const getFullPhone = () => {
+    if (!basicData.mobileNumber) return null;
+    return `${phoneCountry?.dialCode || ""} ${basicData.mobileNumber}`.trim();
   };
 
   return (
@@ -84,26 +95,24 @@ export function TeamFinalizeStep({
         <CardContent className="grid grid-cols-2 gap-4 text-sm">
           <div>
             <p className="text-muted-foreground">Full name</p>
-            <p className="font-medium">
-              {basicData.firstName} {basicData.lastName}
-            </p>
+            <p className="font-medium">{getFullName()}</p>
           </div>
           <div>
             <p className="text-muted-foreground">Email</p>
             <p className="font-medium">{basicData.email}</p>
           </div>
           <div>
-            <p className="text-muted-foreground">Country</p>
+            <p className="text-muted-foreground">Nationality</p>
             <p className="font-medium">
-              {country?.flag} {country?.name}
+              {country ? `${country.flag} ${country.name}` : "Not set"}
             </p>
           </div>
-          <div>
-            <p className="text-muted-foreground">Worker type</p>
-            <p className="font-medium capitalize">
-              {basicData.workerType.replace(/_/g, " ")}
-            </p>
-          </div>
+          {getFullPhone() && (
+            <div>
+              <p className="text-muted-foreground">Mobile</p>
+              <p className="font-medium">{getFullPhone()}</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -209,7 +218,7 @@ export function TeamFinalizeStep({
       </Card>
 
       {/* Offer Letter Information */}
-      {basicData.sendOfferLetter && (
+      {offerData.sendOfferLetter && (
         <Card>
           <CardHeader className="flex flex-row items-center justify-between py-3">
             <CardTitle className="text-sm font-medium">Offer Letter</CardTitle>
