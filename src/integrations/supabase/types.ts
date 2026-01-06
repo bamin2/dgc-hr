@@ -697,6 +697,7 @@ export type Database = {
         Row: {
           address: string | null
           avatar_url: string | null
+          country: string | null
           created_at: string
           date_of_birth: string | null
           department_id: string | null
@@ -705,6 +706,7 @@ export type Database = {
           emergency_contact_phone: string | null
           emergency_contact_relationship: string | null
           employee_code: string | null
+          employment_type: Database["public"]["Enums"]["employment_type"] | null
           first_name: string
           gender: Database["public"]["Enums"]["gender_type"] | null
           id: string
@@ -713,16 +715,24 @@ export type Database = {
           location: string | null
           manager_id: string | null
           nationality: string | null
+          offer_letter_template: string | null
+          pay_frequency: Database["public"]["Enums"]["pay_frequency"] | null
           phone: string | null
           position_id: string | null
+          preferred_name: string | null
           salary: number | null
+          send_offer_letter: boolean | null
           status: Database["public"]["Enums"]["employee_status"]
+          tax_exemption_status: string | null
           updated_at: string
           user_id: string | null
+          work_location: string | null
+          worker_type: Database["public"]["Enums"]["worker_type"] | null
         }
         Insert: {
           address?: string | null
           avatar_url?: string | null
+          country?: string | null
           created_at?: string
           date_of_birth?: string | null
           department_id?: string | null
@@ -731,6 +741,9 @@ export type Database = {
           emergency_contact_phone?: string | null
           emergency_contact_relationship?: string | null
           employee_code?: string | null
+          employment_type?:
+            | Database["public"]["Enums"]["employment_type"]
+            | null
           first_name: string
           gender?: Database["public"]["Enums"]["gender_type"] | null
           id?: string
@@ -739,16 +752,24 @@ export type Database = {
           location?: string | null
           manager_id?: string | null
           nationality?: string | null
+          offer_letter_template?: string | null
+          pay_frequency?: Database["public"]["Enums"]["pay_frequency"] | null
           phone?: string | null
           position_id?: string | null
+          preferred_name?: string | null
           salary?: number | null
+          send_offer_letter?: boolean | null
           status?: Database["public"]["Enums"]["employee_status"]
+          tax_exemption_status?: string | null
           updated_at?: string
           user_id?: string | null
+          work_location?: string | null
+          worker_type?: Database["public"]["Enums"]["worker_type"] | null
         }
         Update: {
           address?: string | null
           avatar_url?: string | null
+          country?: string | null
           created_at?: string
           date_of_birth?: string | null
           department_id?: string | null
@@ -757,6 +778,9 @@ export type Database = {
           emergency_contact_phone?: string | null
           emergency_contact_relationship?: string | null
           employee_code?: string | null
+          employment_type?:
+            | Database["public"]["Enums"]["employment_type"]
+            | null
           first_name?: string
           gender?: Database["public"]["Enums"]["gender_type"] | null
           id?: string
@@ -765,12 +789,19 @@ export type Database = {
           location?: string | null
           manager_id?: string | null
           nationality?: string | null
+          offer_letter_template?: string | null
+          pay_frequency?: Database["public"]["Enums"]["pay_frequency"] | null
           phone?: string | null
           position_id?: string | null
+          preferred_name?: string | null
           salary?: number | null
+          send_offer_letter?: boolean | null
           status?: Database["public"]["Enums"]["employee_status"]
+          tax_exemption_status?: string | null
           updated_at?: string
           user_id?: string | null
+          work_location?: string | null
+          worker_type?: Database["public"]["Enums"]["worker_type"] | null
         }
         Relationships: [
           {
@@ -2147,6 +2178,7 @@ export type Database = {
         | "on_boarding"
         | "probation"
         | "terminated"
+      employment_type: "full_time" | "part_time" | "contract"
       enrollment_status: "active" | "pending" | "cancelled" | "expired"
       event_color: "green" | "orange" | "coral" | "mint" | "blue" | "purple"
       event_platform: "zoom" | "meet" | "slack" | "teams" | "in-person"
@@ -2162,6 +2194,7 @@ export type Database = {
         | "in_progress"
         | "completed"
         | "incomplete"
+      pay_frequency: "hour" | "day" | "week" | "month" | "year"
       project_priority: "low" | "medium" | "high"
       project_status: "todo" | "in_progress" | "need_review" | "done"
       salary_change_type:
@@ -2179,6 +2212,7 @@ export type Database = {
         | "introduction"
         | "compliance"
       task_status: "pending" | "in_progress" | "completed" | "skipped"
+      worker_type: "employee" | "contractor_individual" | "contractor_business"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2351,6 +2385,7 @@ export const Constants = {
         "probation",
         "terminated",
       ],
+      employment_type: ["full_time", "part_time", "contract"],
       enrollment_status: ["active", "pending", "cancelled", "expired"],
       event_color: ["green", "orange", "coral", "mint", "blue", "purple"],
       event_platform: ["zoom", "meet", "slack", "teams", "in-person"],
@@ -2367,6 +2402,7 @@ export const Constants = {
         "completed",
         "incomplete",
       ],
+      pay_frequency: ["hour", "day", "week", "month", "year"],
       project_priority: ["low", "medium", "high"],
       project_status: ["todo", "in_progress", "need_review", "done"],
       salary_change_type: [
@@ -2386,6 +2422,7 @@ export const Constants = {
         "compliance",
       ],
       task_status: ["pending", "in_progress", "completed", "skipped"],
+      worker_type: ["employee", "contractor_individual", "contractor_business"],
     },
   },
 } as const

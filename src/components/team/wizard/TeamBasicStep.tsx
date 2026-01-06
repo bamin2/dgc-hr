@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { countries, WorkerType } from "@/data/team";
+import { countries, WorkerType } from "@/hooks/useTeamMembers";
 
 export interface TeamBasicData {
   firstName: string;

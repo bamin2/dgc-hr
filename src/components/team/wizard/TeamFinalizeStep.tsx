@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { countries } from "@/data/team";
+import { countries } from "@/hooks/useTeamMembers";
 import { mockEmployees } from "@/data/employees";
 import { useActiveAllowanceTemplates } from "@/hooks/useAllowanceTemplates";
 import { useActiveDeductionTemplates } from "@/hooks/useDeductionTemplates";

@@ -30,7 +30,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { TeamMember } from "@/data/team";
+import { TeamMember } from "@/hooks/useTeamMembers";
 import { TeamMemberStatusBadge } from "./TeamMemberStatusBadge";
 import { TeamEmployeeTypeBadge } from "./TeamEmployeeTypeBadge";
 

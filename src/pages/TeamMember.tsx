@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { Plus, Upload, Users, DollarSign } from "lucide-react";
+import { Plus, Upload, Users, DollarSign, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Sidebar, Header } from "@/components/dashboard";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import {
   BulkUpdateSalariesDialog,
 } from "@/components/team";
 import { TablePagination } from "@/components/employees";
-import { mockTeamMembers, type TeamMember as TeamMemberType, type TeamMemberStatus } from "@/data/team";
+import { useTeamMembers, useUpdateTeamMember, useDeleteTeamMember, type TeamMember as TeamMemberType, type TeamMemberStatus } from "@/hooks/useTeamMembers";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useBulkAddSalaryHistory, type SalaryChangeType } from "@/hooks/useSalaryHistory";
@@ -29,7 +29,10 @@ const tabs: { id: TabType; label: string }[] = [
 export default function TeamMember() {
   const navigate = useNavigate();
   const bulkAddSalaryHistory = useBulkAddSalaryHistory();
-  const [members, setMembers] = useState<TeamMemberType[]>(mockTeamMembers);
+  const { data: members = [], isLoading } = useTeamMembers();
+  const updateTeamMember = useUpdateTeamMember();
+  const deleteTeamMember = useDeleteTeamMember();
+  
   const [activeTab, setActiveTab] = useState<TabType>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('all');
@@ -99,13 +102,21 @@ export default function TeamMember() {
     navigate(`/employees/${member.id}`);
   };
 
-  const handleDelete = (member: TeamMemberType) => {
-    setMembers((prev) => prev.filter((m) => m.id !== member.id));
-    setSelectedMembers((prev) => prev.filter((id) => id !== member.id));
-    toast({
-      title: "Member deleted",
-      description: `${member.firstName} ${member.lastName} has been removed.`,
-    });
+  const handleDelete = async (member: TeamMemberType) => {
+    try {
+      await deleteTeamMember.mutateAsync(member.id);
+      setSelectedMembers((prev) => prev.filter((id) => id !== member.id));
+      toast({
+        title: "Member deleted",
+        description: `${member.firstName} ${member.lastName} has been removed.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error deleting member",
+        description: "Failed to delete team member. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleStartOnboarding = (member: TeamMemberType) => {
@@ -113,17 +124,24 @@ export default function TeamMember() {
     setOnboardingDialogOpen(true);
   };
 
-  const handleOnboardingComplete = () => {
+  const handleOnboardingComplete = async () => {
     if (selectedMemberForOnboarding) {
-      setMembers((prev) =>
-        prev.map((m) =>
-          m.id === selectedMemberForOnboarding.id ? { ...m, status: "onboarding" } : m
-        )
-      );
-      toast({
-        title: "Onboarding started",
-        description: `Onboarding has been launched for ${selectedMemberForOnboarding.firstName} ${selectedMemberForOnboarding.lastName}`,
-      });
+      try {
+        await updateTeamMember.mutateAsync({
+          id: selectedMemberForOnboarding.id,
+          status: 'on_boarding',
+        });
+        toast({
+          title: "Onboarding started",
+          description: `Onboarding has been launched for ${selectedMemberForOnboarding.firstName} ${selectedMemberForOnboarding.lastName}`,
+        });
+      } catch (error) {
+        toast({
+          title: "Error starting onboarding",
+          description: "Failed to update member status. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
     setOnboardingDialogOpen(false);
     setSelectedMemberForOnboarding(null);
@@ -134,17 +152,24 @@ export default function TeamMember() {
     setOffboardingDialogOpen(true);
   };
 
-  const handleOffboardingComplete = () => {
+  const handleOffboardingComplete = async () => {
     if (selectedMemberForOffboarding) {
-      setMembers((prev) =>
-        prev.map((m) =>
-          m.id === selectedMemberForOffboarding.id ? { ...m, status: "offboarding" } : m
-        )
-      );
-      toast({
-        title: "Offboarding started",
-        description: `Offboarding has been launched for ${selectedMemberForOffboarding.firstName} ${selectedMemberForOffboarding.lastName}`,
-      });
+      try {
+        await updateTeamMember.mutateAsync({
+          id: selectedMemberForOffboarding.id,
+          status: 'terminated',
+        });
+        toast({
+          title: "Offboarding started",
+          description: `Offboarding has been launched for ${selectedMemberForOffboarding.firstName} ${selectedMemberForOffboarding.lastName}`,
+        });
+      } catch (error) {
+        toast({
+          title: "Error starting offboarding",
+          description: "Failed to update member status. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
     setOffboardingDialogOpen(false);
     setSelectedMemberForOffboarding(null);
@@ -170,16 +195,14 @@ export default function TeamMember() {
         }))
       );
 
-      // Update local state
-      setMembers((prev) =>
-        prev.map((m) => {
-          const update = updates.find((u) => u.id === m.id);
-          if (update) {
-            return { ...m, salary: update.newSalary };
-          }
-          return m;
-        })
-      );
+      // Update salaries in database
+      for (const update of updates) {
+        await updateTeamMember.mutateAsync({
+          id: update.id,
+          salary: update.newSalary,
+        });
+      }
+
       setSelectedMembers([]);
 
       toast({
@@ -199,6 +222,23 @@ export default function TeamMember() {
   const selectedMemberObjects = useMemo(() => {
     return members.filter((m) => selectedMembers.includes(m.id));
   }, [members, selectedMembers]);
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen bg-background">
+        <Sidebar />
+        <div className="flex-1 flex flex-col">
+          <Header />
+          <main className="flex-1 p-6 flex items-center justify-center">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              <span>Loading team members...</span>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-background">

@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { EmploymentType } from "@/data/team";
+import { EmploymentType } from "@/hooks/useTeamMembers";
 
 interface TeamEmployeeTypeBadgeProps {
   type: EmploymentType;
