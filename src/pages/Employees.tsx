@@ -1,14 +1,14 @@
 import { useState, useMemo, useEffect } from "react";
-import { Upload, Users, Building2, Loader2 } from "lucide-react";
+import { Users, Building2, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Sidebar, Header } from "@/components/dashboard";
-import { Button } from "@/components/ui/button";
 import {
   EmployeeFilters,
   EmployeeTable,
   EmployeeForm,
   TablePagination,
   OrgChart,
+  EmployeeExportButton,
 } from "@/components/employees";
 import {
   useEmployees,
@@ -174,13 +174,6 @@ export default function Employees() {
     }
   };
 
-  const handleExport = () => {
-    toast({
-      title: "Export started",
-      description: "Your employee data is being exported.",
-    });
-  };
-
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />
@@ -194,10 +187,7 @@ export default function Employees() {
             <h1 className="text-2xl font-semibold text-foreground">People Directory</h1>
             
             {canEditEmployees && (
-              <Button variant="outline" onClick={handleExport} className="gap-2">
-                <Upload className="h-4 w-4" />
-                Export
-              </Button>
+              <EmployeeExportButton employees={filteredEmployees} />
             )}
           </div>
 
