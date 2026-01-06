@@ -20,6 +20,7 @@ import {
   LeaveBalanceCard,
   LeaveRequestsTable,
   AttendanceCalendar,
+  CorrectionsTab,
 } from '@/components/attendance';
 import { useCurrentMonthAttendance, useTodayAttendance } from '@/hooks/useAttendanceRecords';
 import { useLeaveRequests, usePendingLeaveRequests, LeaveRequestStatus } from '@/hooks/useLeaveRequests';
@@ -100,6 +101,7 @@ export default function Attendance() {
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="attendance">Attendance</TabsTrigger>
               <TabsTrigger value="leave-requests">Leave Requests</TabsTrigger>
+              <TabsTrigger value="corrections">Corrections</TabsTrigger>
               <TabsTrigger value="calendar">Calendar</TabsTrigger>
             </TabsList>
 
@@ -226,6 +228,11 @@ export default function Attendance() {
               ) : (
                 <LeaveRequestsTable requests={filteredLeaveRequests} />
               )}
+            </TabsContent>
+
+            {/* Corrections Tab */}
+            <TabsContent value="corrections" className="space-y-6">
+              <CorrectionsTab />
             </TabsContent>
 
             {/* Calendar Tab */}

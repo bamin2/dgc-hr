@@ -53,6 +53,101 @@ export type Database = {
         }
         Relationships: []
       }
+      attendance_corrections: {
+        Row: {
+          attendance_record_id: string
+          corrected_check_in: string
+          corrected_check_out: string | null
+          created_at: string
+          date: string
+          employee_id: string
+          hr_notes: string | null
+          hr_reviewed_at: string | null
+          hr_reviewer_id: string | null
+          id: string
+          manager_id: string | null
+          manager_notes: string | null
+          manager_reviewed_at: string | null
+          original_check_in: string | null
+          original_check_out: string | null
+          reason: string
+          rejection_reason: string | null
+          status: Database["public"]["Enums"]["correction_status"]
+          updated_at: string
+        }
+        Insert: {
+          attendance_record_id: string
+          corrected_check_in: string
+          corrected_check_out?: string | null
+          created_at?: string
+          date: string
+          employee_id: string
+          hr_notes?: string | null
+          hr_reviewed_at?: string | null
+          hr_reviewer_id?: string | null
+          id?: string
+          manager_id?: string | null
+          manager_notes?: string | null
+          manager_reviewed_at?: string | null
+          original_check_in?: string | null
+          original_check_out?: string | null
+          reason: string
+          rejection_reason?: string | null
+          status?: Database["public"]["Enums"]["correction_status"]
+          updated_at?: string
+        }
+        Update: {
+          attendance_record_id?: string
+          corrected_check_in?: string
+          corrected_check_out?: string | null
+          created_at?: string
+          date?: string
+          employee_id?: string
+          hr_notes?: string | null
+          hr_reviewed_at?: string | null
+          hr_reviewer_id?: string | null
+          id?: string
+          manager_id?: string | null
+          manager_notes?: string | null
+          manager_reviewed_at?: string | null
+          original_check_in?: string | null
+          original_check_out?: string | null
+          reason?: string
+          rejection_reason?: string | null
+          status?: Database["public"]["Enums"]["correction_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_corrections_attendance_record_id_fkey"
+            columns: ["attendance_record_id"]
+            isOneToOne: false
+            referencedRelation: "attendance_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_corrections_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_corrections_hr_reviewer_id_fkey"
+            columns: ["hr_reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_corrections_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attendance_records: {
         Row: {
           check_in: string | null
@@ -2518,6 +2613,11 @@ export type Database = {
         | "wellness"
         | "other"
       claim_status: "pending" | "approved" | "rejected" | "processing"
+      correction_status:
+        | "pending_manager"
+        | "pending_hr"
+        | "approved"
+        | "rejected"
       departure_reason:
         | "resignation"
         | "termination"
@@ -2723,6 +2823,12 @@ export const Constants = {
         "other",
       ],
       claim_status: ["pending", "approved", "rejected", "processing"],
+      correction_status: [
+        "pending_manager",
+        "pending_hr",
+        "approved",
+        "rejected",
+      ],
       departure_reason: [
         "resignation",
         "termination",
