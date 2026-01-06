@@ -151,20 +151,10 @@ const Benefits = () => {
               <h1 className="text-2xl font-semibold tracking-tight">Benefits</h1>
               <p className="text-muted-foreground">Manage employee benefits and enrollments</p>
             </div>
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={() => setCreatePlanOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Plan
-              </Button>
-              <Button variant="outline" onClick={() => navigate('/benefits/claims/new')}>
-                <FileText className="mr-2 h-4 w-4" />
-                Submit Claim
-              </Button>
-              <Button onClick={() => navigate('/benefits/enroll')}>
-                <Plus className="mr-2 h-4 w-4" />
-                New Enrollment
-              </Button>
-            </div>
+            <Button onClick={() => navigate('/benefits/enroll')}>
+              <Plus className="mr-2 h-4 w-4" />
+              New Enrollment
+            </Button>
           </div>
 
           {/* Tabs */}
@@ -244,15 +234,21 @@ const Benefits = () => {
 
             {/* Plans Tab */}
             <TabsContent value="plans" className="space-y-6 mt-6">
-              <BenefitsFilters
-                searchQuery={searchQuery}
-                onSearchChange={setSearchQuery}
-                typeFilter={typeFilter}
-                onTypeChange={setTypeFilter}
-                statusFilter={statusFilter}
-                onStatusChange={setStatusFilter}
-                showStatusFilter
-              />
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <BenefitsFilters
+                  searchQuery={searchQuery}
+                  onSearchChange={setSearchQuery}
+                  typeFilter={typeFilter}
+                  onTypeChange={setTypeFilter}
+                  statusFilter={statusFilter}
+                  onStatusChange={setStatusFilter}
+                  showStatusFilter
+                />
+                <Button onClick={() => setCreatePlanOpen(true)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Plan
+                </Button>
+              </div>
               <BenefitsTable plans={filteredPlans} />
             </TabsContent>
 
@@ -269,7 +265,7 @@ const Benefits = () => {
 
             {/* Claims Tab */}
             <TabsContent value="claims" className="space-y-6 mt-6">
-              <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                 <div className="flex-1">
                   <BenefitsFilters
                     searchQuery={searchQuery}
@@ -278,17 +274,23 @@ const Benefits = () => {
                     onTypeChange={setTypeFilter}
                   />
                 </div>
-                <select
-                  className="px-3 py-2 border rounded-md bg-background text-sm"
-                  value={claimStatusFilter}
-                  onChange={(e) => setClaimStatusFilter(e.target.value as ClaimStatus | 'all')}
-                >
-                  <option value="all">All Status</option>
-                  <option value="pending">Pending</option>
-                  <option value="processing">Processing</option>
-                  <option value="approved">Approved</option>
-                  <option value="rejected">Rejected</option>
-                </select>
+                <div className="flex gap-2">
+                  <select
+                    className="px-3 py-2 border rounded-md bg-background text-sm"
+                    value={claimStatusFilter}
+                    onChange={(e) => setClaimStatusFilter(e.target.value as ClaimStatus | 'all')}
+                  >
+                    <option value="all">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="processing">Processing</option>
+                    <option value="approved">Approved</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
+                  <Button onClick={() => navigate('/benefits/claims/new')}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Claim
+                  </Button>
+                </div>
               </div>
               <ClaimsTable 
                 claims={filteredClaims} 
