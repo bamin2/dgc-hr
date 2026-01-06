@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { OnboardingStatus } from "@/data/onboarding";
+import { OnboardingStatus } from "@/hooks/useOnboarding";
 
 interface OnboardingStatusBadgeProps {
   status: OnboardingStatus;

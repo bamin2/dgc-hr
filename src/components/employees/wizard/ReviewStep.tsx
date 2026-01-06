@@ -20,14 +20,39 @@ import {
 } from "lucide-react";
 import { EmployeeDetails } from "./EmployeeDetailsStep";
 import { TeamAssignments } from "./TeamAssignStep";
-import { WorkflowTemplate, OnboardingTask, TaskCategory } from "@/data/onboarding";
-import { mockEmployees } from "@/data/employees";
+import { TaskCategory, TaskAssignee } from "@/hooks/useOnboarding";
+import { useEmployees } from "@/hooks/useEmployees";
 import { cn } from "@/lib/utils";
+
+// Local interfaces for ReviewStep compatibility
+interface WorkflowTemplate {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  estimatedDays: number;
+  categories: TaskCategory[];
+  tasks: { id: string; title: string; description: string; category: TaskCategory; dueDate: string; assignedTo: string; required: boolean; order: number }[];
+}
+
+interface LocalTask {
+  id: string;
+  title: string;
+  description: string;
+  category: TaskCategory;
+  dueDate: string;
+  assignedTo: TaskAssignee;
+  status: "pending" | "in_progress" | "completed" | "skipped";
+  completedAt: string | null;
+  completedBy: string | null;
+  required: boolean;
+  order: number;
+}
 
 interface ReviewStepProps {
   employeeDetails: EmployeeDetails;
   selectedTemplate: WorkflowTemplate | null;
-  customizedTasks: OnboardingTask[];
+  customizedTasks: LocalTask[];
   teamAssignments: TeamAssignments;
 }
 
@@ -45,8 +70,10 @@ export function ReviewStep({
   customizedTasks,
   teamAssignments,
 }: ReviewStepProps) {
+  const { data: employees = [] } = useEmployees();
+
   const getEmployeeName = (id: string) => {
-    const emp = mockEmployees.find((e) => e.id === id);
+    const emp = employees.find((e) => e.id === id);
     return emp ? `${emp.firstName} ${emp.lastName}` : "Not assigned";
   };
 

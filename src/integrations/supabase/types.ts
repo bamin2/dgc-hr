@@ -1112,6 +1112,252 @@ export type Database = {
         }
         Relationships: []
       }
+      onboarding_records: {
+        Row: {
+          buddy_id: string | null
+          completed_on: string | null
+          created_at: string
+          employee_id: string
+          hr_contact_id: string | null
+          id: string
+          it_contact_id: string | null
+          manager_id: string | null
+          scheduled_completion: string | null
+          start_date: string
+          status: Database["public"]["Enums"]["onboarding_status"]
+          updated_at: string
+          welcome_message: string | null
+          workflow_id: string | null
+          workflow_name: string
+        }
+        Insert: {
+          buddy_id?: string | null
+          completed_on?: string | null
+          created_at?: string
+          employee_id: string
+          hr_contact_id?: string | null
+          id?: string
+          it_contact_id?: string | null
+          manager_id?: string | null
+          scheduled_completion?: string | null
+          start_date: string
+          status?: Database["public"]["Enums"]["onboarding_status"]
+          updated_at?: string
+          welcome_message?: string | null
+          workflow_id?: string | null
+          workflow_name: string
+        }
+        Update: {
+          buddy_id?: string | null
+          completed_on?: string | null
+          created_at?: string
+          employee_id?: string
+          hr_contact_id?: string | null
+          id?: string
+          it_contact_id?: string | null
+          manager_id?: string | null
+          scheduled_completion?: string | null
+          start_date?: string
+          status?: Database["public"]["Enums"]["onboarding_status"]
+          updated_at?: string
+          welcome_message?: string | null
+          workflow_id?: string | null
+          workflow_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onboarding_records_buddy_id_fkey"
+            columns: ["buddy_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "onboarding_records_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "onboarding_records_hr_contact_id_fkey"
+            columns: ["hr_contact_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "onboarding_records_it_contact_id_fkey"
+            columns: ["it_contact_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "onboarding_records_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "onboarding_records_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "onboarding_workflows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      onboarding_tasks: {
+        Row: {
+          assigned_to: Database["public"]["Enums"]["task_assignee"]
+          category: Database["public"]["Enums"]["task_category"]
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          is_required: boolean | null
+          onboarding_record_id: string
+          status: Database["public"]["Enums"]["task_status"]
+          task_order: number | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: Database["public"]["Enums"]["task_assignee"]
+          category?: Database["public"]["Enums"]["task_category"]
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          is_required?: boolean | null
+          onboarding_record_id: string
+          status?: Database["public"]["Enums"]["task_status"]
+          task_order?: number | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: Database["public"]["Enums"]["task_assignee"]
+          category?: Database["public"]["Enums"]["task_category"]
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          is_required?: boolean | null
+          onboarding_record_id?: string
+          status?: Database["public"]["Enums"]["task_status"]
+          task_order?: number | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onboarding_tasks_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "onboarding_tasks_onboarding_record_id_fkey"
+            columns: ["onboarding_record_id"]
+            isOneToOne: false
+            referencedRelation: "onboarding_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      onboarding_workflow_tasks: {
+        Row: {
+          assigned_to: Database["public"]["Enums"]["task_assignee"]
+          category: Database["public"]["Enums"]["task_category"]
+          created_at: string
+          description: string | null
+          due_days_offset: number | null
+          id: string
+          is_required: boolean | null
+          task_order: number | null
+          title: string
+          workflow_id: string
+        }
+        Insert: {
+          assigned_to?: Database["public"]["Enums"]["task_assignee"]
+          category?: Database["public"]["Enums"]["task_category"]
+          created_at?: string
+          description?: string | null
+          due_days_offset?: number | null
+          id?: string
+          is_required?: boolean | null
+          task_order?: number | null
+          title: string
+          workflow_id: string
+        }
+        Update: {
+          assigned_to?: Database["public"]["Enums"]["task_assignee"]
+          category?: Database["public"]["Enums"]["task_category"]
+          created_at?: string
+          description?: string | null
+          due_days_offset?: number | null
+          id?: string
+          is_required?: boolean | null
+          task_order?: number | null
+          title?: string
+          workflow_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onboarding_workflow_tasks_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "onboarding_workflows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      onboarding_workflows: {
+        Row: {
+          categories: Database["public"]["Enums"]["task_category"][] | null
+          created_at: string
+          description: string | null
+          estimated_days: number | null
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          categories?: Database["public"]["Enums"]["task_category"][] | null
+          created_at?: string
+          description?: string | null
+          estimated_days?: number | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          categories?: Database["public"]["Enums"]["task_category"][] | null
+          created_at?: string
+          description?: string | null
+          estimated_days?: number | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       payroll_records: {
         Row: {
           base_salary: number
@@ -1649,6 +1895,12 @@ export type Database = {
       event_recurrence: "none" | "daily" | "weekly" | "monthly"
       event_type: "meeting" | "event" | "reminder" | "task"
       gender_type: "male" | "female" | "other" | "prefer_not_to_say"
+      onboarding_status:
+        | "pending"
+        | "scheduled"
+        | "in_progress"
+        | "completed"
+        | "incomplete"
       project_priority: "low" | "medium" | "high"
       project_status: "todo" | "in_progress" | "need_review" | "done"
       salary_change_type:
@@ -1658,6 +1910,14 @@ export type Database = {
         | "annual_review"
         | "correction"
         | "bulk_update"
+      task_assignee: "employee" | "hr" | "manager" | "it"
+      task_category:
+        | "documentation"
+        | "training"
+        | "setup"
+        | "introduction"
+        | "compliance"
+      task_status: "pending" | "in_progress" | "completed" | "skipped"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1819,6 +2079,13 @@ export const Constants = {
       event_recurrence: ["none", "daily", "weekly", "monthly"],
       event_type: ["meeting", "event", "reminder", "task"],
       gender_type: ["male", "female", "other", "prefer_not_to_say"],
+      onboarding_status: [
+        "pending",
+        "scheduled",
+        "in_progress",
+        "completed",
+        "incomplete",
+      ],
       project_priority: ["low", "medium", "high"],
       project_status: ["todo", "in_progress", "need_review", "done"],
       salary_change_type: [
@@ -1829,6 +2096,15 @@ export const Constants = {
         "correction",
         "bulk_update",
       ],
+      task_assignee: ["employee", "hr", "manager", "it"],
+      task_category: [
+        "documentation",
+        "training",
+        "setup",
+        "introduction",
+        "compliance",
+      ],
+      task_status: ["pending", "in_progress", "completed", "skipped"],
     },
   },
 } as const
