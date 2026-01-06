@@ -43,12 +43,25 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Check if caller has HR or Admin role
+    // Check if caller has HR or Admin role by querying user_roles table directly
     const { data: roleData, error: roleError } = await supabaseAdmin
-      .rpc('has_any_role', { _user_id: caller.id, _roles: ['hr', 'admin'] })
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', caller.id)
+      .in('role', ['hr', 'admin'])
+      .limit(1)
+      .maybeSingle()
 
-    if (roleError || !roleData) {
+    if (roleError) {
       console.error('Role check error:', roleError)
+      return new Response(
+        JSON.stringify({ error: 'Failed to verify permissions' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    if (!roleData) {
+      console.error('User does not have HR or Admin role')
       return new Response(
         JSON.stringify({ error: 'Insufficient permissions. Only HR and Admin can reset passwords.' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
