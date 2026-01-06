@@ -1,156 +1,76 @@
-# Plan: Fix Edge Function Role Check Error
+# Fix: Reset password shows generic non‑2xx error
 
-## Problem Analysis
+## What’s happening
+- The edge function `reset-employee-password` is returning **404** with JSON:
+  - `{ "error": "Employee does not have an associated user account" }`
+- In the client (`ResetPasswordDialog.tsx`), `supabase.functions.invoke(...)` surfaces this as `error` (non‑2xx), and the UI currently only shows `error.message`, which is the generic: **“Edge Function returned a non-2xx status code”**.
+- Edge logs confirm the underlying cause: the profiles lookup returns 0 rows (PGRST116) because the employee has no `profiles` row yet (i.e., no auth account).
 
-The `reset-employee-password` edge function (and `create-employee-login`) are failing with error:
+## Goals
+1. Show the **real server error message** in the toast/dialog instead of the generic one.
+2. Reduce noisy edge logs by avoiding `.single()` when 0 rows is expected.
+3. Improve UX by disabling/hiding **Reset Password** when the employee doesn’t yet have an account (and guiding HR to “Create Login” instead).
 
-```
-Could not choose the best candidate function between: 
-public.has_any_role(_roles => public.app_role[], _user_id => uuid), 
-public.has_any_role(_user_id => uuid, _roles => public.app_role[])
-```
+## Changes
 
-**Root Cause:** There are two overloaded versions of the `has_any_role` function in the database with the same parameters but in different order. When using named parameters via RPC, PostgreSQL cannot determine which function to call.
+### 1) Edge function: use `maybeSingle()` for profile lookup
+**File:** `supabase/functions/reset-employee-password/index.ts`
+- Change:
+  - `.single()` -> `.maybeSingle()`
+- Update the not-found branch to be explicit:
+  - Return 404 with error like: `No user account exists for this employee. Use "Create Login" first.`
+- Logging:
+  - Log a concise message for not found (avoid logging the full PGRST116 error object).
 
-**Why RLS policies work:** They use positional parameters (e.g., `has_any_role(auth.uid(), ARRAY['hr'::app_role, 'admin'::app_role])`) which don't have this ambiguity.
+Why: `PGRST116` is expected when there is no matching profile; `maybeSingle()` avoids treating this as an error.
 
----
+### 2) Client: parse error response body from `functions.invoke`
+**File:** `src/components/employees/ResetPasswordDialog.tsx`
+- When `error` is present:
+  - Attempt to extract JSON from `error.context` (Supabase Functions errors typically carry the `Response`).
+  - Prefer server message: `body.error`.
+  - Fallback to `error.message`.
 
-## Solution
+Implementation approach:
+- Add a small helper inside the component (or shared util later):
+  - If `error.context?.response` exists: `await error.context.response.json()`
+  - Else if `error.context` is a `Response`: `await error.context.json()`
+  - Else: return `null`
 
-Replace the RPC call with a direct query to the `user_roles` table. This is simpler and avoids the function overload issue entirely.
-
-**Current (broken):**
-```typescript
-const { data: roleData, error: roleError } = await supabaseAdmin
-  .rpc('has_any_role', { _user_id: caller.id, _roles: ['hr', 'admin'] })
-```
-
-**Fixed:**
-```typescript
-const { data: roleData, error: roleError } = await supabaseAdmin
-  .from('user_roles')
-  .select('role')
-  .eq('user_id', caller.id)
-  .in('role', ['hr', 'admin'])
-  .limit(1)
-  .maybeSingle()
-
-const hasRequiredRole = !!roleData;
-```
-
----
-
-## Files to Modify
-
-| File | Change |
-|------|--------|
-| `supabase/functions/reset-employee-password/index.ts` | Replace RPC call with direct `user_roles` table query |
-| `supabase/functions/create-employee-login/index.ts` | Same fix for consistency and to prevent future issues |
-
----
-
-## Implementation Details
-
-### 1. Update reset-employee-password/index.ts
-
-Replace lines 48-60:
-
-```typescript
-// OLD CODE (remove):
-const { data: roleData, error: roleError } = await supabaseAdmin
-  .rpc('has_any_role', { _user_id: caller.id, _roles: ['hr', 'admin'] })
-
-if (roleError || !roleData) {
-  console.error('Role check error:', roleError)
-  return new Response(
-    JSON.stringify({ error: 'Insufficient permissions. Only HR and Admin can reset passwords.' }),
-    { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  )
+Then:
+```ts
+if (error) {
+  const serverMsg = await extractFunctionsErrorMessage(error)
+  toast.error(serverMsg ?? error.message ?? "Failed to reset password")
+  return
 }
 ```
 
-```typescript
-// NEW CODE:
-const { data: roleData, error: roleError } = await supabaseAdmin
-  .from('user_roles')
-  .select('role')
-  .eq('user_id', caller.id)
-  .in('role', ['hr', 'admin'])
-  .limit(1)
-  .maybeSingle()
+### 3) Client: disable/hide Reset Password when no account exists
+**File:** `src/pages/EmployeeProfile.tsx`
+- In the “Account Access” card, add a `useQuery` to check if a profile exists:
+  - `supabase.from('profiles').select('id').eq('employee_id', employee.id).maybeSingle()`
+- Derive:
+  - `const hasAccount = !!profileRow?.id`
+- UI behavior:
+  - If `!hasAccount`: disable Reset Password and show helper text “No account yet — create login first”.
+  - If `hasAccount`: enable Reset Password.
 
-if (roleError) {
-  console.error('Role check error:', roleError)
-  return new Response(
-    JSON.stringify({ error: 'Failed to verify permissions' }),
-    { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  )
-}
+Optional UX:
+- If `hasAccount`, disable “Create Login” and show “Account already exists”.
 
-if (!roleData) {
-  console.error('User does not have HR or Admin role')
-  return new Response(
-    JSON.stringify({ error: 'Insufficient permissions. Only HR and Admin can reset passwords.' }),
-    { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  )
-}
-```
+### 4) (Optional but recommended) Apply same error parsing to Create Login
+**File:** `src/components/employees/CreateLoginDialog.tsx`
+- Handle non‑2xx the same way so HR sees real messages.
 
-### 2. Update create-employee-login/index.ts
-
-Replace lines 53-71 with the same pattern:
-
-```typescript
-// Check if caller has HR or Admin role by querying user_roles table directly
-const { data: roleData, error: roleError } = await supabaseAdmin
-  .from('user_roles')
-  .select('role')
-  .eq('user_id', callerUser.id)
-  .in('role', ['hr', 'admin'])
-  .limit(1)
-  .maybeSingle()
-
-if (roleError) {
-  console.error('Error checking role:', roleError)
-  return new Response(
-    JSON.stringify({ error: 'Failed to verify permissions' }),
-    { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  )
-}
-
-if (!roleData) {
-  console.error('User does not have required role')
-  return new Response(
-    JSON.stringify({ error: 'Forbidden: HR or Admin role required' }),
-    { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  )
-}
-```
-
----
-
-## Why This Fix Works
-
-1. **Direct table query** - Avoids the function overload ambiguity entirely
-2. **Using service role key** - The edge function uses `SUPABASE_SERVICE_ROLE_KEY` which bypasses RLS, so it can directly query `user_roles`
-3. **Simpler logic** - If a matching row exists, user has one of the required roles
-4. **Consistent pattern** - Both edge functions will use the same approach
-
----
+## Testing checklist
+1. HR/Admin resets password for an employee **with** a user account → success.
+2. HR/Admin resets password for an employee **without** a user account → button disabled OR meaningful toast “Use Create Login first.”
+3. Non HR/Admin attempts reset → 403 with meaningful toast (not generic).
+4. Edge logs no longer include `PGRST116` for expected not-found.
 
 ## Critical Files for Implementation
-
-- `supabase/functions/reset-employee-password/index.ts` - Primary fix for password reset
-- `supabase/functions/create-employee-login/index.ts` - Same fix for login creation
-
----
-
-## Testing
-
-After implementation:
-1. Log in as HR or Admin user
-2. Navigate to an employee's profile with an existing login
-3. Click "Reset Password" 
-4. Enter new password and confirm
-5. Should succeed without errors
+- `supabase/functions/reset-employee-password/index.ts` — switch profile lookup to `maybeSingle` + clearer error.
+- `src/components/employees/ResetPasswordDialog.tsx` — extract server error body for non‑2xx.
+- `src/pages/EmployeeProfile.tsx` — detect whether employee has an account and gate Reset Password.
+- `src/components/employees/CreateLoginDialog.tsx` — (optional) consistent non‑2xx error display.
