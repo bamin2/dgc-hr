@@ -23,6 +23,7 @@ export interface BenefitPlan {
   status: BenefitStatus;
   enrolled_count: number;
   features: string[];
+  policy_document_url: string | null;
   created_at: string;
   updated_at: string;
   coverage_levels?: CoverageLevel[];

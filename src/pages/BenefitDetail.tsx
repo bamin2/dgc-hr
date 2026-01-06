@@ -2,7 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Sidebar } from '@/components/dashboard/Sidebar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Users, Check, Building2, Loader2 } from 'lucide-react';
+import { ArrowLeft, Users, Check, Building2, Loader2, FileText } from 'lucide-react';
 import { BenefitTypeBadge, BenefitStatusBadge, EnrollmentsTable } from '@/components/benefits';
 import { useBenefitPlan } from '@/hooks/useBenefitPlans';
 import { useBenefitEnrollments } from '@/hooks/useBenefitEnrollments';
@@ -144,6 +144,23 @@ const BenefitDetail = () => {
                     </li>
                   ))}
                 </ul>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Policy Document */}
+          {plan.policy_document_url && (
+            <Card className="border-border/50">
+              <CardHeader>
+                <CardTitle className="text-lg">Policy Document</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Button variant="outline" asChild>
+                  <a href={plan.policy_document_url} target="_blank" rel="noopener noreferrer">
+                    <FileText className="mr-2 h-4 w-4" />
+                    View Policy Document
+                  </a>
+                </Button>
               </CardContent>
             </Card>
           )}

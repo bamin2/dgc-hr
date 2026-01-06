@@ -12,7 +12,8 @@ import {
   BenefitsTable,
   EnrollmentsTable,
   ClaimsTable,
-  BenefitsCostChart
+  BenefitsCostChart,
+  CreateBenefitPlanDialog
 } from '@/components/benefits';
 import { useBenefitPlans, type BenefitType, type BenefitStatus } from '@/hooks/useBenefitPlans';
 import { useBenefitEnrollments, type EnrollmentStatus } from '@/hooks/useBenefitEnrollments';
@@ -24,6 +25,7 @@ const Benefits = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('overview');
+  const [createPlanOpen, setCreatePlanOpen] = useState(false);
   
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -150,6 +152,10 @@ const Benefits = () => {
               <p className="text-muted-foreground">Manage employee benefits and enrollments</p>
             </div>
             <div className="flex gap-3">
+              <Button variant="outline" onClick={() => setCreatePlanOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add Plan
+              </Button>
               <Button variant="outline" onClick={() => navigate('/benefits/claims/new')}>
                 <FileText className="mr-2 h-4 w-4" />
                 Submit Claim
@@ -179,9 +185,15 @@ const Benefits = () => {
                   <Card className="border-border/50">
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                       <CardTitle className="text-base font-medium">Available Plans</CardTitle>
-                      <Button variant="ghost" size="sm" onClick={() => setActiveTab('plans')}>
-                        View All
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" onClick={() => setCreatePlanOpen(true)}>
+                          <Plus className="h-4 w-4 mr-1" />
+                          Add Plan
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => setActiveTab('plans')}>
+                          View All
+                        </Button>
+                      </div>
                     </CardHeader>
                     <CardContent>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -286,6 +298,11 @@ const Benefits = () => {
             </TabsContent>
           </Tabs>
         </div>
+
+        <CreateBenefitPlanDialog 
+          open={createPlanOpen} 
+          onOpenChange={setCreatePlanOpen}
+        />
       </main>
     </div>
   );
