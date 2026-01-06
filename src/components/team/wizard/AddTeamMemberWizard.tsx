@@ -108,13 +108,9 @@ export function AddTeamMemberWizard() {
     sendOfferLetter: true,
     setupBackgroundChecks: false,
     templateId: "",
-    templateTitle: "",
     expirationDate: undefined,
-    managerId: "",
-    jobTitle: "",
     signatureTitle: "",
     signatureName: "",
-    offerContent: "",
   });
 
   const [note, setNote] = useState("");
@@ -266,8 +262,9 @@ export function AddTeamMemberWizard() {
           <TeamOfferStep
             data={offerData}
             onChange={setOfferData}
-            defaultJobTitle={positionTitle}
-            defaultManagerId={roleData.managerId}
+            basicData={basicData}
+            roleData={roleData}
+            compensationData={compensationData}
           />
         );
       case 5:

@@ -43,6 +43,10 @@ export const smartTags: SmartTag[] = [
   { tag: "<<Company Email>>", field: "email", source: "company", category: "Company", description: "Company email" },
   { tag: "<<Company Phone>>", field: "phone", source: "company", category: "Company", description: "Company phone number" },
 
+  // Signature fields (for company representative)
+  { tag: "<<Signature Title>>", field: "signature_title", source: "system", category: "Signature", description: "Title of the signing authority (e.g., HR Director)" },
+  { tag: "<<Signature Name>>", field: "signature_name", source: "system", category: "Signature", description: "Name of the signing authority" },
+
   // Date fields
   { tag: "<<Current Date>>", field: "current_date", source: "system", category: "Date", description: "Today's date" },
   { tag: "<<Current Year>>", field: "current_year", source: "system", category: "Date", description: "Current year" },

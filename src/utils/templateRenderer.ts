@@ -58,6 +58,8 @@ interface RenderData {
   company?: CompanyData;
   endDate?: string;
   offerExpiryDays?: number;
+  signatureTitle?: string;
+  signatureName?: string;
 }
 
 export function renderTemplate(template: string, data: RenderData): string {
@@ -132,6 +134,10 @@ export function renderTemplate(template: string, data: RenderData): string {
 
   // End date (for experience certificates)
   result = result.replace(/<<End Date>>/g, endDate ? format(new Date(endDate), "MMMM d, yyyy") : "Present");
+
+  // Signature fields
+  result = result.replace(/<<Signature Title>>/g, data.signatureTitle || "");
+  result = result.replace(/<<Signature Name>>/g, data.signatureName || "");
 
   // System fields
   result = result.replace(/<<Current Date>>/g, format(new Date(), "MMMM d, yyyy"));
