@@ -5,3 +5,5 @@ export { EmployeeBalancesTab } from './EmployeeBalancesTab';
 export { BalanceAdjustmentDialog } from './BalanceAdjustmentDialog';
 export { AssignLeaveBalanceDialog } from './AssignLeaveBalanceDialog';
 export { AdjustmentHistoryTab } from './AdjustmentHistoryTab';
+export { InitializeBalancesDialog } from './InitializeBalancesDialog';
+export { ProcessRolloverDialog } from './ProcessRolloverDialog';
