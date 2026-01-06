@@ -72,23 +72,20 @@ export const useUserSessions = () => {
   // Register or update current session
   useEffect(() => {
     const registerSession = async () => {
-      if (!user?.id || !session?.access_token) return;
+      if (!user?.id || !session) return;
 
       const { device, browser } = getDeviceInfo();
-      const sessionToken = session.access_token.slice(-20); // Use last 20 chars as identifier
+      
+      // Use a stable identifier based on user + device + browser (not token which changes on refresh)
+      const sessionIdentifier = `${user.id}_${device}_${browser}`;
+      const hashedIdentifier = btoa(sessionIdentifier).slice(0, 20);
 
-      // First, mark all other sessions as not current
-      await supabase
-        .from('user_sessions')
-        .update({ is_current: false })
-        .eq('user_id', user.id);
-
-      // Check if this session already exists
+      // Check if this device/browser session already exists
       const { data: existing } = await supabase
         .from('user_sessions')
         .select('id')
         .eq('user_id', user.id)
-        .eq('session_token', sessionToken)
+        .eq('session_token', hashedIdentifier)
         .single();
 
       if (existing) {
@@ -97,22 +94,33 @@ export const useUserSessions = () => {
           .from('user_sessions')
           .update({
             is_current: true,
-            device,
-            browser,
             last_active: new Date().toISOString(),
           })
           .eq('id', existing.id);
+        
+        // Mark others as not current
+        await supabase
+          .from('user_sessions')
+          .update({ is_current: false })
+          .eq('user_id', user.id)
+          .neq('id', existing.id);
       } else {
+        // Mark all as not current first
+        await supabase
+          .from('user_sessions')
+          .update({ is_current: false })
+          .eq('user_id', user.id);
+          
         // Create new session record
         await supabase
           .from('user_sessions')
           .insert({
             user_id: user.id,
-            session_token: sessionToken,
+            session_token: hashedIdentifier,
             device,
             browser,
             is_current: true,
-            location: 'Unknown', // Would need IP geolocation service
+            location: 'Unknown',
           });
       }
 
@@ -120,7 +128,7 @@ export const useUserSessions = () => {
     };
 
     registerSession();
-  }, [user?.id, session?.access_token]);
+  }, [user?.id]); // Only re-run when user changes, NOT on token refresh
 
   // Revoke a specific session
   const revokeSession = useMutation({
