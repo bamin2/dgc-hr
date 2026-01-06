@@ -70,6 +70,21 @@ function ToolbarButton({
 function EditorToolbar({ editor }: { editor: Editor | null }) {
   if (!editor) return null;
 
+  // Type assertions for TipTap v3 commands that TypeScript doesn't fully recognize
+  const chain = () => editor.chain().focus() as ReturnType<typeof editor.chain> & {
+    undo: () => ReturnType<typeof editor.chain>;
+    redo: () => ReturnType<typeof editor.chain>;
+    toggleBold: () => ReturnType<typeof editor.chain>;
+    toggleItalic: () => ReturnType<typeof editor.chain>;
+    toggleHeading: (attrs: { level: number }) => ReturnType<typeof editor.chain>;
+    toggleBulletList: () => ReturnType<typeof editor.chain>;
+    toggleOrderedList: () => ReturnType<typeof editor.chain>;
+  };
+  const can = () => editor.can() as ReturnType<typeof editor.can> & {
+    undo: () => boolean;
+    redo: () => boolean;
+  };
+
   const addTable = () => {
     editor
       .chain()
@@ -89,15 +104,15 @@ function EditorToolbar({ editor }: { editor: Editor | null }) {
     <div className="flex flex-wrap items-center gap-0.5 border-b border-border p-2 bg-muted/30">
       {/* History */}
       <ToolbarButton
-        onClick={() => editor.chain().focus().undo().run()}
-        disabled={!editor.can().undo()}
+        onClick={() => chain().undo().run()}
+        disabled={!can().undo()}
         title="Undo"
       >
         <Undo className="h-4 w-4" />
       </ToolbarButton>
       <ToolbarButton
-        onClick={() => editor.chain().focus().redo().run()}
-        disabled={!editor.can().redo()}
+        onClick={() => chain().redo().run()}
+        disabled={!can().redo()}
         title="Redo"
       >
         <Redo className="h-4 w-4" />
@@ -107,14 +122,14 @@ function EditorToolbar({ editor }: { editor: Editor | null }) {
 
       {/* Text formatting */}
       <ToolbarButton
-        onClick={() => editor.chain().focus().toggleBold().run()}
+        onClick={() => chain().toggleBold().run()}
         active={editor.isActive("bold")}
         title="Bold"
       >
         <Bold className="h-4 w-4" />
       </ToolbarButton>
       <ToolbarButton
-        onClick={() => editor.chain().focus().toggleItalic().run()}
+        onClick={() => chain().toggleItalic().run()}
         active={editor.isActive("italic")}
         title="Italic"
       >
@@ -132,21 +147,21 @@ function EditorToolbar({ editor }: { editor: Editor | null }) {
 
       {/* Headings */}
       <ToolbarButton
-        onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+        onClick={() => chain().toggleHeading({ level: 1 }).run()}
         active={editor.isActive("heading", { level: 1 })}
         title="Heading 1"
       >
         <Heading1 className="h-4 w-4" />
       </ToolbarButton>
       <ToolbarButton
-        onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+        onClick={() => chain().toggleHeading({ level: 2 }).run()}
         active={editor.isActive("heading", { level: 2 })}
         title="Heading 2"
       >
         <Heading2 className="h-4 w-4" />
       </ToolbarButton>
       <ToolbarButton
-        onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+        onClick={() => chain().toggleHeading({ level: 3 }).run()}
         active={editor.isActive("heading", { level: 3 })}
         title="Heading 3"
       >
@@ -157,14 +172,14 @@ function EditorToolbar({ editor }: { editor: Editor | null }) {
 
       {/* Lists */}
       <ToolbarButton
-        onClick={() => editor.chain().focus().toggleBulletList().run()}
+        onClick={() => chain().toggleBulletList().run()}
         active={editor.isActive("bulletList")}
         title="Bullet List"
       >
         <List className="h-4 w-4" />
       </ToolbarButton>
       <ToolbarButton
-        onClick={() => editor.chain().focus().toggleOrderedList().run()}
+        onClick={() => chain().toggleOrderedList().run()}
         active={editor.isActive("orderedList")}
         title="Ordered List"
       >
