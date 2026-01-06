@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { format, addDays } from "date-fns";
 
 interface EmployeeData {
   first_name?: string;
@@ -11,6 +11,11 @@ interface EmployeeData {
   date_of_birth?: string;
   join_date?: string;
   salary?: number;
+  contract_period?: string;
+  probation_period?: string;
+  notice_period?: string;
+  net_allowances?: number;
+  annual_leave_days?: number;
 }
 
 interface PositionData {
@@ -36,6 +41,7 @@ interface CompanyData {
   legal_name?: string;
   email?: string;
   phone?: string;
+  logo_url?: string;
   address_street?: string;
   address_city?: string;
   address_state?: string;
@@ -51,12 +57,13 @@ interface RenderData {
   manager?: ManagerData;
   company?: CompanyData;
   endDate?: string;
+  offerExpiryDays?: number;
 }
 
 export function renderTemplate(template: string, data: RenderData): string {
   let result = template;
 
-  const { employee, position, department, workLocation, manager, company, endDate } = data;
+  const { employee, position, department, workLocation, manager, company, endDate, offerExpiryDays = 7 } = data;
 
   // Employee fields
   if (employee) {
@@ -71,6 +78,11 @@ export function renderTemplate(template: string, data: RenderData): string {
     result = result.replace(/<<Date of Birth>>/g, employee.date_of_birth ? format(new Date(employee.date_of_birth), "MMMM d, yyyy") : "");
     result = result.replace(/<<Start Date>>/g, employee.join_date ? format(new Date(employee.join_date), "MMMM d, yyyy") : "");
     result = result.replace(/<<Salary>>/g, employee.salary?.toLocaleString() || "");
+    result = result.replace(/<<Contract Period>>/g, employee.contract_period || "One Year");
+    result = result.replace(/<<Probation Period>>/g, employee.probation_period || "3 months");
+    result = result.replace(/<<Notice Period>>/g, employee.notice_period || "30 days");
+    result = result.replace(/<<Net Allowances>>/g, employee.net_allowances?.toLocaleString() || "0");
+    result = result.replace(/<<Annual Leave Days>>/g, employee.annual_leave_days?.toString() || "21");
   }
 
   // Position fields
@@ -101,6 +113,13 @@ export function renderTemplate(template: string, data: RenderData): string {
     result = result.replace(/<<Company Email>>/g, company.email || "");
     result = result.replace(/<<Company Phone>>/g, company.phone || "");
     
+    // Handle company logo - render as image tag for HTML templates
+    if (company.logo_url) {
+      result = result.replace(/<<Company Logo>>/g, `<img src="${company.logo_url}" alt="${company.name || 'Company'} Logo" style="max-height: 80px; width: auto;" />`);
+    } else {
+      result = result.replace(/<<Company Logo>>/g, "");
+    }
+    
     const addressParts = [
       company.address_street,
       company.address_city,
@@ -117,6 +136,7 @@ export function renderTemplate(template: string, data: RenderData): string {
   // System fields
   result = result.replace(/<<Current Date>>/g, format(new Date(), "MMMM d, yyyy"));
   result = result.replace(/<<Current Year>>/g, new Date().getFullYear().toString());
+  result = result.replace(/<<Offer Expiry Date>>/g, format(addDays(new Date(), offerExpiryDays), "MMMM d, yyyy"));
 
   return result;
 }

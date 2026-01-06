@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -9,7 +9,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import {
   Select,
@@ -21,6 +20,7 @@ import {
 import { SmartTagsPanel } from "./SmartTagsPanel";
 import { templateCategories } from "./TemplateCategoryBadge";
 import { DocumentTemplate, DocumentTemplateInput } from "@/hooks/useDocumentTemplates";
+import { RichTextEditor, insertIntoRichTextEditor } from "./RichTextEditor";
 
 interface TemplateEditorDialogProps {
   open: boolean;
@@ -42,7 +42,6 @@ export function TemplateEditorDialog({
   const [description, setDescription] = useState("");
   const [content, setContent] = useState("");
   const [isActive, setIsActive] = useState(true);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (template) {
@@ -61,22 +60,7 @@ export function TemplateEditorDialog({
   }, [template, open]);
 
   const handleInsertTag = (tag: string) => {
-    const textarea = textareaRef.current;
-    if (!textarea) {
-      setContent((prev) => prev + tag);
-      return;
-    }
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const newContent = content.substring(0, start) + tag + content.substring(end);
-    setContent(newContent);
-
-    // Set cursor position after the inserted tag
-    setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(start + tag.length, start + tag.length);
-    }, 0);
+    insertIntoRichTextEditor(tag);
   };
 
   const handleSave = () => {
@@ -140,14 +124,10 @@ export function TemplateEditorDialog({
           <SmartTagsPanel onInsertTag={handleInsertTag} />
 
           <div className="space-y-2">
-            <Label htmlFor="content">Template Content *</Label>
-            <Textarea
-              ref={textareaRef}
-              id="content"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="Enter your template content here. Use the smart tags above to insert dynamic fields."
-              className="min-h-[300px] font-mono text-sm"
+            <Label>Template Content *</Label>
+            <RichTextEditor
+              content={content}
+              onChange={setContent}
             />
           </div>
 

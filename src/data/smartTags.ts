@@ -25,12 +25,18 @@ export const smartTags: SmartTag[] = [
   { tag: "<<End Date>>", field: "end_date", source: "employee", category: "Employment", description: "Employment end date (for terminations)" },
   { tag: "<<Work Location>>", field: "name", source: "work_location", category: "Employment", description: "Work location name" },
   { tag: "<<Manager Name>>", field: "full_name", source: "manager", category: "Employment", description: "Direct manager's name" },
+  { tag: "<<Contract Period>>", field: "contract_period", source: "employee", category: "Employment", description: "Duration of contract" },
+  { tag: "<<Probation Period>>", field: "probation_period", source: "employee", category: "Employment", description: "Probation period duration" },
+  { tag: "<<Notice Period>>", field: "notice_period", source: "employee", category: "Employment", description: "Required notice period" },
 
   // Compensation fields
   { tag: "<<Salary>>", field: "salary", source: "employee", category: "Compensation", description: "Monthly salary amount" },
   { tag: "<<Currency>>", field: "currency", source: "work_location", category: "Compensation", description: "Salary currency" },
+  { tag: "<<Net Allowances>>", field: "net_allowances", source: "employee", category: "Compensation", description: "Total monthly allowances" },
+  { tag: "<<Annual Leave Days>>", field: "annual_leave_days", source: "employee", category: "Compensation", description: "Number of annual leave days" },
 
   // Company fields
+  { tag: "<<Company Logo>>", field: "logo_url", source: "company", category: "Company", description: "Company logo image" },
   { tag: "<<Company Name>>", field: "name", source: "company", category: "Company", description: "Company name" },
   { tag: "<<Company Legal Name>>", field: "legal_name", source: "company", category: "Company", description: "Company legal name" },
   { tag: "<<Company Address>>", field: "full_address", source: "company", category: "Company", description: "Full company address" },
@@ -40,6 +46,7 @@ export const smartTags: SmartTag[] = [
   // Date fields
   { tag: "<<Current Date>>", field: "current_date", source: "system", category: "Date", description: "Today's date" },
   { tag: "<<Current Year>>", field: "current_year", source: "system", category: "Date", description: "Current year" },
+  { tag: "<<Offer Expiry Date>>", field: "offer_expiry_date", source: "system", category: "Date", description: "Date by which offer must be accepted" },
 ];
 
 export const smartTagCategories = [...new Set(smartTags.map(t => t.category))];
