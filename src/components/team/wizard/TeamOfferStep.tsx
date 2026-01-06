@@ -32,6 +32,8 @@ import { useDocumentTemplates } from "@/hooks/useDocumentTemplates";
 import { useCompanySettingsDb } from "@/hooks/useCompanySettingsDb";
 import { useDepartments, usePositions, useEmployees } from "@/hooks/useEmployees";
 import { useWorkLocations } from "@/hooks/useWorkLocations";
+import { useActiveAllowanceTemplates } from "@/hooks/useAllowanceTemplates";
+import { useActiveDeductionTemplates } from "@/hooks/useDeductionTemplates";
 import { renderTemplate } from "@/utils/templateRenderer";
 import { TeamBasicData } from "./TeamBasicStep";
 import { TeamRoleData } from "./TeamRoleStep";
@@ -70,6 +72,8 @@ export function TeamOfferStep({
   const { data: positions } = usePositions();
   const { data: workLocations } = useWorkLocations();
   const { data: employees } = useEmployees();
+  const { data: allowanceTemplates } = useActiveAllowanceTemplates();
+  const { data: deductionTemplates } = useActiveDeductionTemplates();
 
   // Filter to only offer letter templates
   const offerTemplates = useMemo(() => {
@@ -220,29 +224,49 @@ export function TeamOfferStep({
     [employees, roleData.managerId]
   );
 
-  // Calculate compensation totals
+  // Calculate compensation totals (same logic as TeamCompensationStep)
   const { totalAllowances, totalDeductions, totalGrossPay, totalNetPay } = useMemo(() => {
     const baseSalary = parseFloat(compensationData.salary) || 0;
     
+    // Calculate allowances
     let allowancesTotal = 0;
     compensationData.allowances.forEach(a => {
       if (a.isCustom) {
         allowancesTotal += a.amount;
-      } else if (a.amount) {
-        allowancesTotal += a.amount;
-      }
-    });
-    
-    let deductionsTotal = 0;
-    compensationData.deductions.forEach(d => {
-      if (d.isCustom) {
-        deductionsTotal += d.amount;
-      } else if (d.amount) {
-        deductionsTotal += d.amount;
+      } else {
+        const template = allowanceTemplates?.find(t => t.id === a.templateId);
+        if (template) {
+          if (template.amount_type === "fixed") {
+            allowancesTotal += template.amount;
+          } else {
+            // Percentage-based allowance
+            allowancesTotal += (baseSalary * template.amount) / 100;
+          }
+        }
       }
     });
     
     const gross = baseSalary + allowancesTotal;
+    
+    // Calculate deductions
+    let deductionsTotal = 0;
+    compensationData.deductions.forEach(d => {
+      if (d.isCustom) {
+        deductionsTotal += d.amount;
+      } else {
+        const template = deductionTemplates?.find(t => t.id === d.templateId);
+        if (template) {
+          if (template.amount_type === "fixed") {
+            deductionsTotal += template.amount;
+          } else {
+            // Percentage-based deduction - use gross for gross_salary, base for base_salary
+            const base = template.percentage_of === "base_salary" ? baseSalary : gross;
+            deductionsTotal += (base * template.amount) / 100;
+          }
+        }
+      }
+    });
+    
     const net = gross - deductionsTotal;
     
     return {
@@ -251,7 +275,7 @@ export function TeamOfferStep({
       totalGrossPay: gross,
       totalNetPay: net
     };
-  }, [compensationData]);
+  }, [compensationData, allowanceTemplates, deductionTemplates]);
 
   // Render preview with all data from previous steps
   const previewContent = useMemo(() => {
