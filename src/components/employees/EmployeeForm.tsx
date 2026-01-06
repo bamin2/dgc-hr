@@ -19,9 +19,10 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CountrySelect } from "@/components/ui/country-select";
 import { ImageCropper } from "@/components/ui/image-cropper";
-import { Employee, useDepartments, usePositions } from "@/hooks/useEmployees";
+import { Employee, useDepartments, usePositions, useEmployees } from "@/hooks/useEmployees";
 import { useAvatarUpload } from "@/hooks/useAvatarUpload";
 import { toast } from "@/hooks/use-toast";
+import { wouldCreateCircularReference } from "@/utils/orgHierarchy";
 
 interface EmployeeFormProps {
   open: boolean;
@@ -45,6 +46,7 @@ interface FormData {
   address: string;
   nationality: string;
   avatar: string;
+  managerId: string;
 }
 
 export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeFormProps) {
@@ -53,6 +55,7 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
   
   const { data: departments = [] } = useDepartments();
   const { data: positions = [] } = usePositions();
+  const { data: allEmployees = [] } = useEmployees();
   const { uploadAvatar, isUploading } = useAvatarUpload();
   
   const [cropperOpen, setCropperOpen] = useState(false);
@@ -72,6 +75,14 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
     address: '',
     nationality: '',
     avatar: '',
+    managerId: '',
+  });
+
+  // Filter potential managers - exclude self and employees that would create circular reference
+  const potentialManagers = allEmployees.filter((emp) => {
+    if (!employee) return true; // If adding new employee, all can be managers
+    if (emp.id === employee.id) return false; // Can't be own manager
+    return !wouldCreateCircularReference(allEmployees, employee.id, emp.id);
   });
 
   // Update form when employee prop changes
@@ -92,6 +103,7 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
         address: employee.address || '',
         nationality: employee.nationality || '',
         avatar: employee.avatar || '',
+        managerId: employee.managerId || '',
       });
     } else {
       setFormData({
@@ -109,6 +121,7 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
         address: '',
         nationality: '',
         avatar: '',
+        managerId: '',
       });
     }
   }, [employee, open]);
@@ -408,6 +421,30 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
                     <SelectItem value="probation">Probation</SelectItem>
                     <SelectItem value="on_leave">On Leave</SelectItem>
                     <SelectItem value="resigned">Resigned</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="manager">Manager</Label>
+                <Select value={formData.managerId || ''} onValueChange={(v) => handleChange('managerId', v)}>
+                  <SelectTrigger id="manager">
+                    <SelectValue placeholder="Select manager" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">No Manager</SelectItem>
+                    {potentialManagers.map((emp) => (
+                      <SelectItem key={emp.id} value={emp.id}>
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-5 w-5">
+                            <AvatarImage src={emp.avatar} />
+                            <AvatarFallback className="text-[10px]">
+                              {emp.firstName[0]}{emp.lastName[0]}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span>{emp.firstName} {emp.lastName}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
