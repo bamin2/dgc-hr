@@ -149,10 +149,17 @@ export async function exportOfferLetterToDocx(
   const sanitizedName = employeeName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
   const filename = `offer-letter-${sanitizedName}-${getFormattedDate()}.docx`;
 
+  // Extract file path from full URL if it's a complete URL
+  // Full URL format: https://xxx.supabase.co/storage/v1/object/public/docx-templates/filename.docx
+  let filePath = docxTemplateUrl;
+  if (docxTemplateUrl.includes('/docx-templates/')) {
+    filePath = decodeURIComponent(docxTemplateUrl.split('/docx-templates/').pop() || docxTemplateUrl);
+  }
+
   // Download the template from Supabase Storage
   const { data: fileData, error } = await supabase.storage
     .from('docx-templates')
-    .download(docxTemplateUrl);
+    .download(filePath);
 
   if (error || !fileData) {
     throw new Error(`Failed to download template: ${error?.message || 'Unknown error'}`);
