@@ -18,6 +18,7 @@ import {
   Puzzle,
   Receipt,
   HelpCircle,
+  BookUser,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -31,7 +32,7 @@ import { RoleBadge } from "@/components/employees/RoleBadge";
 // MAIN - Visible to all employees
 const mainMenuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
-  { icon: Users, label: "Employees", path: "/employees" },
+  { icon: BookUser, label: "Directory", path: "/directory" },
   { icon: Calendar, label: "Calendar", path: "/calendar" },
   { icon: Briefcase, label: "Projects", path: "/projects" },
   { icon: Clock, label: "Time Off", path: "/time-off" },
@@ -39,6 +40,7 @@ const mainMenuItems = [
 
 // MANAGEMENT - HR & Manager roles only
 const managementMenuItems = [
+  { icon: Users, label: "Employees", path: "/employees" },
   { icon: UsersRound, label: "Team Member", path: "/team" },
   { icon: Clock, label: "Time Management", path: "/time-management" },
   { icon: FileText, label: "Reports", path: "/reports" },
