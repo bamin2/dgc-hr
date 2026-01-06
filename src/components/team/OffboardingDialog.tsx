@@ -5,7 +5,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { OffboardingWizard } from "@/components/employees/wizard/OffboardingWizard";
-import { type TeamMember } from "@/data/team";
+import { type TeamMember } from "@/hooks/useTeamMembers";
 
 interface OffboardingDialogProps {
   open: boolean;

@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { offerTemplates } from "@/data/team";
+import { offerTemplates } from "@/hooks/useTeamMembers";
 import { mockEmployees } from "@/data/employees";
 
 export interface TeamOfferData {

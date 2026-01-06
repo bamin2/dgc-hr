@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { departments } from "@/data/team";
+import { departments } from "@/hooks/useTeamMembers";
 
 interface TeamMemberFiltersProps {
   searchQuery: string;

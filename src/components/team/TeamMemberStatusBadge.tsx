@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { TeamMemberStatus } from "@/data/team";
+import { TeamMemberStatus } from "@/hooks/useTeamMembers";
 
 interface TeamMemberStatusBadgeProps {
   status: TeamMemberStatus;

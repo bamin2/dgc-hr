@@ -10,7 +10,7 @@ import {
 import { MultiSelect } from "@/components/ui/multi-select";
 import { useActiveAllowanceTemplates } from "@/hooks/useAllowanceTemplates";
 import { useActiveDeductionTemplates } from "@/hooks/useDeductionTemplates";
-import { PayFrequency } from "@/data/team";
+import { PayFrequency } from "@/hooks/useTeamMembers";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export interface TeamCompensationData {

@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { departments, jobTitles, workLocations } from "@/data/team";
+import { departments, jobTitles, workLocations } from "@/hooks/useTeamMembers";
 import { mockEmployees } from "@/data/employees";
 
 export interface TeamRoleData {

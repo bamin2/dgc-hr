@@ -5,7 +5,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { OnboardingWizard } from "@/components/employees/wizard/OnboardingWizard";
-import { TeamMember } from "@/data/team";
+import { TeamMember } from "@/hooks/useTeamMembers";
 import { EmployeeDetails } from "@/components/employees/wizard/EmployeeDetailsStep";
 
 interface OnboardingDialogProps {

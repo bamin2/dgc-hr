@@ -15,7 +15,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { type TeamMember } from "@/data/team";
+import { type TeamMember } from "@/hooks/useTeamMembers";
 import { toast } from "@/hooks/use-toast";
 import { SalaryChangeType } from "@/hooks/useSalaryHistory";
 
