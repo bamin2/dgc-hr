@@ -20,7 +20,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Users, UserPlus } from "lucide-react";
 import { Employee } from "@/hooks/useEmployees";
-import { isTopLevelPosition } from "@/utils/orgHierarchy";
+import { isTopLevelPosition, isInactiveEmployee } from "@/utils/orgHierarchy";
 
 interface BulkAssignManagersDialogProps {
   open: boolean;
@@ -41,15 +41,16 @@ export function BulkAssignManagersDialog({
   const [departmentFilter, setDepartmentFilter] = useState<string>("all");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Get unassigned employees (excluding top-level positions)
+  // Get unassigned employees (excluding top-level positions and inactive employees)
   const unassignedEmployees = useMemo(() => 
-    employees.filter(e => !e.managerId && !isTopLevelPosition(e)),
+    employees.filter(e => !e.managerId && !isTopLevelPosition(e) && !isInactiveEmployee(e)),
     [employees]
   );
 
-  // Get potential managers (employees who have a position or are top-level)
+  // Get potential managers (active employees who have a position or are top-level)
   const potentialManagers = useMemo(() => 
-    employees.filter(e => e.position || isTopLevelPosition(e))
+    employees
+      .filter(e => !isInactiveEmployee(e) && (e.position || isTopLevelPosition(e)))
       .sort((a, b) => {
         const nameA = `${a.firstName} ${a.lastName}`;
         const nameB = `${b.firstName} ${b.lastName}`;
