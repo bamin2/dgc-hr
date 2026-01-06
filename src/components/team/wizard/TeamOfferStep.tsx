@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { format, differenceInDays } from "date-fns";
-import { CalendarIcon, Eye, Download, Loader2, FileText } from "lucide-react";
+import { CalendarIcon, Eye, Download, Loader2 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "@/hooks/use-toast";
 import { exportOfferLetterToPdf } from "@/utils/offerLetterExport";
-import { exportOfferLetterToWord } from "@/utils/offerLetterWordExport";
 import {
   Popover,
   PopoverContent,
@@ -58,7 +57,6 @@ export function TeamOfferStep({
 }: TeamOfferStepProps) {
   const previewRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
-  const [isExportingWord, setIsExportingWord] = useState(false);
 
   const { data: templates } = useDocumentTemplates();
   const { settings: companySettings } = useCompanySettingsDb();
@@ -92,29 +90,6 @@ export function TeamOfferStep({
       });
     } finally {
       setIsExporting(false);
-    }
-  };
-
-  const handleDownloadWord = async () => {
-    if (!previewContent) return;
-    
-    setIsExportingWord(true);
-    try {
-      const employeeName = `${basicData.firstName} ${basicData.lastName}`.trim() || "employee";
-      await exportOfferLetterToWord(previewContent, employeeName);
-      toast({
-        title: "Word document downloaded",
-        description: "The offer letter has been downloaded successfully.",
-      });
-    } catch (error) {
-      console.error("Failed to export Word document:", error);
-      toast({
-        title: "Export failed",
-        description: "Failed to generate Word document. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsExportingWord(false);
     }
   };
 
@@ -342,44 +317,24 @@ export function TeamOfferStep({
                 <p className="text-xs text-muted-foreground">
                   This preview shows the offer letter with data from the previous steps filled in.
                 </p>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleDownloadWord}
-                    disabled={isExportingWord}
-                  >
-                    {isExportingWord ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Generating...
-                      </>
-                    ) : (
-                      <>
-                        <FileText className="mr-2 h-4 w-4" />
-                        Download Word
-                      </>
-                    )}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleDownloadPdf}
-                    disabled={isExporting}
-                  >
-                    {isExporting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Generating...
-                      </>
-                    ) : (
-                      <>
-                        <Download className="mr-2 h-4 w-4" />
-                        Download PDF
-                      </>
-                    )}
-                  </Button>
-                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDownloadPdf}
+                  disabled={isExporting}
+                >
+                  {isExporting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="mr-2 h-4 w-4" />
+                      Download PDF
+                    </>
+                  )}
+                </Button>
               </div>
             </div>
           )}
