@@ -34,6 +34,7 @@ import Projects from "./pages/Projects";
 import TimeOff from "./pages/TimeOff";
 import TimeManagement from "./pages/TimeManagement";
 import Documents from "./pages/Documents";
+import Directory from "./pages/Directory";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -54,6 +55,7 @@ const App = () => (
                 
                 {/* Protected routes - All authenticated users */}
                 <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+                <Route path="/directory" element={<ProtectedRoute><Directory /></ProtectedRoute>} />
                 <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
                 <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
                 <Route path="/attendance" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><TimeManagement /></ProtectedRoute>} />
