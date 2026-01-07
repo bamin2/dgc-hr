@@ -2629,6 +2629,14 @@ export type Database = {
             }
             Returns: boolean
           }
+      is_event_organizer: {
+        Args: { _employee_id: string; _event_id: string }
+        Returns: boolean
+      }
+      is_event_participant: {
+        Args: { _employee_id: string; _event_id: string }
+        Returns: boolean
+      }
       is_manager_of: {
         Args: { _employee_id: string; _manager_user_id: string }
         Returns: boolean
