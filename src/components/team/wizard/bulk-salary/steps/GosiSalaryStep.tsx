@@ -84,47 +84,6 @@ export function GosiSalaryStep({ data, gosiEmployees, onUpdateData }: GosiSalary
 
         <Card
           className={`cursor-pointer transition-all ${
-            data.gosiHandling === 'set_single' ? 'ring-2 ring-primary border-primary' : 'hover:border-primary/50'
-          }`}
-          onClick={() => onUpdateData('gosiHandling', 'set_single')}
-        >
-          <CardContent className="flex items-start gap-4 p-4">
-            <RadioGroupItem value="set_single" id="set_single" className="mt-1" />
-            <div className="flex-1">
-              <Label htmlFor="set_single" className="font-medium cursor-pointer">
-                Set new GOSI registered salary for all
-              </Label>
-              <p className="text-sm text-muted-foreground mb-3">
-                Apply the same GOSI registered salary to all selected GOSI employees
-              </p>
-              {data.gosiHandling === 'set_single' && (
-                <div className="space-y-2">
-                  <div className="relative max-w-xs">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                      $
-                    </span>
-                    <Input
-                      type="number"
-                      placeholder="Enter GOSI registered salary"
-                      value={data.gosiNewValue}
-                      onChange={(e) => onUpdateData('gosiNewValue', e.target.value)}
-                      className="pl-8"
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  </div>
-                  {data.gosiNewValue && (
-                    <p className="text-sm text-muted-foreground">
-                      GOSI deduction: {formatCurrency(calculateGosiDeduction(data.gosiNewValue))} / month
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card
-          className={`cursor-pointer transition-all ${
             data.gosiHandling === 'per_employee' ? 'ring-2 ring-primary border-primary' : 'hover:border-primary/50'
           }`}
           onClick={() => onUpdateData('gosiHandling', 'per_employee')}
@@ -189,6 +148,11 @@ export function GosiSalaryStep({ data, gosiEmployees, onUpdateData }: GosiSalary
               ))}
             </div>
           </ScrollArea>
+          {gosiEmployees.length > 0 && (
+            <p className="text-xs text-muted-foreground">
+              {Object.keys(data.gosiPerEmployee).filter(id => data.gosiPerEmployee[id]).length} of {gosiEmployees.length} employees have new GOSI salaries set
+            </p>
+          )}
         </div>
       )}
 

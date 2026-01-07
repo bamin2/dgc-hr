@@ -25,7 +25,7 @@ export function ConfirmApplyStep({ data, employeeCount, totalChange, onUpdateDat
       case 'percentage_decrease': return `${data.updateValue}% decrease`;
       case 'fixed_increase': return `${formatCurrency(parseFloat(data.updateValue))} increase`;
       case 'fixed_decrease': return `${formatCurrency(parseFloat(data.updateValue))} decrease`;
-      case 'set_new': return `Set to ${formatCurrency(parseFloat(data.updateValue))}`;
+      case 'set_new': return 'Per-employee custom salaries';
       default: return 'Unknown';
     }
   };
@@ -122,9 +122,7 @@ export function ConfirmApplyStep({ data, employeeCount, totalChange, onUpdateDat
             <div className="pt-4 border-t">
               <p className="text-sm text-muted-foreground mb-2">GOSI Changes</p>
               <Badge variant="outline">
-                {data.gosiHandling === 'set_single'
-                  ? `Set all GOSI salaries to ${formatCurrency(parseFloat(data.gosiNewValue) || 0)}`
-                  : 'Individual GOSI salary updates'}
+                Individual GOSI salary updates
               </Badge>
             </div>
           )}

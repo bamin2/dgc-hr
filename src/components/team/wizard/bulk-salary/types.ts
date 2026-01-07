@@ -5,7 +5,7 @@ import { DeductionEntry } from "../AddDeductionDialog";
 
 export type UpdateType = 'percentage_increase' | 'percentage_decrease' | 'fixed_increase' | 'fixed_decrease' | 'set_new';
 
-export type GosiHandling = 'keep' | 'set_single' | 'per_employee';
+export type GosiHandling = 'keep' | 'per_employee';
 
 export interface BulkSalaryWizardData {
   // Step 1: Employee Selection
@@ -21,6 +21,7 @@ export interface BulkSalaryWizardData {
   // Step 2: Update Type
   updateType: UpdateType | null;
   updateValue: string;
+  perEmployeeSalaries: Record<string, string>;
   
   // Step 3: Components
   allowances: AllowanceEntry[];
@@ -28,7 +29,6 @@ export interface BulkSalaryWizardData {
   
   // Step 4: GOSI
   gosiHandling: GosiHandling;
-  gosiNewValue: string;
   gosiPerEmployee: Record<string, string>;
   
   // Step 5: Effective Date
@@ -92,10 +92,10 @@ export const initialWizardData: BulkSalaryWizardData = {
   filters: {},
   updateType: null,
   updateValue: '',
+  perEmployeeSalaries: {},
   allowances: [],
   deductions: [],
   gosiHandling: 'keep',
-  gosiNewValue: '',
   gosiPerEmployee: {},
   effectiveDate: new Date(),
   changeType: 'bulk_update',
