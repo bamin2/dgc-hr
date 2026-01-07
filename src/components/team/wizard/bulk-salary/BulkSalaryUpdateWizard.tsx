@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import { ConfirmApplyStep } from "./steps/ConfirmApplyStep";
 
 export function BulkSalaryUpdateWizard() {
   const navigate = useNavigate();
+  const compensationLoadedRef = useRef(false);
   const {
     data,
     updateData,
@@ -25,6 +26,7 @@ export function BulkSalaryUpdateWizard() {
     teamMembers,
     isLoadingMembers,
     loadTeamMembers,
+    loadEmployeeCompensation,
     filteredEmployees,
     selectedEmployees,
     hasGosiEmployees,
@@ -44,6 +46,14 @@ export function BulkSalaryUpdateWizard() {
   useEffect(() => {
     loadTeamMembers();
   }, [loadTeamMembers]);
+
+  // Load employee compensation when entering step 3
+  useEffect(() => {
+    if (currentStep === 3 && data.selectedEmployeeIds.length > 0 && !compensationLoadedRef.current) {
+      compensationLoadedRef.current = true;
+      loadEmployeeCompensation(data.selectedEmployeeIds);
+    }
+  }, [currentStep, data.selectedEmployeeIds, loadEmployeeCompensation]);
 
   // Determine effective steps (skip GOSI if no GOSI employees)
   const effectiveSteps = WIZARD_STEPS.filter(step => {
@@ -128,6 +138,7 @@ export function BulkSalaryUpdateWizard() {
             onUpdateData={updateData}
             allowanceTemplates={allowanceTemplates || []}
             deductionTemplates={deductionTemplates || []}
+            selectedEmployees={selectedEmployees}
           />
         );
       case 4:

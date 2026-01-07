@@ -1,11 +1,36 @@
 import { TeamMember } from "@/hooks/useTeamMembers";
 import { SalaryChangeType } from "@/hooks/useSalaryHistory";
-import { AllowanceEntry } from "../AddAllowanceDialog";
-import { DeductionEntry } from "../AddDeductionDialog";
 
 export type UpdateType = 'percentage_increase' | 'percentage_decrease' | 'fixed_increase' | 'fixed_decrease' | 'set_new';
 
 export type GosiHandling = 'keep' | 'per_employee';
+
+// Extended entry types with tracking fields
+export interface AllowanceEntryExtended {
+  id: string;
+  templateId?: string;
+  customName?: string;
+  amount: number;
+  originalAmount?: number;
+  isCustom: boolean;
+  isPercentage?: boolean;
+  percentageOf?: string;
+  isExisting?: boolean;
+  dbRecordId?: string;
+}
+
+export interface DeductionEntryExtended {
+  id: string;
+  templateId?: string;
+  customName?: string;
+  amount: number;
+  originalAmount?: number;
+  isCustom: boolean;
+  isPercentage?: boolean;
+  percentageOf?: string;
+  isExisting?: boolean;
+  dbRecordId?: string;
+}
 
 export interface BulkSalaryWizardData {
   // Step 1: Employee Selection
@@ -23,9 +48,9 @@ export interface BulkSalaryWizardData {
   updateValue: string;
   perEmployeeSalaries: Record<string, string>;
   
-  // Step 3: Components
-  allowances: AllowanceEntry[];
-  deductions: DeductionEntry[];
+  // Step 3: Components (per-employee)
+  perEmployeeAllowances: Record<string, AllowanceEntryExtended[]>;
+  perEmployeeDeductions: Record<string, DeductionEntryExtended[]>;
   
   // Step 4: GOSI
   gosiHandling: GosiHandling;
@@ -93,8 +118,8 @@ export const initialWizardData: BulkSalaryWizardData = {
   updateType: null,
   updateValue: '',
   perEmployeeSalaries: {},
-  allowances: [],
-  deductions: [],
+  perEmployeeAllowances: {},
+  perEmployeeDeductions: {},
   gosiHandling: 'keep',
   gosiPerEmployee: {},
   effectiveDate: new Date(),
