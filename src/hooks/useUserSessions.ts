@@ -75,18 +75,16 @@ export const useUserSessions = () => {
       if (!user?.id || !session) return;
 
       const { device, browser } = getDeviceInfo();
-      
-      // Use a stable identifier based on user + device + browser (not token which changes on refresh)
-      const sessionIdentifier = `${user.id}_${device}_${browser}`;
-      const hashedIdentifier = btoa(sessionIdentifier).slice(0, 20);
 
-      // Check if this device/browser session already exists
+      // Check if this device/browser session already exists by matching device and browser directly
       const { data: existing } = await supabase
         .from('user_sessions')
         .select('id')
         .eq('user_id', user.id)
-        .eq('session_token', hashedIdentifier)
-        .single();
+        .eq('device', device)
+        .eq('browser', browser)
+        .limit(1)
+        .maybeSingle();
 
       if (existing) {
         // Update existing session
@@ -111,12 +109,14 @@ export const useUserSessions = () => {
           .update({ is_current: false })
           .eq('user_id', user.id);
           
-        // Create new session record
+        // Create new session record with a stable token
+        const sessionToken = btoa(`${user.id}_${device}_${browser}`).slice(0, 20);
+        
         await supabase
           .from('user_sessions')
           .insert({
             user_id: user.id,
-            session_token: hashedIdentifier,
+            session_token: sessionToken,
             device,
             browser,
             is_current: true,
