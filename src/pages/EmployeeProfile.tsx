@@ -97,6 +97,7 @@ export default function EmployeeProfile() {
     updateEmployee.mutate({
       id: employee.id,
       first_name: data.firstName,
+      second_name: data.secondName || null,
       last_name: data.lastName,
       email: data.email,
       phone: data.phone,
@@ -155,7 +156,7 @@ export default function EmployeeProfile() {
             <CardContent className="p-6">
               <div className="flex flex-col md:flex-row md:items-center gap-6">
                 <Avatar className="h-24 w-24 ring-4 ring-background shadow-xl">
-                  <AvatarImage src={employee.avatar} alt={`${employee.firstName} ${employee.lastName}`} />
+                  <AvatarImage src={employee.avatar} alt={employee.fullName} />
                   <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-semibold">
                     {initials}
                   </AvatarFallback>
@@ -164,7 +165,7 @@ export default function EmployeeProfile() {
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <h1 className="text-2xl font-bold text-foreground">
-                      {employee.firstName} {employee.lastName}
+                      {employee.fullName}
                     </h1>
                     <StatusBadge status={employee.status} />
                     <RoleBadge role={employeeRole} />
@@ -255,7 +256,12 @@ export default function EmployeeProfile() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <InfoRow label="Full Name" value={`${employee.firstName} ${employee.lastName}`} />
+                    <InfoRow label="First Name" value={employee.firstName} />
+                    {employee.secondName && (
+                      <InfoRow label="Second Name" value={employee.secondName} />
+                    )}
+                    <InfoRow label="Last Name" value={employee.lastName} />
+                    <InfoRow label="Full Name" value={employee.fullName} />
                     <InfoRow 
                       label="Date of Birth" 
                       value={employee.dateOfBirth ? format(new Date(employee.dateOfBirth), 'MMMM d, yyyy') : 'Not specified'} 
