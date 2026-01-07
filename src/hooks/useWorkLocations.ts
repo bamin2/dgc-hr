@@ -1,5 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Json } from "@/integrations/supabase/types";
+
+// Type for per-nationality GOSI rates
+export interface GosiNationalityRate {
+  nationality: string;
+  percentage: number;
+}
 
 export interface WorkLocation {
   id: string;
@@ -12,7 +19,7 @@ export interface WorkLocation {
   created_at: string;
   employeeCount: number;
   gosi_enabled: boolean;
-  gosi_percentage: number;
+  gosi_nationality_rates: GosiNationalityRate[];
 }
 
 export interface WorkLocationInput {
@@ -23,7 +30,7 @@ export interface WorkLocationInput {
   currency?: string;
   is_remote?: boolean;
   gosi_enabled?: boolean;
-  gosi_percentage?: number;
+  gosi_nationality_rates?: GosiNationalityRate[];
 }
 
 async function fetchWorkLocationsWithCounts(): Promise<WorkLocation[]> {
@@ -59,7 +66,7 @@ async function fetchWorkLocationsWithCounts(): Promise<WorkLocation[]> {
     created_at: loc.created_at,
     employeeCount: countMap.get(loc.id) || 0,
     gosi_enabled: loc.gosi_enabled ?? false,
-    gosi_percentage: loc.gosi_percentage ?? 8,
+    gosi_nationality_rates: (loc.gosi_nationality_rates as unknown as GosiNationalityRate[]) || [],
   }));
 }
 
@@ -99,7 +106,7 @@ export function useCreateWorkLocation() {
 
 export function useUpdateWorkLocation() {
   const queryClient = useQueryClient();
-
+  
   return useMutation({
     mutationFn: async ({ id, ...input }: WorkLocationInput & { id: string }) => {
       const { data, error } = await supabase
@@ -112,7 +119,7 @@ export function useUpdateWorkLocation() {
           currency: input.currency,
           is_remote: input.is_remote,
           gosi_enabled: input.gosi_enabled,
-          gosi_percentage: input.gosi_percentage,
+          gosi_nationality_rates: JSON.parse(JSON.stringify(input.gosi_nationality_rates || [])),
         })
         .eq("id", id)
         .select()

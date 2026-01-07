@@ -17,6 +17,12 @@ import {
   DeductionEntryExtended,
 } from "@/components/team/wizard/bulk-salary/types";
 
+// Type for per-nationality GOSI rates
+export interface GosiNationalityRate {
+  nationality: string;
+  percentage: number;
+}
+
 // Extended TeamMember with GOSI fields
 export interface TeamMemberWithGosi extends TeamMember {
   gosiRegisteredSalary?: number;
@@ -25,7 +31,7 @@ export interface TeamMemberWithGosi extends TeamMember {
   workLocationId?: string;
   currency?: string;
   gosiEnabled?: boolean;
-  gosiPercentage?: number;
+  gosiNationalityRates?: GosiNationalityRate[];
 }
 
 // Fetch team members with GOSI fields
@@ -37,7 +43,7 @@ async function fetchTeamMembersWithGosi(): Promise<TeamMemberWithGosi[]> {
       department:departments!employees_department_id_fkey(id, name),
       position:positions!employees_position_id_fkey(id, title),
       manager:employees!manager_id(id, first_name, last_name),
-      work_location_ref:work_locations!employees_work_location_id_fkey(id, name, currency, gosi_enabled, gosi_percentage)
+      work_location_ref:work_locations!employees_work_location_id_fkey(id, name, currency, gosi_enabled, gosi_nationality_rates)
     `)
     .in('status', ['active', 'on_leave', 'on_boarding'])
     .order("first_name");
@@ -70,7 +76,7 @@ async function fetchTeamMembersWithGosi(): Promise<TeamMemberWithGosi[]> {
       workLocationId: db.work_location_id || undefined,
       currency: workLocationRef?.currency || 'USD',
       gosiEnabled: workLocationRef?.gosi_enabled ?? false,
-      gosiPercentage: workLocationRef?.gosi_percentage ?? 8,
+      gosiNationalityRates: (workLocationRef?.gosi_nationality_rates as GosiNationalityRate[]) || [],
       salary: db.salary ? Number(db.salary) : undefined,
       payFrequency: db.pay_frequency || 'month',
       taxExemptionStatus: db.tax_exemption_status || undefined,
@@ -279,8 +285,10 @@ export function useBulkSalaryWizard() {
         }
       }
       
-      // Use configurable GOSI rate from work location (default 8%)
-      const gosiRate = (employee.gosiPercentage || 8) / 100;
+      // Find GOSI rate from work location nationality rates
+      const nationalityRates = employee.gosiNationalityRates || [];
+      const rateConfig = nationalityRates.find(r => r.nationality === employee.nationality);
+      const gosiRate = rateConfig ? rateConfig.percentage / 100 : 0;
       const beforeGosiDeduction = beforeGosiSalary ? beforeGosiSalary * gosiRate : 0;
       const afterGosiDeduction = afterGosiSalary ? afterGosiSalary * gosiRate : 0;
       
