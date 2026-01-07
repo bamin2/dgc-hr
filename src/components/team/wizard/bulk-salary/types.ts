@@ -17,6 +17,7 @@ export interface AllowanceEntryExtended {
   percentageOf?: string;
   isExisting?: boolean;
   dbRecordId?: string;
+  isVariable?: boolean; // Whether the template allows variable amounts
 }
 
 export interface DeductionEntryExtended {

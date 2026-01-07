@@ -3,6 +3,8 @@ export interface AllowanceTemplate {
   name: string;
   description: string | null;
   amount: number;
+  default_amount: number;
+  is_variable: boolean;
   amount_type: 'fixed' | 'percentage';
   percentage_of: string | null;
   is_taxable: boolean;
@@ -29,6 +31,8 @@ export interface EmployeeAllowance {
   employee_id: string;
   allowance_template_id: string;
   custom_amount: number | null;
+  custom_name: string | null;
+  percentage: number | null;
   effective_date: string;
   end_date: string | null;
   created_at: string;

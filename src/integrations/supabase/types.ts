@@ -19,10 +19,12 @@ export type Database = {
           amount: number
           amount_type: string
           created_at: string | null
+          default_amount: number | null
           description: string | null
           id: string
           is_active: boolean | null
           is_taxable: boolean | null
+          is_variable: boolean | null
           name: string
           percentage_of: string | null
           updated_at: string | null
@@ -31,10 +33,12 @@ export type Database = {
           amount?: number
           amount_type?: string
           created_at?: string | null
+          default_amount?: number | null
           description?: string | null
           id?: string
           is_active?: boolean | null
           is_taxable?: boolean | null
+          is_variable?: boolean | null
           name: string
           percentage_of?: string | null
           updated_at?: string | null
@@ -43,10 +47,12 @@ export type Database = {
           amount?: number
           amount_type?: string
           created_at?: string | null
+          default_amount?: number | null
           description?: string | null
           id?: string
           is_active?: boolean | null
           is_taxable?: boolean | null
+          is_variable?: boolean | null
           name?: string
           percentage_of?: string | null
           updated_at?: string | null
@@ -753,6 +759,7 @@ export type Database = {
           employee_id: string
           end_date: string | null
           id: string
+          percentage: number | null
         }
         Insert: {
           allowance_template_id?: string | null
@@ -763,6 +770,7 @@ export type Database = {
           employee_id: string
           end_date?: string | null
           id?: string
+          percentage?: number | null
         }
         Update: {
           allowance_template_id?: string | null
@@ -773,6 +781,7 @@ export type Database = {
           employee_id?: string
           end_date?: string | null
           id?: string
+          percentage?: number | null
         }
         Relationships: [
           {

@@ -49,6 +49,7 @@ export function AddAllowanceDialog({
   const [selectedTemplateId, setSelectedTemplateId] = useState("");
   const [customName, setCustomName] = useState("");
   const [customAmount, setCustomAmount] = useState("");
+  const [variableAmount, setVariableAmount] = useState("");
 
   const { data: templates } = useActiveAllowanceTemplates();
   const currencyInfo = getCurrencyByCode(currency);
@@ -58,13 +59,19 @@ export function AddAllowanceDialog({
   );
 
   const selectedTemplate = templates?.find((t) => t.id === selectedTemplateId);
+  const isVariableTemplate = selectedTemplate?.is_variable ?? false;
 
   const handleAdd = () => {
     if (mode === "template" && selectedTemplate) {
+      // For variable templates, use the entered amount or fallback to default_amount
+      const amount = isVariableTemplate
+        ? (parseFloat(variableAmount) || selectedTemplate.default_amount || 0)
+        : (selectedTemplate.default_amount || selectedTemplate.amount);
+      
       onAdd({
         id: crypto.randomUUID(),
         templateId: selectedTemplate.id,
-        amount: selectedTemplate.amount,
+        amount,
         isCustom: false,
         isPercentage: selectedTemplate.amount_type === "percentage",
         percentageOf: selectedTemplate.percentage_of || undefined,
@@ -84,11 +91,12 @@ export function AddAllowanceDialog({
     setSelectedTemplateId("");
     setCustomName("");
     setCustomAmount("");
+    setVariableAmount("");
     onOpenChange(false);
   };
 
   const canAdd =
-    (mode === "template" && selectedTemplateId) ||
+    (mode === "template" && selectedTemplateId && (!isVariableTemplate || variableAmount)) ||
     (mode === "custom" && customName && customAmount);
 
   return (
@@ -109,10 +117,13 @@ export function AddAllowanceDialog({
             </div>
 
             {mode === "template" && (
-              <div className="ml-6 mt-2">
+              <div className="ml-6 mt-2 space-y-3">
                 <Select
                   value={selectedTemplateId}
-                  onValueChange={setSelectedTemplateId}
+                  onValueChange={(id) => {
+                    setSelectedTemplateId(id);
+                    setVariableAmount("");
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Choose an allowance template..." />
@@ -128,9 +139,11 @@ export function AddAllowanceDialog({
                           <div className="flex items-center justify-between gap-4">
                             <span>{template.name}</span>
                             <span className="text-muted-foreground">
-                              {template.amount_type === "fixed"
-                                ? `${currencyInfo?.symbol || "$"}${template.amount.toLocaleString()}`
-                                : `${template.amount}%`}
+                              {template.is_variable 
+                                ? "Variable"
+                                : template.amount_type === "fixed"
+                                  ? `${currencyInfo?.symbol || "$"}${(template.default_amount || template.amount).toLocaleString()}`
+                                  : `${template.default_amount || template.amount}%`}
                             </span>
                           </div>
                         </SelectItem>
@@ -138,6 +151,49 @@ export function AddAllowanceDialog({
                     )}
                   </SelectContent>
                 </Select>
+
+                {/* Show amount input for variable templates */}
+                {selectedTemplate && isVariableTemplate && (
+                  <div className="space-y-1.5">
+                    <Label htmlFor="variable-amount">
+                      Amount {selectedTemplate.amount_type === "percentage" ? "(%)" : ""} *
+                    </Label>
+                    <div className="relative">
+                      {selectedTemplate.amount_type === "fixed" && (
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                          {currencyInfo?.symbol || "$"}
+                        </span>
+                      )}
+                      <Input
+                        id="variable-amount"
+                        type="number"
+                        placeholder={selectedTemplate.default_amount 
+                          ? `Default: ${selectedTemplate.default_amount}` 
+                          : "0.00"}
+                        value={variableAmount}
+                        onChange={(e) => setVariableAmount(e.target.value)}
+                        className={selectedTemplate.amount_type === "fixed" ? "pl-8" : ""}
+                      />
+                    </div>
+                    {selectedTemplate.default_amount > 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        Default: {selectedTemplate.amount_type === "fixed" 
+                          ? `${currencyInfo?.symbol || "$"}${selectedTemplate.default_amount.toLocaleString()}`
+                          : `${selectedTemplate.default_amount}%`}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Show fixed amount for non-variable templates */}
+                {selectedTemplate && !isVariableTemplate && (
+                  <div className="p-2 bg-muted rounded text-sm">
+                    Amount: {selectedTemplate.amount_type === "fixed"
+                      ? `${currencyInfo?.symbol || "$"}${(selectedTemplate.default_amount || selectedTemplate.amount).toLocaleString()}`
+                      : `${selectedTemplate.default_amount || selectedTemplate.amount}%`}
+                    <span className="text-muted-foreground ml-1">(fixed)</span>
+                  </div>
+                )}
               </div>
             )}
 
