@@ -13,6 +13,8 @@ import {
   EmployeeImpact,
   UpdateType,
   initialWizardData,
+  AllowanceEntryExtended,
+  DeductionEntryExtended,
 } from "@/components/team/wizard/bulk-salary/types";
 
 // Extended TeamMember with GOSI fields
@@ -101,6 +103,77 @@ export function useBulkSalaryWizard() {
     }
   }, []);
 
+  // Load existing allowances and deductions for selected employees
+  const loadEmployeeCompensation = useCallback(async (employeeIds: string[]) => {
+    if (employeeIds.length === 0) return;
+
+    // Fetch existing allowances
+    const { data: allowancesData } = await supabase
+      .from('employee_allowances')
+      .select('*, allowance_template:allowance_templates(*)')
+      .in('employee_id', employeeIds);
+
+    // Fetch existing deductions
+    const { data: deductionsData } = await supabase
+      .from('employee_deductions')
+      .select('*, deduction_template:deduction_templates(*)')
+      .in('employee_id', employeeIds);
+
+    // Build per-employee allowances
+    const perEmployeeAllowances: Record<string, AllowanceEntryExtended[]> = {};
+    const perEmployeeDeductions: Record<string, DeductionEntryExtended[]> = {};
+
+    // Initialize for all selected employees
+    employeeIds.forEach(id => {
+      perEmployeeAllowances[id] = [];
+      perEmployeeDeductions[id] = [];
+    });
+
+    // Map allowances
+    (allowancesData || []).forEach((a: any) => {
+      const template = Array.isArray(a.allowance_template) ? a.allowance_template[0] : a.allowance_template;
+      const amount = a.custom_amount ?? template?.amount ?? 0;
+      
+      perEmployeeAllowances[a.employee_id]?.push({
+        id: a.id,
+        templateId: a.allowance_template_id || undefined,
+        customName: a.custom_name || undefined,
+        amount: amount,
+        originalAmount: amount,
+        isCustom: !a.allowance_template_id,
+        isPercentage: template?.amount_type === 'percentage',
+        percentageOf: template?.percentage_of || undefined,
+        isExisting: true,
+        dbRecordId: a.id,
+      });
+    });
+
+    // Map deductions
+    (deductionsData || []).forEach((d: any) => {
+      const template = Array.isArray(d.deduction_template) ? d.deduction_template[0] : d.deduction_template;
+      const amount = d.custom_amount ?? template?.amount ?? 0;
+      
+      perEmployeeDeductions[d.employee_id]?.push({
+        id: d.id,
+        templateId: d.deduction_template_id || undefined,
+        customName: d.custom_name || undefined,
+        amount: amount,
+        originalAmount: amount,
+        isCustom: !d.deduction_template_id,
+        isPercentage: template?.amount_type === 'percentage',
+        percentageOf: template?.percentage_of || undefined,
+        isExisting: true,
+        dbRecordId: d.id,
+      });
+    });
+
+    setData(prev => ({
+      ...prev,
+      perEmployeeAllowances,
+      perEmployeeDeductions,
+    }));
+  }, []);
+
   // Update wizard data
   const updateData = useCallback(<K extends keyof BulkSalaryWizardData>(
     field: K,
@@ -174,42 +247,30 @@ export function useBulkSalaryWizard() {
       const beforeBasicSalary = employee.salary || 0;
       const afterBasicSalary = calculateNewSalary(beforeBasicSalary, data.updateType, updateValue, employee.id);
       
-      // Calculate allowances (simplified - would need template data for accurate calculation)
+      // Get per-employee allowances
+      const employeeAllowances = data.perEmployeeAllowances[employee.id] || [];
+      const employeeDeductions = data.perEmployeeDeductions[employee.id] || [];
+      
+      // Calculate before allowances (sum of existing items at original amounts)
       let beforeAllowances = 0;
       let afterAllowances = 0;
       
-      data.allowances.forEach(a => {
-        if (a.isCustom) {
-          afterAllowances += a.amount;
-        } else if (a.templateId && allowanceTemplates) {
-          const template = allowanceTemplates.find(t => t.id === a.templateId);
-          if (template) {
-            if (template.amount_type === 'fixed') {
-              afterAllowances += template.amount;
-            } else {
-              afterAllowances += (afterBasicSalary * template.amount) / 100;
-            }
-          }
+      employeeAllowances.forEach(a => {
+        if (a.isExisting && a.originalAmount !== undefined) {
+          beforeAllowances += a.originalAmount;
         }
+        afterAllowances += a.amount;
       });
       
       // Calculate deductions
       let beforeDeductions = 0;
       let afterDeductions = 0;
       
-      data.deductions.forEach(d => {
-        if (d.isCustom) {
-          afterDeductions += d.amount;
-        } else if (d.templateId && deductionTemplates) {
-          const template = deductionTemplates.find(t => t.id === d.templateId);
-          if (template) {
-            if (template.amount_type === 'fixed') {
-              afterDeductions += template.amount;
-            } else {
-              afterDeductions += (afterBasicSalary * template.amount) / 100;
-            }
-          }
+      employeeDeductions.forEach(d => {
+        if (d.isExisting && d.originalAmount !== undefined) {
+          beforeDeductions += d.originalAmount;
         }
+        afterDeductions += d.amount;
       });
       
       // GOSI calculations
@@ -247,7 +308,7 @@ export function useBulkSalaryWizard() {
         afterGosiDeduction,
       };
     });
-  }, [selectedEmployees, data, calculateNewSalary, allowanceTemplates, deductionTemplates]);
+  }, [selectedEmployees, data, calculateNewSalary]);
 
   // Totals
   const totals = useMemo(() => {
@@ -314,8 +375,8 @@ export function useBulkSalaryWizard() {
         update_type: data.updateType || 'set_new',
         update_value: parseFloat(data.updateValue) || 0,
         components_changed: {
-          allowances: data.allowances,
-          deductions: data.deductions,
+          perEmployeeAllowances: data.perEmployeeAllowances,
+          perEmployeeDeductions: data.perEmployeeDeductions,
         } as any,
         gosi_salary_changed: data.gosiHandling !== 'keep',
         total_before_salary: totals.beforeTotal,
@@ -379,24 +440,32 @@ export function useBulkSalaryWizard() {
           changed_by: userData.user.id,
         });
 
-        // Add new allowances
-        for (const allowance of data.allowances) {
+        // Get per-employee allowances and deductions
+        const employeeAllowances = data.perEmployeeAllowances[impact.employee.id] || [];
+        const employeeDeductions = data.perEmployeeDeductions[impact.employee.id] || [];
+
+        // Delete existing allowances/deductions for this employee and insert updated ones
+        await supabase.from('employee_allowances').delete().eq('employee_id', impact.employee.id);
+        await supabase.from('employee_deductions').delete().eq('employee_id', impact.employee.id);
+
+        // Add allowances
+        for (const allowance of employeeAllowances) {
           await supabase.from('employee_allowances').insert({
             employee_id: impact.employee.id,
             allowance_template_id: allowance.isCustom ? null : allowance.templateId,
             custom_name: allowance.isCustom ? allowance.customName : null,
-            custom_amount: allowance.isCustom ? allowance.amount : null,
+            custom_amount: allowance.amount,
             effective_date: effectiveDate,
           });
         }
 
-        // Add new deductions
-        for (const deduction of data.deductions) {
+        // Add deductions
+        for (const deduction of employeeDeductions) {
           await supabase.from('employee_deductions').insert({
             employee_id: impact.employee.id,
             deduction_template_id: deduction.isCustom ? null : deduction.templateId,
             custom_name: deduction.isCustom ? deduction.customName : null,
-            custom_amount: deduction.isCustom ? deduction.amount : null,
+            custom_amount: deduction.amount,
             effective_date: effectiveDate,
           });
         }
@@ -419,6 +488,7 @@ export function useBulkSalaryWizard() {
     teamMembers,
     isLoadingMembers,
     loadTeamMembers,
+    loadEmployeeCompensation,
     filteredEmployees,
     selectedEmployees,
     hasGosiEmployees,

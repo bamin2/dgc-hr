@@ -99,21 +99,12 @@ export function ConfirmApplyStep({ data, employeeCount, totalChange, onUpdateDat
           </div>
 
           {/* Components added */}
-          {(data.allowances.length > 0 || data.deductions.length > 0) && (
+          {(Object.keys(data.perEmployeeAllowances).length > 0 || Object.keys(data.perEmployeeDeductions).length > 0) && (
             <div className="pt-4 border-t">
-              <p className="text-sm text-muted-foreground mb-2">Components Added</p>
-              <div className="flex flex-wrap gap-2">
-                {data.allowances.map((a, i) => (
-                  <Badge key={`allowance-${i}`} variant="secondary">
-                    + {a.isCustom ? a.customName : 'Allowance'}
-                  </Badge>
-                ))}
-                {data.deductions.map((d, i) => (
-                  <Badge key={`deduction-${i}`} variant="outline">
-                    - {d.isCustom ? d.customName : 'Deduction'}
-                  </Badge>
-                ))}
-              </div>
+              <p className="text-sm text-muted-foreground mb-2">Components Updated</p>
+              <p className="text-sm">
+                Allowances and deductions have been configured per employee
+              </p>
             </div>
           )}
 
