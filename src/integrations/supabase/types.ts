@@ -28,6 +28,7 @@ export type Database = {
           name: string
           percentage_of: string | null
           updated_at: string | null
+          work_location_id: string | null
         }
         Insert: {
           amount?: number
@@ -42,6 +43,7 @@ export type Database = {
           name: string
           percentage_of?: string | null
           updated_at?: string | null
+          work_location_id?: string | null
         }
         Update: {
           amount?: number
@@ -56,8 +58,17 @@ export type Database = {
           name?: string
           percentage_of?: string | null
           updated_at?: string | null
+          work_location_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "allowance_templates_work_location_id_fkey"
+            columns: ["work_location_id"]
+            isOneToOne: false
+            referencedRelation: "work_locations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       attendance_corrections: {
         Row: {
@@ -654,6 +665,7 @@ export type Database = {
           name: string
           percentage_of: string | null
           updated_at: string | null
+          work_location_id: string | null
         }
         Insert: {
           amount?: number
@@ -666,6 +678,7 @@ export type Database = {
           name: string
           percentage_of?: string | null
           updated_at?: string | null
+          work_location_id?: string | null
         }
         Update: {
           amount?: number
@@ -678,8 +691,17 @@ export type Database = {
           name?: string
           percentage_of?: string | null
           updated_at?: string | null
+          work_location_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "deduction_templates_work_location_id_fkey"
+            columns: ["work_location_id"]
+            isOneToOne: false
+            referencedRelation: "work_locations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       departments: {
         Row: {

@@ -17,6 +17,23 @@ export function useAllowanceTemplates() {
   });
 }
 
+export function useAllowanceTemplatesByLocation(workLocationId: string) {
+  return useQuery({
+    queryKey: ['allowance-templates', 'location', workLocationId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('allowance_templates')
+        .select('*')
+        .eq('work_location_id', workLocationId)
+        .order('name');
+      
+      if (error) throw error;
+      return data as AllowanceTemplate[];
+    },
+    enabled: !!workLocationId,
+  });
+}
+
 export function useActiveAllowanceTemplates() {
   return useQuery({
     queryKey: ['allowance-templates', 'active'],
@@ -30,6 +47,24 @@ export function useActiveAllowanceTemplates() {
       if (error) throw error;
       return data as AllowanceTemplate[];
     },
+  });
+}
+
+export function useActiveAllowanceTemplatesByLocation(workLocationId: string | null) {
+  return useQuery({
+    queryKey: ['allowance-templates', 'active', 'location', workLocationId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('allowance_templates')
+        .select('*')
+        .eq('is_active', true)
+        .eq('work_location_id', workLocationId!)
+        .order('name');
+      
+      if (error) throw error;
+      return data as AllowanceTemplate[];
+    },
+    enabled: !!workLocationId,
   });
 }
 

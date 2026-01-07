@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useActiveAllowanceTemplates } from "@/hooks/useAllowanceTemplates";
+import { useActiveAllowanceTemplatesByLocation } from "@/hooks/useAllowanceTemplates";
 import { getCurrencyByCode } from "@/data/currencies";
 
 export interface AllowanceEntry {
@@ -36,6 +36,7 @@ interface AddAllowanceDialogProps {
   onAdd: (allowance: AllowanceEntry) => void;
   currency: string;
   existingTemplateIds: string[];
+  workLocationId: string | null;
 }
 
 export function AddAllowanceDialog({
@@ -44,6 +45,7 @@ export function AddAllowanceDialog({
   onAdd,
   currency,
   existingTemplateIds,
+  workLocationId,
 }: AddAllowanceDialogProps) {
   const [mode, setMode] = useState<"template" | "custom">("template");
   const [selectedTemplateId, setSelectedTemplateId] = useState("");
@@ -51,7 +53,7 @@ export function AddAllowanceDialog({
   const [customAmount, setCustomAmount] = useState("");
   const [variableAmount, setVariableAmount] = useState("");
 
-  const { data: templates } = useActiveAllowanceTemplates();
+  const { data: templates } = useActiveAllowanceTemplatesByLocation(workLocationId);
   const currencyInfo = getCurrencyByCode(currency);
 
   const availableTemplates = (templates || []).filter(
@@ -118,23 +120,23 @@ export function AddAllowanceDialog({
 
             {mode === "template" && (
               <div className="ml-6 mt-2 space-y-3">
-                <Select
-                  value={selectedTemplateId}
-                  onValueChange={(id) => {
-                    setSelectedTemplateId(id);
-                    setVariableAmount("");
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose an allowance template..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableTemplates.length === 0 ? (
-                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                        No templates available
-                      </div>
-                    ) : (
-                      availableTemplates.map((template) => (
+                {availableTemplates.length === 0 ? (
+                  <div className="px-2 py-4 text-sm text-muted-foreground text-center border rounded-lg">
+                    No templates available for this work location
+                  </div>
+                ) : (
+                  <Select
+                    value={selectedTemplateId}
+                    onValueChange={(id) => {
+                      setSelectedTemplateId(id);
+                      setVariableAmount("");
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose an allowance template..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableTemplates.map((template) => (
                         <SelectItem key={template.id} value={template.id}>
                           <div className="flex items-center justify-between gap-4">
                             <span>{template.name}</span>
@@ -147,10 +149,10 @@ export function AddAllowanceDialog({
                             </span>
                           </div>
                         </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
 
                 {/* Show amount input for variable templates */}
                 {selectedTemplate && isVariableTemplate && (

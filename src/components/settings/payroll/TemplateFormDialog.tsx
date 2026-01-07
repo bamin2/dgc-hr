@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { AllowanceTemplate, DeductionTemplate, amountTypes, percentageOfOptions } from "@/data/payrollTemplates";
 import { Loader2 } from "lucide-react";
+import { getCurrencyByCode } from "@/data/currencies";
 
 type TemplateType = 'allowance' | 'deduction';
 
@@ -30,6 +31,7 @@ interface TemplateFormDialogProps {
   template?: AllowanceTemplate | DeductionTemplate | null;
   onSave: (data: any) => void;
   isSaving?: boolean;
+  currency: string;
 }
 
 export function TemplateFormDialog({
@@ -39,9 +41,13 @@ export function TemplateFormDialog({
   template,
   onSave,
   isSaving,
+  currency,
 }: TemplateFormDialogProps) {
   const isEditing = !!template;
   const isAllowance = type === 'allowance';
+  
+  const currencyInfo = getCurrencyByCode(currency);
+  const currencySymbol = currencyInfo?.symbol || "$";
 
   const [formData, setFormData] = useState({
     name: "",
@@ -168,7 +174,7 @@ export function TemplateFormDialog({
             <div className="space-y-2">
               <Label htmlFor="amount">
                 {formData.amount_type === "fixed" 
-                  ? (isAllowance && formData.is_variable ? "Default Amount ($)" : "Amount ($)")
+                  ? (isAllowance && formData.is_variable ? `Default Amount (${currencySymbol})` : `Amount (${currencySymbol})`)
                   : (isAllowance && formData.is_variable ? "Default Percentage (%)" : "Percentage (%)")}
                 {!(isAllowance && formData.is_variable) && " *"}
               </Label>

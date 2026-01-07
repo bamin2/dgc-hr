@@ -271,6 +271,7 @@ export function EmployeeCompensationCard({
         onAdd={handleAddAllowance}
         currency={currency}
         existingTemplateIds={existingAllowanceTemplateIds}
+        workLocationId={employee.workLocationId || null}
       />
 
       <AddDeductionDialog
@@ -279,6 +280,7 @@ export function EmployeeCompensationCard({
         onAdd={handleAddDeduction}
         currency={currency}
         existingTemplateIds={existingDeductionTemplateIds}
+        workLocationId={employee.workLocationId || null}
       />
     </Collapsible>
   );

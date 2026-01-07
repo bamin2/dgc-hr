@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useActiveDeductionTemplates } from "@/hooks/useDeductionTemplates";
+import { useActiveDeductionTemplatesByLocation } from "@/hooks/useDeductionTemplates";
 import { getCurrencyByCode } from "@/data/currencies";
 
 export interface DeductionEntry {
@@ -36,6 +36,7 @@ interface AddDeductionDialogProps {
   onAdd: (deduction: DeductionEntry) => void;
   currency: string;
   existingTemplateIds: string[];
+  workLocationId: string | null;
 }
 
 export function AddDeductionDialog({
@@ -44,13 +45,14 @@ export function AddDeductionDialog({
   onAdd,
   currency,
   existingTemplateIds,
+  workLocationId,
 }: AddDeductionDialogProps) {
   const [mode, setMode] = useState<"template" | "custom">("template");
   const [selectedTemplateId, setSelectedTemplateId] = useState("");
   const [customName, setCustomName] = useState("");
   const [customAmount, setCustomAmount] = useState("");
 
-  const { data: templates } = useActiveDeductionTemplates();
+  const { data: templates } = useActiveDeductionTemplatesByLocation(workLocationId);
   const currencyInfo = getCurrencyByCode(currency);
 
   const availableTemplates = (templates || []).filter(
@@ -110,20 +112,20 @@ export function AddDeductionDialog({
 
             {mode === "template" && (
               <div className="ml-6 mt-2">
-                <Select
-                  value={selectedTemplateId}
-                  onValueChange={setSelectedTemplateId}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose a deduction template..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableTemplates.length === 0 ? (
-                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                        No templates available
-                      </div>
-                    ) : (
-                      availableTemplates.map((template) => (
+                {availableTemplates.length === 0 ? (
+                  <div className="px-2 py-4 text-sm text-muted-foreground text-center border rounded-lg">
+                    No templates available for this work location
+                  </div>
+                ) : (
+                  <Select
+                    value={selectedTemplateId}
+                    onValueChange={setSelectedTemplateId}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose a deduction template..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableTemplates.map((template) => (
                         <SelectItem key={template.id} value={template.id}>
                           <div className="flex items-center justify-between gap-4">
                             <span>{template.name}</span>
@@ -134,10 +136,10 @@ export function AddDeductionDialog({
                             </span>
                           </div>
                         </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
             )}
 
