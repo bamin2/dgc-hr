@@ -17,6 +17,23 @@ export function useDeductionTemplates() {
   });
 }
 
+export function useDeductionTemplatesByLocation(workLocationId: string) {
+  return useQuery({
+    queryKey: ['deduction-templates', 'location', workLocationId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('deduction_templates')
+        .select('*')
+        .eq('work_location_id', workLocationId)
+        .order('name');
+      
+      if (error) throw error;
+      return data as DeductionTemplate[];
+    },
+    enabled: !!workLocationId,
+  });
+}
+
 export function useActiveDeductionTemplates() {
   return useQuery({
     queryKey: ['deduction-templates', 'active'],
@@ -30,6 +47,24 @@ export function useActiveDeductionTemplates() {
       if (error) throw error;
       return data as DeductionTemplate[];
     },
+  });
+}
+
+export function useActiveDeductionTemplatesByLocation(workLocationId: string | null) {
+  return useQuery({
+    queryKey: ['deduction-templates', 'active', 'location', workLocationId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('deduction_templates')
+        .select('*')
+        .eq('is_active', true)
+        .eq('work_location_id', workLocationId!)
+        .order('name');
+      
+      if (error) throw error;
+      return data as DeductionTemplate[];
+    },
+    enabled: !!workLocationId,
   });
 }
 

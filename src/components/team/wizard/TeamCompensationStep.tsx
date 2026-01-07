@@ -11,8 +11,8 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { useActiveAllowanceTemplates } from "@/hooks/useAllowanceTemplates";
-import { useActiveDeductionTemplates } from "@/hooks/useDeductionTemplates";
+import { useActiveAllowanceTemplatesByLocation } from "@/hooks/useAllowanceTemplates";
+import { useActiveDeductionTemplatesByLocation } from "@/hooks/useDeductionTemplates";
 import { useWorkLocations } from "@/hooks/useWorkLocations";
 import { getCurrencyByCode } from "@/data/currencies";
 import { Plus, X, Info } from "lucide-react";
@@ -45,8 +45,8 @@ export function TeamCompensationStep({
   const [showAllowanceDialog, setShowAllowanceDialog] = useState(false);
   const [showDeductionDialog, setShowDeductionDialog] = useState(false);
 
-  const { data: allowanceTemplates } = useActiveAllowanceTemplates();
-  const { data: deductionTemplates } = useActiveDeductionTemplates();
+  const { data: allowanceTemplates } = useActiveAllowanceTemplatesByLocation(workLocationId || null);
+  const { data: deductionTemplates } = useActiveDeductionTemplatesByLocation(workLocationId || null);
   const { data: workLocations } = useWorkLocations();
 
   const workLocation = workLocations?.find((w) => w.id === workLocationId);
@@ -468,6 +468,7 @@ export function TeamCompensationStep({
         onAdd={handleAddAllowance}
         currency={data.currency}
         existingTemplateIds={existingAllowanceTemplateIds}
+        workLocationId={workLocationId || null}
       />
 
       <AddDeductionDialog
@@ -476,6 +477,7 @@ export function TeamCompensationStep({
         onAdd={handleAddDeduction}
         currency={data.currency}
         existingTemplateIds={existingDeductionTemplateIds}
+        workLocationId={workLocationId || null}
       />
     </div>
   );

@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Pencil, Trash2, DollarSign, Percent } from "lucide-react";
 import { TemplateFormDialog } from "./TemplateFormDialog";
 import { 
-  useAllowanceTemplates, 
+  useAllowanceTemplatesByLocation, 
   useCreateAllowanceTemplate, 
   useUpdateAllowanceTemplate,
   useDeleteAllowanceTemplate 
@@ -23,9 +23,15 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getCurrencyByCode } from "@/data/currencies";
 
-export function AllowanceTemplatesSection() {
-  const { data: templates, isLoading } = useAllowanceTemplates();
+interface AllowanceTemplatesSectionProps {
+  workLocationId: string;
+  currency: string;
+}
+
+export function AllowanceTemplatesSection({ workLocationId, currency }: AllowanceTemplatesSectionProps) {
+  const { data: templates, isLoading } = useAllowanceTemplatesByLocation(workLocationId);
   const createTemplate = useCreateAllowanceTemplate();
   const updateTemplate = useUpdateAllowanceTemplate();
   const deleteTemplate = useDeleteAllowanceTemplate();
@@ -33,6 +39,9 @@ export function AllowanceTemplatesSection() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<AllowanceTemplate | null>(null);
+
+  const currencyInfo = getCurrencyByCode(currency);
+  const currencySymbol = currencyInfo?.symbol || "$";
 
   const handleCreate = () => {
     setSelectedTemplate(null);
@@ -55,7 +64,7 @@ export function AllowanceTemplatesSection() {
         await updateTemplate.mutateAsync({ id: selectedTemplate.id, ...data });
         toast.success("Allowance template updated");
       } else {
-        await createTemplate.mutateAsync(data);
+        await createTemplate.mutateAsync({ ...data, work_location_id: workLocationId });
         toast.success("Allowance template created");
       }
       setDialogOpen(false);
@@ -125,11 +134,18 @@ export function AllowanceTemplatesSection() {
                         {template.is_taxable && (
                           <Badge variant="outline" className="text-xs">Taxable</Badge>
                         )}
+                        {template.is_variable && (
+                          <Badge variant="outline" className="text-xs text-blue-600 border-blue-200 bg-blue-50 dark:text-blue-400 dark:border-blue-800 dark:bg-blue-950">
+                            Variable
+                          </Badge>
+                        )}
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        {template.amount_type === 'fixed' 
-                          ? `$${template.amount.toLocaleString()}`
-                          : `${template.amount}% of ${template.percentage_of?.replace('_', ' ')}`
+                        {template.is_variable 
+                          ? "Amount set per employee"
+                          : template.amount_type === 'fixed' 
+                            ? `${currencySymbol}${(template.default_amount || template.amount).toLocaleString()}`
+                            : `${template.default_amount || template.amount}% of ${template.percentage_of?.replace('_', ' ')}`
                         }
                       </p>
                     </div>
@@ -171,6 +187,7 @@ export function AllowanceTemplatesSection() {
         template={selectedTemplate}
         onSave={handleSave}
         isSaving={createTemplate.isPending || updateTemplate.isPending}
+        currency={currency}
       />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Pencil, Trash2, DollarSign, Percent } from "lucide-react";
 import { TemplateFormDialog } from "./TemplateFormDialog";
 import { 
-  useDeductionTemplates, 
+  useDeductionTemplatesByLocation, 
   useCreateDeductionTemplate, 
   useUpdateDeductionTemplate,
   useDeleteDeductionTemplate 
@@ -23,9 +23,15 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getCurrencyByCode } from "@/data/currencies";
 
-export function DeductionTemplatesSection() {
-  const { data: templates, isLoading } = useDeductionTemplates();
+interface DeductionTemplatesSectionProps {
+  workLocationId: string;
+  currency: string;
+}
+
+export function DeductionTemplatesSection({ workLocationId, currency }: DeductionTemplatesSectionProps) {
+  const { data: templates, isLoading } = useDeductionTemplatesByLocation(workLocationId);
   const createTemplate = useCreateDeductionTemplate();
   const updateTemplate = useUpdateDeductionTemplate();
   const deleteTemplate = useDeleteDeductionTemplate();
@@ -33,6 +39,9 @@ export function DeductionTemplatesSection() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<DeductionTemplate | null>(null);
+
+  const currencyInfo = getCurrencyByCode(currency);
+  const currencySymbol = currencyInfo?.symbol || "$";
 
   const handleCreate = () => {
     setSelectedTemplate(null);
@@ -55,7 +64,7 @@ export function DeductionTemplatesSection() {
         await updateTemplate.mutateAsync({ id: selectedTemplate.id, ...data });
         toast.success("Deduction template updated");
       } else {
-        await createTemplate.mutateAsync(data);
+        await createTemplate.mutateAsync({ ...data, work_location_id: workLocationId });
         toast.success("Deduction template created");
       }
       setDialogOpen(false);
@@ -128,7 +137,7 @@ export function DeductionTemplatesSection() {
                       </div>
                       <p className="text-sm text-muted-foreground">
                         {template.amount_type === 'fixed' 
-                          ? `$${template.amount.toLocaleString()}`
+                          ? `${currencySymbol}${template.amount.toLocaleString()}`
                           : `${template.amount}% of ${template.percentage_of?.replace('_', ' ')}`
                         }
                       </p>
@@ -171,6 +180,7 @@ export function DeductionTemplatesSection() {
         template={selectedTemplate}
         onSave={handleSave}
         isSaving={createTemplate.isPending || updateTemplate.isPending}
+        currency={currency}
       />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

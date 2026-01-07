@@ -9,6 +9,7 @@ export interface AllowanceTemplate {
   percentage_of: string | null;
   is_taxable: boolean;
   is_active: boolean;
+  work_location_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -22,6 +23,7 @@ export interface DeductionTemplate {
   percentage_of: string | null;
   is_mandatory: boolean;
   is_active: boolean;
+  work_location_id: string | null;
   created_at: string;
   updated_at: string;
 }
