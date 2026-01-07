@@ -38,9 +38,6 @@ export interface BulkSalaryWizardData {
   selectedEmployeeIds: string[];
   filters: {
     departmentId?: string;
-    positionId?: string;
-    employmentType?: string;
-    nationality?: string;
     workLocationId?: string;
   };
   

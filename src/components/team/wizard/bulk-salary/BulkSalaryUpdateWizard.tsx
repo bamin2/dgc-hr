@@ -119,7 +119,7 @@ export function BulkSalaryUpdateWizard() {
             onUpdateData={updateData}
             employees={teamMembers}
             departments={(departments || []).map(d => ({ id: d.id, name: d.name }))}
-            positions={(positions || []).map(p => ({ id: p.id, title: p.title }))}
+            workLocations={(workLocations || []).map(wl => ({ id: wl.id, name: wl.name }))}
           />
         );
       case 2:
