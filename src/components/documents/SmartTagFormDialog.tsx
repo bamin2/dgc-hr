@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SmartTag, SmartTagInsert } from "@/hooks/useSmartTags";
+import { SOURCE_FIELDS, getFieldsForSource } from "@/data/smartTagFields";
 
 const SOURCE_OPTIONS = [
   { value: "employee", label: "Employee" },
@@ -67,6 +68,8 @@ export function SmartTagFormDialog({
   const [useNewCategory, setUseNewCategory] = useState(false);
 
   const allCategories = [...new Set([...DEFAULT_CATEGORIES, ...existingCategories])];
+  const availableFields = getFieldsForSource(source);
+  const selectedField = availableFields.find(f => f.field === field);
 
   useEffect(() => {
     if (open) {
@@ -93,6 +96,20 @@ export function SmartTagFormDialog({
       }
     }
   }, [open, smartTag]);
+
+  // Reset field when source changes (only for new tags)
+  useEffect(() => {
+    if (!smartTag && open) {
+      setField("");
+    }
+  }, [source, smartTag, open]);
+
+  // Auto-populate description when field is selected
+  useEffect(() => {
+    if (selectedField && !smartTag && !description) {
+      setDescription(selectedField.description);
+    }
+  }, [selectedField, smartTag, description]);
 
   const formattedTag = tagName ? `<<${tagName}>>` : "";
   const finalCategory = useNewCategory ? newCategory : category;
@@ -143,19 +160,6 @@ export function SmartTagFormDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="field">Database Field *</Label>
-            <Input
-              id="field"
-              value={field}
-              onChange={(e) => setField(e.target.value)}
-              placeholder="e.g., first_name"
-            />
-            <p className="text-xs text-muted-foreground">
-              The column name from the source table
-            </p>
-          </div>
-
-          <div className="space-y-2">
             <Label htmlFor="source">Data Source *</Label>
             <Select value={source} onValueChange={setSource}>
               <SelectTrigger>
@@ -169,6 +173,27 @@ export function SmartTagFormDialog({
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="field">Database Field *</Label>
+            <Select value={field} onValueChange={setField} disabled={!source}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a field" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableFields.map((f) => (
+                  <SelectItem key={f.field} value={f.field}>
+                    {f.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {selectedField && (
+              <p className="text-xs text-muted-foreground">
+                {selectedField.description}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">

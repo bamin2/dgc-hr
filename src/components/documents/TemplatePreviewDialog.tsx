@@ -8,6 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { DocumentTemplate } from "@/hooks/useDocumentTemplates";
 import { renderTemplate } from "@/utils/templateRenderer";
 import { useCompanySettings } from "@/contexts/CompanySettingsContext";
+import { useActiveSmartTags } from "@/hooks/useSmartTags";
 import { TemplateCategoryBadge } from "./TemplateCategoryBadge";
 
 interface TemplatePreviewDialogProps {
@@ -33,12 +34,18 @@ const sampleEmployee = {
   notice_period: "30 days",
   net_allowances: 1500,
   annual_leave_days: 21,
+  employment_type: "Full-time",
+  gender: "Male",
+  preferred_name: "Johnny",
+  country: "United States",
+  pay_frequency: "Monthly",
+  worker_type: "Employee",
 };
 
-const samplePosition = { title: "Software Engineer" };
-const sampleDepartment = { name: "Engineering" };
-const sampleWorkLocation = { name: "Headquarters", currency: "USD" };
-const sampleManager = { first_name: "Jane", last_name: "Smith" };
+const samplePosition = { title: "Software Engineer", job_description: "Develops software applications" };
+const sampleDepartment = { name: "Engineering", description: "Product development team" };
+const sampleWorkLocation = { name: "Headquarters", currency: "USD", address: "100 Tech Park", city: "San Francisco", country: "USA", is_remote: false };
+const sampleManager = { first_name: "Jane", last_name: "Smith", email: "jane.smith@example.com", phone: "+1 555-0124" };
 
 export function TemplatePreviewDialog({
   open,
@@ -46,28 +53,33 @@ export function TemplatePreviewDialog({
   template,
 }: TemplatePreviewDialogProps) {
   const { settings } = useCompanySettings();
+  const { data: smartTags } = useActiveSmartTags();
 
   if (!template) return null;
 
-  const renderedContent = renderTemplate(template.content, {
-    employee: sampleEmployee,
-    position: samplePosition,
-    department: sampleDepartment,
-    workLocation: sampleWorkLocation,
-    manager: sampleManager,
-    company: settings || {
-      name: "Company Name",
-      legal_name: "Company Legal Name",
-      email: "info@company.com",
-      phone: "+1 555-0000",
-      logo_url: "",
-      address_street: "100 Business Ave",
-      address_city: "Business City",
-      address_state: "State",
-      address_country: "Country",
-      address_zip_code: "12345",
+  const renderedContent = renderTemplate(
+    template.content,
+    {
+      employee: sampleEmployee,
+      position: samplePosition,
+      department: sampleDepartment,
+      workLocation: sampleWorkLocation,
+      manager: sampleManager,
+      company: settings || {
+        name: "Company Name",
+        legal_name: "Company Legal Name",
+        email: "info@company.com",
+        phone: "+1 555-0000",
+        logo_url: "",
+        address_street: "100 Business Ave",
+        address_city: "Business City",
+        address_state: "State",
+        address_country: "Country",
+        address_zip_code: "12345",
+      },
     },
-  });
+    smartTags
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

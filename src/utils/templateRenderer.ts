@@ -1,4 +1,5 @@
 import { format, addDays } from "date-fns";
+import { SmartTag } from "@/hooks/useSmartTags";
 
 // Helper to replace both plain and HTML-encoded versions of tags
 function replaceTag(content: string, tag: string, value: string): string {
@@ -26,6 +27,12 @@ interface EmployeeData {
   notice_period?: string;
   net_allowances?: number;
   annual_leave_days?: number;
+  employment_type?: string;
+  gender?: string;
+  preferred_name?: string;
+  country?: string;
+  pay_frequency?: string;
+  worker_type?: string;
 }
 
 interface PositionData {
@@ -35,16 +42,23 @@ interface PositionData {
 
 interface DepartmentData {
   name?: string;
+  description?: string;
 }
 
 interface WorkLocationData {
   name?: string;
   currency?: string;
+  address?: string;
+  city?: string;
+  country?: string;
+  is_remote?: boolean;
 }
 
 interface ManagerData {
   first_name?: string;
   last_name?: string;
+  email?: string;
+  phone?: string;
 }
 
 interface CompanyData {
@@ -58,9 +72,13 @@ interface CompanyData {
   address_state?: string;
   address_country?: string;
   address_zip_code?: string;
+  website?: string;
+  tax_id?: string;
+  currency?: string;
+  industry?: string;
 }
 
-interface RenderData {
+export interface RenderData {
   employee?: EmployeeData;
   position?: PositionData;
   department?: DepartmentData;
@@ -73,12 +91,80 @@ interface RenderData {
   signatureName?: string;
 }
 
-export function renderTemplate(template: string, data: RenderData): string {
+// Resolve a field value from the appropriate data source
+function resolveField(
+  source: string,
+  field: string,
+  data: RenderData
+): string {
+  // Handle system fields
+  if (source === "system") {
+    switch (field) {
+      case "current_date":
+        return format(new Date(), "MMMM d, yyyy");
+      case "current_year":
+        return new Date().getFullYear().toString();
+      case "offer_expiry_date":
+        return format(addDays(new Date(), data.offerExpiryDays || 7), "MMMM d, yyyy");
+      default:
+        return "";
+    }
+  }
+
+  // Map source to data object
+  const sourceDataMap: Record<string, unknown> = {
+    employee: data.employee,
+    company: data.company,
+    position: data.position,
+    department: data.department,
+    work_location: data.workLocation,
+    manager: data.manager,
+  };
+
+  const sourceData = sourceDataMap[source] as Record<string, unknown> | undefined;
+  if (!sourceData) return "";
+
+  const value = sourceData[field];
+  if (value === null || value === undefined) return "";
+
+  // Handle special formatting
+  if (field.includes("date") || field === "date_of_birth" || field === "join_date") {
+    try {
+      return format(new Date(value as string), "MMMM d, yyyy");
+    } catch {
+      return String(value);
+    }
+  }
+
+  if (field === "salary" || field.includes("amount") || field.includes("cost")) {
+    return (value as number)?.toLocaleString() || "";
+  }
+  if (typeof value === "boolean") {
+    return value ? "Yes" : "No";
+  }
+
+  return String(value);
+}
+
+export function renderTemplate(
+  template: string,
+  data: RenderData,
+  smartTags?: SmartTag[]
+): string {
   let result = template;
 
   const { employee, position, department, workLocation, manager, company, endDate, offerExpiryDays = 7 } = data;
 
-  // Employee fields
+  // First, resolve custom smart tags dynamically
+  if (smartTags && smartTags.length > 0) {
+    for (const tag of smartTags) {
+      const tagName = tag.tag.replace(/^<<|>>$/g, "");
+      const value = resolveField(tag.source, tag.field, data);
+      result = replaceTag(result, tagName, value);
+    }
+  }
+
+  // Employee fields (backward compatibility)
   if (employee) {
     result = replaceTag(result, "First Name", employee.first_name || "");
     result = replaceTag(result, "Last Name", employee.last_name || "");
