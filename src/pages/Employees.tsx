@@ -234,10 +234,10 @@ export default function Employees() {
     <div className="flex min-h-screen bg-background">
       <Sidebar />
       
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <Header />
         
-        <main className="flex-1 p-4 sm:p-6 overflow-x-hidden">
+        <main className="flex-1 p-4 sm:p-6 overflow-y-auto overflow-x-hidden">
           {/* Page Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <h1 className="text-xl sm:text-2xl font-semibold text-foreground">People Directory</h1>
