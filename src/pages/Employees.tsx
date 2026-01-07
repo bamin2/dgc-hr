@@ -13,6 +13,7 @@ import {
   EmployeeImportDialog,
   ImportHistoryDialog,
   FormerEmployeesTable,
+  ColumnCustomizer,
 } from "@/components/employees";
 import {
   useEmployees,
@@ -20,10 +21,12 @@ import {
   useDeleteEmployee,
   Employee,
 } from "@/hooks/useEmployees";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useRole } from "@/contexts/RoleContext";
 import { filterActiveEmployees } from "@/utils/orgHierarchy";
+import { EmployeeTableColumnId } from "@/data/settings";
 
 type TabType = 'directory' | 'org-chart' | 'former-employees';
 
@@ -50,6 +53,7 @@ export default function Employees() {
   const { data: employees = [], isLoading, error } = useEmployees();
   const updateEmployee = useUpdateEmployee();
   const deleteEmployee = useDeleteEmployee();
+  const { preferences, updatePreferences, isSaving: isSavingPreferences } = useUserPreferences();
   
   const [activeTab, setActiveTab] = useState<TabType>('directory');
   const [searchQuery, setSearchQuery] = useState('');
@@ -296,7 +300,7 @@ export default function Employees() {
           {activeTab === 'directory' && (
             <>
               {/* Filters */}
-              <div className="mb-6">
+              <div className="mb-6 flex items-start justify-between gap-4">
                 <EmployeeFilters
                   searchQuery={searchQuery}
                   onSearchChange={setSearchQuery}
@@ -306,6 +310,13 @@ export default function Employees() {
                   onStatusChange={setStatusFilter}
                   workLocationFilter={workLocationFilter}
                   onWorkLocationChange={setWorkLocationFilter}
+                />
+                <ColumnCustomizer
+                  visibleColumns={preferences.display.employeeTableColumns}
+                  onColumnsChange={(columns: EmployeeTableColumnId[]) => {
+                    updatePreferences({ display: { ...preferences.display, employeeTableColumns: columns } });
+                  }}
+                  isSaving={isSavingPreferences}
                 />
               </div>
 
@@ -323,6 +334,7 @@ export default function Employees() {
                   <EmployeeTable
                     employees={paginatedEmployees}
                     selectedEmployees={selectedEmployees}
+                    visibleColumns={preferences.display.employeeTableColumns}
                     onSelectionChange={setSelectedEmployees}
                     onView={handleView}
                     onEdit={handleEdit}

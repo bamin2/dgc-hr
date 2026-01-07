@@ -2,6 +2,7 @@ export { StatusBadge } from "./StatusBadge";
 export { ViewToggle } from "./ViewToggle";
 export { EmployeeFilters } from "./EmployeeFilters";
 export { EmployeeCard } from "./EmployeeCard";
+export { ColumnCustomizer } from "./ColumnCustomizer";
 export { EmployeeTable } from "./EmployeeTable";
 export { EmployeeForm } from "./EmployeeForm";
 export { TablePagination } from "./TablePagination";

@@ -2455,6 +2455,7 @@ export type Database = {
           created_at: string | null
           date_format: string | null
           default_page: string | null
+          employee_table_columns: Json | null
           first_day_of_week: string | null
           id: string
           items_per_page: number | null
@@ -2470,6 +2471,7 @@ export type Database = {
           created_at?: string | null
           date_format?: string | null
           default_page?: string | null
+          employee_table_columns?: Json | null
           first_day_of_week?: string | null
           id?: string
           items_per_page?: number | null
@@ -2485,6 +2487,7 @@ export type Database = {
           created_at?: string | null
           date_format?: string | null
           default_page?: string | null
+          employee_table_columns?: Json | null
           first_day_of_week?: string | null
           id?: string
           items_per_page?: number | null

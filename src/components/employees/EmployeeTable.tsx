@@ -19,6 +19,7 @@ import {
 import { StatusBadge } from "./StatusBadge";
 import { Employee } from "@/hooks/useEmployees";
 import { format } from "date-fns";
+import { EmployeeTableColumnId, defaultEmployeeTableColumns } from "@/data/settings";
 
 interface EmployeeTableProps {
   employees: Employee[];
@@ -28,6 +29,7 @@ interface EmployeeTableProps {
   onEdit: (employee: Employee) => void;
   onDelete: (employee: Employee) => void;
   canEdit?: boolean;
+  visibleColumns?: EmployeeTableColumnId[];
 }
 
 export function EmployeeTable({
@@ -38,6 +40,7 @@ export function EmployeeTable({
   onEdit,
   onDelete,
   canEdit = true,
+  visibleColumns = defaultEmployeeTableColumns,
 }: EmployeeTableProps) {
   const allSelected = employees.length > 0 && employees.every(emp => selectedEmployees.includes(emp.id));
   const someSelected = employees.some(emp => selectedEmployees.includes(emp.id)) && !allSelected;
@@ -58,6 +61,8 @@ export function EmployeeTable({
     }
   };
 
+  const showColumn = (columnId: EmployeeTableColumnId) => visibleColumns.includes(columnId);
+
   return (
     <div className="rounded-lg border bg-card overflow-hidden">
       <Table>
@@ -74,12 +79,12 @@ export function EmployeeTable({
                 onCheckedChange={handleSelectAll}
               />
             </TableHead>
-            <TableHead className="font-medium">Employee Name</TableHead>
-            <TableHead className="font-medium">Email Address</TableHead>
-            <TableHead className="font-medium">Department</TableHead>
-            <TableHead className="font-medium">Job Title</TableHead>
-            <TableHead className="font-medium">Joined Date</TableHead>
-            <TableHead className="font-medium">Status</TableHead>
+            {showColumn('name') && <TableHead className="font-medium">Employee Name</TableHead>}
+            {showColumn('email') && <TableHead className="font-medium">Email Address</TableHead>}
+            {showColumn('department') && <TableHead className="font-medium">Department</TableHead>}
+            {showColumn('jobTitle') && <TableHead className="font-medium">Job Title</TableHead>}
+            {showColumn('joinDate') && <TableHead className="font-medium">Joined Date</TableHead>}
+            {showColumn('status') && <TableHead className="font-medium">Status</TableHead>}
             <TableHead className="font-medium text-right">Action</TableHead>
           </TableRow>
         </TableHeader>
@@ -100,34 +105,46 @@ export function EmployeeTable({
                     onCheckedChange={(checked) => handleSelectOne(employee.id, checked as boolean)}
                   />
                 </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={employee.avatar} alt={`${employee.firstName} ${employee.lastName}`} />
-                      <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                        {initials}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="font-medium text-foreground">
-                      {employee.firstName} {employee.lastName}
-                    </span>
-                  </div>
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {employee.email}
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {employee.department}
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {employee.position}
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {format(new Date(employee.joinDate), 'MMM d, yyyy')}
-                </TableCell>
-                <TableCell>
-                  <StatusBadge status={employee.status} />
-                </TableCell>
+                {showColumn('name') && (
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={employee.avatar} alt={`${employee.firstName} ${employee.lastName}`} />
+                        <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                          {initials}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="font-medium text-foreground">
+                        {employee.firstName} {employee.lastName}
+                      </span>
+                    </div>
+                  </TableCell>
+                )}
+                {showColumn('email') && (
+                  <TableCell className="text-muted-foreground">
+                    {employee.email}
+                  </TableCell>
+                )}
+                {showColumn('department') && (
+                  <TableCell className="text-muted-foreground">
+                    {employee.department}
+                  </TableCell>
+                )}
+                {showColumn('jobTitle') && (
+                  <TableCell className="text-muted-foreground">
+                    {employee.position}
+                  </TableCell>
+                )}
+                {showColumn('joinDate') && (
+                  <TableCell className="text-muted-foreground">
+                    {format(new Date(employee.joinDate), 'MMM d, yyyy')}
+                  </TableCell>
+                )}
+                {showColumn('status') && (
+                  <TableCell>
+                    <StatusBadge status={employee.status} />
+                  </TableCell>
+                )}
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   <div className="flex items-center justify-end gap-1">
                     {canEdit && (
