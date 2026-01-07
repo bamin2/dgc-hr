@@ -22,9 +22,9 @@ const Index = () => {
     return (
       <div className="flex min-h-screen w-full bg-background">
         <Sidebar />
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           <Header />
-          <main className="flex-1 p-6 overflow-auto">
+          <main className="flex-1 p-6 overflow-y-auto">
             <div className="max-w-7xl mx-auto space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-28" />)}
@@ -48,11 +48,11 @@ const Index = () => {
     <div className="flex min-h-screen w-full bg-background">
       <Sidebar />
 
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <ImpersonationBanner />
         <Header />
 
-        <main className="flex-1 p-4 sm:p-6 overflow-auto overflow-x-hidden">
+        <main className="flex-1 p-4 sm:p-6 overflow-y-auto overflow-x-hidden">
           <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
             {visibility.metrics && <MetricsCards />}
 

@@ -148,7 +148,7 @@ export function MobileNav() {
           <Menu className="h-5 w-5" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-72 p-0 bg-sidebar text-sidebar-foreground">
+      <SheetContent side="left" className="w-72 p-0 bg-sidebar text-sidebar-foreground flex flex-col overflow-hidden">
         {/* Logo Section */}
         <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
           <div className="flex items-center gap-3">
@@ -177,7 +177,7 @@ export function MobileNav() {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 py-4 px-3 overflow-y-auto space-y-6">
+        <nav className="flex-1 py-4 px-3 overflow-y-auto space-y-6 min-h-0">
           <NavSection
             label="Main"
             items={mainMenuItems}
