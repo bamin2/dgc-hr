@@ -8,11 +8,15 @@ import {
   addDays,
   addMonths,
   subMonths,
+  addWeeks,
+  subWeeks,
   isSameMonth,
   isSameDay,
   isWithinInterval,
   parseISO,
 } from "date-fns";
+import { TimeOffDayView } from "./TimeOffDayView";
+import { TimeOffWeekView } from "./TimeOffWeekView";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -135,8 +139,45 @@ export function TimeOffMonthCalendar() {
   };
 
   const goToToday = () => setCurrentDate(new Date());
-  const goToPrevMonth = () => setCurrentDate(subMonths(currentDate, 1));
-  const goToNextMonth = () => setCurrentDate(addMonths(currentDate, 1));
+  
+  const goToPrev = () => {
+    if (viewMode === "day") {
+      setCurrentDate(addDays(currentDate, -1));
+    } else if (viewMode === "week") {
+      setCurrentDate(subWeeks(currentDate, 1));
+    } else {
+      setCurrentDate(subMonths(currentDate, 1));
+    }
+  };
+
+  const goToNext = () => {
+    if (viewMode === "day") {
+      setCurrentDate(addDays(currentDate, 1));
+    } else if (viewMode === "week") {
+      setCurrentDate(addWeeks(currentDate, 1));
+    } else {
+      setCurrentDate(addMonths(currentDate, 1));
+    }
+  };
+
+  // Week dates for week view
+  const weekDates = useMemo(() => {
+    const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
+    return Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+  }, [currentDate]);
+
+  // Date range display
+  const dateRangeDisplay = useMemo(() => {
+    if (viewMode === "day") {
+      return format(currentDate, "EEEE, MMMM d, yyyy");
+    } else if (viewMode === "week") {
+      const weekStart = weekDates[0];
+      const weekEnd = weekDates[6];
+      return `${format(weekStart, "MMM d")} - ${format(weekEnd, "MMM d, yyyy")}`;
+    } else {
+      return `${format(monthStart, "MMMM dd")} - ${format(monthEnd, "MMMM dd")}`;
+    }
+  }, [viewMode, currentDate, weekDates, monthStart, monthEnd]);
 
   const today = new Date();
   const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -172,95 +213,107 @@ export function TimeOffMonthCalendar() {
         </ToggleGroup>
         
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={goToPrevMonth}>
+          <Button variant="ghost" size="icon" onClick={goToPrev}>
             <ChevronLeft className="w-4 h-4" />
           </Button>
-          <span className="text-sm font-medium min-w-[180px] text-center">
-            {format(monthStart, "MMMM dd")} - {format(monthEnd, "MMMM dd")}
+          <span className="text-sm font-medium min-w-[220px] text-center">
+            {dateRangeDisplay}
           </span>
-          <Button variant="ghost" size="icon" onClick={goToNextMonth}>
+          <Button variant="ghost" size="icon" onClick={goToNext}>
             <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
       </div>
 
-      {/* Calendar Grid */}
-      <div className="border rounded-lg overflow-hidden bg-card">
-        {/* Week Day Headers */}
-        <div className="grid grid-cols-7 border-b">
-          {weekDays.map((day) => (
-            <div key={day} className="p-3 text-center text-sm font-medium text-muted-foreground border-r last:border-r-0">
-              {day}
+      {/* Day View */}
+      {viewMode === "day" && (
+        <TimeOffDayView date={currentDate} events={calendarEvents} />
+      )}
+
+      {/* Week View */}
+      {viewMode === "week" && (
+        <TimeOffWeekView weekDates={weekDates} events={calendarEvents} />
+      )}
+
+      {/* Month View - Calendar Grid */}
+      {viewMode === "month" && (
+        <div className="border rounded-lg overflow-hidden bg-card">
+          {/* Week Day Headers */}
+          <div className="grid grid-cols-7 border-b">
+            {weekDays.map((day) => (
+              <div key={day} className="p-3 text-center text-sm font-medium text-muted-foreground border-r last:border-r-0">
+                {day}
+              </div>
+            ))}
+          </div>
+
+          {/* Calendar Rows */}
+          {weeks.map((week, weekIndex) => (
+            <div key={weekIndex} className="grid grid-cols-7 border-b last:border-b-0">
+              {week.map((day, dayIndex) => {
+                const isCurrentMonth = isSameMonth(day, currentDate);
+                const isToday = isSameDay(day, today);
+                const events = getEventsForDay(day);
+
+                return (
+                  <div
+                    key={dayIndex}
+                    className={cn(
+                      "min-h-[100px] p-2 border-r last:border-r-0 relative",
+                      !isCurrentMonth && "bg-muted/30"
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "text-sm font-medium",
+                        !isCurrentMonth && "text-muted-foreground",
+                        isToday && "text-primary font-bold"
+                      )}
+                    >
+                      {format(day, "d")}
+                    </span>
+                    
+                    {/* Events */}
+                    <div className="mt-1 space-y-1">
+                      {events.slice(0, 2).map((event) => {
+                        const isStart = isEventStart(day, event);
+                        const isEnd = isEventEnd(day, event);
+                        
+                        return (
+                          <div
+                            key={event.id}
+                            className={cn(
+                              "text-xs px-2 py-1 truncate text-white",
+                              isStart && "rounded-l-md",
+                              isEnd && "rounded-r-md",
+                              !isStart && !isEnd && "rounded-none",
+                              isStart && isEnd && "rounded-md"
+                            )}
+                            style={{
+                              backgroundColor: event.color,
+                              marginLeft: isStart ? 0 : -8,
+                              marginRight: isEnd ? 0 : -8,
+                              paddingLeft: isStart ? 8 : 4,
+                              paddingRight: isEnd ? 8 : 4,
+                            }}
+                          >
+                            {isStart && event.title}
+                          </div>
+                        );
+                      })}
+                      {events.length > 2 && (
+                        <div className="text-xs text-muted-foreground">
+                          +{events.length - 2} more
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           ))}
         </div>
-
-        {/* Calendar Rows */}
-        {weeks.map((week, weekIndex) => (
-          <div key={weekIndex} className="grid grid-cols-7 border-b last:border-b-0">
-            {week.map((day, dayIndex) => {
-              const isCurrentMonth = isSameMonth(day, currentDate);
-              const isToday = isSameDay(day, today);
-              const events = getEventsForDay(day);
-
-              return (
-                <div
-                  key={dayIndex}
-                  className={cn(
-                    "min-h-[100px] p-2 border-r last:border-r-0 relative",
-                    !isCurrentMonth && "bg-muted/30"
-                  )}
-                >
-                  <span
-                    className={cn(
-                      "text-sm font-medium",
-                      !isCurrentMonth && "text-muted-foreground",
-                      isToday && "text-primary font-bold"
-                    )}
-                  >
-                    {format(day, "d")}
-                  </span>
-                  
-                  {/* Events */}
-                  <div className="mt-1 space-y-1">
-                    {events.slice(0, 2).map((event) => {
-                      const isStart = isEventStart(day, event);
-                      const isEnd = isEventEnd(day, event);
-                      
-                      return (
-                        <div
-                          key={event.id}
-                          className={cn(
-                            "text-xs px-2 py-1 truncate text-white",
-                            isStart && "rounded-l-md",
-                            isEnd && "rounded-r-md",
-                            !isStart && !isEnd && "rounded-none",
-                            isStart && isEnd && "rounded-md"
-                          )}
-                          style={{
-                            backgroundColor: event.color,
-                            marginLeft: isStart ? 0 : -8,
-                            marginRight: isEnd ? 0 : -8,
-                            paddingLeft: isStart ? 8 : 4,
-                            paddingRight: isEnd ? 8 : 4,
-                          }}
-                        >
-                          {isStart && event.title}
-                        </div>
-                      );
-                    })}
-                    {events.length > 2 && (
-                      <div className="text-xs text-muted-foreground">
-                        +{events.length - 2} more
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ))}
-      </div>
+      )}
     </div>
   );
 }
