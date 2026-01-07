@@ -10,11 +10,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
 import { useActiveAllowanceTemplates } from "@/hooks/useAllowanceTemplates";
 import { useActiveDeductionTemplates } from "@/hooks/useDeductionTemplates";
 import { useWorkLocations } from "@/hooks/useWorkLocations";
 import { getCurrencyByCode } from "@/data/currencies";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Info } from "lucide-react";
 import { AddAllowanceDialog, AllowanceEntry } from "./AddAllowanceDialog";
 import { AddDeductionDialog, DeductionEntry } from "./AddDeductionDialog";
 
@@ -24,18 +25,22 @@ export interface TeamCompensationData {
   employmentStatus: "full_time" | "part_time";
   allowances: AllowanceEntry[];
   deductions: DeductionEntry[];
+  isSubjectToGosi: boolean;
+  gosiRegisteredSalary: string;
 }
 
 interface TeamCompensationStepProps {
   data: TeamCompensationData;
   onChange: (data: TeamCompensationData) => void;
   workLocationId: string;
+  isBahraini: boolean;
 }
 
 export function TeamCompensationStep({
   data,
   onChange,
   workLocationId,
+  isBahraini,
 }: TeamCompensationStepProps) {
   const [showAllowanceDialog, setShowAllowanceDialog] = useState(false);
   const [showDeductionDialog, setShowDeductionDialog] = useState(false);
@@ -218,6 +223,53 @@ export function TeamCompensationStep({
           </p>
         )}
       </div>
+
+      {/* GOSI Section - shown for Bahraini employees or when manually enabled */}
+      {(isBahraini || data.isSubjectToGosi) && (
+        <Card className="border-amber-200 bg-amber-50/50 dark:border-amber-900 dark:bg-amber-950/20">
+          <CardContent className="pt-4 space-y-4">
+            <div className="flex items-start gap-3">
+              <Info className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-foreground">GOSI (Social Insurance)</p>
+                <p className="text-xs text-muted-foreground">
+                  Bahraini employees are subject to GOSI. The registered salary may differ from the actual salary and typically updates annually.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <Label htmlFor="gosi-toggle" className="text-sm">Subject to GOSI</Label>
+              <Switch
+                id="gosi-toggle"
+                checked={data.isSubjectToGosi}
+                onCheckedChange={(checked) => updateField("isSubjectToGosi", checked)}
+              />
+            </div>
+
+            {data.isSubjectToGosi && (
+              <div className="space-y-2">
+                <Label>GOSI Registered Salary *</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
+                    {currency?.symbol || "$"}
+                  </span>
+                  <Input
+                    type="text"
+                    placeholder="0.00"
+                    value={data.gosiRegisteredSalary}
+                    onChange={(e) => updateField("gosiRegisteredSalary", e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  This is the salary registered with GOSI for social insurance calculations.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Allowances */}
       <div className="space-y-3">

@@ -65,7 +65,20 @@ export function AddTeamMemberWizard() {
     employmentStatus: "full_time",
     allowances: [],
     deductions: [],
+    isSubjectToGosi: false,
+    gosiRegisteredSalary: "",
   });
+
+  // Auto-set GOSI flag when nationality changes to Bahrain
+  useEffect(() => {
+    const isBahraini = basicData.nationality === "Bahrain";
+    if (isBahraini && !compensationData.isSubjectToGosi) {
+      setCompensationData(prev => ({
+        ...prev,
+        isSubjectToGosi: true,
+      }));
+    }
+  }, [basicData.nationality]);
 
   // Update currency when work location changes
   useEffect(() => {
@@ -122,6 +135,14 @@ export function AddTeamMemberWizard() {
           });
           return false;
         }
+        if (compensationData.isSubjectToGosi && !compensationData.gosiRegisteredSalary) {
+          toast({
+            title: "Required fields missing",
+            description: "GOSI registered salary is required for employees subject to GOSI.",
+            variant: "destructive",
+          });
+          return false;
+        }
         return true;
       case 4:
         // Offer step is optional
@@ -171,6 +192,10 @@ export function AddTeamMemberWizard() {
         avatar_url: basicData.avatar || null,
         nationality: basicData.nationality || null,
         second_name: basicData.secondName || null,
+        is_subject_to_gosi: compensationData.isSubjectToGosi,
+        gosi_registered_salary: compensationData.isSubjectToGosi 
+          ? parseFloat(compensationData.gosiRegisteredSalary) || null 
+          : null,
       });
 
       // Assign allowances (both template-based and custom)
@@ -235,6 +260,7 @@ export function AddTeamMemberWizard() {
             data={compensationData}
             onChange={setCompensationData}
             workLocationId={roleData.workLocationId}
+            isBahraini={basicData.nationality === "Bahrain"}
           />
         );
       case 4:
