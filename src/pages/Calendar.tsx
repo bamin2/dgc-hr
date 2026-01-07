@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek } from "date-fns";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Header } from "@/components/dashboard/Header";
 import {
@@ -7,6 +8,8 @@ import {
   WeekView,
   CreateEventDialog,
   EventDetailSheet,
+  DayView,
+  MonthView,
 } from "@/components/calendar";
 import { 
   useCalendarEvents, 
@@ -14,7 +17,13 @@ import {
   CalendarEvent 
 } from "@/hooks/useCalendarEvents";
 import { toast } from "sonner";
-import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function Calendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -30,23 +39,38 @@ export default function Calendar() {
     colors: [] as string[],
   });
 
-  // Calculate the week range for fetching events
-  const weekRange = useMemo(() => {
-    const startOfWeek = new Date(currentDate);
-    const day = startOfWeek.getDay();
-    const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
-    startOfWeek.setDate(diff);
-    startOfWeek.setHours(0, 0, 0, 0);
+  // Calculate date range based on view mode
+  const dateRange = useMemo(() => {
+    if (viewMode === "day") {
+      const dayStart = new Date(currentDate);
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date(currentDate);
+      dayEnd.setHours(23, 59, 59, 999);
+      return { start: dayStart, end: dayEnd };
+    } else if (viewMode === "month") {
+      const monthStart = startOfMonth(currentDate);
+      const monthEnd = endOfMonth(currentDate);
+      const calendarStart = startOfWeek(monthStart);
+      const calendarEnd = endOfWeek(monthEnd);
+      return { start: calendarStart, end: calendarEnd };
+    } else {
+      // Week view
+      const start = new Date(currentDate);
+      const day = start.getDay();
+      const diff = start.getDate() - day + (day === 0 ? -6 : 1);
+      start.setDate(diff);
+      start.setHours(0, 0, 0, 0);
 
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(startOfWeek.getDate() + 7);
-    endOfWeek.setHours(23, 59, 59, 999);
+      const end = new Date(start);
+      end.setDate(start.getDate() + 7);
+      end.setHours(23, 59, 59, 999);
 
-    return { start: startOfWeek, end: endOfWeek };
-  }, [currentDate]);
+      return { start, end };
+    }
+  }, [currentDate, viewMode]);
 
   // Fetch events from database
-  const { data: events = [], isLoading } = useCalendarEvents(weekRange.start, weekRange.end);
+  const { data: events = [], isLoading } = useCalendarEvents(dateRange.start, dateRange.end);
 
   // Calculate the week dates based on current date
   const weekDates = useMemo(() => {
@@ -93,14 +117,28 @@ export default function Calendar() {
 
   const handlePrevious = () => {
     const newDate = new Date(currentDate);
-    newDate.setDate(newDate.getDate() - 7);
+    if (viewMode === "day") {
+      newDate.setDate(newDate.getDate() - 1);
+    } else if (viewMode === "week") {
+      newDate.setDate(newDate.getDate() - 7);
+    } else {
+      newDate.setMonth(newDate.getMonth() - 1);
+    }
     setCurrentDate(newDate);
+    setSelectedDate(newDate);
   };
 
   const handleNext = () => {
     const newDate = new Date(currentDate);
-    newDate.setDate(newDate.getDate() + 7);
+    if (viewMode === "day") {
+      newDate.setDate(newDate.getDate() + 1);
+    } else if (viewMode === "week") {
+      newDate.setDate(newDate.getDate() + 7);
+    } else {
+      newDate.setMonth(newDate.getMonth() + 1);
+    }
     setCurrentDate(newDate);
+    setSelectedDate(newDate);
   };
 
   const handleDateSelect = (date: Date) => {
@@ -159,42 +197,64 @@ export default function Calendar() {
                   </svg>
                 </button>
               </div>
-              <div className="flex items-center gap-1">
-                {weekDates.map((date) => {
-                  const day = date.toLocaleDateString("en-US", { weekday: "short" });
-                  const dayNum = date.getDate().toString().padStart(2, "0");
-                  const isToday = date.toDateString() === new Date().toDateString();
-                  const isSelected = date.toDateString() === selectedDate.toDateString();
-                  return (
-                    <button
-                      key={date.toISOString()}
-                      onClick={() => handleDateSelect(date)}
-                      className={`flex flex-col items-center px-3 py-1.5 rounded-lg transition-colors ${
-                        isSelected
-                          ? "bg-primary text-primary-foreground"
-                          : isToday
-                          ? "bg-accent text-accent-foreground"
-                          : "hover:bg-muted"
-                      }`}
-                    >
-                      <span className="text-xs font-medium">{day}</span>
-                      <span className="text-sm font-bold">{dayNum}</span>
-                    </button>
-                  );
-                })}
-              </div>
+
+              {/* Show week dates only in week view */}
+              {viewMode === "week" && (
+                <div className="flex items-center gap-1">
+                  {weekDates.map((date) => {
+                    const day = date.toLocaleDateString("en-US", { weekday: "short" });
+                    const dayNum = date.getDate().toString().padStart(2, "0");
+                    const isToday = date.toDateString() === new Date().toDateString();
+                    const isSelected = date.toDateString() === selectedDate.toDateString();
+                    return (
+                      <button
+                        key={date.toISOString()}
+                        onClick={() => handleDateSelect(date)}
+                        className={`flex flex-col items-center px-3 py-1.5 rounded-lg transition-colors ${
+                          isSelected
+                            ? "bg-primary text-primary-foreground"
+                            : isToday
+                            ? "bg-accent text-accent-foreground"
+                            : "hover:bg-muted"
+                        }`}
+                      >
+                        <span className="text-xs font-medium">{day}</span>
+                        <span className="text-sm font-bold">{dayNum}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Show date display in day view */}
+              {viewMode === "day" && (
+                <span className="text-lg font-semibold">
+                  {format(selectedDate, "EEEE, MMMM d, yyyy")}
+                </span>
+              )}
+
+              {/* Show month display in month view */}
+              {viewMode === "month" && (
+                <span className="text-lg font-semibold">
+                  {format(currentDate, "MMMM yyyy")}
+                </span>
+              )}
             </div>
 
             <div className="flex items-center gap-2">
-              <select
+              <Select
                 value={viewMode}
-                onChange={(e) => setViewMode(e.target.value as any)}
-                className="h-8 px-3 text-sm border border-border rounded-md bg-background"
+                onValueChange={(v) => setViewMode(v as "day" | "week" | "month")}
               >
-                <option value="day">Day</option>
-                <option value="week">Week</option>
-                <option value="month">Month</option>
-              </select>
+                <SelectTrigger className="w-24 h-8">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="day">Day</SelectItem>
+                  <SelectItem value="week">Week</SelectItem>
+                  <SelectItem value="month">Month</SelectItem>
+                </SelectContent>
+              </Select>
               <CalendarFilters
                 open={filtersOpen}
                 onOpenChange={setFiltersOpen}
@@ -213,11 +273,34 @@ export default function Calendar() {
             </div>
           </div>
 
-          <WeekView
-            weekDates={weekDates}
-            events={filteredEvents}
-            onEventClick={handleEventClick}
-          />
+          {/* Calendar Views */}
+          {viewMode === "day" && (
+            <DayView
+              date={selectedDate}
+              events={filteredEvents}
+              onEventClick={handleEventClick}
+            />
+          )}
+
+          {viewMode === "week" && (
+            <WeekView
+              weekDates={weekDates}
+              events={filteredEvents}
+              onEventClick={handleEventClick}
+            />
+          )}
+
+          {viewMode === "month" && (
+            <MonthView
+              currentDate={currentDate}
+              events={filteredEvents}
+              onEventClick={handleEventClick}
+              onDateClick={(date) => {
+                setSelectedDate(date);
+                setViewMode("day");
+              }}
+            />
+          )}
         </main>
       </div>
 

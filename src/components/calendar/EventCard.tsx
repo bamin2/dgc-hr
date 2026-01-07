@@ -5,7 +5,7 @@ import { Video, MessageSquare, Users, Monitor } from "lucide-react";
 
 interface EventCardProps {
   event: CalendarEvent;
-  onClick?: () => void;
+  onClick?: (event: CalendarEvent) => void;
 }
 
 const colorStyles: Record<string, { bg: string; border: string; text: string }> = {
@@ -83,7 +83,7 @@ export function EventCard({ event, onClick }: EventCardProps) {
 
   return (
     <div
-      onClick={onClick}
+      onClick={() => onClick?.(event)}
       className={cn(
         "rounded-lg border-l-4 p-2.5 cursor-pointer transition-all hover:shadow-md h-full overflow-hidden",
         styles.bg,

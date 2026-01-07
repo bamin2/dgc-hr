@@ -1,6 +1,8 @@
 export { CalendarHeader } from "./CalendarHeader";
 export { CalendarToolbar } from "./CalendarToolbar";
 export { CalendarFilters } from "./CalendarFilters";
+export { DayView } from "./DayView";
+export { MonthView } from "./MonthView";
 export { WeekView } from "./WeekView";
 export { EventCard } from "./EventCard";
 export { CreateEventDialog } from "./CreateEventDialog";
