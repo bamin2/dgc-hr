@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -14,41 +15,38 @@ interface OffboardingDialogProps {
   onComplete: () => void;
 }
 
-export function OffboardingDialog({
-  open,
-  onOpenChange,
-  member,
-  onComplete,
-}: OffboardingDialogProps) {
-  if (!member) return null;
+export const OffboardingDialog = forwardRef<HTMLDivElement, OffboardingDialogProps>(
+  function OffboardingDialog({ open, onOpenChange, member, onComplete }, ref) {
+    if (!member) return null;
 
-  const employeeInfo = {
-    id: member.id,
-    firstName: member.firstName,
-    lastName: member.lastName,
-    email: member.email,
-    department: member.department,
-    jobTitle: member.jobTitle,
-  };
+    const employeeInfo = {
+      id: member.id,
+      firstName: member.firstName,
+      lastName: member.lastName,
+      email: member.email,
+      department: member.department,
+      jobTitle: member.jobTitle,
+    };
 
-  const handleComplete = () => {
-    onComplete();
-    onOpenChange(false);
-  };
+    const handleComplete = () => {
+      onComplete();
+      onOpenChange(false);
+    };
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-xl">
-            Start Employee Offboarding
-          </DialogTitle>
-        </DialogHeader>
-        <OffboardingWizard
-          employee={employeeInfo}
-          onComplete={handleComplete}
-        />
-      </DialogContent>
-    </Dialog>
-  );
-}
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent ref={ref} className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl">
+              Start Employee Offboarding
+            </DialogTitle>
+          </DialogHeader>
+          <OffboardingWizard
+            employee={employeeInfo}
+            onComplete={handleComplete}
+          />
+        </DialogContent>
+      </Dialog>
+    );
+  }
+);
