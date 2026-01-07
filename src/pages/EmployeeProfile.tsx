@@ -28,6 +28,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { StatusBadge, EmployeeForm, RoleBadge, RoleSelectorWithDescription, CreateLoginDialog, ResetPasswordDialog, SalaryHistoryCard } from "@/components/employees";
 import { useEmployee, useUpdateEmployee, useEmployees, Employee } from "@/hooks/useEmployees";
+import { getCountryByName } from "@/data/countries";
 import { AppRole, roleDescriptions } from "@/data/roles";
 import { useRole } from "@/contexts/RoleContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -181,6 +182,9 @@ export default function EmployeeProfile() {
                     {employee.workLocationName && (
                       <span className="flex items-center gap-1">
                         <MapPin className="h-4 w-4" />
+                        {employee.workLocationCountry && (
+                          <span>{getCountryByName(employee.workLocationCountry)?.flag}</span>
+                        )}
                         {employee.workLocationName}
                       </span>
                     )}

@@ -6,7 +6,7 @@ export type DbEmployee = Tables<"employees"> & {
   department?: { id: string; name: string } | null;
   position?: { id: string; title: string } | null;
   manager?: { id: string; first_name: string; last_name: string } | { id: string; first_name: string; last_name: string }[] | null;
-  work_location?: { id: string; name: string } | null;
+  work_location?: { id: string; name: string; country: string | null } | null;
 };
 
 // UI-compatible Employee interface
@@ -29,6 +29,7 @@ export interface Employee {
   location?: string;
   workLocationId?: string;
   workLocationName?: string;
+  workLocationCountry?: string;
   salary?: number;
   address?: string;
   dateOfBirth?: string;
@@ -66,6 +67,7 @@ export function mapDbEmployeeToEmployee(db: DbEmployee): Employee {
     location: db.location || undefined,
     workLocationId: db.work_location_id || undefined,
     workLocationName: db.work_location?.name || undefined,
+    workLocationCountry: db.work_location?.country || undefined,
     salary: db.salary ? Number(db.salary) : undefined,
     address: db.address || undefined,
     dateOfBirth: db.date_of_birth || undefined,
@@ -91,7 +93,7 @@ async function fetchEmployees(): Promise<Employee[]> {
       department:departments!employees_department_id_fkey(id, name),
       position:positions!employees_position_id_fkey(id, title),
       manager:employees!manager_id(id, first_name, last_name),
-      work_location:work_locations!employees_work_location_id_fkey(id, name)
+      work_location:work_locations!employees_work_location_id_fkey(id, name, country)
     `
     )
     .order("first_name");
@@ -113,7 +115,7 @@ async function fetchEmployee(id: string): Promise<Employee | null> {
       department:departments!employees_department_id_fkey(id, name),
       position:positions!employees_position_id_fkey(id, title),
       manager:employees!manager_id(id, first_name, last_name),
-      work_location:work_locations!employees_work_location_id_fkey(id, name)
+      work_location:work_locations!employees_work_location_id_fkey(id, name, country)
     `
     )
     .eq("id", id)
