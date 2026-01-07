@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { MoreHorizontal, Trash2, Edit, UserPlus, UserMinus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { format } from "date-fns";
+import { format, isValid, parseISO } from "date-fns";
 import {
   Table,
   TableBody,
@@ -80,6 +80,17 @@ export function TeamMemberTable({
     return `${first}${last}`.toUpperCase() || '??';
   };
 
+  const formatDate = (dateString: string | undefined | null): string => {
+    if (!dateString) return "Not set";
+    try {
+      const date = typeof dateString === 'string' ? parseISO(dateString) : new Date(dateString);
+      if (!isValid(date)) return "Not set";
+      return format(date, "MMM dd, yyyy");
+    } catch {
+      return "Not set";
+    }
+  };
+
   return (
     <div className="rounded-lg border bg-card">
       <Table>
@@ -129,7 +140,7 @@ export function TeamMemberTable({
                 </div>
               </TableCell>
               <TableCell className="text-muted-foreground">
-                {format(new Date(member.startDate), "MMM dd, yyyy")}
+                {formatDate(member.startDate)}
               </TableCell>
               <TableCell className="text-muted-foreground">{member.department}</TableCell>
               <TableCell className="text-muted-foreground">{member.jobTitle}</TableCell>
