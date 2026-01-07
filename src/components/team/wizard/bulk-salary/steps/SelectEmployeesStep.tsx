@@ -4,6 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { getCurrencyByCode } from "@/data/currencies";
 import {
   Select,
   SelectContent,
@@ -69,9 +70,11 @@ export function SelectEmployeesStep({
     }
   };
 
-  const formatCurrency = (amount: number | undefined) => {
+  const formatCurrency = (amount: number | undefined, currencyCode?: string) => {
     if (amount === undefined) return '-';
-    return `$${amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+    const currency = getCurrencyByCode(currencyCode || 'USD');
+    const symbol = currency?.symbol || currencyCode || '$';
+    return `${symbol}${amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
   };
 
   const getInitials = (firstName: string, lastName: string) => {
@@ -189,11 +192,11 @@ export function SelectEmployeesStep({
 
                   <div className="text-right">
                     <p className="text-sm font-medium">
-                      {formatCurrency(employee.salary)}
+                      {formatCurrency(employee.salary, employee.currency)}
                     </p>
                     {employee.isSubjectToGosi && (
                       <p className="text-xs text-muted-foreground">
-                        GOSI: {formatCurrency(employee.gosiRegisteredSalary)}
+                        GOSI: {formatCurrency(employee.gosiRegisteredSalary, employee.currency)}
                       </p>
                     )}
                   </div>
