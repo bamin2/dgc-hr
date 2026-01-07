@@ -2092,11 +2092,136 @@ export type Database = {
           },
         ]
       }
+      payroll_run_adjustments: {
+        Row: {
+          amount: number
+          created_at: string | null
+          employee_id: string
+          id: string
+          name: string
+          notes: string | null
+          payroll_run_id: string
+          type: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          employee_id: string
+          id?: string
+          name: string
+          notes?: string | null
+          payroll_run_id: string
+          type: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          employee_id?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          payroll_run_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_run_adjustments_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_run_adjustments_payroll_run_id_fkey"
+            columns: ["payroll_run_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payroll_run_employees: {
+        Row: {
+          base_salary: number | null
+          created_at: string | null
+          department: string | null
+          employee_code: string | null
+          employee_id: string
+          employee_name: string
+          gosi_deduction: number | null
+          gross_pay: number | null
+          housing_allowance: number | null
+          id: string
+          net_pay: number | null
+          other_allowances: Json | null
+          other_deductions: Json | null
+          payroll_run_id: string
+          position: string | null
+          total_deductions: number | null
+          transportation_allowance: number | null
+        }
+        Insert: {
+          base_salary?: number | null
+          created_at?: string | null
+          department?: string | null
+          employee_code?: string | null
+          employee_id: string
+          employee_name: string
+          gosi_deduction?: number | null
+          gross_pay?: number | null
+          housing_allowance?: number | null
+          id?: string
+          net_pay?: number | null
+          other_allowances?: Json | null
+          other_deductions?: Json | null
+          payroll_run_id: string
+          position?: string | null
+          total_deductions?: number | null
+          transportation_allowance?: number | null
+        }
+        Update: {
+          base_salary?: number | null
+          created_at?: string | null
+          department?: string | null
+          employee_code?: string | null
+          employee_id?: string
+          employee_name?: string
+          gosi_deduction?: number | null
+          gross_pay?: number | null
+          housing_allowance?: number | null
+          id?: string
+          net_pay?: number | null
+          other_allowances?: Json | null
+          other_deductions?: Json | null
+          payroll_run_id?: string
+          position?: string | null
+          total_deductions?: number | null
+          transportation_allowance?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_run_employees_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_run_employees_payroll_run_id_fkey"
+            columns: ["payroll_run_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payroll_runs: {
         Row: {
           created_at: string
+          created_by: string | null
           employee_count: number
           id: string
+          location_id: string | null
           pay_period_end: string
           pay_period_start: string
           processed_date: string
@@ -2105,8 +2230,10 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          created_by?: string | null
           employee_count?: number
           id?: string
+          location_id?: string | null
           pay_period_end: string
           pay_period_start: string
           processed_date?: string
@@ -2115,15 +2242,25 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          created_by?: string | null
           employee_count?: number
           id?: string
+          location_id?: string | null
           pay_period_end?: string
           pay_period_start?: string
           processed_date?: string
           status?: string
           total_amount?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "payroll_runs_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "work_locations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       positions: {
         Row: {
@@ -2901,6 +3038,7 @@ export type Database = {
         | "completed"
         | "incomplete"
       pay_frequency: "hour" | "day" | "week" | "month" | "year"
+      payroll_run_status: "draft" | "finalized" | "payslips_issued"
       project_priority: "low" | "medium" | "high"
       project_status: "todo" | "in_progress" | "need_review" | "done"
       salary_change_type:
@@ -3116,6 +3254,7 @@ export const Constants = {
         "incomplete",
       ],
       pay_frequency: ["hour", "day", "week", "month", "year"],
+      payroll_run_status: ["draft", "finalized", "payslips_issued"],
       project_priority: ["low", "medium", "high"],
       project_status: ["todo", "in_progress", "need_review", "done"],
       salary_change_type: [
