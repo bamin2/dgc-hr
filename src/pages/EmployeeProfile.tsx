@@ -178,6 +178,12 @@ export default function EmployeeProfile() {
                       <Briefcase className="h-4 w-4" />
                       {employee.employeeId}
                     </span>
+                    {employee.workLocationName && (
+                      <span className="flex items-center gap-1">
+                        <MapPin className="h-4 w-4" />
+                        {employee.workLocationName}
+                      </span>
+                    )}
                   </div>
                 </div>
                 
