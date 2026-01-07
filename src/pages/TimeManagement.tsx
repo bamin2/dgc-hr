@@ -7,7 +7,7 @@ import { LeavesTab } from "@/components/timemanagement/LeavesTab";
 
 export default function TimeManagement() {
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex h-screen w-full bg-background overflow-hidden">
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <Header />
