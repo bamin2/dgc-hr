@@ -161,9 +161,9 @@ export default function Calendar() {
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
-        <main className="flex-1 p-6 overflow-hidden flex flex-col">
+        <main className="flex-1 p-4 sm:p-6 overflow-hidden flex flex-col">
           <CalendarHeader
             currentDate={selectedDate}
             todayEvents={todayEvents}
@@ -171,7 +171,7 @@ export default function Calendar() {
             onCreateClick={() => setCreateDialogOpen(true)}
           />
 
-          <div className="flex items-center justify-between py-3 border-b border-border">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between py-3 border-b border-border gap-3">
             <div className="flex items-center gap-3">
               <button
                 onClick={handleToday}
@@ -198,9 +198,9 @@ export default function Calendar() {
                 </button>
               </div>
 
-              {/* Show week dates only in week view */}
+              {/* Show week dates only in week view - hidden on mobile */}
               {viewMode === "week" && (
-                <div className="flex items-center gap-1">
+                <div className="hidden lg:flex items-center gap-1">
                   {weekDates.map((date) => {
                     const day = date.toLocaleDateString("en-US", { weekday: "short" });
                     const dayNum = date.getDate().toString().padStart(2, "0");
@@ -210,7 +210,7 @@ export default function Calendar() {
                       <button
                         key={date.toISOString()}
                         onClick={() => handleDateSelect(date)}
-                        className={`flex flex-col items-center px-3 py-1.5 rounded-lg transition-colors ${
+                        className={`flex flex-col items-center px-2 lg:px-3 py-1.5 rounded-lg transition-colors ${
                           isSelected
                             ? "bg-primary text-primary-foreground"
                             : isToday

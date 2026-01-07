@@ -161,22 +161,22 @@ const SettingsPage = () => {
       <Sidebar />
       <div className="flex-1 flex flex-col">
         <Header />
-        <main className="flex-1 p-6 overflow-auto">
-          <div className="max-w-6xl mx-auto space-y-6">
+        <main className="flex-1 p-4 sm:p-6 overflow-auto overflow-x-hidden">
+          <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-lg bg-primary/10">
-                  <Settings className="h-6 w-6 text-primary" />
+                <div className="p-2 sm:p-2.5 rounded-lg bg-primary/10">
+                  <Settings className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
+                  <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">Settings</h1>
                   <p className="text-sm text-muted-foreground">
                     Manage your workspace and preferences
                   </p>
                 </div>
               </div>
-              <Button onClick={handleSave} disabled={isSaving}>
+              <Button onClick={handleSave} disabled={isSaving} className="w-full sm:w-auto">
                 {isSaving ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 ) : (
@@ -187,18 +187,21 @@ const SettingsPage = () => {
             </div>
 
             {/* Tabs */}
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-              <TabsList className="grid w-full h-auto gap-1 p-1" style={{ gridTemplateColumns: `repeat(${visibleTabs.length}, minmax(0, 1fr))` }}>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
+              <TabsList 
+                className="grid w-full h-auto gap-1 p-1 overflow-x-auto" 
+                style={{ gridTemplateColumns: `repeat(${visibleTabs.length}, minmax(60px, 1fr))` }}
+              >
                 {visibleTabs.map((tab) => {
                   const Icon = tab.icon;
                   return (
                     <TabsTrigger 
                       key={tab.value} 
                       value={tab.value}
-                      className="flex items-center gap-2 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                      className="flex items-center justify-center gap-1 sm:gap-2 py-2 sm:py-2.5 px-1 sm:px-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                     >
-                      <Icon className="h-4 w-4" />
-                      <span className="hidden sm:inline">{tab.label}</span>
+                      <Icon className="h-4 w-4 shrink-0" />
+                      <span className="hidden sm:inline text-xs lg:text-sm">{tab.label}</span>
                     </TabsTrigger>
                   );
                 })}

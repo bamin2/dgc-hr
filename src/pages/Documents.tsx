@@ -10,16 +10,16 @@ export default function Documents() {
       <Sidebar />
       <div className="flex-1 flex flex-col">
         <Header />
-        <main className="flex-1 p-6 overflow-auto">
-          <div className="space-y-6">
+        <main className="flex-1 p-4 sm:p-6 overflow-auto overflow-x-hidden">
+          <div className="space-y-4 sm:space-y-6">
             {/* Header */}
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-primary/10">
-                <FileText className="h-6 w-6 text-primary" />
+                <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
               </div>
               <div>
-                <h1 className="text-2xl font-semibold tracking-tight">Documents</h1>
-                <p className="text-muted-foreground">
+                <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">Documents</h1>
+                <p className="text-muted-foreground text-sm sm:text-base">
                   Manage company templates and employee documents
                 </p>
               </div>

@@ -237,20 +237,20 @@ export default function Employees() {
       <div className="flex-1 flex flex-col">
         <Header />
         
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 sm:p-6 overflow-x-hidden">
           {/* Page Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-            <h1 className="text-2xl font-semibold text-foreground">People Directory</h1>
+            <h1 className="text-xl sm:text-2xl font-semibold text-foreground">People Directory</h1>
             
             {canEditEmployees && (
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button variant="outline" onClick={() => setHistoryOpen(true)} className="gap-2">
                   <History className="h-4 w-4" />
-                  Import History
+                  <span className="hidden sm:inline">Import History</span>
                 </Button>
                 <Button variant="outline" onClick={() => setImportOpen(true)} className="gap-2">
                   <Upload className="h-4 w-4" />
-                  Import
+                  <span className="hidden sm:inline">Import</span>
                 </Button>
                 <EmployeeExportButton employees={filteredEmployees} />
               </div>
@@ -274,8 +274,8 @@ export default function Employees() {
           {!isLoading && !error && (
             <>
               {/* Tabs */}
-              <div className="border-b mb-6">
-                <div className="flex gap-6">
+              <div className="border-b mb-6 overflow-x-auto">
+                <div className="flex gap-4 sm:gap-6 min-w-max">
                   {tabs.map((tab) => {
                     const Icon = tab.icon;
                     return (

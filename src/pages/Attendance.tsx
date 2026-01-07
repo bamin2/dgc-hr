@@ -106,11 +106,11 @@ export default function Attendance() {
       <Sidebar />
       <div className="flex-1 flex flex-col">
         <Header />
-        <main className="flex-1 p-6 overflow-auto">
+        <main className="flex-1 p-4 sm:p-6 overflow-auto overflow-x-hidden">
           {/* Page Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-2xl font-semibold">Leave & Attendance</h1>
+              <h1 className="text-xl sm:text-2xl font-semibold">Leave & Attendance</h1>
               <p className="text-sm text-muted-foreground mt-1">
                 Manage employee attendance and leave requests
               </p>

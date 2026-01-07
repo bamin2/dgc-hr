@@ -96,18 +96,18 @@ const Reports = () => {
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />
-      <main className="flex-1 p-6 overflow-auto">
-        <div className="max-w-7xl mx-auto space-y-6">
+      <main className="flex-1 p-4 sm:p-6 overflow-auto overflow-x-hidden">
+        <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-semibold tracking-tight">Reports</h1>
-              <p className="text-muted-foreground">Analytics and insights for your organization</p>
+              <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">Reports</h1>
+              <p className="text-muted-foreground text-sm sm:text-base">Analytics and insights for your organization</p>
             </div>
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={handleRefresh}>
+            <div className="flex gap-2 sm:gap-3">
+              <Button variant="outline" onClick={handleRefresh} size="sm" className="sm:size-default">
                 <RefreshCw className="mr-2 h-4 w-4" />
-                Refresh
+                <span className="hidden sm:inline">Refresh</span>
               </Button>
               <ExportButton onExport={handleExport} />
             </div>
@@ -115,7 +115,7 @@ const Reports = () => {
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList>
+            <TabsList className="w-full sm:w-auto overflow-x-auto flex-wrap h-auto">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="attendance">Attendance</TabsTrigger>
               <TabsTrigger value="payroll">Payroll</TabsTrigger>

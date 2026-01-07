@@ -167,8 +167,8 @@ export default function Projects() {
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
-        <main className="flex-1 overflow-y-auto p-6">
-          <div className="max-w-[1600px] mx-auto space-y-6">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 overflow-x-hidden">
+          <div className="max-w-[1600px] mx-auto space-y-4 sm:space-y-6">
             {/* Header */}
             <ProjectsHeader />
 

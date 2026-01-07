@@ -18,14 +18,14 @@ export default function TimeOff() {
       <Sidebar />
       <div className="flex-1 flex flex-col">
         <Header />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 sm:p-6 overflow-x-hidden">
           {/* Page Header */}
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Time off</h1>
-              <p className="text-muted-foreground">Manage your team's time off.</p>
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground">Time off</h1>
+              <p className="text-muted-foreground text-sm sm:text-base">Manage your team's time off.</p>
             </div>
-            <Button onClick={() => setIsRequestDialogOpen(true)}>
+            <Button onClick={() => setIsRequestDialogOpen(true)} className="w-full sm:w-auto">
               <CalendarPlus className="w-4 h-4 mr-2" />
               Request time off
             </Button>

@@ -15,6 +15,7 @@ import { NotificationBell } from "@/components/notifications";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
 import { RoleBadge } from "@/components/employees";
+import { MobileNav } from "./MobileNav";
 
 export function Header() {
   const navigate = useNavigate();
@@ -39,19 +40,25 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b border-border">
-      <div className="flex items-center justify-between h-16 px-6">
-        {/* Greeting */}
-        <div>
-          <h1 className="text-xl font-bold text-foreground">
-            Hello, {displayName.split(' ')[0]}! 👋
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Let's check your team today
-          </p>
+      <div className="flex items-center justify-between h-14 sm:h-16 px-4 sm:px-6">
+        {/* Left side - Mobile nav trigger + Greeting */}
+        <div className="flex items-center gap-3">
+          {/* Mobile Navigation */}
+          <div className="lg:hidden">
+            <MobileNav />
+          </div>
+          <div>
+            <h1 className="text-lg sm:text-xl font-bold text-foreground">
+              Hello, {displayName.split(' ')[0]}! 👋
+            </h1>
+            <p className="hidden sm:block text-sm text-muted-foreground">
+              Let's check your team today
+            </p>
+          </div>
         </div>
 
         {/* Right Side */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           {/* Search */}
           <div className="relative hidden md:block">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -69,7 +76,7 @@ export function Header() {
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
-                className="flex items-center gap-2 hover:bg-secondary"
+                className="flex items-center gap-2 hover:bg-secondary px-2 sm:px-4"
               >
                 <Avatar className="w-8 h-8">
                   <AvatarImage src={profile?.avatar_url || currentUser.avatar} />
@@ -83,7 +90,7 @@ export function Header() {
                   </span>
                   <RoleBadge role={currentUser.role} />
                 </div>
-                <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                <ChevronDown className="w-4 h-4 text-muted-foreground hidden sm:block" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">

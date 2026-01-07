@@ -158,15 +158,15 @@ const Notifications = () => {
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />
-      <main className="flex-1 p-6 overflow-auto">
-        <div className="max-w-7xl mx-auto space-y-6">
+      <main className="flex-1 p-4 sm:p-6 overflow-auto overflow-x-hidden">
+        <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-semibold tracking-tight">Notifications</h1>
-              <p className="text-muted-foreground">View and manage all your notifications</p>
+              <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">Notifications</h1>
+              <p className="text-muted-foreground text-sm sm:text-base">View and manage all your notifications</p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-2 sm:gap-3">
               {metrics.unread > 0 && (
                 <Button variant="outline" onClick={handleMarkAllAsRead}>
                   <Check className="mr-2 h-4 w-4" />

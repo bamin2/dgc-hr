@@ -11,11 +11,11 @@ export default function TimeManagement() {
       <Sidebar />
       <div className="flex-1 flex flex-col">
         <Header />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 sm:p-6 overflow-x-hidden">
           {/* Page Header */}
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-foreground">Time Management</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground">Time Management</h1>
+            <p className="text-muted-foreground text-sm sm:text-base">
               Manage attendance tracking, leave policies, and employee time off.
             </p>
           </div>
