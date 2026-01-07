@@ -1,4 +1,4 @@
-import { Pencil, Trash2, MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, UserPlus, UserMinus } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -28,6 +28,8 @@ interface EmployeeTableProps {
   onView: (employee: Employee) => void;
   onEdit: (employee: Employee) => void;
   onDelete: (employee: Employee) => void;
+  onStartOnboarding?: (employee: Employee) => void;
+  onStartOffboarding?: (employee: Employee) => void;
   canEdit?: boolean;
   visibleColumns?: EmployeeTableColumnId[];
 }
@@ -39,6 +41,8 @@ export function EmployeeTable({
   onView,
   onEdit,
   onDelete,
+  onStartOnboarding,
+  onStartOffboarding,
   canEdit = true,
   visibleColumns = defaultEmployeeTableColumns,
 }: EmployeeTableProps) {
@@ -154,27 +158,7 @@ export function EmployeeTable({
                   </TableCell>
                 ))}
                 <TableCell onClick={(e) => e.stopPropagation()}>
-                  <div className="flex items-center justify-end gap-1">
-                    {canEdit && (
-                      <>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                          onClick={() => onDelete(employee)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                          onClick={() => onEdit(employee)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                      </>
-                    )}
+                  <div className="flex items-center justify-end">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
@@ -193,6 +177,14 @@ export function EmployeeTable({
                           <>
                             <DropdownMenuItem onClick={() => onEdit(employee)}>
                               Edit Employee
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => onStartOnboarding?.(employee)}>
+                              <UserPlus className="h-4 w-4 mr-2" />
+                              Start Onboarding
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => onStartOffboarding?.(employee)}>
+                              <UserMinus className="h-4 w-4 mr-2" />
+                              Start Offboarding
                             </DropdownMenuItem>
                             <DropdownMenuItem 
                               onClick={() => onDelete(employee)}

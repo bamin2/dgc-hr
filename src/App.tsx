@@ -14,7 +14,6 @@ import Employees from "./pages/Employees";
 import EmployeeProfile from "./pages/EmployeeProfile";
 import OnboardingDetail from "./pages/OnboardingDetail";
 import NewOnboarding from "./pages/NewOnboarding";
-import TeamMember from "./pages/TeamMember";
 import AddTeamMember from "./pages/AddTeamMember";
 import BulkSalaryUpdate from "./pages/BulkSalaryUpdate";
 import Payroll from "./pages/Payroll";
@@ -79,7 +78,6 @@ const App = () => (
                 <Route path="/payroll/payslip/:id" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><Payslip /></ProtectedRoute>} />
                 
                 {/* Protected routes - Manager, HR & Admin */}
-                <Route path="/team" element={<ProtectedRoute requiredRoles={['manager', 'hr', 'admin']}><TeamMember /></ProtectedRoute>} />
                 <Route path="/team/add" element={<ProtectedRoute requiredRoles={['manager', 'hr', 'admin']}><AddTeamMember /></ProtectedRoute>} />
                 <Route path="/team/bulk-salary-update" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><BulkSalaryUpdate /></ProtectedRoute>} />
                 <Route path="/reports" element={<ProtectedRoute requiredRoles={['manager', 'hr', 'admin']}><Reports /></ProtectedRoute>} />
