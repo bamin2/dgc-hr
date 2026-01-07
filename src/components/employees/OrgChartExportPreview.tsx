@@ -6,7 +6,7 @@ import {
 } from "./ExportableOrgChartNode";
 
 interface OrgChartExportPreviewProps {
-  orgData: OrgEmployee;
+  orgData: OrgEmployee | OrgEmployee[];
   visibility: CardVisibilitySettings;
 }
 
@@ -65,12 +65,18 @@ export const OrgChartExportPreview = forwardRef<
   HTMLDivElement,
   OrgChartExportPreviewProps
 >(({ orgData, visibility }, ref) => {
+  const trees = Array.isArray(orgData) ? orgData : [orgData];
+
   return (
     <div
       ref={ref}
       className="p-6 bg-background min-w-max flex justify-center"
     >
-      <TreeNode employee={orgData} visibility={visibility} />
+      <div className="flex gap-16 items-start">
+        {trees.map((tree) => (
+          <TreeNode key={tree.id} employee={tree} visibility={visibility} />
+        ))}
+      </div>
     </div>
   );
 });
