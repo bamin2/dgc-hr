@@ -1,24 +1,31 @@
+import { useMemo } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Info } from "lucide-react";
+import { Info, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { TeamMemberWithGosi } from "@/hooks/useBulkSalaryWizard";
 import { BulkSalaryWizardData, GosiHandling } from "../types";
 
 interface GosiSalaryStepProps {
   data: BulkSalaryWizardData;
   gosiEmployees: TeamMemberWithGosi[];
+  currency: string;
   onUpdateData: <K extends keyof BulkSalaryWizardData>(field: K, value: BulkSalaryWizardData[K]) => void;
 }
 
-export function GosiSalaryStep({ data, gosiEmployees, onUpdateData }: GosiSalaryStepProps) {
+export function GosiSalaryStep({ data, gosiEmployees, currency, onUpdateData }: GosiSalaryStepProps) {
   const formatCurrency = (amount: number | undefined) => {
     if (amount === undefined) return '-';
-    return `$${amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+    return new Intl.NumberFormat('en-US', { 
+      style: 'currency', 
+      currency: currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
   };
 
   const getInitials = (firstName: string, lastName: string) => {
@@ -38,6 +45,44 @@ export function GosiSalaryStep({ data, gosiEmployees, onUpdateData }: GosiSalary
     return amount * 0.08;
   };
 
+  // Calculate before/after totals
+  const gosiTotals = useMemo(() => {
+    const beforeSalaries = gosiEmployees.reduce((sum, e) => sum + (e.gosiRegisteredSalary || 0), 0);
+    const beforeDeductions = beforeSalaries * 0.08;
+
+    let afterSalaries = beforeSalaries;
+    if (data.gosiHandling === 'per_employee') {
+      afterSalaries = gosiEmployees.reduce((sum, e) => {
+        const newSalary = data.gosiPerEmployee[e.id] 
+          ? parseFloat(data.gosiPerEmployee[e.id]) 
+          : (e.gosiRegisteredSalary || 0);
+        return sum + newSalary;
+      }, 0);
+    }
+    const afterDeductions = afterSalaries * 0.08;
+
+    return {
+      beforeSalaries,
+      afterSalaries,
+      salaryChange: afterSalaries - beforeSalaries,
+      beforeDeductions,
+      afterDeductions,
+      deductionChange: afterDeductions - beforeDeductions,
+    };
+  }, [gosiEmployees, data.gosiHandling, data.gosiPerEmployee]);
+
+  const getChangeIcon = (change: number) => {
+    if (change > 0) return <TrendingUp className="h-4 w-4 text-green-600" />;
+    if (change < 0) return <TrendingDown className="h-4 w-4 text-destructive" />;
+    return <Minus className="h-4 w-4 text-muted-foreground" />;
+  };
+
+  const getChangeColor = (change: number) => {
+    if (change > 0) return 'text-green-600 dark:text-green-400';
+    if (change < 0) return 'text-destructive';
+    return 'text-muted-foreground';
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -50,9 +95,9 @@ export function GosiSalaryStep({ data, gosiEmployees, onUpdateData }: GosiSalary
       <Alert>
         <Info className="h-4 w-4" />
         <AlertDescription>
+          Showing employees marked as subject to GOSI in their employee profile.
           GOSI registered salary may differ from actual salary and typically updates annually (Jan 1).
-          This wizard will not auto-change it unless you choose to. The GOSI deduction is calculated
-          as 8% of the GOSI registered salary.
+          The GOSI deduction is calculated as 8% of the GOSI registered salary.
         </AlertDescription>
       </Alert>
 
@@ -127,15 +172,12 @@ export function GosiSalaryStep({ data, gosiEmployees, onUpdateData }: GosiSalary
 
                   <div className="flex items-center gap-2">
                     <div className="relative w-40">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-                        $
-                      </span>
                       <Input
                         type="number"
                         placeholder="New GOSI salary"
                         value={data.gosiPerEmployee[employee.id] || ''}
                         onChange={(e) => handlePerEmployeeChange(employee.id, e.target.value)}
-                        className="pl-7 h-9"
+                        className="h-9"
                       />
                     </div>
                     {data.gosiPerEmployee[employee.id] && (
@@ -156,32 +198,52 @@ export function GosiSalaryStep({ data, gosiEmployees, onUpdateData }: GosiSalary
         </div>
       )}
 
-      {/* Current GOSI salaries summary */}
-      <div className="space-y-3">
-        <Label className="text-base font-medium">Current GOSI Summary</Label>
-        <Card>
-          <CardContent className="p-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground">GOSI Employees</p>
-                <p className="text-lg font-semibold">{gosiEmployees.length}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Total Current GOSI Salaries</p>
-                <p className="text-lg font-semibold">
-                  {formatCurrency(gosiEmployees.reduce((sum, e) => sum + (e.gosiRegisteredSalary || 0), 0))}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Total Current GOSI Deductions</p>
-                <p className="text-lg font-semibold text-destructive">
-                  {formatCurrency(gosiEmployees.reduce((sum, e) => sum + calculateGosiDeduction(e.gosiRegisteredSalary), 0))}
-                </p>
+      {/* GOSI Impact Summary */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">GOSI Impact Summary</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {/* Header Row */}
+            <div className="grid grid-cols-4 gap-4 text-sm font-medium text-muted-foreground border-b pb-2">
+              <div></div>
+              <div className="text-right">Before</div>
+              <div className="text-right">After</div>
+              <div className="text-right">Change</div>
+            </div>
+
+            {/* GOSI Salaries Row */}
+            <div className="grid grid-cols-4 gap-4 items-center">
+              <div className="text-sm font-medium">GOSI Registered Salaries</div>
+              <div className="text-right text-sm">{formatCurrency(gosiTotals.beforeSalaries)}</div>
+              <div className="text-right text-sm font-medium">{formatCurrency(gosiTotals.afterSalaries)}</div>
+              <div className={`text-right text-sm font-medium flex items-center justify-end gap-1 ${getChangeColor(gosiTotals.salaryChange)}`}>
+                {getChangeIcon(gosiTotals.salaryChange)}
+                {gosiTotals.salaryChange >= 0 ? '+' : ''}{formatCurrency(gosiTotals.salaryChange)}
               </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+
+            {/* GOSI Deductions Row */}
+            <div className="grid grid-cols-4 gap-4 items-center">
+              <div className="text-sm font-medium">GOSI Deductions (8%)</div>
+              <div className="text-right text-sm">{formatCurrency(gosiTotals.beforeDeductions)}</div>
+              <div className="text-right text-sm font-medium">{formatCurrency(gosiTotals.afterDeductions)}</div>
+              <div className={`text-right text-sm font-medium flex items-center justify-end gap-1 ${getChangeColor(gosiTotals.deductionChange)}`}>
+                {getChangeIcon(gosiTotals.deductionChange)}
+                {gosiTotals.deductionChange >= 0 ? '+' : ''}{formatCurrency(gosiTotals.deductionChange)}
+              </div>
+            </div>
+
+            {/* Employee Count */}
+            <div className="pt-2 border-t">
+              <p className="text-sm text-muted-foreground">
+                Employees subject to GOSI: <span className="font-medium text-foreground">{gosiEmployees.length}</span>
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

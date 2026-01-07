@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Users, TrendingUp, TrendingDown, AlertTriangle } from "lucide-react";
+import { Users, TrendingUp, TrendingDown, AlertTriangle, Minus } from "lucide-react";
 import { format } from "date-fns";
 import { EmployeeImpact, BulkSalaryWizardData } from "../types";
 
@@ -12,11 +12,17 @@ interface ReviewSummaryStepProps {
   data: BulkSalaryWizardData;
   impacts: EmployeeImpact[];
   totals: { beforeTotal: number; afterTotal: number; change: number };
+  currency: string;
 }
 
-export function ReviewSummaryStep({ data, impacts, totals }: ReviewSummaryStepProps) {
+export function ReviewSummaryStep({ data, impacts, totals, currency }: ReviewSummaryStepProps) {
   const formatCurrency = (amount: number) => {
-    return `$${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return new Intl.NumberFormat('en-US', { 
+      style: 'currency', 
+      currency: currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
   };
 
   const getInitials = (firstName: string, lastName: string) => {
@@ -57,6 +63,33 @@ export function ReviewSummaryStep({ data, impacts, totals }: ReviewSummaryStepPr
 
   const gosiImpacts = impacts.filter(i => i.employee.isSubjectToGosi);
   const isPositiveChange = totals.change >= 0;
+
+  // Calculate GOSI totals
+  const gosiTotals = useMemo(() => {
+    return {
+      beforeDeductions: gosiImpacts.reduce((sum, i) => sum + i.beforeGosiDeduction, 0),
+      afterDeductions: gosiImpacts.reduce((sum, i) => sum + i.afterGosiDeduction, 0),
+      change: gosiImpacts.reduce((sum, i) => sum + (i.afterGosiDeduction - i.beforeGosiDeduction), 0),
+    };
+  }, [gosiImpacts]);
+
+  const getChangeIcon = (change: number) => {
+    if (change > 0) return <TrendingUp className="h-4 w-4" />;
+    if (change < 0) return <TrendingDown className="h-4 w-4" />;
+    return <Minus className="h-4 w-4" />;
+  };
+
+  const getChangeColor = (change: number, inverse: boolean = false) => {
+    // For deductions, increase is bad (inverse)
+    if (inverse) {
+      if (change > 0) return 'text-destructive';
+      if (change < 0) return 'text-green-600 dark:text-green-400';
+    } else {
+      if (change > 0) return 'text-green-600 dark:text-green-400';
+      if (change < 0) return 'text-destructive';
+    }
+    return 'text-muted-foreground';
+  };
 
   return (
     <div className="space-y-6">
@@ -144,21 +177,38 @@ export function ReviewSummaryStep({ data, impacts, totals }: ReviewSummaryStepPr
           <CardTitle className="text-base">Salary Totals</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-3 gap-6">
-            <div>
-              <p className="text-sm text-muted-foreground">Before</p>
-              <p className="text-2xl font-bold">{formatCurrency(totals.beforeTotal)}</p>
+          <div className="space-y-4">
+            {/* Header Row */}
+            <div className="grid grid-cols-4 gap-4 text-sm font-medium text-muted-foreground border-b pb-2">
+              <div></div>
+              <div className="text-right">Before</div>
+              <div className="text-right">After</div>
+              <div className="text-right">Difference</div>
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">After</p>
-              <p className="text-2xl font-bold">{formatCurrency(totals.afterTotal)}</p>
+
+            {/* Basic Salary Row */}
+            <div className="grid grid-cols-4 gap-4 items-center">
+              <div className="text-sm font-medium">Basic Salary</div>
+              <div className="text-right text-sm">{formatCurrency(totals.beforeTotal)}</div>
+              <div className="text-right text-sm font-medium">{formatCurrency(totals.afterTotal)}</div>
+              <div className={`text-right text-sm font-medium flex items-center justify-end gap-1 ${getChangeColor(totals.change)}`}>
+                {getChangeIcon(totals.change)}
+                {totals.change >= 0 ? '+' : ''}{formatCurrency(totals.change)}
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Difference</p>
-              <p className={`text-2xl font-bold ${isPositiveChange ? 'text-green-600 dark:text-green-400' : 'text-destructive'}`}>
-                {isPositiveChange ? '+' : ''}{formatCurrency(totals.change)}
-              </p>
-            </div>
+
+            {/* GOSI Deductions Row (if applicable) */}
+            {gosiImpacts.length > 0 && (
+              <div className="grid grid-cols-4 gap-4 items-center">
+                <div className="text-sm font-medium">GOSI Deductions (8%)</div>
+                <div className="text-right text-sm">{formatCurrency(gosiTotals.beforeDeductions)}</div>
+                <div className="text-right text-sm font-medium">{formatCurrency(gosiTotals.afterDeductions)}</div>
+                <div className={`text-right text-sm font-medium flex items-center justify-end gap-1 ${getChangeColor(gosiTotals.change, true)}`}>
+                  {getChangeIcon(gosiTotals.change)}
+                  {gosiTotals.change >= 0 ? '+' : ''}{formatCurrency(gosiTotals.change)}
+                </div>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

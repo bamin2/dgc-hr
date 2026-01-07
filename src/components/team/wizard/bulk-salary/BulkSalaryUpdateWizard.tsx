@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -54,6 +54,17 @@ export function BulkSalaryUpdateWizard() {
       loadEmployeeCompensation(data.selectedEmployeeIds);
     }
   }, [currentStep, data.selectedEmployeeIds, loadEmployeeCompensation]);
+
+  // Determine currency from selected employees' work locations
+  const currency = useMemo(() => {
+    if (selectedEmployees.length > 0 && selectedEmployees[0].workLocationId) {
+      const workLocation = workLocations?.find(wl => wl.id === selectedEmployees[0].workLocationId);
+      if (workLocation?.currency) {
+        return workLocation.currency;
+      }
+    }
+    return 'BHD'; // Default to BHD
+  }, [selectedEmployees, workLocations]);
 
   // Determine effective steps (skip GOSI if no GOSI employees)
   const effectiveSteps = WIZARD_STEPS.filter(step => {
@@ -147,6 +158,7 @@ export function BulkSalaryUpdateWizard() {
             data={data}
             onUpdateData={updateData}
             gosiEmployees={selectedEmployees.filter(e => e.isSubjectToGosi)}
+            currency={currency}
           />
         );
       case 5:
@@ -157,6 +169,7 @@ export function BulkSalaryUpdateWizard() {
             data={data}
             impacts={calculateEmployeeImpacts}
             totals={totals}
+            currency={currency}
           />
         );
       case 7:
