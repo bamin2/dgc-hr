@@ -75,7 +75,9 @@ export function TeamMemberTable({
   };
 
   const getInitials = (firstName: string, lastName: string) => {
-    return `${firstName[0]}${lastName[0]}`.toUpperCase();
+    const first = firstName?.[0] || '';
+    const last = lastName?.[0] || '';
+    return `${first}${last}`.toUpperCase() || '??';
   };
 
   return (
