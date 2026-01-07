@@ -35,7 +35,7 @@ export function ReviewSummaryStep({ data, impacts, totals, currency }: ReviewSum
       case 'percentage_decrease': return `-${data.updateValue}% decrease`;
       case 'fixed_increase': return `+${formatCurrency(parseFloat(data.updateValue))} increase`;
       case 'fixed_decrease': return `-${formatCurrency(parseFloat(data.updateValue))} decrease`;
-      case 'set_new': return `Set to ${formatCurrency(parseFloat(data.updateValue))}`;
+      case 'set_new': return 'Custom per-employee salaries';
       default: return 'Unknown';
     }
   };
@@ -222,8 +222,8 @@ export function ReviewSummaryStep({ data, impacts, totals, currency }: ReviewSum
           <ScrollArea className="h-[300px]">
             <div className="divide-y">
               {impacts.map((impact) => {
-                const change = impact.afterBasicSalary - impact.beforeBasicSalary;
-                const isIncrease = change >= 0;
+                const netChange = impact.afterNetSalary - impact.beforeNetSalary;
+                const isIncrease = netChange >= 0;
                 
                 return (
                   <div key={impact.employee.id} className="flex items-center gap-4 px-4 py-3">
@@ -239,12 +239,12 @@ export function ReviewSummaryStep({ data, impacts, totals, currency }: ReviewSum
                         {impact.employee.firstName} {impact.employee.lastName}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {impact.employee.jobTitle}
+                        {impact.employee.jobTitle} · Basic: {formatCurrency(impact.beforeBasicSalary)}
                       </p>
                     </div>
 
                     <div className="text-right text-sm">
-                      <p className="text-muted-foreground">{formatCurrency(impact.beforeBasicSalary)}</p>
+                      <p className="text-muted-foreground">{formatCurrency(impact.beforeNetSalary)}</p>
                     </div>
 
                     <div className="text-center px-2">
@@ -252,14 +252,14 @@ export function ReviewSummaryStep({ data, impacts, totals, currency }: ReviewSum
                     </div>
 
                     <div className="text-right text-sm">
-                      <p className="font-medium">{formatCurrency(impact.afterBasicSalary)}</p>
+                      <p className="font-medium">{formatCurrency(impact.afterNetSalary)}</p>
                     </div>
 
                     <Badge
                       variant={isIncrease ? 'default' : 'destructive'}
                       className="min-w-[80px] justify-center"
                     >
-                      {isIncrease ? '+' : ''}{formatCurrency(change)}
+                      {isIncrease ? '+' : ''}{formatCurrency(netChange)}
                     </Badge>
                   </div>
                 );
@@ -276,7 +276,7 @@ export function ReviewSummaryStep({ data, impacts, totals, currency }: ReviewSum
             <CardTitle className="text-base">GOSI Impact</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <ScrollArea className="max-h-[200px]">
+            <ScrollArea className="h-[200px]">
               <div className="divide-y">
                 {gosiImpacts.map((impact) => (
                   <div key={impact.employee.id} className="flex items-center justify-between px-4 py-3">
