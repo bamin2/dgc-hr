@@ -2748,6 +2748,8 @@ export type Database = {
           country: string | null
           created_at: string
           currency: string | null
+          gosi_enabled: boolean | null
+          gosi_percentage: number | null
           id: string
           is_remote: boolean | null
           name: string
@@ -2758,6 +2760,8 @@ export type Database = {
           country?: string | null
           created_at?: string
           currency?: string | null
+          gosi_enabled?: boolean | null
+          gosi_percentage?: number | null
           id?: string
           is_remote?: boolean | null
           name: string
@@ -2768,6 +2772,8 @@ export type Database = {
           country?: string | null
           created_at?: string
           currency?: string | null
+          gosi_enabled?: boolean | null
+          gosi_percentage?: number | null
           id?: string
           is_remote?: boolean | null
           name?: string

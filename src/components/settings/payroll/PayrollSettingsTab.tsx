@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AllowanceTemplatesSection } from "./AllowanceTemplatesSection";
 import { DeductionTemplatesSection } from "./DeductionTemplatesSection";
+import { LocationGeneralSettings } from "./LocationGeneralSettings";
 import { useWorkLocations } from "@/hooks/useWorkLocations";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MapPin, Building2 } from "lucide-react";
@@ -78,7 +79,8 @@ export function PayrollSettingsTab() {
         </TabsList>
 
         {workLocations.map((location) => (
-          <TabsContent key={location.id} value={location.id} className="mt-6">
+          <TabsContent key={location.id} value={location.id} className="mt-6 space-y-6">
+            <LocationGeneralSettings workLocation={location} />
             <div className="grid gap-6 lg:grid-cols-2">
               <AllowanceTemplatesSection
                 workLocationId={location.id}

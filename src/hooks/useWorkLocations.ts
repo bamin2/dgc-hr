@@ -11,6 +11,8 @@ export interface WorkLocation {
   is_remote: boolean;
   created_at: string;
   employeeCount: number;
+  gosi_enabled: boolean;
+  gosi_percentage: number;
 }
 
 export interface WorkLocationInput {
@@ -20,6 +22,8 @@ export interface WorkLocationInput {
   country?: string | null;
   currency?: string;
   is_remote?: boolean;
+  gosi_enabled?: boolean;
+  gosi_percentage?: number;
 }
 
 async function fetchWorkLocationsWithCounts(): Promise<WorkLocation[]> {
@@ -54,6 +58,8 @@ async function fetchWorkLocationsWithCounts(): Promise<WorkLocation[]> {
     is_remote: loc.is_remote ?? false,
     created_at: loc.created_at,
     employeeCount: countMap.get(loc.id) || 0,
+    gosi_enabled: loc.gosi_enabled ?? false,
+    gosi_percentage: loc.gosi_percentage ?? 8,
   }));
 }
 
@@ -105,6 +111,8 @@ export function useUpdateWorkLocation() {
           country: input.country,
           currency: input.currency,
           is_remote: input.is_remote,
+          gosi_enabled: input.gosi_enabled,
+          gosi_percentage: input.gosi_percentage,
         })
         .eq("id", id)
         .select()

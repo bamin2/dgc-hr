@@ -24,6 +24,8 @@ export interface TeamMemberWithGosi extends TeamMember {
   nationality?: string;
   workLocationId?: string;
   currency?: string;
+  gosiEnabled?: boolean;
+  gosiPercentage?: number;
 }
 
 // Fetch team members with GOSI fields
@@ -35,7 +37,7 @@ async function fetchTeamMembersWithGosi(): Promise<TeamMemberWithGosi[]> {
       department:departments!employees_department_id_fkey(id, name),
       position:positions!employees_position_id_fkey(id, title),
       manager:employees!manager_id(id, first_name, last_name),
-      work_location_ref:work_locations!employees_work_location_id_fkey(id, name, currency)
+      work_location_ref:work_locations!employees_work_location_id_fkey(id, name, currency, gosi_enabled, gosi_percentage)
     `)
     .in('status', ['active', 'on_leave', 'on_boarding'])
     .order("first_name");
@@ -67,6 +69,8 @@ async function fetchTeamMembersWithGosi(): Promise<TeamMemberWithGosi[]> {
       workLocation: workLocationRef?.name || db.work_location || db.location || undefined,
       workLocationId: db.work_location_id || undefined,
       currency: workLocationRef?.currency || 'USD',
+      gosiEnabled: workLocationRef?.gosi_enabled ?? false,
+      gosiPercentage: workLocationRef?.gosi_percentage ?? 8,
       salary: db.salary ? Number(db.salary) : undefined,
       payFrequency: db.pay_frequency || 'month',
       taxExemptionStatus: db.tax_exemption_status || undefined,
@@ -275,8 +279,10 @@ export function useBulkSalaryWizard() {
         }
       }
       
-      const beforeGosiDeduction = beforeGosiSalary ? beforeGosiSalary * 0.08 : 0;
-      const afterGosiDeduction = afterGosiSalary ? afterGosiSalary * 0.08 : 0;
+      // Use configurable GOSI rate from work location (default 8%)
+      const gosiRate = (employee.gosiPercentage || 8) / 100;
+      const beforeGosiDeduction = beforeGosiSalary ? beforeGosiSalary * gosiRate : 0;
+      const afterGosiDeduction = afterGosiSalary ? afterGosiSalary * gosiRate : 0;
       
       // Add GOSI to deductions if applicable
       if (employee.isSubjectToGosi) {
