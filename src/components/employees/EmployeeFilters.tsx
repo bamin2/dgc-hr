@@ -8,13 +8,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useDepartments } from "@/hooks/useEmployees";
-
-// Keep entities as static for now (could be moved to DB later)
-const entities = [
-  'Franfer Inc.',
-  'Franfer EU',
-  'Franfer Asia'
-];
+import { useWorkLocations } from "@/hooks/useWorkLocations";
 
 interface EmployeeFiltersProps {
   searchQuery: string;
@@ -23,8 +17,8 @@ interface EmployeeFiltersProps {
   onDepartmentChange: (value: string) => void;
   statusFilter: string;
   onStatusChange: (value: string) => void;
-  entityFilter: string;
-  onEntityChange: (value: string) => void;
+  workLocationFilter: string;
+  onWorkLocationChange: (value: string) => void;
 }
 
 export function EmployeeFilters({
@@ -34,10 +28,11 @@ export function EmployeeFilters({
   onDepartmentChange,
   statusFilter,
   onStatusChange,
-  entityFilter,
-  onEntityChange,
+  workLocationFilter,
+  onWorkLocationChange,
 }: EmployeeFiltersProps) {
   const { data: departments = [] } = useDepartments();
+  const { data: workLocations = [] } = useWorkLocations();
 
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full">
@@ -81,15 +76,15 @@ export function EmployeeFilters({
           </SelectContent>
         </Select>
         
-        <Select value={entityFilter} onValueChange={onEntityChange}>
-          <SelectTrigger className="w-[150px] bg-background">
-            <SelectValue placeholder="All entities" />
+        <Select value={workLocationFilter} onValueChange={onWorkLocationChange}>
+          <SelectTrigger className="w-[180px] bg-background">
+            <SelectValue placeholder="All work locations" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All entities</SelectItem>
-            {entities.map((entity) => (
-              <SelectItem key={entity} value={entity}>
-                {entity}
+            <SelectItem value="all">All work locations</SelectItem>
+            {workLocations.map((location) => (
+              <SelectItem key={location.id} value={location.id}>
+                {location.name}
               </SelectItem>
             ))}
           </SelectContent>

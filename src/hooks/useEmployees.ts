@@ -6,6 +6,7 @@ export type DbEmployee = Tables<"employees"> & {
   department?: { id: string; name: string } | null;
   position?: { id: string; title: string } | null;
   manager?: { id: string; first_name: string; last_name: string } | { id: string; first_name: string; last_name: string }[] | null;
+  work_location?: { id: string; name: string } | null;
 };
 
 // UI-compatible Employee interface
@@ -26,6 +27,8 @@ export interface Employee {
   manager?: string;
   managerId?: string;
   location?: string;
+  workLocationId?: string;
+  workLocationName?: string;
   salary?: number;
   address?: string;
   dateOfBirth?: string;
@@ -61,6 +64,8 @@ export function mapDbEmployeeToEmployee(db: DbEmployee): Employee {
     })(),
     managerId: db.manager_id || undefined,
     location: db.location || undefined,
+    workLocationId: db.work_location_id || undefined,
+    workLocationName: db.work_location?.name || undefined,
     salary: db.salary ? Number(db.salary) : undefined,
     address: db.address || undefined,
     dateOfBirth: db.date_of_birth || undefined,
@@ -85,7 +90,8 @@ async function fetchEmployees(): Promise<Employee[]> {
       *,
       department:departments!employees_department_id_fkey(id, name),
       position:positions!employees_position_id_fkey(id, title),
-      manager:employees!manager_id(id, first_name, last_name)
+      manager:employees!manager_id(id, first_name, last_name),
+      work_location:work_locations!employees_work_location_id_fkey(id, name)
     `
     )
     .order("first_name");
@@ -106,7 +112,8 @@ async function fetchEmployee(id: string): Promise<Employee | null> {
       *,
       department:departments!employees_department_id_fkey(id, name),
       position:positions!employees_position_id_fkey(id, title),
-      manager:employees!manager_id(id, first_name, last_name)
+      manager:employees!manager_id(id, first_name, last_name),
+      work_location:work_locations!employees_work_location_id_fkey(id, name)
     `
     )
     .eq("id", id)

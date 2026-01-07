@@ -55,7 +55,7 @@ export default function Employees() {
   const [searchQuery, setSearchQuery] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [entityFilter, setEntityFilter] = useState('all');
+  const [workLocationFilter, setWorkLocationFilter] = useState('all');
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   
   // Pagination state
@@ -70,7 +70,7 @@ export default function Employees() {
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, departmentFilter, statusFilter, entityFilter]);
+  }, [searchQuery, departmentFilter, statusFilter, workLocationFilter]);
 
   // Active employees only (filter out resigned/terminated)
   const activeEmployees = useMemo(() => 
@@ -102,8 +102,13 @@ export default function Employees() {
       result = result.filter(emp => emp.status === statusFilter);
     }
 
+    // Work location filter
+    if (workLocationFilter !== 'all') {
+      result = result.filter(emp => emp.workLocationId === workLocationFilter);
+    }
+
     return result;
-  }, [activeEmployees, searchQuery, departmentFilter, statusFilter]);
+  }, [activeEmployees, searchQuery, departmentFilter, statusFilter, workLocationFilter]);
 
 
   // Paginate employees
@@ -299,8 +304,8 @@ export default function Employees() {
                   onDepartmentChange={setDepartmentFilter}
                   statusFilter={statusFilter}
                   onStatusChange={setStatusFilter}
-                  entityFilter={entityFilter}
-                  onEntityChange={setEntityFilter}
+                  workLocationFilter={workLocationFilter}
+                  onWorkLocationChange={setWorkLocationFilter}
                 />
               </div>
 
