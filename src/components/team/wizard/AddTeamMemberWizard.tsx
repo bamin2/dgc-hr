@@ -170,7 +170,7 @@ export function AddTeamMemberWizard() {
         work_location_id: roleData.workLocationId || null,
         avatar_url: basicData.avatar || null,
         nationality: basicData.nationality || null,
-        preferred_name: basicData.secondName || null,
+        second_name: basicData.secondName || null,
       });
 
       // Assign allowances (both template-based and custom)
