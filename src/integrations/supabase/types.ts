@@ -898,8 +898,10 @@ export type Database = {
           first_name: string
           full_name: string | null
           gender: Database["public"]["Enums"]["gender_type"] | null
+          gosi_registered_salary: number | null
           id: string
           import_batch_id: string | null
+          is_subject_to_gosi: boolean | null
           join_date: string | null
           last_name: string
           location: string | null
@@ -939,8 +941,10 @@ export type Database = {
           first_name: string
           full_name?: string | null
           gender?: Database["public"]["Enums"]["gender_type"] | null
+          gosi_registered_salary?: number | null
           id?: string
           import_batch_id?: string | null
+          is_subject_to_gosi?: boolean | null
           join_date?: string | null
           last_name: string
           location?: string | null
@@ -980,8 +984,10 @@ export type Database = {
           first_name?: string
           full_name?: string | null
           gender?: Database["public"]["Enums"]["gender_type"] | null
+          gosi_registered_salary?: number | null
           id?: string
           import_batch_id?: string | null
+          is_subject_to_gosi?: boolean | null
           join_date?: string | null
           last_name?: string
           location?: string | null
@@ -2415,6 +2421,141 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      salary_update_batch_employees: {
+        Row: {
+          after_basic_salary: number | null
+          after_gosi_deduction: number | null
+          after_gosi_registered_salary: number | null
+          after_net_salary: number | null
+          after_total_allowances: number | null
+          after_total_deductions: number | null
+          batch_id: string
+          before_basic_salary: number | null
+          before_gosi_deduction: number | null
+          before_gosi_registered_salary: number | null
+          before_net_salary: number | null
+          before_total_allowances: number | null
+          before_total_deductions: number | null
+          created_at: string | null
+          employee_id: string
+          id: string
+        }
+        Insert: {
+          after_basic_salary?: number | null
+          after_gosi_deduction?: number | null
+          after_gosi_registered_salary?: number | null
+          after_net_salary?: number | null
+          after_total_allowances?: number | null
+          after_total_deductions?: number | null
+          batch_id: string
+          before_basic_salary?: number | null
+          before_gosi_deduction?: number | null
+          before_gosi_registered_salary?: number | null
+          before_net_salary?: number | null
+          before_total_allowances?: number | null
+          before_total_deductions?: number | null
+          created_at?: string | null
+          employee_id: string
+          id?: string
+        }
+        Update: {
+          after_basic_salary?: number | null
+          after_gosi_deduction?: number | null
+          after_gosi_registered_salary?: number | null
+          after_net_salary?: number | null
+          after_total_allowances?: number | null
+          after_total_deductions?: number | null
+          batch_id?: string
+          before_basic_salary?: number | null
+          before_gosi_deduction?: number | null
+          before_gosi_registered_salary?: number | null
+          before_net_salary?: number | null
+          before_total_allowances?: number | null
+          before_total_deductions?: number | null
+          created_at?: string | null
+          employee_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "salary_update_batch_employees_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "salary_update_batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "salary_update_batch_employees_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      salary_update_batches: {
+        Row: {
+          change_type: string
+          components_changed: Json | null
+          created_at: string | null
+          effective_date: string
+          employee_count: number
+          employee_ids: string[]
+          filter_criteria: Json | null
+          gosi_salary_changed: boolean | null
+          id: string
+          initiated_at: string | null
+          initiated_by: string
+          notes: string | null
+          reason: string
+          total_after_salary: number | null
+          total_before_salary: number | null
+          total_change: number | null
+          update_type: string
+          update_value: number | null
+        }
+        Insert: {
+          change_type: string
+          components_changed?: Json | null
+          created_at?: string | null
+          effective_date: string
+          employee_count: number
+          employee_ids: string[]
+          filter_criteria?: Json | null
+          gosi_salary_changed?: boolean | null
+          id?: string
+          initiated_at?: string | null
+          initiated_by: string
+          notes?: string | null
+          reason: string
+          total_after_salary?: number | null
+          total_before_salary?: number | null
+          total_change?: number | null
+          update_type: string
+          update_value?: number | null
+        }
+        Update: {
+          change_type?: string
+          components_changed?: Json | null
+          created_at?: string | null
+          effective_date?: string
+          employee_count?: number
+          employee_ids?: string[]
+          filter_criteria?: Json | null
+          gosi_salary_changed?: boolean | null
+          id?: string
+          initiated_at?: string | null
+          initiated_by?: string
+          notes?: string | null
+          reason?: string
+          total_after_salary?: number | null
+          total_before_salary?: number | null
+          total_change?: number | null
+          update_type?: string
+          update_value?: number | null
+        }
+        Relationships: []
       }
       smart_tags: {
         Row: {
