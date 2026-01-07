@@ -13,7 +13,9 @@ export type DbEmployee = Tables<"employees"> & {
 export interface Employee {
   id: string;
   firstName: string;
+  secondName?: string;
   lastName: string;
+  fullName: string;
   email: string;
   phone: string;
   avatar: string;
@@ -44,10 +46,17 @@ export interface Employee {
 
 // Map database record to UI format
 export function mapDbEmployeeToEmployee(db: DbEmployee): Employee {
+  const firstName = db.first_name;
+  const lastName = db.last_name;
+  const secondName = (db as any).second_name || undefined;
+  const fullName = (db as any).full_name || `${firstName} ${lastName}`.trim();
+  
   return {
     id: db.id,
-    firstName: db.first_name,
-    lastName: db.last_name,
+    firstName,
+    secondName,
+    lastName,
+    fullName,
     email: db.email,
     phone: db.phone || "",
     avatar: db.avatar_url || "",

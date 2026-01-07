@@ -896,6 +896,7 @@ export type Database = {
           employee_code: string | null
           employment_type: Database["public"]["Enums"]["employment_type"] | null
           first_name: string
+          full_name: string | null
           gender: Database["public"]["Enums"]["gender_type"] | null
           id: string
           import_batch_id: string | null
@@ -910,6 +911,7 @@ export type Database = {
           position_id: string | null
           preferred_name: string | null
           salary: number | null
+          second_name: string | null
           send_offer_letter: boolean | null
           status: Database["public"]["Enums"]["employee_status"]
           tax_exemption_status: string | null
@@ -935,6 +937,7 @@ export type Database = {
             | Database["public"]["Enums"]["employment_type"]
             | null
           first_name: string
+          full_name?: string | null
           gender?: Database["public"]["Enums"]["gender_type"] | null
           id?: string
           import_batch_id?: string | null
@@ -949,6 +952,7 @@ export type Database = {
           position_id?: string | null
           preferred_name?: string | null
           salary?: number | null
+          second_name?: string | null
           send_offer_letter?: boolean | null
           status?: Database["public"]["Enums"]["employee_status"]
           tax_exemption_status?: string | null
@@ -974,6 +978,7 @@ export type Database = {
             | Database["public"]["Enums"]["employment_type"]
             | null
           first_name?: string
+          full_name?: string | null
           gender?: Database["public"]["Enums"]["gender_type"] | null
           id?: string
           import_batch_id?: string | null
@@ -988,6 +993,7 @@ export type Database = {
           position_id?: string | null
           preferred_name?: string | null
           salary?: number | null
+          second_name?: string | null
           send_offer_letter?: boolean | null
           status?: Database["public"]["Enums"]["employee_status"]
           tax_exemption_status?: string | null

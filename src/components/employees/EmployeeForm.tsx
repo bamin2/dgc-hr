@@ -33,6 +33,7 @@ interface EmployeeFormProps {
 
 interface FormData {
   firstName: string;
+  secondName: string;
   lastName: string;
   email: string;
   phone: string;
@@ -62,6 +63,7 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormData>({
     firstName: '',
+    secondName: '',
     lastName: '',
     email: '',
     phone: '',
@@ -91,6 +93,7 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
     if (employee) {
       setFormData({
         firstName: employee.firstName || '',
+        secondName: employee.secondName || '',
         lastName: employee.lastName || '',
         email: employee.email || '',
         phone: employee.phone || '',
@@ -109,6 +112,7 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
     } else {
       setFormData({
         firstName: '',
+        secondName: '',
         lastName: '',
         email: '',
         phone: '',
@@ -291,7 +295,7 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
             <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
               Personal Information
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="firstName">First Name *</Label>
                 <Input
@@ -299,6 +303,15 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
                   value={formData.firstName}
                   onChange={(e) => handleChange('firstName', e.target.value)}
                   required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="secondName">Second Name</Label>
+                <Input
+                  id="secondName"
+                  value={formData.secondName}
+                  onChange={(e) => handleChange('secondName', e.target.value)}
+                  placeholder="Optional"
                 />
               </div>
               <div className="space-y-2">
