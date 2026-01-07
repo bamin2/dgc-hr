@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { toast } from "@/hooks/use-toast";
 import { Employee } from "@/hooks/useEmployees";
 import {
@@ -271,6 +271,7 @@ export function OrgChartExportDialog({
                   Select a starting employee to preview.
                 </div>
               )}
+              <ScrollBar orientation="horizontal" />
             </ScrollArea>
           </div>
         </div>
