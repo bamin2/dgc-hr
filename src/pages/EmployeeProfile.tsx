@@ -116,6 +116,8 @@ export default function EmployeeProfile() {
       emergency_contact_name: data.emergencyContact?.name,
       emergency_contact_phone: data.emergencyContact?.phone,
       emergency_contact_relationship: data.emergencyContact?.relationship,
+      is_subject_to_gosi: data.isSubjectToGosi || false,
+      gosi_registered_salary: data.gosiRegisteredSalary || null,
     }, {
       onSuccess: () => {
         toast({

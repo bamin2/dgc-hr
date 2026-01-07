@@ -37,6 +37,8 @@ export interface Employee {
   dateOfBirth?: string;
   gender?: string;
   nationality?: string;
+  isSubjectToGosi?: boolean;
+  gosiRegisteredSalary?: number;
   emergencyContact?: {
     name: string;
     relationship: string;
@@ -82,6 +84,8 @@ export function mapDbEmployeeToEmployee(db: DbEmployee): Employee {
     dateOfBirth: db.date_of_birth || undefined,
     gender: db.gender || undefined,
     nationality: db.nationality || undefined,
+    isSubjectToGosi: db.is_subject_to_gosi || false,
+    gosiRegisteredSalary: db.gosi_registered_salary ? Number(db.gosi_registered_salary) : undefined,
     emergencyContact:
       db.emergency_contact_name && db.emergency_contact_phone
         ? {
