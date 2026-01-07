@@ -137,8 +137,6 @@ export function Sidebar() {
         )}
       </nav>
 
-      {/* Announcements Card */}
-      <AnnouncementsCard collapsed={collapsed} />
 
       {/* Collapse Toggle */}
       <div className="px-3 py-2">
