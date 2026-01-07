@@ -40,17 +40,17 @@ export default function Payroll() {
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />
-      <main className="flex-1 overflow-auto">
-        <div className="p-6 lg:p-8 space-y-6">
+      <main className="flex-1 overflow-auto overflow-x-hidden">
+        <div className="p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Payroll</h1>
-              <p className="text-muted-foreground">
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground">Payroll</h1>
+              <p className="text-muted-foreground text-sm sm:text-base">
                 Manage employee salaries and process payroll
               </p>
             </div>
-            <Button onClick={() => navigate("/payroll/run")} className="gap-2">
+            <Button onClick={() => navigate("/payroll/run")} className="gap-2 w-full sm:w-auto">
               <Plus className="w-4 h-4" />
               Run Payroll
             </Button>

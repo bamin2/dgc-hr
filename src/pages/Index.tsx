@@ -52,12 +52,12 @@ const Index = () => {
         <ImpersonationBanner />
         <Header />
 
-        <main className="flex-1 p-6 overflow-auto">
-          <div className="max-w-7xl mx-auto space-y-6">
+        <main className="flex-1 p-4 sm:p-6 overflow-auto overflow-x-hidden">
+          <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
             {visibility.metrics && <MetricsCards />}
 
             {hasMainCards && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {visibility.timeTracker && <TimeTracker />}
                 {visibility.projectEvaluation && <ProjectEvaluation />}
                 {visibility.calendarWidget && <CalendarWidget />}
@@ -68,7 +68,7 @@ const Index = () => {
             )}
 
             {hasBottomCards && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                 {visibility.announcements && <Announcements />}
                 {visibility.attendanceOverview && <AttendanceOverview />}
               </div>
