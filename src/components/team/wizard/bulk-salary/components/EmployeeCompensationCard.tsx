@@ -17,7 +17,7 @@ interface EmployeeCompensationCardProps {
   deductions: DeductionEntryExtended[];
   onUpdateAllowances: (allowances: AllowanceEntryExtended[]) => void;
   onUpdateDeductions: (deductions: DeductionEntryExtended[]) => void;
-  allowanceTemplates: { id: string; name: string; amount: number; amount_type: string }[];
+  allowanceTemplates: { id: string; name: string; amount: number; amount_type: string; is_variable?: boolean; default_amount?: number }[];
   deductionTemplates: { id: string; name: string; amount: number; amount_type: string }[];
 }
 
@@ -45,6 +45,12 @@ export function EmployeeCompensationCard({
     if (item.isCustom) return item.customName || 'Custom';
     const template = templates.find(t => t.id === item.templateId);
     return template?.name || 'Unknown';
+  };
+
+  const isAllowanceEditable = (allowance: AllowanceEntryExtended) => {
+    if (allowance.isCustom) return true;
+    const template = allowanceTemplates.find(t => t.id === allowance.templateId);
+    return template?.is_variable ?? false;
   };
 
   const handleAllowanceAmountChange = (id: string, newAmount: string) => {
@@ -148,39 +154,53 @@ export function EmployeeCompensationCard({
             </div>
             {allowances.length > 0 ? (
               <div className="space-y-2">
-                {allowances.map(allowance => (
-                  <div key={allowance.id} className="flex items-center gap-2 bg-muted/30 rounded px-3 py-2">
-                    <div className="flex-1 flex items-center gap-2">
-                      <span className="text-sm">{getDisplayName(allowance, allowanceTemplates)}</span>
-                      {allowance.isExisting && (
-                        <Badge variant="outline" className="text-[10px] px-1.5">Existing</Badge>
+                {allowances.map(allowance => {
+                  const editable = isAllowanceEditable(allowance);
+                  const template = allowanceTemplates.find(t => t.id === allowance.templateId);
+                  
+                  return (
+                    <div key={allowance.id} className="flex items-center gap-2 bg-muted/30 rounded px-3 py-2">
+                      <div className="flex-1 flex items-center gap-2">
+                        <span className="text-sm">{getDisplayName(allowance, allowanceTemplates)}</span>
+                        {allowance.isExisting && (
+                          <Badge variant="outline" className="text-[10px] px-1.5">Existing</Badge>
+                        )}
+                        {allowance.isCustom && (
+                          <Badge variant="secondary" className="text-[10px] px-1.5">Custom</Badge>
+                        )}
+                        {!allowance.isCustom && template?.is_variable && (
+                          <Badge className="text-[10px] px-1.5 bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300">Variable</Badge>
+                        )}
+                      </div>
+                      {editable ? (
+                        <div className="relative w-28">
+                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                            {currencySymbol}
+                          </span>
+                          <Input
+                            type="number"
+                            value={allowance.amount}
+                            onChange={(e) => handleAllowanceAmountChange(allowance.id, e.target.value)}
+                            className="h-7 text-sm pl-6 pr-2"
+                          />
+                        </div>
+                      ) : (
+                        <span className="text-sm font-medium w-28 text-right">
+                          {currencySymbol}{allowance.amount.toLocaleString()}
+                        </span>
                       )}
-                      {allowance.isCustom && (
-                        <Badge variant="secondary" className="text-[10px] px-1.5">Custom</Badge>
-                      )}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={() => handleRemoveAllowance(allowance.id)}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
                     </div>
-                    <div className="relative w-28">
-                      <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
-                        {currencySymbol}
-                      </span>
-                      <Input
-                        type="number"
-                        value={allowance.amount}
-                        onChange={(e) => handleAllowanceAmountChange(allowance.id, e.target.value)}
-                        className="h-7 text-sm pl-6 pr-2"
-                      />
-                    </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
-                      onClick={() => handleRemoveAllowance(allowance.id)}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <p className="text-xs text-muted-foreground py-2">No allowances</p>

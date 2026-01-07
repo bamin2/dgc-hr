@@ -60,27 +60,35 @@ export function TeamCompensationStep({
     const breakdown = data.allowances.map((a) => {
       let amount = 0;
       let name = a.customName || "";
+      let isVariable = false;
 
       if (a.isCustom) {
         amount = a.amount;
         name = a.customName || "Custom Allowance";
+        isVariable = true; // Custom allowances are always editable
       } else {
         const template = allowanceTemplates?.find((t) => t.id === a.templateId);
         if (template) {
           name = template.name;
+          isVariable = template.is_variable ?? false;
+          
+          // Use the stored amount from AllowanceEntry (which could be employee-specific)
+          // For fixed templates, this equals template.default_amount
+          // For variable templates, this is the employee-specific value
           if (template.amount_type === "fixed") {
-            amount = template.amount;
+            amount = a.amount || template.default_amount || template.amount;
           } else {
             // Percentage-based
+            const percentValue = a.amount || template.default_amount || template.amount;
             const base =
               template.percentage_of === "base_salary" ? baseSalary : baseSalary;
-            amount = (base * template.amount) / 100;
+            amount = (base * percentValue) / 100;
           }
         }
       }
 
       total += amount;
-      return { ...a, calculatedAmount: amount, displayName: name };
+      return { ...a, calculatedAmount: amount, displayName: name, isVariable };
     });
 
     return { totalAllowances: total, allowanceBreakdown: breakdown };
@@ -139,6 +147,13 @@ export function TeamCompensationStep({
     updateField(
       "allowances",
       data.allowances.filter((a) => a.id !== id)
+    );
+  };
+
+  const handleUpdateAllowanceAmount = (id: string, newAmount: number) => {
+    updateField(
+      "allowances",
+      data.allowances.map((a) => (a.id === id ? { ...a, amount: newAmount } : a))
     );
   };
 
@@ -300,11 +315,30 @@ export function TeamCompensationStep({
                       custom
                     </span>
                   )}
+                  {!a.isCustom && a.isVariable && (
+                    <span className="text-xs text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-950 px-1.5 py-0.5 rounded">
+                      variable
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">
-                    {formatCurrency(a.calculatedAmount)}
-                  </span>
+                  {a.isVariable || a.isCustom ? (
+                    <div className="relative w-24">
+                      <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                        {currency?.symbol || "$"}
+                      </span>
+                      <Input
+                        type="number"
+                        value={a.amount}
+                        onChange={(e) => handleUpdateAllowanceAmount(a.id, parseFloat(e.target.value) || 0)}
+                        className="h-7 text-sm pl-6 pr-2"
+                      />
+                    </div>
+                  ) : (
+                    <span className="text-sm font-medium">
+                      {formatCurrency(a.calculatedAmount)}
+                    </span>
+                  )}
                   <Button
                     type="button"
                     variant="ghost"

@@ -52,19 +52,24 @@ export function TemplateFormDialog({
     is_taxable: true,
     is_mandatory: false,
     is_active: true,
+    is_variable: false,
   });
 
   useEffect(() => {
     if (template) {
+      const allowanceTemplate = template as AllowanceTemplate;
       setFormData({
         name: template.name,
         description: template.description || "",
-        amount: template.amount.toString(),
+        amount: (isAllowance && allowanceTemplate.is_variable 
+          ? (allowanceTemplate.default_amount || "").toString() 
+          : template.amount.toString()),
         amount_type: template.amount_type as "fixed" | "percentage",
         percentage_of: template.percentage_of || "base_salary",
-        is_taxable: isAllowance ? (template as AllowanceTemplate).is_taxable : true,
+        is_taxable: isAllowance ? allowanceTemplate.is_taxable : true,
         is_mandatory: !isAllowance ? (template as DeductionTemplate).is_mandatory : false,
         is_active: template.is_active,
+        is_variable: isAllowance ? (allowanceTemplate.is_variable || false) : false,
       });
     } else {
       setFormData({
@@ -76,6 +81,7 @@ export function TemplateFormDialog({
         is_taxable: true,
         is_mandatory: false,
         is_active: true,
+        is_variable: false,
       });
     }
   }, [template, isAllowance, open]);
@@ -83,15 +89,21 @@ export function TemplateFormDialog({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    const amountValue = parseFloat(formData.amount) || 0;
+    
     const data = {
       name: formData.name,
       description: formData.description || null,
-      amount: parseFloat(formData.amount) || 0,
+      amount: isAllowance && formData.is_variable ? 0 : amountValue,
       amount_type: formData.amount_type,
       percentage_of: formData.amount_type === 'percentage' ? formData.percentage_of : null,
       is_active: formData.is_active,
       ...(isAllowance 
-        ? { is_taxable: formData.is_taxable }
+        ? { 
+            is_taxable: formData.is_taxable,
+            is_variable: formData.is_variable,
+            default_amount: formData.is_variable ? amountValue : amountValue,
+          }
         : { is_mandatory: formData.is_mandatory }
       ),
     };
@@ -155,7 +167,10 @@ export function TemplateFormDialog({
 
             <div className="space-y-2">
               <Label htmlFor="amount">
-                {formData.amount_type === "fixed" ? "Amount ($)" : "Percentage (%)"}
+                {formData.amount_type === "fixed" 
+                  ? (isAllowance && formData.is_variable ? "Default Amount ($)" : "Amount ($)")
+                  : (isAllowance && formData.is_variable ? "Default Percentage (%)" : "Percentage (%)")}
+                {!(isAllowance && formData.is_variable) && " *"}
               </Label>
               <Input
                 id="amount"
@@ -165,8 +180,13 @@ export function TemplateFormDialog({
                 value={formData.amount}
                 onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                 placeholder={formData.amount_type === "fixed" ? "0.00" : "0"}
-                required
+                required={!(isAllowance && formData.is_variable)}
               />
+              {isAllowance && formData.is_variable && (
+                <p className="text-xs text-muted-foreground">
+                  Optional default. Amount will be set when assigning to employees.
+                </p>
+              )}
             </div>
           </div>
 
@@ -192,6 +212,24 @@ export function TemplateFormDialog({
           )}
 
           <div className="space-y-4 pt-2">
+            {isAllowance && (
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="is_variable">Amount varies per employee</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Amount will be entered when assigning to employees
+                  </p>
+                </div>
+                <Switch
+                  id="is_variable"
+                  checked={formData.is_variable}
+                  onCheckedChange={(checked) => 
+                    setFormData({ ...formData, is_variable: checked })
+                  }
+                />
+              </div>
+            )}
+
             {isAllowance ? (
               <div className="flex items-center justify-between">
                 <div>
