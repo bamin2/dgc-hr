@@ -51,10 +51,15 @@ export default function Payroll() {
                 Manage employee salaries and process payroll
               </p>
             </div>
-            <Button onClick={() => navigate("/payroll/run")} className="gap-2 w-full sm:w-auto">
-              <Plus className="w-4 h-4" />
-              Run Payroll
-            </Button>
+            <div className="flex gap-2 w-full sm:w-auto">
+              <Button variant="outline" onClick={() => navigate("/team/bulk-salary-update")} className="gap-2 flex-1 sm:flex-none">
+                Bulk Update Salaries
+              </Button>
+              <Button onClick={() => navigate("/payroll/run")} className="gap-2 flex-1 sm:flex-none">
+                <Plus className="w-4 h-4" />
+                Run Payroll
+              </Button>
+            </div>
           </div>
 
           {/* Metrics */}

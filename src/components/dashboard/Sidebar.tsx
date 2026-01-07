@@ -40,8 +40,7 @@ const mainMenuItems = [
 
 // MANAGEMENT - HR & Manager roles only
 const managementMenuItems = [
-  { icon: Users, label: "Employees", path: "/employees" },
-  { icon: UsersRound, label: "Team Member", path: "/team" },
+  { icon: Users, label: "Employee Management", path: "/employees" },
   { icon: Clock, label: "Time Management", path: "/time-management" },
   { icon: FileText, label: "Reports", path: "/reports" },
   { icon: Wallet, label: "Payrolls", path: "/payroll" },

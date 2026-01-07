@@ -99,7 +99,7 @@ export function BulkSalaryUpdateWizard() {
         title: "Salary updates applied",
         description: `Successfully updated salaries for ${data.selectedEmployeeIds.length} employees.`,
       });
-      navigate("/team");
+      navigate("/employees");
     } catch (error) {
       console.error("Error applying salary updates:", error);
       toast({
@@ -211,7 +211,7 @@ export function BulkSalaryUpdateWizard() {
           <div className="flex gap-3">
             <Button
               variant="outline"
-              onClick={() => navigate("/team")}
+              onClick={() => navigate("/employees")}
               disabled={isSubmitting}
             >
               Cancel

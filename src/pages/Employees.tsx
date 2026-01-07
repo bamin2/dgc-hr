@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { Users, Building2, Loader2, Upload, History, Archive } from "lucide-react";
+import { Users, Building2, Loader2, Upload, History, Archive, UserPlus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Sidebar, Header } from "@/components/dashboard";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import {
   FormerEmployeesTable,
   ColumnCustomizer,
 } from "@/components/employees";
+import { OnboardingDialog, OffboardingDialog } from "@/components/team";
 import {
   useEmployees,
   useUpdateEmployee,
@@ -71,6 +72,9 @@ export default function Employees() {
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [importOpen, setImportOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [onboardingOpen, setOnboardingOpen] = useState(false);
+  const [offboardingOpen, setOffboardingOpen] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<Employee | null>(null);
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
@@ -240,7 +244,7 @@ export default function Employees() {
         <main className="flex-1 p-4 sm:p-6 overflow-y-auto overflow-x-hidden">
           {/* Page Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-            <h1 className="text-xl sm:text-2xl font-semibold text-foreground">People Directory</h1>
+            <h1 className="text-xl sm:text-2xl font-semibold text-foreground">Employee Management</h1>
             
             {canEditEmployees && (
               <div className="flex flex-wrap gap-2">
@@ -253,6 +257,10 @@ export default function Employees() {
                   <span className="hidden sm:inline">Import</span>
                 </Button>
                 <EmployeeExportButton employees={filteredEmployees} />
+                <Button onClick={() => navigate("/team/add")} className="gap-2">
+                  <UserPlus className="h-4 w-4" />
+                  <span className="hidden sm:inline">Add Team Member</span>
+                </Button>
               </div>
             )}
           </div>
@@ -339,6 +347,14 @@ export default function Employees() {
                     onView={handleView}
                     onEdit={handleEdit}
                     onDelete={handleDelete}
+                    onStartOnboarding={(employee) => {
+                      setSelectedMember(employee);
+                      setOnboardingOpen(true);
+                    }}
+                    onStartOffboarding={(employee) => {
+                      setSelectedMember(employee);
+                      setOffboardingOpen(true);
+                    }}
                     canEdit={canEditEmployees}
                   />
                   <TablePagination
@@ -405,6 +421,62 @@ export default function Employees() {
         open={historyOpen}
         onOpenChange={setHistoryOpen}
       />
+
+      {/* Onboarding Dialog */}
+      {selectedMember && (
+        <OnboardingDialog
+          open={onboardingOpen}
+          onOpenChange={setOnboardingOpen}
+          member={{
+            id: selectedMember.id,
+            firstName: selectedMember.firstName,
+            lastName: selectedMember.lastName,
+            email: selectedMember.email,
+            avatar: selectedMember.avatar,
+            workerType: "employee",
+            startDate: selectedMember.joinDate || new Date().toISOString(),
+            department: selectedMember.department || "",
+            departmentId: selectedMember.departmentId,
+            jobTitle: selectedMember.position || "",
+            positionId: selectedMember.positionId,
+            employmentType: "full_time",
+            status: "active",
+            managerId: selectedMember.managerId,
+            workLocation: selectedMember.workLocationId,
+            salary: selectedMember.salary,
+            payFrequency: "month",
+          }}
+          onComplete={() => setOnboardingOpen(false)}
+        />
+      )}
+
+      {/* Offboarding Dialog */}
+      {selectedMember && (
+        <OffboardingDialog
+          open={offboardingOpen}
+          onOpenChange={setOffboardingOpen}
+          member={{
+            id: selectedMember.id,
+            firstName: selectedMember.firstName,
+            lastName: selectedMember.lastName,
+            email: selectedMember.email,
+            avatar: selectedMember.avatar,
+            workerType: "employee",
+            startDate: selectedMember.joinDate || new Date().toISOString(),
+            department: selectedMember.department || "",
+            departmentId: selectedMember.departmentId,
+            jobTitle: selectedMember.position || "",
+            positionId: selectedMember.positionId,
+            employmentType: "full_time",
+            status: "active",
+            managerId: selectedMember.managerId,
+            workLocation: selectedMember.workLocationId,
+            salary: selectedMember.salary,
+            payFrequency: "month",
+          }}
+          onComplete={() => setOffboardingOpen(false)}
+        />
+      )}
     </div>
   );
 }
