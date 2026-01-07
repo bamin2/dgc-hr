@@ -23,9 +23,12 @@ import { toast } from "@/hooks/use-toast";
 import { Employee } from "@/hooks/useEmployees";
 import {
   buildOrgTreeFromEmployee,
+  buildOrgTrees,
   getEmployeesWithReports,
 } from "@/utils/orgHierarchy";
 import { exportToPng, exportToPdf, exportToSvg } from "@/utils/orgChartExport";
+
+const FULL_COMPANY_VALUE = "__full_company__";
 import { OrgChartExportPreview } from "./OrgChartExportPreview";
 import { CardVisibilitySettings } from "./ExportableOrgChartNode";
 
@@ -58,14 +61,9 @@ export function OrgChartExportDialog({
     [employees]
   );
 
-  // Default to CEO/root employee
-  const rootEmployee = useMemo(
-    () => employees.find((e) => !e.managerId),
-    [employees]
-  );
-
+  // Default to full company structure
   const [startingEmployeeId, setStartingEmployeeId] = useState<string>(
-    rootEmployee?.id || ""
+    FULL_COMPANY_VALUE
   );
 
   const [visibility, setVisibility] = useState<CardVisibilitySettings>({
@@ -77,8 +75,12 @@ export function OrgChartExportDialog({
 
   // Build the org tree based on selected starting employee
   const orgData = useMemo(() => {
+    if (startingEmployeeId === FULL_COMPANY_VALUE) {
+      return buildOrgTrees(employees);
+    }
     if (!startingEmployeeId) return null;
-    return buildOrgTreeFromEmployee(employees, startingEmployeeId);
+    const tree = buildOrgTreeFromEmployee(employees, startingEmployeeId);
+    return tree ? [tree] : null;
   }, [employees, startingEmployeeId]);
 
   const handleVisibilityChange = (
@@ -157,6 +159,10 @@ export function OrgChartExportDialog({
                   <SelectValue placeholder="Select employee" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value={FULL_COMPANY_VALUE}>
+                    Full Company Structure
+                  </SelectItem>
+                  <div className="h-px bg-border my-1" />
                   {startingEmployeeOptions.map((emp) => (
                     <SelectItem key={emp.id} value={emp.id}>
                       {emp.firstName} {emp.lastName} ({emp.position})
@@ -164,11 +170,13 @@ export function OrgChartExportDialog({
                   ))}
                 </SelectContent>
               </Select>
-              {selectedEmployee && (
-                <p className="text-xs text-muted-foreground">
-                  Export will include {selectedEmployee.firstName}'s team and all subordinates.
-                </p>
-              )}
+              <p className="text-xs text-muted-foreground">
+                {startingEmployeeId === FULL_COMPANY_VALUE
+                  ? "Export will include all employees and organizational relationships."
+                  : selectedEmployee
+                  ? `Export will include ${selectedEmployee.firstName}'s team and all subordinates.`
+                  : "Select an option to preview."}
+              </p>
             </div>
 
             {/* Card Details */}
