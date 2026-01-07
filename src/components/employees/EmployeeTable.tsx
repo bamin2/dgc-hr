@@ -61,7 +61,51 @@ export function EmployeeTable({
     }
   };
 
-  const showColumn = (columnId: EmployeeTableColumnId) => visibleColumns.includes(columnId);
+  const columnConfig: Record<EmployeeTableColumnId, {
+    header: string;
+    cell: (employee: Employee, initials: string) => React.ReactNode;
+  }> = {
+    name: {
+      header: 'Employee Name',
+      cell: (employee, initials) => (
+        <div className="flex items-center gap-3">
+          <Avatar className="h-8 w-8">
+            <AvatarImage src={employee.avatar} alt={`${employee.firstName} ${employee.lastName}`} />
+            <AvatarFallback className="bg-primary/10 text-primary text-xs">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+          <span className="font-medium text-foreground">
+            {employee.firstName} {employee.lastName}
+          </span>
+        </div>
+      ),
+    },
+    email: {
+      header: 'Email Address',
+      cell: (employee) => <span className="text-muted-foreground">{employee.email}</span>,
+    },
+    department: {
+      header: 'Department',
+      cell: (employee) => <span className="text-muted-foreground">{employee.department}</span>,
+    },
+    jobTitle: {
+      header: 'Job Title',
+      cell: (employee) => <span className="text-muted-foreground">{employee.position}</span>,
+    },
+    joinDate: {
+      header: 'Joined Date',
+      cell: (employee) => (
+        <span className="text-muted-foreground">
+          {format(new Date(employee.joinDate), 'MMM d, yyyy')}
+        </span>
+      ),
+    },
+    status: {
+      header: 'Status',
+      cell: (employee) => <StatusBadge status={employee.status} />,
+    },
+  };
 
   return (
     <div className="rounded-lg border bg-card overflow-hidden">
@@ -79,12 +123,11 @@ export function EmployeeTable({
                 onCheckedChange={handleSelectAll}
               />
             </TableHead>
-            {showColumn('name') && <TableHead className="font-medium">Employee Name</TableHead>}
-            {showColumn('email') && <TableHead className="font-medium">Email Address</TableHead>}
-            {showColumn('department') && <TableHead className="font-medium">Department</TableHead>}
-            {showColumn('jobTitle') && <TableHead className="font-medium">Job Title</TableHead>}
-            {showColumn('joinDate') && <TableHead className="font-medium">Joined Date</TableHead>}
-            {showColumn('status') && <TableHead className="font-medium">Status</TableHead>}
+            {visibleColumns.map((columnId) => (
+              <TableHead key={columnId} className="font-medium">
+                {columnConfig[columnId].header}
+              </TableHead>
+            ))}
             <TableHead className="font-medium text-right">Action</TableHead>
           </TableRow>
         </TableHeader>
@@ -105,46 +148,11 @@ export function EmployeeTable({
                     onCheckedChange={(checked) => handleSelectOne(employee.id, checked as boolean)}
                   />
                 </TableCell>
-                {showColumn('name') && (
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={employee.avatar} alt={`${employee.firstName} ${employee.lastName}`} />
-                        <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                          {initials}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="font-medium text-foreground">
-                        {employee.firstName} {employee.lastName}
-                      </span>
-                    </div>
+                {visibleColumns.map((columnId) => (
+                  <TableCell key={columnId}>
+                    {columnConfig[columnId].cell(employee, initials)}
                   </TableCell>
-                )}
-                {showColumn('email') && (
-                  <TableCell className="text-muted-foreground">
-                    {employee.email}
-                  </TableCell>
-                )}
-                {showColumn('department') && (
-                  <TableCell className="text-muted-foreground">
-                    {employee.department}
-                  </TableCell>
-                )}
-                {showColumn('jobTitle') && (
-                  <TableCell className="text-muted-foreground">
-                    {employee.position}
-                  </TableCell>
-                )}
-                {showColumn('joinDate') && (
-                  <TableCell className="text-muted-foreground">
-                    {format(new Date(employee.joinDate), 'MMM d, yyyy')}
-                  </TableCell>
-                )}
-                {showColumn('status') && (
-                  <TableCell>
-                    <StatusBadge status={employee.status} />
-                  </TableCell>
-                )}
+                ))}
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   <div className="flex items-center justify-end gap-1">
                     {canEdit && (
