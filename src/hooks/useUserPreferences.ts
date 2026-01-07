@@ -1,7 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { UserPreferences } from '@/data/settings';
+import { UserPreferences, EmployeeTableColumnId, defaultEmployeeTableColumns } from '@/data/settings';
+import { Json } from '@/integrations/supabase/types';
 
 interface DbUserPreferences {
   id: string;
@@ -15,6 +16,7 @@ interface DbUserPreferences {
   date_format: string;
   time_format: string;
   first_day_of_week: string;
+  employee_table_columns: Json;
 }
 
 interface DbProfile {
@@ -42,6 +44,7 @@ const defaultPreferences: Omit<UserPreferences, 'userId'> = {
     defaultPage: 'dashboard',
     itemsPerPage: 25,
     compactMode: false,
+    employeeTableColumns: defaultEmployeeTableColumns,
   },
   regional: {
     timezone: 'America/Los_Angeles',
@@ -50,6 +53,15 @@ const defaultPreferences: Omit<UserPreferences, 'userId'> = {
     firstDayOfWeek: 'sunday',
   },
 };
+
+function parseEmployeeTableColumns(json: Json | null | undefined): EmployeeTableColumnId[] {
+  if (!json || !Array.isArray(json)) {
+    return defaultEmployeeTableColumns;
+  }
+  return json.filter((col): col is EmployeeTableColumnId => 
+    typeof col === 'string' && defaultEmployeeTableColumns.includes(col as EmployeeTableColumnId)
+  );
+}
 
 function transformFromDb(
   prefs: DbUserPreferences | null, 
@@ -72,6 +84,7 @@ function transformFromDb(
       defaultPage: prefs?.default_page || 'dashboard',
       itemsPerPage: prefs?.items_per_page || 25,
       compactMode: prefs?.compact_mode || false,
+      employeeTableColumns: parseEmployeeTableColumns(prefs?.employee_table_columns),
     },
     regional: {
       timezone: prefs?.timezone || 'America/Los_Angeles',
@@ -153,6 +166,7 @@ export function useUserPreferences() {
           default_page: preferences.display?.defaultPage,
           items_per_page: preferences.display?.itemsPerPage,
           compact_mode: preferences.display?.compactMode,
+          employee_table_columns: preferences.display?.employeeTableColumns,
           timezone: preferences.regional?.timezone,
           date_format: preferences.regional?.dateFormat,
           time_format: preferences.regional?.timeFormat,

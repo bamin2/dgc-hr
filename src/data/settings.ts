@@ -53,6 +53,21 @@ export interface CompanySettings {
   dashboardCardVisibility?: DashboardCardVisibility;
 }
 
+// Employee Table Columns Configuration
+export const employeeTableColumns = [
+  { id: 'name', label: 'Employee Name', required: true },
+  { id: 'email', label: 'Email Address', required: false },
+  { id: 'department', label: 'Department', required: false },
+  { id: 'jobTitle', label: 'Job Title', required: false },
+  { id: 'joinDate', label: 'Joined Date', required: false },
+  { id: 'status', label: 'Status', required: false },
+] as const;
+
+export type EmployeeTableColumnId = typeof employeeTableColumns[number]['id'];
+
+export const defaultEmployeeTableColumns: EmployeeTableColumnId[] = 
+  ['name', 'email', 'department', 'jobTitle', 'joinDate', 'status'];
+
 // User Preferences
 export interface UserPreferences {
   userId: string;
@@ -70,6 +85,7 @@ export interface UserPreferences {
     defaultPage: string;
     itemsPerPage: number;
     compactMode: boolean;
+    employeeTableColumns: EmployeeTableColumnId[];
   };
   regional: {
     timezone: string;
@@ -171,7 +187,8 @@ export const userPreferences: UserPreferences = {
     theme: 'system',
     defaultPage: 'dashboard',
     itemsPerPage: 25,
-    compactMode: false
+    compactMode: false,
+    employeeTableColumns: defaultEmployeeTableColumns,
   },
   regional: {
     timezone: 'America/Los_Angeles',
