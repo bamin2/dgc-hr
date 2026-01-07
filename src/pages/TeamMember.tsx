@@ -8,13 +8,11 @@ import {
   TeamMemberFilters,
   OnboardingDialog,
   OffboardingDialog,
-  BulkUpdateSalariesDialog,
 } from "@/components/team";
 import { TablePagination } from "@/components/employees";
 import { useTeamMembers, useUpdateTeamMember, useDeleteTeamMember, type TeamMember as TeamMemberType, type TeamMemberStatus } from "@/hooks/useTeamMembers";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { useBulkAddSalaryHistory, type SalaryChangeType } from "@/hooks/useSalaryHistory";
 
 type TabType = 'all' | 'active' | 'onboarding' | 'offboarding' | 'dismissed';
 
@@ -28,7 +26,6 @@ const tabs: { id: TabType; label: string }[] = [
 
 export default function TeamMember() {
   const navigate = useNavigate();
-  const bulkAddSalaryHistory = useBulkAddSalaryHistory();
   const { data: members = [], isLoading } = useTeamMembers();
   const updateTeamMember = useUpdateTeamMember();
   const deleteTeamMember = useDeleteTeamMember();
@@ -45,9 +42,6 @@ export default function TeamMember() {
   // Offboarding dialog state
   const [offboardingDialogOpen, setOffboardingDialogOpen] = useState(false);
   const [selectedMemberForOffboarding, setSelectedMemberForOffboarding] = useState<TeamMemberType | null>(null);
-
-  // Bulk update salaries dialog state
-  const [bulkUpdateDialogOpen, setBulkUpdateDialogOpen] = useState(false);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -182,47 +176,6 @@ export default function TeamMember() {
     });
   };
 
-  const handleBulkSalaryUpdate = async (updates: { id: string; previousSalary: number | null; newSalary: number; changeType: SalaryChangeType; reason?: string }[]) => {
-    try {
-      // Persist salary history to database
-      await bulkAddSalaryHistory.mutateAsync(
-        updates.map(update => ({
-          employeeId: update.id,
-          previousSalary: update.previousSalary,
-          newSalary: update.newSalary,
-          changeType: update.changeType,
-          reason: update.reason,
-        }))
-      );
-
-      // Update salaries in database
-      for (const update of updates) {
-        await updateTeamMember.mutateAsync({
-          id: update.id,
-          salary: update.newSalary,
-        });
-      }
-
-      setSelectedMembers([]);
-
-      toast({
-        title: "Salaries updated",
-        description: `Updated salaries for ${updates.length} team member(s) and recorded in history.`,
-      });
-    } catch (error) {
-      toast({
-        title: "Error updating salaries",
-        description: "Failed to save salary history. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Get selected member objects for the dialog
-  const selectedMemberObjects = useMemo(() => {
-    return members.filter((m) => selectedMembers.includes(m.id));
-  }, [members, selectedMembers]);
-
   if (isLoading) {
     return (
       <div className="flex h-screen w-full bg-background overflow-hidden">
@@ -255,7 +208,7 @@ export default function TeamMember() {
             <div className="flex items-center gap-3">
               <Button
                 variant="outline"
-                onClick={() => setBulkUpdateDialogOpen(true)}
+                onClick={() => navigate("/team/bulk-salary-update")}
                 disabled={selectedMembers.length === 0}
                 className="gap-2"
               >
@@ -366,14 +319,6 @@ export default function TeamMember() {
             onOpenChange={setOffboardingDialogOpen}
             member={selectedMemberForOffboarding}
             onComplete={handleOffboardingComplete}
-          />
-
-          {/* Bulk Update Salaries Dialog */}
-          <BulkUpdateSalariesDialog
-            open={bulkUpdateDialogOpen}
-            onOpenChange={setBulkUpdateDialogOpen}
-            selectedMembers={selectedMemberObjects}
-            onUpdate={handleBulkSalaryUpdate}
           />
         </main>
       </div>

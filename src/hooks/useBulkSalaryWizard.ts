@@ -1,24 +1,26 @@
 import { useState, useCallback, useMemo } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useTeamMembers, TeamMember } from "./useTeamMembers";
+import { TeamMember } from "./useTeamMembers";
 import { useActiveAllowanceTemplates } from "./useAllowanceTemplates";
 import { useActiveDeductionTemplates } from "./useDeductionTemplates";
-import { useDepartments } from "./useDepartmentsManagement";
-import { usePositions } from "./usePositionsManagement";
+import { useDepartmentsManagement } from "./useDepartmentsManagement";
+import { usePositionsManagement } from "./usePositionsManagement";
+import { useWorkLocations } from "./useWorkLocations";
+import { TablesInsert } from "@/integrations/supabase/types";
 import {
   BulkSalaryWizardData,
   EmployeeImpact,
   UpdateType,
   initialWizardData,
 } from "@/components/team/wizard/bulk-salary/types";
-import { AllowanceEntry } from "@/components/team/wizard/AddAllowanceDialog";
-import { DeductionEntry } from "@/components/team/wizard/AddDeductionDialog";
 
 // Extended TeamMember with GOSI fields
 export interface TeamMemberWithGosi extends TeamMember {
   gosiRegisteredSalary?: number;
   isSubjectToGosi?: boolean;
+  nationality?: string;
+  workLocationId?: string;
 }
 
 // Fetch team members with GOSI fields
@@ -76,8 +78,9 @@ export function useBulkSalaryWizard() {
   const [teamMembers, setTeamMembers] = useState<TeamMemberWithGosi[]>([]);
   const [isLoadingMembers, setIsLoadingMembers] = useState(true);
 
-  const { data: departments } = useDepartments();
-  const { data: positions } = usePositions();
+  const { data: departments } = useDepartmentsManagement();
+  const { data: positions } = usePositionsManagement();
+  const { data: workLocations } = useWorkLocations();
   const { data: allowanceTemplates } = useActiveAllowanceTemplates();
   const { data: deductionTemplates } = useActiveDeductionTemplates();
 
@@ -116,7 +119,7 @@ export function useBulkSalaryWizard() {
       result = result.filter(m => m.employmentType === data.filters.employmentType);
     }
     if (data.filters.nationality) {
-      result = result.filter(m => (m as any).nationality === data.filters.nationality);
+      result = result.filter(m => m.nationality === data.filters.nationality);
     }
     if (data.filters.workLocationId) {
       result = result.filter(m => m.workLocationId === data.filters.workLocationId);
@@ -294,28 +297,30 @@ export function useBulkSalaryWizard() {
       const effectiveDate = data.effectiveDate?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0];
 
       // Create batch record
+      const batchInsert: TablesInsert<'salary_update_batches'> = {
+        initiated_by: userData.user.id,
+        effective_date: effectiveDate,
+        filter_criteria: data.filters as any,
+        employee_ids: data.selectedEmployeeIds,
+        employee_count: data.selectedEmployeeIds.length,
+        update_type: data.updateType || 'set_new',
+        update_value: parseFloat(data.updateValue) || 0,
+        components_changed: {
+          allowances: data.allowances,
+          deductions: data.deductions,
+        } as any,
+        gosi_salary_changed: data.gosiHandling !== 'keep',
+        total_before_salary: totals.beforeTotal,
+        total_after_salary: totals.afterTotal,
+        total_change: totals.change,
+        change_type: data.changeType,
+        reason: data.reason,
+        notes: data.notes || null,
+      };
+
       const { data: batch, error: batchError } = await supabase
         .from('salary_update_batches')
-        .insert({
-          initiated_by: userData.user.id,
-          effective_date: effectiveDate,
-          filter_criteria: data.filters,
-          employee_ids: data.selectedEmployeeIds,
-          employee_count: data.selectedEmployeeIds.length,
-          update_type: data.updateType || 'set_new',
-          update_value: parseFloat(data.updateValue) || 0,
-          components_changed: {
-            allowances: data.allowances,
-            deductions: data.deductions,
-          },
-          gosi_salary_changed: data.gosiHandling !== 'keep',
-          total_before_salary: totals.beforeTotal,
-          total_after_salary: totals.afterTotal,
-          total_change: totals.change,
-          change_type: data.changeType,
-          reason: data.reason,
-          notes: data.notes || null,
-        })
+        .insert(batchInsert)
         .select()
         .single();
 
@@ -414,6 +419,7 @@ export function useBulkSalaryWizard() {
     validateStep,
     departments,
     positions,
+    workLocations,
     allowanceTemplates,
     deductionTemplates,
     submit: submitMutation.mutateAsync,
