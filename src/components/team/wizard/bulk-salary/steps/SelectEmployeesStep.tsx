@@ -20,7 +20,7 @@ interface SelectEmployeesStepProps {
   data: BulkSalaryWizardData;
   employees: TeamMemberWithGosi[];
   departments: { id: string; name: string }[];
-  positions: { id: string; title: string }[];
+  workLocations: { id: string; name: string }[];
   onUpdateData: <K extends keyof BulkSalaryWizardData>(field: K, value: BulkSalaryWizardData[K]) => void;
 }
 
@@ -28,7 +28,7 @@ export function SelectEmployeesStep({
   data,
   employees,
   departments,
-  positions,
+  workLocations,
   onUpdateData,
 }: SelectEmployeesStepProps) {
   const updateFilter = (key: keyof BulkSalaryWizardData['filters'], value: string | undefined) => {
@@ -44,11 +44,8 @@ export function SelectEmployeesStep({
     if (data.filters.departmentId) {
       result = result.filter(m => m.departmentId === data.filters.departmentId);
     }
-    if (data.filters.positionId) {
-      result = result.filter(m => m.positionId === data.filters.positionId);
-    }
-    if (data.filters.employmentType) {
-      result = result.filter(m => m.employmentType === data.filters.employmentType);
+    if (data.filters.workLocationId) {
+      result = result.filter(m => m.workLocationId === data.filters.workLocationId);
     }
     
     return result;
@@ -81,11 +78,6 @@ export function SelectEmployeesStep({
     return `${firstName[0] || ''}${lastName[0] || ''}`.toUpperCase();
   };
 
-  const nationalities = useMemo(() => {
-    const unique = new Set(employees.map(e => (e as any).nationality).filter(Boolean));
-    return Array.from(unique).sort();
-  }, [employees]);
-
   return (
     <div className="space-y-6">
       <div>
@@ -96,7 +88,25 @@ export function SelectEmployeesStep({
       </div>
 
       {/* Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label>Work Location</Label>
+          <Select
+            value={data.filters.workLocationId || 'all'}
+            onValueChange={(v) => updateFilter('workLocationId', v)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="All Locations" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Locations</SelectItem>
+              {workLocations.map(wl => (
+                <SelectItem key={wl.id} value={wl.id}>{wl.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         <div className="space-y-2">
           <Label>Department</Label>
           <Select
@@ -111,42 +121,6 @@ export function SelectEmployeesStep({
               {departments.map(d => (
                 <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
               ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label>Job Title</Label>
-          <Select
-            value={data.filters.positionId || 'all'}
-            onValueChange={(v) => updateFilter('positionId', v)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="All Positions" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Positions</SelectItem>
-              {positions.map(p => (
-                <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label>Employment Type</Label>
-          <Select
-            value={data.filters.employmentType || 'all'}
-            onValueChange={(v) => updateFilter('employmentType', v)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="All Types" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="full_time">Full-Time</SelectItem>
-              <SelectItem value="part_time">Part-Time</SelectItem>
-              <SelectItem value="contract">Contract</SelectItem>
             </SelectContent>
           </Select>
         </div>

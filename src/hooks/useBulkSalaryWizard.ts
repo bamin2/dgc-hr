@@ -37,6 +37,7 @@ async function fetchTeamMembersWithGosi(): Promise<TeamMemberWithGosi[]> {
       manager:employees!manager_id(id, first_name, last_name),
       work_location_ref:work_locations!employees_work_location_id_fkey(id, name, currency)
     `)
+    .in('status', ['active', 'on_leave', 'on_boarding'])
     .order("first_name");
 
   if (error) throw error;
@@ -188,15 +189,6 @@ export function useBulkSalaryWizard() {
     
     if (data.filters.departmentId) {
       result = result.filter(m => m.departmentId === data.filters.departmentId);
-    }
-    if (data.filters.positionId) {
-      result = result.filter(m => m.positionId === data.filters.positionId);
-    }
-    if (data.filters.employmentType) {
-      result = result.filter(m => m.employmentType === data.filters.employmentType);
-    }
-    if (data.filters.nationality) {
-      result = result.filter(m => m.nationality === data.filters.nationality);
     }
     if (data.filters.workLocationId) {
       result = result.filter(m => m.workLocationId === data.filters.workLocationId);
