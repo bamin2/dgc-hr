@@ -2,12 +2,23 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { TrendingUp, TrendingDown, DollarSign } from "lucide-react";
 import { BulkSalaryWizardData, UpdateType } from "../types";
+import { TeamMemberWithGosi } from "@/hooks/useBulkSalaryWizard";
+
+interface WorkLocation {
+  id: string;
+  name: string;
+  currency?: string;
+}
 
 interface UpdateTypeStepProps {
   data: BulkSalaryWizardData;
   onUpdateData: <K extends keyof BulkSalaryWizardData>(field: K, value: BulkSalaryWizardData[K]) => void;
+  selectedEmployees: TeamMemberWithGosi[];
+  workLocations: WorkLocation[];
 }
 
 const updateOptions: { value: UpdateType; label: string; description: string; icon: typeof TrendingUp }[] = [
@@ -38,14 +49,38 @@ const updateOptions: { value: UpdateType; label: string; description: string; ic
   {
     value: 'set_new',
     label: 'Set New Basic Salary',
-    description: 'Set a specific salary amount for all selected employees',
+    description: 'Set a custom salary amount for each selected employee',
     icon: DollarSign,
   },
 ];
 
-export function UpdateTypeStep({ data, onUpdateData }: UpdateTypeStepProps) {
+export function UpdateTypeStep({ data, onUpdateData, selectedEmployees, workLocations }: UpdateTypeStepProps) {
   const isPercentage = data.updateType?.includes('percentage');
   const isSetNew = data.updateType === 'set_new';
+
+  const getInitials = (firstName: string, lastName: string) => {
+    return `${firstName[0] || ''}${lastName[0] || ''}`.toUpperCase();
+  };
+
+  const getEmployeeCurrency = (employee: TeamMemberWithGosi) => {
+    if (employee.workLocationId) {
+      const location = workLocations.find(l => l.id === employee.workLocationId);
+      return location?.currency || 'USD';
+    }
+    return 'USD';
+  };
+
+  const formatCurrency = (amount: number | undefined, currency: string) => {
+    if (amount === undefined) return '-';
+    return `${currency} ${amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+  };
+
+  const handlePerEmployeeSalaryChange = (employeeId: string, value: string) => {
+    onUpdateData('perEmployeeSalaries', {
+      ...data.perEmployeeSalaries,
+      [employeeId]: value,
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -61,6 +96,7 @@ export function UpdateTypeStep({ data, onUpdateData }: UpdateTypeStepProps) {
         onValueChange={(value) => {
           onUpdateData('updateType', value as UpdateType);
           onUpdateData('updateValue', '');
+          onUpdateData('perEmployeeSalaries', {});
         }}
         className="space-y-3"
       >
@@ -80,6 +116,7 @@ export function UpdateTypeStep({ data, onUpdateData }: UpdateTypeStepProps) {
                 onClick={() => {
                   onUpdateData('updateType', option.value);
                   onUpdateData('updateValue', '');
+                  onUpdateData('perEmployeeSalaries', {});
                 }}
               >
                 <CardContent className="flex items-center gap-4 p-4">
@@ -111,14 +148,10 @@ export function UpdateTypeStep({ data, onUpdateData }: UpdateTypeStepProps) {
         })}
       </RadioGroup>
 
-      {data.updateType && (
+      {data.updateType && !isSetNew && (
         <div className="space-y-2 pt-4">
           <Label htmlFor="update-value">
-            {isSetNew
-              ? 'New Salary Amount'
-              : isPercentage
-              ? 'Percentage Value'
-              : 'Amount'}
+            {isPercentage ? 'Percentage Value' : 'Amount'}
           </Label>
           <div className="relative max-w-xs">
             {!isPercentage && (
@@ -145,6 +178,61 @@ export function UpdateTypeStep({ data, onUpdateData }: UpdateTypeStepProps) {
           {isPercentage && (
             <p className="text-xs text-muted-foreground">
               Enter a value between 0 and 100
+            </p>
+          )}
+        </div>
+      )}
+
+      {isSetNew && (
+        <div className="space-y-3 pt-4">
+          <Label className="text-base font-medium">Set New Salary for Each Employee</Label>
+          <p className="text-sm text-muted-foreground">
+            Enter the new basic salary for each selected employee. Currency is based on their work location.
+          </p>
+          <ScrollArea className="h-[300px] border rounded-lg">
+            <div className="divide-y">
+              {selectedEmployees.map(employee => {
+                const currency = getEmployeeCurrency(employee);
+                return (
+                  <div key={employee.id} className="flex items-center gap-4 px-4 py-3">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={employee.avatar} />
+                      <AvatarFallback>
+                        {getInitials(employee.firstName, employee.lastName)}
+                      </AvatarFallback>
+                    </Avatar>
+
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">
+                        {employee.firstName} {employee.lastName}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Current: {formatCurrency(employee.salary, currency)}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground font-medium">
+                        {currency}
+                      </span>
+                      <Input
+                        type="number"
+                        placeholder="New salary"
+                        value={data.perEmployeeSalaries[employee.id] || ''}
+                        onChange={(e) => handlePerEmployeeSalaryChange(employee.id, e.target.value)}
+                        className="w-36 h-9"
+                        min="0"
+                        step="1"
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </ScrollArea>
+          {selectedEmployees.length > 0 && (
+            <p className="text-xs text-muted-foreground">
+              {Object.keys(data.perEmployeeSalaries).filter(id => data.perEmployeeSalaries[id]).length} of {selectedEmployees.length} employees have new salaries set
             </p>
           )}
         </div>

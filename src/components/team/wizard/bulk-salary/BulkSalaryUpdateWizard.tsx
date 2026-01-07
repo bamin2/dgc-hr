@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { useBulkSalaryWizard } from "@/hooks/useBulkSalaryWizard";
 import { toast } from "@/hooks/use-toast";
 import { VerticalWizardProgress } from "../VerticalWizardProgress";
@@ -114,7 +113,14 @@ export function BulkSalaryUpdateWizard() {
           />
         );
       case 2:
-        return <UpdateTypeStep data={data} onUpdateData={updateData} />;
+        return (
+          <UpdateTypeStep
+            data={data}
+            onUpdateData={updateData}
+            selectedEmployees={selectedEmployees}
+            workLocations={workLocations || []}
+          />
+        );
       case 3:
         return (
           <SalaryComponentsStep
@@ -178,11 +184,7 @@ export function BulkSalaryUpdateWizard() {
 
       {/* Main content */}
       <div className="flex-1">
-        <Card className="border-0 shadow-none">
-          <CardContent className="p-0">
-            {renderStep()}
-          </CardContent>
-        </Card>
+        {renderStep()}
 
         {/* Navigation */}
         <div className="flex justify-between mt-8 pt-6 border-t">

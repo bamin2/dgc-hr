@@ -209,7 +209,6 @@ export default function TeamMember() {
               <Button
                 variant="outline"
                 onClick={() => navigate("/team/bulk-salary-update")}
-                disabled={selectedMembers.length === 0}
                 className="gap-2"
               >
                 <DollarSign className="h-4 w-4" />

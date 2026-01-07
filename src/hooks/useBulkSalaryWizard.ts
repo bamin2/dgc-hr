@@ -21,6 +21,7 @@ export interface TeamMemberWithGosi extends TeamMember {
   isSubjectToGosi?: boolean;
   nationality?: string;
   workLocationId?: string;
+  currency?: string;
 }
 
 // Fetch team members with GOSI fields
@@ -31,7 +32,8 @@ async function fetchTeamMembersWithGosi(): Promise<TeamMemberWithGosi[]> {
       *,
       department:departments!employees_department_id_fkey(id, name),
       position:positions!employees_position_id_fkey(id, title),
-      manager:employees!manager_id(id, first_name, last_name)
+      manager:employees!manager_id(id, first_name, last_name),
+      work_location_ref:work_locations!employees_work_location_id_fkey(id, name, currency)
     `)
     .order("first_name");
 
@@ -39,6 +41,7 @@ async function fetchTeamMembersWithGosi(): Promise<TeamMemberWithGosi[]> {
 
   return (data || []).map((db: any) => {
     const manager = Array.isArray(db.manager) ? db.manager[0] : db.manager;
+    const workLocationRef = Array.isArray(db.work_location_ref) ? db.work_location_ref[0] : db.work_location_ref;
     return {
       id: db.id,
       firstName: db.first_name,
@@ -58,8 +61,9 @@ async function fetchTeamMembersWithGosi(): Promise<TeamMemberWithGosi[]> {
       status: db.status === 'active' ? 'active' : db.status === 'on_leave' ? 'absent' : db.status === 'on_boarding' ? 'onboarding' : db.status === 'terminated' ? 'dismissed' : 'active',
       managerId: db.manager_id || undefined,
       managerName: manager ? `${manager.first_name} ${manager.last_name}` : undefined,
-      workLocation: db.work_location || db.location || undefined,
+      workLocation: workLocationRef?.name || db.work_location || db.location || undefined,
       workLocationId: db.work_location_id || undefined,
+      currency: workLocationRef?.currency || 'USD',
       salary: db.salary ? Number(db.salary) : undefined,
       payFrequency: db.pay_frequency || 'month',
       taxExemptionStatus: db.tax_exemption_status || undefined,
@@ -139,7 +143,7 @@ export function useBulkSalaryWizard() {
   }, [selectedEmployees]);
 
   // Calculate new salary based on update type
-  const calculateNewSalary = useCallback((currentSalary: number, updateType: UpdateType | null, updateValue: number): number => {
+  const calculateNewSalary = useCallback((currentSalary: number, updateType: UpdateType | null, updateValue: number, employeeId?: string): number => {
     if (!updateType) return currentSalary;
     
     switch (updateType) {
@@ -152,19 +156,23 @@ export function useBulkSalaryWizard() {
       case 'fixed_decrease':
         return Math.max(0, currentSalary - updateValue);
       case 'set_new':
-        return updateValue;
+        // For set_new, use per-employee salaries
+        if (employeeId && data.perEmployeeSalaries[employeeId]) {
+          return parseFloat(data.perEmployeeSalaries[employeeId]) || currentSalary;
+        }
+        return currentSalary;
       default:
         return currentSalary;
     }
-  }, []);
+  }, [data.perEmployeeSalaries]);
 
   // Calculate employee impact
   const calculateEmployeeImpacts = useMemo((): EmployeeImpact[] => {
-    const updateValue = parseFloat(data.updateValue) || 0;
+    const updateValue = data.updateType === 'set_new' ? 0 : (parseFloat(data.updateValue) || 0);
     
     return selectedEmployees.map(employee => {
       const beforeBasicSalary = employee.salary || 0;
-      const afterBasicSalary = calculateNewSalary(beforeBasicSalary, data.updateType, updateValue);
+      const afterBasicSalary = calculateNewSalary(beforeBasicSalary, data.updateType, updateValue, employee.id);
       
       // Calculate allowances (simplified - would need template data for accurate calculation)
       let beforeAllowances = 0;
@@ -209,9 +217,7 @@ export function useBulkSalaryWizard() {
       let afterGosiSalary = beforeGosiSalary;
       
       if (employee.isSubjectToGosi) {
-        if (data.gosiHandling === 'set_single') {
-          afterGosiSalary = parseFloat(data.gosiNewValue) || beforeGosiSalary;
-        } else if (data.gosiHandling === 'per_employee') {
+        if (data.gosiHandling === 'per_employee') {
           afterGosiSalary = parseFloat(data.gosiPerEmployee[employee.id]) || beforeGosiSalary;
         }
       }
@@ -261,14 +267,16 @@ export function useBulkSalaryWizard() {
       case 1:
         return data.selectedEmployeeIds.length > 0;
       case 2:
-        return data.updateType !== null && data.updateValue !== '';
+        if (data.updateType === null) return false;
+        if (data.updateType === 'set_new') {
+          // For set_new, all selected employees must have a salary set
+          return selectedEmployees.every(e => data.perEmployeeSalaries[e.id] && data.perEmployeeSalaries[e.id] !== '');
+        }
+        return data.updateValue !== '';
       case 3:
         return true; // Components are optional
       case 4:
         // Validate GOSI salary is set for GOSI employees if updating
-        if (data.gosiHandling === 'set_single') {
-          return data.gosiNewValue !== '';
-        }
         if (data.gosiHandling === 'per_employee') {
           const gosiEmployees = selectedEmployees.filter(e => e.isSubjectToGosi);
           return gosiEmployees.every(e => data.gosiPerEmployee[e.id]);
