@@ -167,42 +167,45 @@ export function OrgChart({ employees, onView, onEdit, onReassign, onBulkReassign
         Drag and drop employee cards to reassign their manager.
       </p>
 
-      {/* Canvas */}
+      {/* Canvas - Constrained scrollable area */}
       <div
-        className="relative flex-1 border rounded-lg overflow-auto min-h-[500px]"
+        className="relative flex-1 border rounded-lg overflow-hidden min-h-[400px] sm:min-h-[500px] lg:min-h-[600px]"
         style={{
           backgroundImage: `radial-gradient(circle, hsl(var(--muted-foreground) / 0.2) 1px, transparent 1px)`,
           backgroundSize: "20px 20px",
         }}
       >
-        <div
-          ref={chartRef}
-          className="p-8 min-w-max flex justify-center bg-background"
-          style={{
-            transform: `scale(${zoom})`,
-            transformOrigin: "top center",
-          }}
-        >
-          {/* Multiple roots (CEO & MD) displayed side by side */}
-          <div className="flex gap-16 items-start">
-            {orgTrees.map((rootEmployee) => (
-              <OrgChartTree
-                key={rootEmployee.id}
-                employee={rootEmployee}
-                onView={onView}
-                onEdit={onEdit}
-                onDragStart={handleDragStart}
-                onDragEnd={handleDragEnd}
-                onDrop={handleDrop}
-                draggedEmployeeId={draggedEmployeeId}
-                descendantIds={descendantIds}
-                isRoot={true}
-              />
-            ))}
+        {/* Scrollable inner container */}
+        <div className="absolute inset-0 overflow-auto scroll-smooth touch-pan-x touch-pan-y">
+          <div
+            ref={chartRef}
+            className="p-8 inline-flex justify-center min-w-full min-h-full bg-background"
+            style={{
+              transform: `scale(${zoom})`,
+              transformOrigin: "top center",
+            }}
+          >
+            {/* Multiple roots (CEO & MD) displayed side by side */}
+            <div className="flex gap-16 items-start">
+              {orgTrees.map((rootEmployee) => (
+                <OrgChartTree
+                  key={rootEmployee.id}
+                  employee={rootEmployee}
+                  onView={onView}
+                  onEdit={onEdit}
+                  onDragStart={handleDragStart}
+                  onDragEnd={handleDragEnd}
+                  onDrop={handleDrop}
+                  draggedEmployeeId={draggedEmployeeId}
+                  descendantIds={descendantIds}
+                  isRoot={true}
+                />
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Zoom Controls */}
+        {/* Zoom Controls - Fixed position within container */}
         <OrgChartControls
           zoom={zoom}
           onZoomIn={handleZoomIn}

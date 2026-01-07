@@ -341,22 +341,24 @@ export default function Employees() {
           )}
 
               {activeTab === 'org-chart' && (
-                <OrgChart
-                  employees={activeEmployees}
-                  onView={(orgEmployee) => {
-                    navigate(`/employees/${orgEmployee.id}`);
-                  }}
-                  onEdit={(orgEmployee) => {
-                    // Find the full employee record by ID
-                    const employee = activeEmployees.find(e => e.id === orgEmployee.id);
-                    if (employee) {
-                      setEditingEmployee(employee);
-                      setFormOpen(true);
-                    }
-                  }}
-                  onReassign={handleReassign}
-                  onBulkReassign={handleBulkReassign}
-                />
+                <div className="overflow-hidden">
+                  <OrgChart
+                    employees={activeEmployees}
+                    onView={(orgEmployee) => {
+                      navigate(`/employees/${orgEmployee.id}`);
+                    }}
+                    onEdit={(orgEmployee) => {
+                      // Find the full employee record by ID
+                      const employee = activeEmployees.find(e => e.id === orgEmployee.id);
+                      if (employee) {
+                        setEditingEmployee(employee);
+                        setFormOpen(true);
+                      }
+                    }}
+                    onReassign={handleReassign}
+                    onBulkReassign={handleBulkReassign}
+                  />
+                </div>
               )}
 
               {activeTab === 'former-employees' && (
