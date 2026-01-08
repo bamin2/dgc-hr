@@ -97,7 +97,7 @@ export function SelectEmployeesStep({
                   onCheckedChange={() => handleToggle(employee.id)}
                 />
                 <Avatar className="h-10 w-10">
-                  <AvatarImage src={employee.avatarUrl || undefined} />
+                  <AvatarImage src={employee.avatar || undefined} />
                   <AvatarFallback>{initials}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
