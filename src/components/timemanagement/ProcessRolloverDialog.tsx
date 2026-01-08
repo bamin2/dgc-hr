@@ -37,10 +37,22 @@ export function ProcessRolloverDialog({
   const handleProcessRollover = async () => {
     setIsProcessing(true);
     try {
+      // Get the current session to include the access token
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        toast.error("You must be logged in to process rollover");
+        setIsProcessing(false);
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke(
         "process-yearly-rollover",
         {
           body: { fromYear },
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
         }
       );
 

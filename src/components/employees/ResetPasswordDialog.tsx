@@ -51,10 +51,22 @@ export function ResetPasswordDialog({
     setLoading(true);
 
     try {
+      // Get the current session to include the access token
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        toast.error("You must be logged in to reset passwords");
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke("reset-employee-password", {
         body: {
           employeeId: employee.id,
           password,
+        },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
         },
       });
 

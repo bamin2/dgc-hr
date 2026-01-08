@@ -51,15 +51,27 @@ export function CreateLoginDialog({
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke("create-employee-login", {
-        body: {
-          employeeId: employee.id,
-          email: employee.email,
-          password,
-          firstName: employee.firstName,
-          lastName: employee.lastName,
-        },
-      });
+    // Get the current session to include the access token
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session) {
+      toast.error("You must be logged in to create employee logins");
+      setLoading(false);
+      return;
+    }
+
+    const { data, error } = await supabase.functions.invoke("create-employee-login", {
+      body: {
+        employeeId: employee.id,
+        email: employee.email,
+        password,
+        firstName: employee.firstName,
+        lastName: employee.lastName,
+      },
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+      },
+    });
 
       if (error) {
         console.error("Error creating login:", error);
