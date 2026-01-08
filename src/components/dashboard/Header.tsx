@@ -1,7 +1,7 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, ChevronDown, LogOut, User, Settings, Eye } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -16,11 +16,25 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
 import { RoleBadge } from "@/components/employees";
 import { MobileNav } from "./MobileNav";
+import { GlobalSearch } from "./GlobalSearch";
 
 export function Header() {
   const navigate = useNavigate();
   const { signOut, profile } = useAuth();
   const { currentUser, canImpersonate, isImpersonating, startImpersonation, stopImpersonation } = useRole();
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  // Keyboard shortcut: ⌘K / Ctrl+K
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const handleSignOut = async () => {
     await signOut();
@@ -60,13 +74,17 @@ export function Header() {
         {/* Right Side */}
         <div className="flex items-center gap-2 sm:gap-4">
           {/* Search */}
-          <div className="relative hidden md:block">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Search anything..."
-              className="w-64 pl-10 bg-secondary/50 border-0 focus-visible:ring-1 focus-visible:ring-primary"
-            />
-          </div>
+          <button
+            onClick={() => setSearchOpen(true)}
+            className="hidden md:flex items-center gap-2 w-64 px-3 py-2 text-sm text-muted-foreground bg-secondary/50 rounded-md hover:bg-secondary transition-colors"
+          >
+            <Search className="w-4 h-4" />
+            <span className="flex-1 text-left">Search anything...</span>
+            <kbd className="pointer-events-none hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+              <span className="text-xs">⌘</span>K
+            </kbd>
+          </button>
+          <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
 
           {/* Notifications */}
           <NotificationBell />
