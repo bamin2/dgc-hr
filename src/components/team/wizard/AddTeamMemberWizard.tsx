@@ -226,7 +226,7 @@ export function AddTeamMemberWizard() {
         title: "Team member added",
         description: `${basicData.firstName} ${basicData.lastName} has been added successfully.`,
       });
-      navigate("/team");
+      navigate("/employees");
     } catch (error) {
       console.error("Error creating team member:", error);
       toast({
@@ -238,7 +238,7 @@ export function AddTeamMemberWizard() {
   };
 
   const handleClose = () => {
-    navigate("/team");
+    navigate("/employees");
   };
 
   const handleEditStep = (step: number) => {
