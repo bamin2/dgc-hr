@@ -1484,6 +1484,128 @@ export type Database = {
         }
         Relationships: []
       }
+      loan_installments: {
+        Row: {
+          amount: number
+          created_at: string | null
+          due_date: string
+          id: string
+          installment_number: number
+          loan_id: string
+          paid_at: string | null
+          paid_in_payroll_run_id: string | null
+          paid_method: string | null
+          status: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          due_date: string
+          id?: string
+          installment_number: number
+          loan_id: string
+          paid_at?: string | null
+          paid_in_payroll_run_id?: string | null
+          paid_method?: string | null
+          status?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          due_date?: string
+          id?: string
+          installment_number?: number
+          loan_id?: string
+          paid_at?: string | null
+          paid_in_payroll_run_id?: string | null
+          paid_method?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loan_installments_loan_id_fkey"
+            columns: ["loan_id"]
+            isOneToOne: false
+            referencedRelation: "loans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loan_installments_paid_in_payroll_run_id_fkey"
+            columns: ["paid_in_payroll_run_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      loans: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string | null
+          created_by: string | null
+          deduct_from_payroll: boolean
+          disbursed_at: string | null
+          duration_months: number | null
+          employee_id: string
+          id: string
+          installment_amount: number | null
+          notes: string | null
+          principal_amount: number
+          repayment_frequency: string
+          requested_by: string | null
+          start_date: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deduct_from_payroll?: boolean
+          disbursed_at?: string | null
+          duration_months?: number | null
+          employee_id: string
+          id?: string
+          installment_amount?: number | null
+          notes?: string | null
+          principal_amount: number
+          repayment_frequency?: string
+          requested_by?: string | null
+          start_date: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deduct_from_payroll?: boolean
+          disbursed_at?: string | null
+          duration_months?: number | null
+          employee_id?: string
+          id?: string
+          installment_amount?: number | null
+          notes?: string | null
+          principal_amount?: number
+          repayment_frequency?: string
+          requested_by?: string | null
+          start_date?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loans_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_preferences: {
         Row: {
           created_at: string | null
@@ -2925,6 +3047,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_loan_installments: {
+        Args: { loan_uuid: string }
+        Returns: undefined
+      }
       get_user_employee_id: { Args: { _user_id: string }; Returns: string }
       has_any_role:
         | {
