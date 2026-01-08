@@ -112,7 +112,7 @@ export function usePayrollRunEmployees(runId: string | null) {
         gosi_registered_salary, is_subject_to_gosi,
         department:departments!employees_department_id_fkey(name),
         position:positions!employees_position_id_fkey(title),
-        work_location:work_locations!employees_work_location_id_fkey(id, gosi_enabled, gosi_nationality_rates)
+        work_location:work_locations!employees_work_location_id_fkey(id, gosi_enabled, gosi_nationality_rates, gosi_base_calculation)
       `
       )
       .in("id", employeeIds);
@@ -213,16 +213,33 @@ export function usePayrollRunEmployees(runId: string | null) {
 
       // Calculate GOSI deduction
       let gosiDeduction = 0;
-      const workLocation = emp.work_location as { id: string; gosi_enabled: boolean | null; gosi_nationality_rates: Array<{nationality: string; percentage: number}> | null } | null;
+      const workLocation = emp.work_location as { 
+        id: string; 
+        gosi_enabled: boolean | null; 
+        gosi_nationality_rates: Array<{nationality: string; percentage: number}> | null;
+        gosi_base_calculation: string | null;
+      } | null;
       
       if (emp.is_subject_to_gosi && workLocation?.gosi_enabled) {
-        const gosiBase = emp.gosi_registered_salary || baseSalary;
+        // Determine GOSI base based on location's calculation method
+        let gosiBase: number;
+        if (workLocation.gosi_base_calculation === 'basic_plus_housing') {
+          gosiBase = baseSalary + housingAllowance;
+        } else {
+          gosiBase = emp.gosi_registered_salary || baseSalary;
+        }
+        
         const rates = workLocation.gosi_nationality_rates || [];
+        // Try to match nationality code, fallback to raw nationality value
         const nationalityCode = getCountryCodeByName(emp.nationality || "");
-        const matchingRate = rates.find(r => r.nationality === nationalityCode);
+        const matchingRate = rates.find(r => 
+          r.nationality === nationalityCode || r.nationality === emp.nationality
+        );
         
         if (matchingRate) {
           gosiDeduction = (gosiBase * matchingRate.percentage) / 100;
+        } else if (rates.length > 0) {
+          console.warn(`GOSI: No matching rate for nationality "${emp.nationality}" (code: ${nationalityCode}) in location ${workLocation.id}`);
         }
       }
 
