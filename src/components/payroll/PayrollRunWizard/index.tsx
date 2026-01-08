@@ -97,9 +97,9 @@ export function PayrollRunWizard({
     }
 
     if (currentStep === 2 && runId) {
-      // Snapshot employees when moving past employee selection
+      // Snapshot employees when moving past employee selection - pass runId explicitly to avoid stale closure
       try {
-        await snapshotEmployees(selectedEmployeeIds);
+        await snapshotEmployees(runId, selectedEmployeeIds);
       } catch (error) {
         toast({
           title: "Error",
