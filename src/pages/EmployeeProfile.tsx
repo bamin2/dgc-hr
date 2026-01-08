@@ -485,13 +485,21 @@ export default function EmployeeProfile() {
                       <CardContent className="space-y-4">
                         <RoleSelectorWithDescription
                           value={employeeRole}
-                          onValueChange={(newRole: AppRole) => {
+                          onValueChange={async (newRole: AppRole) => {
                             if (id) {
-                              updateEmployeeRole(id, newRole);
-                              toast({
-                                title: "Role updated",
-                                description: `${employee.firstName}'s role has been changed to ${newRole}.`,
-                              });
+                              const result = await updateEmployeeRole(id, newRole);
+                              if (result?.error) {
+                                toast({
+                                  title: "Failed to update role",
+                                  description: result.error,
+                                  variant: "destructive",
+                                });
+                              } else {
+                                toast({
+                                  title: "Role updated",
+                                  description: `${employee.firstName}'s role has been changed to ${newRole}.`,
+                                });
+                              }
                             }
                           }}
                           disabled={!canManageRoles}
