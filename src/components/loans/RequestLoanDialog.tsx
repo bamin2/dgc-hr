@@ -34,6 +34,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { useRequestLoan } from "@/hooks/useLoans";
+import { useCompanySettings } from "@/contexts/CompanySettingsContext";
 import { toast } from "sonner";
 
 const formSchema = z.object({
@@ -66,6 +67,7 @@ interface RequestLoanDialogProps {
 
 export function RequestLoanDialog({ open, onOpenChange }: RequestLoanDialogProps) {
   const requestLoan = useRequestLoan();
+  const { getCurrencySymbol } = useCompanySettings();
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -111,7 +113,7 @@ export function RequestLoanDialog({ open, onOpenChange }: RequestLoanDialogProps
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Request a Loan</DialogTitle>
           <DialogDescription>
@@ -126,7 +128,7 @@ export function RequestLoanDialog({ open, onOpenChange }: RequestLoanDialogProps
               name="principal_amount"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Loan Amount (SAR)</FormLabel>
+                  <FormLabel>Loan Amount ({getCurrencySymbol()})</FormLabel>
                   <FormControl>
                     <Input type="number" step="0.01" min="0" {...field} />
                   </FormControl>
@@ -173,7 +175,7 @@ export function RequestLoanDialog({ open, onOpenChange }: RequestLoanDialogProps
                     </FormControl>
                     {calculatedInstallment && (
                       <FormDescription>
-                        Estimated monthly installment: SAR {calculatedInstallment}
+                        Estimated monthly installment: {getCurrencySymbol()} {calculatedInstallment}
                       </FormDescription>
                     )}
                     <FormMessage />
@@ -186,7 +188,7 @@ export function RequestLoanDialog({ open, onOpenChange }: RequestLoanDialogProps
                 name="installment_amount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Monthly Installment (SAR)</FormLabel>
+                    <FormLabel>Monthly Installment ({getCurrencySymbol()})</FormLabel>
                     <FormControl>
                       <Input type="number" step="0.01" min="0" {...field} />
                     </FormControl>
