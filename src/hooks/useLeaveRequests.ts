@@ -171,7 +171,7 @@ export function useCreateLeaveRequest() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['leave-requests'] });
       queryClient.invalidateQueries({ queryKey: ['leave-balances'] });
-      toast.success('Leave request submitted successfully');
+      // Toast is handled by approval engine now
     },
     onError: (error) => {
       toast.error(`Failed to submit leave request: ${error.message}`);

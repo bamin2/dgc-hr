@@ -14,6 +14,7 @@ import {
   DashboardSettingsTab
 } from '@/components/settings';
 import { PayrollSettingsTab } from '@/components/settings/payroll';
+import { ApprovalSettingsTab } from '@/components/settings/approvals';
 import { 
   integrations as initialIntegrations,
   CompanySettings,
@@ -25,7 +26,7 @@ import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { useNotificationPreferences } from '@/hooks/useNotificationPreferences';
 import { useUserSessions } from '@/hooks/useUserSessions';
 import { useRole } from '@/contexts/RoleContext';
-import { Settings, Building2, User, Bell, Puzzle, Shield, Save, Wallet, Loader2, Network, LayoutDashboard } from 'lucide-react';
+import { Settings, Building2, User, Bell, Puzzle, Shield, Save, Wallet, Loader2, Network, LayoutDashboard, GitBranch } from 'lucide-react';
 import { DashboardCardVisibility, defaultDashboardCardVisibility } from '@/data/settings';
 import { toast } from 'sonner';
 
@@ -143,6 +144,7 @@ const SettingsPage = () => {
     { value: 'company', label: 'Company Profile', icon: Building2, requiresAdmin: true },
     { value: 'organization', label: 'Organization', icon: Network, requiresAdmin: true },
     { value: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, requiresAdmin: true },
+    { value: 'approvals', label: 'Approvals', icon: GitBranch, requiresAdmin: true },
     { value: 'preferences', label: 'Preferences', icon: User, requiresAdmin: false },
     { value: 'notifications', label: 'Notifications', icon: Bell, requiresAdmin: false },
     { value: 'payroll', label: 'Payroll', icon: Wallet, requiresAdmin: true },
@@ -229,6 +231,12 @@ const SettingsPage = () => {
                     visibility={companySettings.dashboardCardVisibility ?? defaultDashboardCardVisibility}
                     onChange={(visibility) => setCompanySettings(prev => ({ ...prev, dashboardCardVisibility: visibility }))}
                   />
+                </TabsContent>
+              )}
+
+              {canManageRoles && (
+                <TabsContent value="approvals" className="mt-6">
+                  <ApprovalSettingsTab />
                 </TabsContent>
               )}
 
