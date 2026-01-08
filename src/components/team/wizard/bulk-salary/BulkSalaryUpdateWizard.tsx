@@ -158,6 +158,7 @@ export function BulkSalaryUpdateWizard() {
             data={data}
             onUpdateData={updateData}
             gosiEmployees={selectedEmployees.filter(e => e.isSubjectToGosi)}
+            workLocations={workLocations || []}
             currency={currency}
           />
         );
