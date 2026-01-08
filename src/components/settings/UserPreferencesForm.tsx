@@ -188,74 +188,70 @@ export const UserPreferencesForm = ({ preferences, onChange }: UserPreferencesFo
         description="Location and format preferences"
         icon={Globe}
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="userTimezone">Timezone</Label>
-            <Select 
-              value={preferences.regional.timezone} 
-              onValueChange={(v) => updateRegional('timezone', v)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select timezone" />
-              </SelectTrigger>
-              <SelectContent>
-                {timezones.map((tz) => (
-                  <SelectItem key={tz} value={tz}>{tz.replace('_', ' ')}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="userDateFormat">Date Format</Label>
-            <Select 
-              value={preferences.regional.dateFormat} 
-              onValueChange={(v) => updateRegional('dateFormat', v)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select format" />
-              </SelectTrigger>
-              <SelectContent>
-                {dateFormats.map((fmt) => (
-                  <SelectItem key={fmt} value={fmt}>{fmt}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-center justify-between p-3 rounded-lg border">
-            <div className="space-y-0.5">
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="userTimezone">Timezone</Label>
+              <Select 
+                value={preferences.regional.timezone} 
+                onValueChange={(v) => updateRegional('timezone', v)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select timezone" />
+                </SelectTrigger>
+                <SelectContent>
+                  {timezones.map((tz) => (
+                    <SelectItem key={tz} value={tz}>{tz.replace('_', ' ')}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="userDateFormat">Date Format</Label>
+              <Select 
+                value={preferences.regional.dateFormat} 
+                onValueChange={(v) => updateRegional('dateFormat', v)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select format" />
+                </SelectTrigger>
+                <SelectContent>
+                  {dateFormats.map((fmt) => (
+                    <SelectItem key={fmt} value={fmt}>{fmt}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
               <Label>Time Format</Label>
-              <p className="text-xs text-muted-foreground">12-hour or 24-hour clock</p>
+              <Select 
+                value={preferences.regional.timeFormat} 
+                onValueChange={(v) => updateRegional('timeFormat', v)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select format" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="12h">12-hour</SelectItem>
+                  <SelectItem value="24h">24-hour</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <Select 
-              value={preferences.regional.timeFormat} 
-              onValueChange={(v) => updateRegional('timeFormat', v)}
-            >
-              <SelectTrigger className="w-28">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="12h">12-hour</SelectItem>
-                <SelectItem value="24h">24-hour</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-center justify-between p-3 rounded-lg border">
-            <div className="space-y-0.5">
+            <div className="space-y-2">
               <Label>Week Starts On</Label>
-              <p className="text-xs text-muted-foreground">First day of the week</p>
+              <Select 
+                value={preferences.regional.firstDayOfWeek} 
+                onValueChange={(v) => updateRegional('firstDayOfWeek', v)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select day" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="sunday">Sunday</SelectItem>
+                  <SelectItem value="monday">Monday</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <Select 
-              value={preferences.regional.firstDayOfWeek} 
-              onValueChange={(v) => updateRegional('firstDayOfWeek', v)}
-            >
-              <SelectTrigger className="w-28">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="sunday">Sunday</SelectItem>
-                <SelectItem value="monday">Monday</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
         </div>
       </SettingsCard>
