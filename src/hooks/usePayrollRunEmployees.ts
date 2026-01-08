@@ -64,7 +64,7 @@ export function usePayrollRunEmployees(runId: string | null) {
       .select(`
         id, first_name, last_name, employee_code, salary,
         department:departments(name),
-        position:positions(name)
+        position:positions(title)
       `)
       .in("id", employeeIds);
 
@@ -77,7 +77,7 @@ export function usePayrollRunEmployees(runId: string | null) {
       employee_name: `${emp.first_name} ${emp.last_name}`,
       employee_code: emp.employee_code,
       department: (emp.department as { name: string } | null)?.name || null,
-      position: (emp.position as { name: string } | null)?.name || null,
+      position: (emp.position as { title: string } | null)?.title || null,
       base_salary: emp.salary || 0,
       gross_pay: emp.salary || 0,
       net_pay: emp.salary || 0,
