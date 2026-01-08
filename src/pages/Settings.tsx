@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Sidebar, Header } from '@/components/dashboard';
 
 import { Button } from '@/components/ui/button';
@@ -56,6 +57,7 @@ const SettingsPageSkeleton = () => (
 );
 
 const SettingsPage = () => {
+  const [searchParams] = useSearchParams();
   const { settings: globalSettings, updateSettings: updateGlobalSettings, isLoading: companyLoading, isSaving: companySaving } = useCompanySettings();
   const { preferences: dbUserPreferences, updatePreferences, isLoading: prefsLoading, isSaving: prefsSaving } = useUserPreferences();
   const { settings: dbNotificationSettings, updateSettings: updateNotifications, isLoading: notifLoading, isSaving: notifSaving } = useNotificationPreferences();
@@ -67,7 +69,23 @@ const SettingsPage = () => {
   const [userPreferences, setUserPreferences] = useState<UserPreferences>(dbUserPreferences);
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>(dbNotificationSettings);
   const [integrations, setIntegrations] = useState(initialIntegrations);
-  const [activeTab, setActiveTab] = useState(canManageRoles ? 'company' : 'preferences');
+  const [activeTab, setActiveTab] = useState(() => {
+    const tabFromUrl = searchParams.get('tab');
+    const validTabs = ['company', 'organization', 'dashboard', 'approvals', 'payroll', 'preferences', 'notifications', 'integrations', 'security'];
+    if (tabFromUrl && validTabs.includes(tabFromUrl)) {
+      return tabFromUrl;
+    }
+    return canManageRoles ? 'company' : 'preferences';
+  });
+
+  // Update active tab when URL changes
+  useEffect(() => {
+    const tabFromUrl = searchParams.get('tab');
+    const validTabs = ['company', 'organization', 'dashboard', 'approvals', 'payroll', 'preferences', 'notifications', 'integrations', 'security'];
+    if (tabFromUrl && validTabs.includes(tabFromUrl)) {
+      setActiveTab(tabFromUrl);
+    }
+  }, [searchParams]);
 
   // Sync local state with database when data loads
   useEffect(() => {
