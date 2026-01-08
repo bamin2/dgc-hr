@@ -8,6 +8,7 @@ interface CompanySettingsContextType {
   updateSettings: (newSettings: Partial<CompanySettings>) => Promise<void>;
   formatDate: (date: Date | string) => string;
   formatCurrency: (amount: number) => string;
+  formatCurrencyWithCode: (amount: number, currencyCode: string) => string;
   getCurrencySymbol: () => string;
   isLoading: boolean;
   isSaving: boolean;
@@ -124,6 +125,16 @@ export function CompanySettingsProvider({ children }: { children: ReactNode }) {
     return currencyInfo?.symbol || '$';
   }, [settings.branding.currency]);
 
+  // Format currency with a specific currency code (for work location currencies)
+  const formatCurrencyWithCode = useCallback((amount: number, currencyCode: string) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currencyCode || 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  }, []);
+
   return (
     <CompanySettingsContext.Provider 
       value={{ 
@@ -131,6 +142,7 @@ export function CompanySettingsProvider({ children }: { children: ReactNode }) {
         updateSettings, 
         formatDate, 
         formatCurrency,
+        formatCurrencyWithCode,
         getCurrencySymbol,
         isLoading,
         isSaving
