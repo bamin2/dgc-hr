@@ -13,6 +13,7 @@ interface PayrollRunsListProps {
   onResumeRun: (runId: string) => void;
   onViewRun: (runId: string) => void;
   onIssuePayslips: (runId: string) => void;
+  onDeleteRun: (runId: string) => void;
 }
 
 export function PayrollRunsList({
@@ -24,6 +25,7 @@ export function PayrollRunsList({
   onResumeRun,
   onViewRun,
   onIssuePayslips,
+  onDeleteRun,
 }: PayrollRunsListProps) {
   return (
     <div className="space-y-4">
@@ -74,6 +76,7 @@ export function PayrollRunsList({
               onResume={() => onResumeRun(run.id)}
               onView={() => onViewRun(run.id)}
               onIssuePayslips={() => onIssuePayslips(run.id)}
+              onDelete={() => onDeleteRun(run.id)}
             />
           ))}
         </div>

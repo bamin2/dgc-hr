@@ -1,12 +1,17 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { WorkLocation } from "@/hooks/useWorkLocations";
 import { LocationSelector } from "./LocationSelector";
 import { PayrollRunsList } from "./PayrollRunsList";
 import { PayrollRunWizard } from "./PayrollRunWizard";
+import { PayrollRegister } from "./PayrollRegister";
+import { IssuePayslipsDialog } from "./IssuePayslipsDialog";
+import { DeletePayrollRunDialog } from "./DeletePayrollRunDialog";
 import { usePayrollRunsByLocation, useDraftCountsByLocation } from "@/hooks/usePayrollRunsV2";
-import { toast } from "@/hooks/use-toast";
+import { usePayrollRunEmployees } from "@/hooks/usePayrollRunEmployees";
+import { usePayrollRunAdjustments } from "@/hooks/usePayrollRunAdjustments";
+import { format } from "date-fns";
 
-type View = 'locations' | 'runs' | 'wizard';
+type View = 'locations' | 'runs' | 'wizard' | 'register';
 
 interface PayrollRunsTabProps {
   autoStartWizard?: boolean;
@@ -17,10 +22,31 @@ export function PayrollRunsTab({ autoStartWizard, onWizardStarted }: PayrollRuns
   const [view, setView] = useState<View>('locations');
   const [selectedLocation, setSelectedLocation] = useState<WorkLocation | null>(null);
   const [editingRunId, setEditingRunId] = useState<string | null>(null);
+  const [viewingRunId, setViewingRunId] = useState<string | null>(null);
+  const [issuingPayslipsRunId, setIssuingPayslipsRunId] = useState<string | null>(null);
+  const [deletingRunId, setDeletingRunId] = useState<string | null>(null);
 
   const { data: draftCounts = {} } = useDraftCountsByLocation();
   const { data: runs = [], isLoading: runsLoading } = usePayrollRunsByLocation(
     selectedLocation?.id || null
+  );
+
+  // Data for issue payslips dialog
+  const { data: payslipEmployees = [] } = usePayrollRunEmployees(issuingPayslipsRunId);
+  const { data: payslipAdjustments = [] } = usePayrollRunAdjustments(issuingPayslipsRunId);
+
+  // Find the run data for dialogs
+  const issuingRun = useMemo(() => 
+    runs.find(r => r.id === issuingPayslipsRunId), 
+    [runs, issuingPayslipsRunId]
+  );
+  const deletingRun = useMemo(() => 
+    runs.find(r => r.id === deletingRunId), 
+    [runs, deletingRunId]
+  );
+  const viewingRun = useMemo(() => 
+    runs.find(r => r.id === viewingRunId), 
+    [runs, viewingRunId]
   );
 
   const handleSelectLocation = (location: WorkLocation) => {
@@ -49,19 +75,16 @@ export function PayrollRunsTab({ autoStartWizard, onWizardStarted }: PayrollRuns
   };
 
   const handleViewRun = (runId: string) => {
-    // TODO: Implement payroll register view
-    toast({
-      title: "Coming Soon",
-      description: "Payroll register view will be available soon.",
-    });
+    setViewingRunId(runId);
+    setView('register');
   };
 
   const handleIssuePayslips = (runId: string) => {
-    // TODO: Implement payslip issuing
-    toast({
-      title: "Coming Soon",
-      description: "Payslip issuing will be available soon.",
-    });
+    setIssuingPayslipsRunId(runId);
+  };
+
+  const handleDeleteRun = (runId: string) => {
+    setDeletingRunId(runId);
   };
 
   const handleWizardComplete = () => {
@@ -73,6 +96,22 @@ export function PayrollRunsTab({ autoStartWizard, onWizardStarted }: PayrollRuns
     setEditingRunId(null);
     setView('runs');
   };
+
+  const handleBackToRuns = () => {
+    setViewingRunId(null);
+    setView('runs');
+  };
+
+  if (view === 'register' && selectedLocation && viewingRun) {
+    return (
+      <PayrollRegister
+        run={viewingRun}
+        location={selectedLocation}
+        onBack={handleBackToRuns}
+        onIssuePayslips={() => setIssuingPayslipsRunId(viewingRun.id)}
+      />
+    );
+  }
 
   if (view === 'wizard' && selectedLocation) {
     return (
@@ -87,16 +126,40 @@ export function PayrollRunsTab({ autoStartWizard, onWizardStarted }: PayrollRuns
 
   if (view === 'runs' && selectedLocation) {
     return (
-      <PayrollRunsList
-        location={selectedLocation}
-        runs={runs}
-        isLoading={runsLoading}
-        onBack={handleBackToLocations}
-        onNewRun={handleNewRun}
-        onResumeRun={handleResumeRun}
-        onViewRun={handleViewRun}
-        onIssuePayslips={handleIssuePayslips}
-      />
+      <>
+        <PayrollRunsList
+          location={selectedLocation}
+          runs={runs}
+          isLoading={runsLoading}
+          onBack={handleBackToLocations}
+          onNewRun={handleNewRun}
+          onResumeRun={handleResumeRun}
+          onViewRun={handleViewRun}
+          onIssuePayslips={handleIssuePayslips}
+          onDeleteRun={handleDeleteRun}
+        />
+        {issuingRun && (
+          <IssuePayslipsDialog
+            open={!!issuingPayslipsRunId}
+            onOpenChange={(open) => !open && setIssuingPayslipsRunId(null)}
+            runId={issuingRun.id}
+            employees={payslipEmployees}
+            adjustments={payslipAdjustments}
+            location={{ name: selectedLocation.name, currency: selectedLocation.currency }}
+            payPeriod={{ start: issuingRun.payPeriodStart, end: issuingRun.payPeriodEnd }}
+            onComplete={() => setIssuingPayslipsRunId(null)}
+          />
+        )}
+        {deletingRun && (
+          <DeletePayrollRunDialog
+            open={!!deletingRunId}
+            onOpenChange={(open) => !open && setDeletingRunId(null)}
+            runId={deletingRun.id}
+            periodLabel={format(new Date(deletingRun.payPeriodStart), "MMMM yyyy")}
+            onDeleted={() => setDeletingRunId(null)}
+          />
+        )}
+      </>
     );
   }
 
