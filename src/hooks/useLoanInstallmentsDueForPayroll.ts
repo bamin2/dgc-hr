@@ -13,6 +13,7 @@ export interface InstallmentDueForPayroll {
   loanNotes: string | null;
   principalAmount: number;
   totalInstallments: number;
+  currency: string;
 }
 
 interface UseLoanInstallmentsDueForPayrollParams {
@@ -51,7 +52,7 @@ export function useLoanInstallmentsDueForPayroll({
             deduct_from_payroll,
             notes,
             status,
-            employee:employees(id, first_name, last_name, full_name)
+            employee:employees(id, first_name, last_name, full_name, work_location:work_locations(currency))
           )
         `)
         .gte("due_date", payPeriodStart)
@@ -76,6 +77,7 @@ export function useLoanInstallmentsDueForPayroll({
         const employee = loan.employee;
         const employeeName = employee?.full_name || 
           `${employee?.first_name || ""} ${employee?.last_name || ""}`.trim();
+        const currency = employee?.work_location?.currency || "SAR";
 
         return {
           id: inst.id,
@@ -89,6 +91,7 @@ export function useLoanInstallmentsDueForPayroll({
           loanNotes: loan.notes,
           principalAmount: Number(loan.principal_amount),
           totalInstallments: loan.duration_months || 0,
+          currency,
         };
       });
 

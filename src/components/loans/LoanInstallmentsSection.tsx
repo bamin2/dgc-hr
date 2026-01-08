@@ -43,10 +43,10 @@ export function LoanInstallmentsSection({
   const [isNonPayrollExpanded, setIsNonPayrollExpanded] = useState(true);
   const skipInstallment = useSkipInstallment();
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number, currency: string = "SAR") => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency: "SAR",
+      currency,
       minimumFractionDigits: 2,
     }).format(amount);
   };
@@ -88,9 +88,11 @@ export function LoanInstallmentsSection({
     });
   };
 
-  const totalPayrollDeductions = payrollDeductions
-    .filter((inst) => selections[inst.id]?.includeInPayroll !== false)
-    .reduce((sum, inst) => sum + inst.amount, 0);
+  const includedDeductions = payrollDeductions.filter(
+    (inst) => selections[inst.id]?.includeInPayroll !== false
+  );
+  const totalPayrollDeductions = includedDeductions.reduce((sum, inst) => sum + inst.amount, 0);
+  const primaryCurrency = includedDeductions[0]?.currency || payrollDeductions[0]?.currency || "SAR";
 
   if (isLoading) {
     return (
@@ -146,7 +148,7 @@ export function LoanInstallmentsSection({
                   Payroll Deductions
                 </Badge>
                 <span className="text-sm text-muted-foreground">
-                  {payrollDeductions.length} installment(s) • Total: {formatCurrency(totalPayrollDeductions)}
+                  {payrollDeductions.length} installment(s) • Total: {formatCurrency(totalPayrollDeductions, primaryCurrency)}
                 </span>
               </div>
               <CollapsibleTrigger asChild>
@@ -191,9 +193,9 @@ export function LoanInstallmentsSection({
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="text-right">
-                        <p className="font-medium">{formatCurrency(inst.amount)}</p>
+                        <p className="font-medium">{formatCurrency(inst.amount, inst.currency)}</p>
                         <p className="text-xs text-muted-foreground">
-                          Loan: {formatCurrency(inst.principalAmount)}
+                          Loan: {formatCurrency(inst.principalAmount, inst.currency)}
                         </p>
                       </div>
                       <Button
@@ -273,7 +275,7 @@ export function LoanInstallmentsSection({
                       </Label>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">{formatCurrency(inst.amount)}</p>
+                      <p className="font-medium">{formatCurrency(inst.amount, inst.currency)}</p>
                       {isMarkedPaid && (
                         <div className="flex items-center gap-1 text-xs text-emerald-600">
                           <CheckCircle className="h-3 w-3" />
