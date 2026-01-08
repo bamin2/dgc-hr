@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { format } from "date-fns";
-import { CheckCircle, XCircle, Banknote, User, FileText, Trash2, CreditCard } from "lucide-react";
+import { CheckCircle, XCircle, Banknote, User, FileText, Trash2, CreditCard, RefreshCw, History } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -13,11 +13,15 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LoanStatusBadge } from "./LoanStatusBadge";
 import { LoanInstallmentsTable } from "./LoanInstallmentsTable";
 import { DeleteLoanDialog } from "./DeleteLoanDialog";
 import { AdHocPaymentDialog } from "./AdHocPaymentDialog";
-import { useLoan, useApproveLoan, useRejectLoan, useDisburseLoan, useMarkInstallmentPaid, Loan } from "@/hooks/useLoans";
+import { RestructureLoanDialog } from "./RestructureLoanDialog";
+import { SkipInstallmentDialog } from "./SkipInstallmentDialog";
+import { LoanEventsTimeline } from "./LoanEventsTimeline";
+import { useLoan, useApproveLoan, useRejectLoan, useDisburseLoan, useMarkInstallmentPaid, Loan, LoanInstallment } from "@/hooks/useLoans";
 import { toast } from "sonner";
 import { useCompanySettings } from "@/contexts/CompanySettingsContext";
 
@@ -30,6 +34,10 @@ interface LoanDetailSheetProps {
 export function LoanDetailSheet({ loanId, open, onOpenChange }: LoanDetailSheetProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [restructureDialogOpen, setRestructureDialogOpen] = useState(false);
+  const [skipDialogOpen, setSkipDialogOpen] = useState(false);
+  const [selectedInstallment, setSelectedInstallment] = useState<LoanInstallment | null>(null);
+  
   const { data: loan, isLoading } = useLoan(loanId);
   const approveLoan = useApproveLoan();
   const rejectLoan = useRejectLoan();
@@ -74,6 +82,11 @@ export function LoanDetailSheet({ loanId, open, onOpenChange }: LoanDetailSheetP
     } catch (error) {
       toast.error("Failed to mark installment as paid");
     }
+  };
+
+  const handleSkipInstallment = (installment: LoanInstallment) => {
+    setSelectedInstallment(installment);
+    setSkipDialogOpen(true);
   };
 
   if (!loan && !isLoading) {
@@ -148,14 +161,24 @@ export function LoanDetailSheet({ loanId, open, onOpenChange }: LoanDetailSheetP
                   </>
                 )}
                 {loan.status === "active" && (
-                  <Button 
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setPaymentDialogOpen(true)}
-                  >
-                    <CreditCard className="h-4 w-4 mr-1" />
-                    Make Payment
-                  </Button>
+                  <>
+                    <Button 
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setRestructureDialogOpen(true)}
+                    >
+                      <RefreshCw className="h-4 w-4 mr-1" />
+                      Restructure
+                    </Button>
+                    <Button 
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setPaymentDialogOpen(true)}
+                    >
+                      <CreditCard className="h-4 w-4 mr-1" />
+                      Payment
+                    </Button>
+                  </>
                 )}
                 {loan.status === "approved" && (
                   <Button 
@@ -261,16 +284,29 @@ export function LoanDetailSheet({ loanId, open, onOpenChange }: LoanDetailSheetP
               </div>
             )}
 
-            {/* Installments */}
+            {/* Installments & History Tabs */}
             {loan.installments && loan.installments.length > 0 && (
-              <div>
-                <h4 className="font-medium mb-3">Installment Schedule</h4>
-                <LoanInstallmentsTable 
-                  installments={loan.installments}
-                  canMarkPaid={!loan.deduct_from_payroll && loan.status === "active"}
-                  onMarkPaid={handleMarkPaid}
-                />
-              </div>
+              <Tabs defaultValue="schedule" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="schedule">Installment Schedule</TabsTrigger>
+                  <TabsTrigger value="history" className="flex items-center gap-1">
+                    <History className="h-3 w-3" />
+                    History
+                  </TabsTrigger>
+                </TabsList>
+                <TabsContent value="schedule" className="mt-4">
+                  <LoanInstallmentsTable 
+                    installments={loan.installments}
+                    canMarkPaid={!loan.deduct_from_payroll && loan.status === "active"}
+                    canSkip={loan.status === "active"}
+                    onMarkPaid={handleMarkPaid}
+                    onSkip={handleSkipInstallment}
+                  />
+                </TabsContent>
+                <TabsContent value="history" className="mt-4">
+                  <LoanEventsTimeline loanId={loan.id} />
+                </TabsContent>
+              </Tabs>
             )}
           </div>
         ) : null}
@@ -290,6 +326,23 @@ export function LoanDetailSheet({ loanId, open, onOpenChange }: LoanDetailSheetP
         open={paymentDialogOpen}
         onOpenChange={setPaymentDialogOpen}
       />
+
+      {/* Restructure Dialog */}
+      <RestructureLoanDialog
+        loan={loan || null}
+        open={restructureDialogOpen}
+        onOpenChange={setRestructureDialogOpen}
+      />
+
+      {/* Skip Installment Dialog */}
+      {loan && (
+        <SkipInstallmentDialog
+          installment={selectedInstallment}
+          loanId={loan.id}
+          open={skipDialogOpen}
+          onOpenChange={setSkipDialogOpen}
+        />
+      )}
     </Sheet>
   );
 }

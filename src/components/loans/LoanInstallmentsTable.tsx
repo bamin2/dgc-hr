@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, SkipForward } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -10,19 +10,29 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { LoanInstallment } from "@/hooks/useLoans";
 import { useCompanySettings } from "@/contexts/CompanySettingsContext";
 
 interface LoanInstallmentsTableProps {
   installments: LoanInstallment[];
   canMarkPaid?: boolean;
+  canSkip?: boolean;
   onMarkPaid?: (installmentId: string) => void;
+  onSkip?: (installment: LoanInstallment) => void;
 }
 
 export function LoanInstallmentsTable({
   installments,
   canMarkPaid = false,
+  canSkip = false,
   onMarkPaid,
+  onSkip,
 }: LoanInstallmentsTableProps) {
   const { formatCurrency } = useCompanySettings();
 
@@ -35,7 +45,22 @@ export function LoanInstallmentsTable({
       );
     }
     if (installment.status === "skipped") {
-      return <Badge variant="outline">Skipped</Badge>;
+      return (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge variant="outline" className="text-muted-foreground">
+                Skipped
+              </Badge>
+            </TooltipTrigger>
+            {(installment as any).skipped_reason && (
+              <TooltipContent>
+                <p>{(installment as any).skipped_reason}</p>
+              </TooltipContent>
+            )}
+          </Tooltip>
+        </TooltipProvider>
+      );
     }
     
     const dueDate = new Date(installment.due_date);
@@ -48,6 +73,8 @@ export function LoanInstallmentsTable({
     return <Badge variant="secondary">Due</Badge>;
   };
 
+  const showActions = canMarkPaid || canSkip;
+
   return (
     <div className="rounded-md border">
       <Table>
@@ -57,7 +84,7 @@ export function LoanInstallmentsTable({
             <TableHead>Due Date</TableHead>
             <TableHead>Amount</TableHead>
             <TableHead>Status</TableHead>
-            {canMarkPaid && <TableHead className="w-[100px]"></TableHead>}
+            {showActions && <TableHead className="w-[140px]"></TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -75,18 +102,32 @@ export function LoanInstallmentsTable({
               <TableCell>
                 {getStatusBadge(installment)}
               </TableCell>
-              {canMarkPaid && (
+              {showActions && (
                 <TableCell>
-                  {installment.status === "due" && onMarkPaid && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => onMarkPaid(installment.id)}
-                    >
-                      <CheckCircle className="h-4 w-4 mr-1" />
-                      Mark Paid
-                    </Button>
-                  )}
+                  <div className="flex gap-1">
+                    {installment.status === "due" && canSkip && onSkip && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 px-2 text-xs"
+                        onClick={() => onSkip(installment)}
+                      >
+                        <SkipForward className="h-3 w-3 mr-1" />
+                        Skip
+                      </Button>
+                    )}
+                    {installment.status === "due" && canMarkPaid && onMarkPaid && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 px-2 text-xs"
+                        onClick={() => onMarkPaid(installment.id)}
+                      >
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        Paid
+                      </Button>
+                    )}
+                  </div>
                 </TableCell>
               )}
             </TableRow>

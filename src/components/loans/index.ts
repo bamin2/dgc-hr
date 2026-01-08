@@ -8,3 +8,6 @@ export { LoanInstallmentsSection } from "./LoanInstallmentsSection";
 export { PayrollLoanInstallments } from "./PayrollLoanInstallments";
 export { DeleteLoanDialog } from "./DeleteLoanDialog";
 export { AdHocPaymentDialog } from "./AdHocPaymentDialog";
+export { RestructureLoanDialog } from "./RestructureLoanDialog";
+export { SkipInstallmentDialog } from "./SkipInstallmentDialog";
+export { LoanEventsTimeline } from "./LoanEventsTimeline";
