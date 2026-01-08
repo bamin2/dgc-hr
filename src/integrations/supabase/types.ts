@@ -70,6 +70,39 @@ export type Database = {
           },
         ]
       }
+      approval_workflows: {
+        Row: {
+          created_at: string | null
+          default_hr_approver_id: string | null
+          id: string
+          is_active: boolean | null
+          request_type: string
+          steps: Json
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          default_hr_approver_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          request_type: string
+          steps?: Json
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          default_hr_approver_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          request_type?: string
+          steps?: Json
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       attendance_corrections: {
         Row: {
           attendance_record_id: string
@@ -1357,6 +1390,7 @@ export type Database = {
           reviewed_by: string | null
           start_date: string
           status: string
+          submitted_at: string | null
           updated_at: string | null
         }
         Insert: {
@@ -1373,6 +1407,7 @@ export type Database = {
           reviewed_by?: string | null
           start_date: string
           status?: string
+          submitted_at?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -1389,6 +1424,7 @@ export type Database = {
           reviewed_by?: string | null
           start_date?: string
           status?: string
+          submitted_at?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -2744,6 +2780,48 @@ export type Database = {
           observed_date?: string
           updated_at?: string | null
           year?: number
+        }
+        Relationships: []
+      }
+      request_approval_steps: {
+        Row: {
+          acted_at: string | null
+          acted_by: string | null
+          approver_type: string
+          approver_user_id: string | null
+          comment: string | null
+          created_at: string | null
+          id: string
+          request_id: string
+          request_type: string
+          status: string
+          step_number: number
+        }
+        Insert: {
+          acted_at?: string | null
+          acted_by?: string | null
+          approver_type: string
+          approver_user_id?: string | null
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          request_id: string
+          request_type: string
+          status?: string
+          step_number: number
+        }
+        Update: {
+          acted_at?: string | null
+          acted_by?: string | null
+          approver_type?: string
+          approver_user_id?: string | null
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          request_id?: string
+          request_type?: string
+          status?: string
+          step_number?: number
         }
         Relationships: []
       }
