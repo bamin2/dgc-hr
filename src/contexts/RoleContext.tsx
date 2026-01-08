@@ -237,10 +237,10 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
       return { error: 'Failed to update role in database.' };
     }
 
-    // Update local state with the correct userId
+    // Update local state with employeeId (since userRoles are keyed by employee_id, not auth user_id)
     setUserRoles(prev => {
-      const filtered = prev.filter(ur => ur.userId !== userId);
-      return [...filtered, { id: `role-${userId}`, userId, role: newRole }];
+      const filtered = prev.filter(ur => ur.userId !== employeeId);
+      return [...filtered, { id: `role-${employeeId}`, userId: employeeId, role: newRole }];
     });
 
     return {};
