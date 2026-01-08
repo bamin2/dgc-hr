@@ -77,7 +77,7 @@ export function DashboardSettingsTab({ visibility, onChange }: DashboardSettings
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {cardConfig.map((card) => {
               const Icon = card.icon;
               const isEnabled = visibility[card.id];
