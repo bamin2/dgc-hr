@@ -27,6 +27,9 @@ interface LocationGeneralSettingsProps {
 
 export function LocationGeneralSettings({ workLocation }: LocationGeneralSettingsProps) {
   const [gosiEnabled, setGosiEnabled] = useState(workLocation.gosi_enabled);
+  const [gosiBaseCalculation, setGosiBaseCalculation] = useState(
+    workLocation.gosi_base_calculation || 'gosi_registered_salary'
+  );
   const [nationalityRates, setNationalityRates] = useState<GosiNationalityRate[]>(
     workLocation.gosi_nationality_rates || []
   );
@@ -49,6 +52,7 @@ export function LocationGeneralSettings({ workLocation }: LocationGeneralSetting
         name: workLocation.name,
         gosi_enabled: enabled,
         gosi_nationality_rates: nationalityRates,
+        gosi_base_calculation: gosiBaseCalculation,
       });
       toast.success(`GOSI deduction ${enabled ? "enabled" : "disabled"}`);
     } catch (error) {
@@ -78,6 +82,7 @@ export function LocationGeneralSettings({ workLocation }: LocationGeneralSetting
         name: workLocation.name,
         gosi_enabled: gosiEnabled,
         gosi_nationality_rates: newRates,
+        gosi_base_calculation: gosiBaseCalculation,
       });
       toast.success("Nationality added");
     } catch (error) {
@@ -96,6 +101,7 @@ export function LocationGeneralSettings({ workLocation }: LocationGeneralSetting
         name: workLocation.name,
         gosi_enabled: gosiEnabled,
         gosi_nationality_rates: newRates,
+        gosi_base_calculation: gosiBaseCalculation,
       });
       toast.success("Nationality removed");
     } catch (error) {
@@ -128,6 +134,7 @@ export function LocationGeneralSettings({ workLocation }: LocationGeneralSetting
         name: workLocation.name,
         gosi_enabled: gosiEnabled,
         gosi_nationality_rates: nationalityRates,
+        gosi_base_calculation: gosiBaseCalculation,
       });
       toast.success("GOSI rate updated");
     } catch (error) {
@@ -162,6 +169,46 @@ export function LocationGeneralSettings({ workLocation }: LocationGeneralSetting
 
         {gosiEnabled && (
           <div className="space-y-4 pt-2 border-t">
+            {/* GOSI Base Calculation Method */}
+            <div className="space-y-2">
+              <Label>GOSI Base Calculation</Label>
+              <p className="text-sm text-muted-foreground">
+                Choose how the GOSI base amount is calculated for employees.
+              </p>
+              <Select
+                value={gosiBaseCalculation}
+                onValueChange={async (value: 'gosi_registered_salary' | 'basic_plus_housing') => {
+                  setGosiBaseCalculation(value);
+                  try {
+                    await updateLocation.mutateAsync({
+                      id: workLocation.id,
+                      name: workLocation.name,
+                      gosi_enabled: gosiEnabled,
+                      gosi_nationality_rates: nationalityRates,
+                      gosi_base_calculation: value,
+                    });
+                    toast.success("GOSI calculation method updated");
+                  } catch (error) {
+                    setGosiBaseCalculation(workLocation.gosi_base_calculation || 'gosi_registered_salary');
+                    toast.error("Failed to update GOSI calculation method");
+                  }
+                }}
+                disabled={updateLocation.isPending}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="gosi_registered_salary">
+                    GOSI Registered Salary
+                  </SelectItem>
+                  <SelectItem value="basic_plus_housing">
+                    Basic Salary + Housing Allowance
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="space-y-1">
               <Label>Nationality Rates</Label>
               <p className="text-sm text-muted-foreground">

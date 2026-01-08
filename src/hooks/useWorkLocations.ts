@@ -8,6 +8,8 @@ export interface GosiNationalityRate {
   percentage: number;
 }
 
+export type GosiBaseCalculation = 'gosi_registered_salary' | 'basic_plus_housing';
+
 export interface WorkLocation {
   id: string;
   name: string;
@@ -20,6 +22,7 @@ export interface WorkLocation {
   employeeCount: number;
   gosi_enabled: boolean;
   gosi_nationality_rates: GosiNationalityRate[];
+  gosi_base_calculation: GosiBaseCalculation;
 }
 
 export interface WorkLocationInput {
@@ -31,6 +34,7 @@ export interface WorkLocationInput {
   is_remote?: boolean;
   gosi_enabled?: boolean;
   gosi_nationality_rates?: GosiNationalityRate[];
+  gosi_base_calculation?: GosiBaseCalculation;
 }
 
 async function fetchWorkLocationsWithCounts(): Promise<WorkLocation[]> {
@@ -67,6 +71,7 @@ async function fetchWorkLocationsWithCounts(): Promise<WorkLocation[]> {
     employeeCount: countMap.get(loc.id) || 0,
     gosi_enabled: loc.gosi_enabled ?? false,
     gosi_nationality_rates: (loc.gosi_nationality_rates as unknown as GosiNationalityRate[]) || [],
+    gosi_base_calculation: (loc.gosi_base_calculation as GosiBaseCalculation) || 'gosi_registered_salary',
   }));
 }
 
@@ -120,6 +125,7 @@ export function useUpdateWorkLocation() {
           is_remote: input.is_remote,
           gosi_enabled: input.gosi_enabled,
           gosi_nationality_rates: JSON.parse(JSON.stringify(input.gosi_nationality_rates || [])),
+          gosi_base_calculation: input.gosi_base_calculation,
         })
         .eq("id", id)
         .select()

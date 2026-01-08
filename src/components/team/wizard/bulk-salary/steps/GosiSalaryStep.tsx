@@ -8,19 +8,27 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Info, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { TeamMemberWithGosi } from "@/hooks/useBulkSalaryWizard";
-import { BulkSalaryWizardData, GosiHandling } from "../types";
+import { BulkSalaryWizardData, GosiHandling, AllowanceEntryExtended } from "../types";
 import { WorkLocation } from "@/hooks/useWorkLocations";
 import { getCountryCodeByName } from "@/data/countries";
+
+interface AllowanceTemplate {
+  id: string;
+  name: string;
+  amount: number;
+  amount_type: string;
+}
 
 interface GosiSalaryStepProps {
   data: BulkSalaryWizardData;
   gosiEmployees: TeamMemberWithGosi[];
   workLocations: WorkLocation[];
+  allowanceTemplates: AllowanceTemplate[];
   currency: string;
   onUpdateData: <K extends keyof BulkSalaryWizardData>(field: K, value: BulkSalaryWizardData[K]) => void;
 }
 
-export function GosiSalaryStep({ data, gosiEmployees, workLocations, currency, onUpdateData }: GosiSalaryStepProps) {
+export function GosiSalaryStep({ data, gosiEmployees, workLocations, allowanceTemplates, currency, onUpdateData }: GosiSalaryStepProps) {
   const formatCurrency = (amount: number | undefined) => {
     if (amount === undefined) return '-';
     return new Intl.NumberFormat('en-US', { 
@@ -54,6 +62,41 @@ export function GosiSalaryStep({ data, gosiEmployees, workLocations, currency, o
     return matchingRate?.percentage || 0;
   };
 
+  // Get housing allowance for an employee
+  const getHousingAllowance = (employeeId: string): number => {
+    const employeeAllowances = data.perEmployeeAllowances[employeeId] || [];
+    
+    // Find housing allowance by template name
+    for (const allowance of employeeAllowances) {
+      if (allowance.templateId) {
+        const template = allowanceTemplates.find(t => t.id === allowance.templateId);
+        if (template?.name?.toLowerCase().includes('housing')) {
+          return allowance.amount || 0;
+        }
+      }
+      // Check custom name for housing
+      if (allowance.customName?.toLowerCase().includes('housing')) {
+        return allowance.amount || 0;
+      }
+    }
+    
+    return 0;
+  };
+
+  // Calculate GOSI base based on work location settings
+  const getGosiBase = (employee: TeamMemberWithGosi): number => {
+    const workLocation = workLocations.find(wl => wl.id === employee.workLocationId);
+    
+    if (workLocation?.gosi_base_calculation === 'basic_plus_housing') {
+      const basicSalary = employee.salary || 0;
+      const housingAllowance = getHousingAllowance(employee.id);
+      return basicSalary + housingAllowance;
+    }
+    
+    // Default: use GOSI registered salary
+    return employee.gosiRegisteredSalary || 0;
+  };
+
   const calculateGosiDeduction = (salary: number | string | undefined, employee: TeamMemberWithGosi): number => {
     const amount = typeof salary === 'string' ? parseFloat(salary) : salary;
     if (!amount) return 0;
@@ -65,18 +108,19 @@ export function GosiSalaryStep({ data, gosiEmployees, workLocations, currency, o
   // Calculate before/after totals
   const gosiTotals = useMemo(() => {
     const beforeData = gosiEmployees.reduce((acc, e) => {
-      const gosiSalary = e.gosiRegisteredSalary || 0;
-      const deduction = calculateGosiDeduction(gosiSalary, e);
+      const gosiBase = getGosiBase(e);
+      const deduction = calculateGosiDeduction(gosiBase, e);
       return {
-        salaries: acc.salaries + gosiSalary,
+        salaries: acc.salaries + gosiBase,
         deductions: acc.deductions + deduction,
       };
     }, { salaries: 0, deductions: 0 });
 
     const afterData = gosiEmployees.reduce((acc, e) => {
+      const currentGosiBase = getGosiBase(e);
       const newSalary = data.gosiHandling === 'per_employee' && data.gosiPerEmployee[e.id]
         ? parseFloat(data.gosiPerEmployee[e.id])
-        : (e.gosiRegisteredSalary || 0);
+        : currentGosiBase;
       const deduction = calculateGosiDeduction(newSalary, e);
       return {
         salaries: acc.salaries + newSalary,
@@ -92,7 +136,7 @@ export function GosiSalaryStep({ data, gosiEmployees, workLocations, currency, o
       afterDeductions: afterData.deductions,
       deductionChange: afterData.deductions - beforeData.deductions,
     };
-  }, [gosiEmployees, data.gosiHandling, data.gosiPerEmployee, workLocations]);
+  }, [gosiEmployees, data.gosiHandling, data.gosiPerEmployee, workLocations, data.perEmployeeAllowances, allowanceTemplates]);
 
   const getChangeIcon = (change: number) => {
     if (change > 0) return <TrendingUp className="h-4 w-4 text-green-600" />;
@@ -177,6 +221,9 @@ export function GosiSalaryStep({ data, gosiEmployees, workLocations, currency, o
             <div className="divide-y">
               {gosiEmployees.map(employee => {
                 const ratePercentage = getGosiRate(employee);
+                const workLocation = workLocations.find(wl => wl.id === employee.workLocationId);
+                const gosiBase = getGosiBase(employee);
+                const isBasicPlusHousing = workLocation?.gosi_base_calculation === 'basic_plus_housing';
                 
                 return (
                   <div key={employee.id} className="flex items-center gap-4 px-4 py-3">
@@ -192,7 +239,10 @@ export function GosiSalaryStep({ data, gosiEmployees, workLocations, currency, o
                         {employee.firstName} {employee.lastName}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Current: {formatCurrency(employee.gosiRegisteredSalary)}
+                        {isBasicPlusHousing 
+                          ? `Base: ${formatCurrency(gosiBase)} (Basic + Housing)`
+                          : `Current: ${formatCurrency(gosiBase)}`
+                        }
                       </p>
                       <p className="text-xs text-muted-foreground">
                         Rate: {ratePercentage}% ({employee.nationality || 'No nationality'})
@@ -203,15 +253,18 @@ export function GosiSalaryStep({ data, gosiEmployees, workLocations, currency, o
                       <div className="relative w-40">
                         <Input
                           type="number"
-                          placeholder="New GOSI salary"
+                          placeholder={isBasicPlusHousing ? "Override amount" : "New GOSI salary"}
                           value={data.gosiPerEmployee[employee.id] || ''}
                           onChange={(e) => handlePerEmployeeChange(employee.id, e.target.value)}
                           className="h-9"
                         />
                       </div>
-                      {data.gosiPerEmployee[employee.id] && (
+                      {(data.gosiPerEmployee[employee.id] || isBasicPlusHousing) && (
                         <span className="text-xs text-muted-foreground whitespace-nowrap">
-                          = {formatCurrency(calculateGosiDeduction(data.gosiPerEmployee[employee.id], employee))} deduction
+                          = {formatCurrency(calculateGosiDeduction(
+                            data.gosiPerEmployee[employee.id] || gosiBase, 
+                            employee
+                          ))} deduction
                         </span>
                       )}
                     </div>
