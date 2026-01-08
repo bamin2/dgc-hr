@@ -1,4 +1,4 @@
-import { CheckCircle, Clock, Loader2 } from "lucide-react";
+import { CheckCircle, Clock, Loader2, FileEdit, FileCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PayrollRun } from "@/data/payroll";
 import { format } from "date-fns";
@@ -7,16 +7,24 @@ interface RecentPayrollRunsProps {
   runs: PayrollRun[];
 }
 
-const statusIcons = {
+type RunStatus = 'completed' | 'processing' | 'scheduled' | 'draft' | 'finalized' | 'payslips_issued';
+
+const statusIcons: Record<RunStatus, React.ComponentType<{ className?: string }>> = {
   completed: CheckCircle,
   processing: Loader2,
   scheduled: Clock,
+  draft: FileEdit,
+  finalized: FileCheck,
+  payslips_issued: CheckCircle,
 };
 
-const statusColors = {
+const statusColors: Record<RunStatus, string> = {
   completed: "text-success",
   processing: "text-info",
   scheduled: "text-warning",
+  draft: "text-muted-foreground",
+  finalized: "text-primary",
+  payslips_issued: "text-success",
 };
 
 export function RecentPayrollRuns({ runs }: RecentPayrollRunsProps) {
@@ -27,11 +35,13 @@ export function RecentPayrollRuns({ runs }: RecentPayrollRunsProps) {
       </CardHeader>
       <CardContent className="space-y-4">
         {runs.map((run) => {
-          const StatusIcon = statusIcons[run.status];
+          const status = run.status as RunStatus;
+          const StatusIcon = statusIcons[status] || Clock;
+          const colorClass = statusColors[status] || "text-muted-foreground";
           return (
             <div key={run.id} className="flex items-center justify-between py-2 border-b border-border last:border-0">
               <div className="flex items-center gap-3">
-                <div className={`p-1.5 rounded-full bg-muted ${statusColors[run.status]}`}>
+                <div className={`p-1.5 rounded-full bg-muted ${colorClass}`}>
                   <StatusIcon className="w-4 h-4" />
                 </div>
                 <div>
@@ -48,7 +58,7 @@ export function RecentPayrollRuns({ runs }: RecentPayrollRunsProps) {
                   ${run.totalAmount.toLocaleString()}
                 </p>
                 <p className="text-xs text-muted-foreground capitalize">
-                  {run.status}
+                  {status.replace('_', ' ')}
                 </p>
               </div>
             </div>
