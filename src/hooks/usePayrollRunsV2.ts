@@ -183,6 +183,69 @@ export function useUpdatePayrollRun() {
   });
 }
 
+// Delete a draft payroll run
+export function useDeletePayrollRun() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (runId: string) => {
+      // First check if it's a draft
+      const { data: run, error: fetchError } = await supabase
+        .from("payroll_runs")
+        .select("status, location_id")
+        .eq("id", runId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      if (run?.status !== "draft") {
+        throw new Error("Only draft payroll runs can be deleted");
+      }
+
+      // Delete related records first (cascade should handle this, but being explicit)
+      await supabase.from("payroll_run_adjustments").delete().eq("payroll_run_id", runId);
+      await supabase.from("payroll_run_employees").delete().eq("payroll_run_id", runId);
+
+      // Delete the run
+      const { error } = await supabase
+        .from("payroll_runs")
+        .delete()
+        .eq("id", runId);
+
+      if (error) throw error;
+      
+      return run.location_id;
+    },
+    onSuccess: (locationId) => {
+      queryClient.invalidateQueries({ queryKey: ["payroll-runs-v2", locationId] });
+      queryClient.invalidateQueries({ queryKey: ["payroll-draft-counts"] });
+    },
+  });
+}
+
+// Issue payslips - mark run as payslips_issued
+export function useIssuePayslips() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (runId: string) => {
+      const { data, error } = await supabase
+        .from("payroll_runs")
+        .update({ status: "payslips_issued" })
+        .eq("id", runId)
+        .eq("status", "finalized") // Only allow if currently finalized
+        .select()
+        .single();
+
+      if (error) throw error;
+      return transformDbRun(data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["payroll-runs-v2"] });
+    },
+  });
+}
+
 // Get a single payroll run
 export function usePayrollRun(runId: string | null) {
   return useQuery({

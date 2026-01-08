@@ -3,6 +3,7 @@ import { format, startOfMonth, endOfMonth } from "date-fns";
 import { WorkLocation } from "@/hooks/useWorkLocations";
 import { useCreatePayrollRun, usePayrollRun, useUpdatePayrollRun, useCheckExistingDraft } from "@/hooks/usePayrollRunsV2";
 import { usePayrollRunEmployees } from "@/hooks/usePayrollRunEmployees";
+import { usePayrollRunAdjustments } from "@/hooks/usePayrollRunAdjustments";
 import { WizardProgress } from "./WizardProgress";
 import { ConfirmLocationStep } from "./ConfirmLocationStep";
 import { PayPeriodStep } from "./PayPeriodStep";
@@ -52,6 +53,7 @@ export function PayrollRunWizard({
 
   const createRun = useCreatePayrollRun();
   const updateRun = useUpdatePayrollRun();
+  const { data: adjustments = [] } = usePayrollRunAdjustments(runId);
   const { data: runEmployees = [], snapshotEmployees } = usePayrollRunEmployees(runId);
 
   // Load existing run data
@@ -199,6 +201,7 @@ export function PayrollRunWizard({
               payPeriodStart={payPeriodStart}
               payPeriodEnd={payPeriodEnd}
               employees={runEmployees}
+              adjustments={adjustments}
             />
           )}
 

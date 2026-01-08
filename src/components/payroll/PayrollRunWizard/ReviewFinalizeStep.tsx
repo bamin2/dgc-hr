@@ -1,15 +1,17 @@
 import { format } from "date-fns";
-import { Building2, Calendar, Users, AlertCircle, CheckCircle } from "lucide-react";
+import { Building2, Calendar, Users, AlertCircle, CheckCircle, Plus, Minus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { WorkLocation } from "@/hooks/useWorkLocations";
 import { PayrollRunEmployee } from "@/hooks/usePayrollRunEmployees";
+import { PayrollRunAdjustment } from "@/hooks/usePayrollRunAdjustments";
 
 interface ReviewFinalizeStepProps {
   location: WorkLocation;
   payPeriodStart: string;
   payPeriodEnd: string;
   employees: PayrollRunEmployee[];
+  adjustments: PayrollRunAdjustment[];
 }
 
 export function ReviewFinalizeStep({
@@ -17,17 +19,52 @@ export function ReviewFinalizeStep({
   payPeriodStart,
   payPeriodEnd,
   employees,
+  adjustments,
 }: ReviewFinalizeStepProps) {
-  const totalGross = employees.reduce((sum, emp) => sum + (emp.grossPay || 0), 0);
-  const totalDeductions = employees.reduce((sum, emp) => sum + (emp.totalDeductions || 0), 0);
-  const totalNet = employees.reduce((sum, emp) => sum + (emp.netPay || 0), 0);
+  // Get adjustments per employee
+  const getEmployeeAdjustments = (employeeId: string) => {
+    return adjustments.filter(a => a.employeeId === employeeId);
+  };
+
+  // Calculate adjusted totals per employee
+  const getAdjustedTotals = (emp: PayrollRunEmployee) => {
+    const empAdjustments = getEmployeeAdjustments(emp.employeeId);
+    const earningsAdj = empAdjustments
+      .filter(a => a.type === "earning")
+      .reduce((sum, a) => sum + a.amount, 0);
+    const deductionsAdj = empAdjustments
+      .filter(a => a.type === "deduction")
+      .reduce((sum, a) => sum + a.amount, 0);
+
+    return {
+      grossPay: emp.grossPay + earningsAdj,
+      totalDeductions: emp.totalDeductions + deductionsAdj,
+      netPay: emp.netPay + earningsAdj - deductionsAdj,
+      earningsAdjustment: earningsAdj,
+      deductionsAdjustment: deductionsAdj,
+    };
+  };
+
+  // Calculate overall totals with adjustments
+  const totals = employees.reduce(
+    (acc, emp) => {
+      const adjusted = getAdjustedTotals(emp);
+      return {
+        grossPay: acc.grossPay + adjusted.grossPay,
+        totalDeductions: acc.totalDeductions + adjusted.totalDeductions,
+        netPay: acc.netPay + adjusted.netPay,
+      };
+    },
+    { grossPay: 0, totalDeductions: 0, netPay: 0 }
+  );
 
   // Validation checks
   const warnings: string[] = [];
   const errors: string[] = [];
 
   employees.forEach((emp) => {
-    if ((emp.netPay || 0) < 0) {
+    const adjusted = getAdjustedTotals(emp);
+    if (adjusted.netPay < 0) {
       errors.push(`${emp.employeeName} has negative net pay`);
     }
     if ((emp.baseSalary || 0) === 0) {
@@ -40,6 +77,7 @@ export function ReviewFinalizeStep({
   }
 
   const hasErrors = errors.length > 0;
+  const hasAdjustments = adjustments.length > 0;
 
   return (
     <div>
@@ -56,7 +94,7 @@ export function ReviewFinalizeStep({
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-foreground">
-              {location.currency} {totalGross.toLocaleString()}
+              {location.currency} {totals.grossPay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
           </CardContent>
         </Card>
@@ -66,7 +104,7 @@ export function ReviewFinalizeStep({
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-destructive">
-              {location.currency} {totalDeductions.toLocaleString()}
+              {location.currency} {totals.totalDeductions.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
           </CardContent>
         </Card>
@@ -76,7 +114,7 @@ export function ReviewFinalizeStep({
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-primary">
-              {location.currency} {totalNet.toLocaleString()}
+              {location.currency} {totals.netPay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
           </CardContent>
         </Card>
@@ -104,6 +142,31 @@ export function ReviewFinalizeStep({
           </div>
         </div>
       </div>
+
+      {/* Adjustments Summary */}
+      {hasAdjustments && (
+        <div className="bg-accent/30 rounded-lg p-4 border mb-6">
+          <h4 className="font-medium text-foreground mb-2 flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            One-Time Adjustments Applied ({adjustments.length})
+          </h4>
+          <div className="space-y-1 text-sm">
+            {adjustments.map((adj) => {
+              const empName = employees.find(e => e.employeeId === adj.employeeId)?.employeeName || "Unknown";
+              return (
+                <div key={adj.id} className="flex items-center justify-between">
+                  <span className="text-muted-foreground">
+                    {empName}: {adj.name}
+                  </span>
+                  <span className={adj.type === "earning" ? "text-success" : "text-destructive"}>
+                    {adj.type === "earning" ? "+" : "-"}{location.currency} {adj.amount.toLocaleString()}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Validation Messages */}
       {errors.length > 0 && (
@@ -147,20 +210,48 @@ export function ReviewFinalizeStep({
       <div className="mt-6">
         <h3 className="font-medium text-foreground mb-3">Employee Breakdown</h3>
         <div className="border rounded-lg divide-y max-h-[300px] overflow-y-auto">
-          {employees.map((emp) => (
-            <div key={emp.id} className="flex items-center justify-between p-3 text-sm">
-              <div>
-                <p className="font-medium text-foreground">{emp.employeeName}</p>
-                <p className="text-muted-foreground">{emp.department || "No department"}</p>
+          {employees.map((emp) => {
+            const adjusted = getAdjustedTotals(emp);
+            const empAdjustments = getEmployeeAdjustments(emp.employeeId);
+            
+            return (
+              <div key={emp.id} className="p-3 text-sm">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-foreground">{emp.employeeName}</p>
+                    <p className="text-muted-foreground">{emp.department || "No department"}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium text-foreground">
+                      {location.currency} {adjusted.netPay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Net Pay</p>
+                  </div>
+                </div>
+                
+                {/* Show adjustments if any */}
+                {empAdjustments.length > 0 && (
+                  <div className="mt-2 pt-2 border-t border-dashed space-y-1">
+                    {empAdjustments.map((adj) => (
+                      <div key={adj.id} className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground flex items-center gap-1">
+                          {adj.type === "earning" ? (
+                            <Plus className="h-3 w-3 text-success" />
+                          ) : (
+                            <Minus className="h-3 w-3 text-destructive" />
+                          )}
+                          {adj.name}
+                        </span>
+                        <span className={adj.type === "earning" ? "text-success" : "text-destructive"}>
+                          {adj.type === "earning" ? "+" : "-"}{location.currency} {adj.amount.toLocaleString()}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-              <div className="text-right">
-                <p className="font-medium text-foreground">
-                  {location.currency} {(emp.netPay || 0).toLocaleString()}
-                </p>
-                <p className="text-xs text-muted-foreground">Net Pay</p>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
