@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { Sidebar } from '@/components/dashboard/Sidebar';
+import { Sidebar, Header } from '@/components/dashboard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Users, Check, Building2, Loader2, FileText } from 'lucide-react';
@@ -20,9 +20,12 @@ const BenefitDetail = () => {
     return (
       <div className="flex min-h-screen bg-background">
         <Sidebar />
-        <main className="flex-1 p-6 overflow-auto flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </main>
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          <Header />
+          <main className="flex-1 p-6 overflow-auto flex items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </main>
+        </div>
       </div>
     );
   }
@@ -31,19 +34,22 @@ const BenefitDetail = () => {
     return (
       <div className="flex min-h-screen bg-background">
         <Sidebar />
-        <main className="flex-1 p-6 overflow-auto">
-          <div className="max-w-4xl mx-auto">
-            <Button variant="ghost" onClick={() => navigate('/benefits')} className="mb-4">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Benefits
-            </Button>
-            <Card className="border-border/50">
-              <CardContent className="p-12 text-center">
-                <p className="text-muted-foreground">Benefit plan not found</p>
-              </CardContent>
-            </Card>
-          </div>
-        </main>
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          <Header />
+          <main className="flex-1 p-6 overflow-auto">
+            <div className="max-w-4xl mx-auto">
+              <Button variant="ghost" onClick={() => navigate('/benefits')} className="mb-4">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Benefits
+              </Button>
+              <Card className="border-border/50">
+                <CardContent className="p-12 text-center">
+                  <p className="text-muted-foreground">Benefit plan not found</p>
+                </CardContent>
+              </Card>
+            </div>
+          </main>
+        </div>
       </div>
     );
   }
@@ -53,8 +59,10 @@ const BenefitDetail = () => {
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />
-      <main className="flex-1 p-6 overflow-auto">
-        <div className="max-w-4xl mx-auto space-y-6">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <Header />
+        <main className="flex-1 p-6 overflow-auto">
+          <div className="max-w-4xl mx-auto space-y-6">
           {/* Back Button */}
           <Button variant="ghost" onClick={() => navigate('/benefits')} className="mb-2">
             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -176,8 +184,9 @@ const BenefitDetail = () => {
               </CardContent>
             </Card>
           )}
-        </div>
-      </main>
+          </div>
+        </main>
+      </div>
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sidebar } from '@/components/dashboard/Sidebar';
+import { Sidebar, Header } from '@/components/dashboard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -99,7 +99,9 @@ const ClaimSubmission = () => {
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />
-      <main className="flex-1 p-6 overflow-auto">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <Header />
+        <main className="flex-1 p-6 overflow-auto">
         <div className="max-w-2xl mx-auto space-y-6">
           {/* Back Button */}
           <Button variant="ghost" onClick={() => navigate('/benefits')} className="mb-2">
@@ -279,7 +281,8 @@ const ClaimSubmission = () => {
             </form>
           )}
         </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 };
