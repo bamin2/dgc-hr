@@ -211,3 +211,11 @@ export function getCountryByName(name: string): Country | undefined {
 export function getCountryByCode(code: string): Country | undefined {
   return countries.find(c => c.code === code);
 }
+
+export function getCountryCodeByName(name: string): string | undefined {
+  const normalized = name.toLowerCase().trim();
+  const country = countries.find(
+    c => c.name.toLowerCase() === normalized || c.code.toLowerCase() === normalized
+  );
+  return country?.code;
+}
