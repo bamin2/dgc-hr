@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { Calendar, Users, User } from "lucide-react";
+import { Calendar, Users, User, Trash2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PayrollRunStatusBadge, PayrollRunStatus } from "./PayrollRunStatusBadge";
@@ -21,9 +21,10 @@ interface PayrollRunCardProps {
   onResume?: () => void;
   onView?: () => void;
   onIssuePayslips?: () => void;
+  onDelete?: () => void;
 }
 
-export function PayrollRunCard({ run, onResume, onView, onIssuePayslips }: PayrollRunCardProps) {
+export function PayrollRunCard({ run, onResume, onView, onIssuePayslips, onDelete }: PayrollRunCardProps) {
   const periodLabel = format(new Date(run.payPeriodStart), "MMM yyyy");
   const periodRange = `${format(new Date(run.payPeriodStart), "d")} - ${format(new Date(run.payPeriodEnd), "d")}`;
   const createdDate = format(new Date(run.createdAt), "MMM d");
@@ -68,10 +69,19 @@ export function PayrollRunCard({ run, onResume, onView, onIssuePayslips }: Payro
             )}
             
             <div className="flex gap-2">
-              {run.status === 'draft' && onResume && (
-                <Button onClick={onResume} size="sm">
-                  Resume Draft
-                </Button>
+              {run.status === 'draft' && (
+                <>
+                  {onResume && (
+                    <Button onClick={onResume} size="sm">
+                      Resume Draft
+                    </Button>
+                  )}
+                  {onDelete && (
+                    <Button variant="ghost" size="icon" onClick={onDelete} className="text-destructive hover:text-destructive">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </>
               )}
               {run.status === 'finalized' && (
                 <>
