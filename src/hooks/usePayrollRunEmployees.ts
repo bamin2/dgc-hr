@@ -97,8 +97,10 @@ export function usePayrollRunEmployees(runId: string | null) {
     enabled: !!runId,
   });
 
-  const snapshotEmployees = async (employeeIds: string[]) => {
-    if (!runId || employeeIds.length === 0) return;
+  const snapshotEmployees = async (payrollRunId: string, employeeIds: string[]) => {
+    if (!payrollRunId || employeeIds.length === 0) {
+      throw new Error("Payroll run ID and employee IDs are required");
+    }
 
     // Fetch employee data with work location for GOSI settings
     const { data: employees, error: empError } = await supabase
@@ -227,7 +229,7 @@ export function usePayrollRunEmployees(runId: string | null) {
       const netPay = grossPay - totalDeductions;
 
       return {
-        payroll_run_id: runId,
+        payroll_run_id: payrollRunId,
         employee_id: emp.id,
         employee_name: `${emp.first_name} ${emp.last_name}`,
         employee_code: emp.employee_code,
@@ -249,9 +251,12 @@ export function usePayrollRunEmployees(runId: string | null) {
       .from("payroll_run_employees")
       .upsert(snapshots, { onConflict: "payroll_run_id,employee_id" });
 
-    if (error) throw error;
+    if (error) {
+      console.error("Snapshot upsert error:", error);
+      throw error;
+    }
 
-    queryClient.invalidateQueries({ queryKey: ["payroll-run-employees", runId] });
+    queryClient.invalidateQueries({ queryKey: ["payroll-run-employees", payrollRunId] });
   };
 
   return { ...query, snapshotEmployees };
