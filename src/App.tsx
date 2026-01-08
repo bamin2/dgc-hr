@@ -35,6 +35,7 @@ import TimeOff from "./pages/TimeOff";
 import TimeManagement from "./pages/TimeManagement";
 import Documents from "./pages/Documents";
 import Directory from "./pages/Directory";
+import Loans from "./pages/Loans";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -76,6 +77,7 @@ const App = () => (
                 <Route path="/payroll" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><Payroll /></ProtectedRoute>} />
                 <Route path="/payroll/run" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><PayrollRun /></ProtectedRoute>} />
                 <Route path="/payroll/payslip/:id" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><Payslip /></ProtectedRoute>} />
+                <Route path="/loans" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><Loans /></ProtectedRoute>} />
                 
                 {/* Protected routes - Manager, HR & Admin */}
                 <Route path="/team/add" element={<ProtectedRoute requiredRoles={['manager', 'hr', 'admin']}><AddTeamMember /></ProtectedRoute>} />

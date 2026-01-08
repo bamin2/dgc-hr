@@ -210,6 +210,8 @@ export function PayrollRunWizard({
             <AdjustmentsStep
               runId={runId}
               employees={runEmployees}
+              payPeriodStart={payPeriodStart}
+              payPeriodEnd={payPeriodEnd}
             />
           )}
 
