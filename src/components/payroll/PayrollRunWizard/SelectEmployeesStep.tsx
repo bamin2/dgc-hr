@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useEmployees } from "@/hooks/useEmployees";
+import { useEmployeesWithCompensation } from "@/hooks/useEmployeesWithCompensation";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,9 +16,9 @@ export function SelectEmployeesStep({
   selectedIds,
   onSelectionChange,
 }: SelectEmployeesStepProps) {
-  const { data: allEmployees = [], isLoading } = useEmployees();
+  const { data: allEmployees = [], isLoading } = useEmployeesWithCompensation(locationId);
 
-  // Filter employees by location
+  // Filter employees by location (already filtered in hook, but double-check)
   const employees = allEmployees.filter(
     (emp) => emp.workLocationId === locationId && emp.status === 'active'
   );
@@ -110,9 +110,9 @@ export function SelectEmployeesStep({
                 </div>
                 <div className="text-right">
                   <p className="font-medium text-foreground">
-                    {employee.salary?.toLocaleString() || 0}
+                    {employee.netSalary?.toLocaleString() || 0}
                   </p>
-                  <p className="text-xs text-muted-foreground">Base Salary</p>
+                  <p className="text-xs text-muted-foreground">Net Salary</p>
                 </div>
               </div>
             );
