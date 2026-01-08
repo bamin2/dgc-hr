@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { format } from "date-fns";
-import { Banknote, AlertCircle, CheckCircle } from "lucide-react";
+import { Banknote, AlertCircle, CheckCircle, SkipForward } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -15,6 +15,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { InstallmentDueForPayroll } from "@/hooks/useLoanInstallmentsDueForPayroll";
+import { useSkipInstallment } from "@/hooks/useLoanEvents";
+import { toast } from "sonner";
 
 export interface LoanInstallmentSelection {
   id: string;
@@ -39,6 +41,7 @@ export function LoanInstallmentsSection({
 }: LoanInstallmentsSectionProps) {
   const [isPayrollExpanded, setIsPayrollExpanded] = useState(true);
   const [isNonPayrollExpanded, setIsNonPayrollExpanded] = useState(true);
+  const skipInstallment = useSkipInstallment();
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -46,6 +49,19 @@ export function LoanInstallmentsSection({
       currency: "SAR",
       minimumFractionDigits: 2,
     }).format(amount);
+  };
+
+  const handleSkipInstallment = async (inst: InstallmentDueForPayroll) => {
+    try {
+      await skipInstallment.mutateAsync({
+        installmentId: inst.id,
+        loanId: inst.loanId,
+        reason: "Skipped during payroll",
+      });
+      toast.success("Installment skipped and rescheduled to end of loan");
+    } catch (error) {
+      toast.error("Failed to skip installment");
+    }
   };
 
   const handleTogglePayrollInclusion = (id: string, checked: boolean) => {
@@ -173,11 +189,23 @@ export function LoanInstallmentsSection({
                         </div>
                       </Label>
                     </div>
-                    <div className="text-right">
-                      <p className="font-medium">{formatCurrency(inst.amount)}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Loan: {formatCurrency(inst.principalAmount)}
-                      </p>
+                    <div className="flex items-center gap-2">
+                      <div className="text-right">
+                        <p className="font-medium">{formatCurrency(inst.amount)}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Loan: {formatCurrency(inst.principalAmount)}
+                        </p>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 px-2 text-xs"
+                        onClick={() => handleSkipInstallment(inst)}
+                        disabled={skipInstallment.isPending}
+                      >
+                        <SkipForward className="h-3 w-3 mr-1" />
+                        Skip
+                      </Button>
                     </div>
                   </div>
                 );

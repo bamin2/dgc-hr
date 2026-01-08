@@ -1484,6 +1484,63 @@ export type Database = {
         }
         Relationships: []
       }
+      loan_events: {
+        Row: {
+          affected_installment_id: string | null
+          amount_delta: number | null
+          created_at: string
+          created_by: string | null
+          effective_date: string
+          event_type: string
+          id: string
+          loan_id: string
+          new_duration_months: number | null
+          new_installment_amount: number | null
+          notes: string | null
+        }
+        Insert: {
+          affected_installment_id?: string | null
+          amount_delta?: number | null
+          created_at?: string
+          created_by?: string | null
+          effective_date: string
+          event_type: string
+          id?: string
+          loan_id: string
+          new_duration_months?: number | null
+          new_installment_amount?: number | null
+          notes?: string | null
+        }
+        Update: {
+          affected_installment_id?: string | null
+          amount_delta?: number | null
+          created_at?: string
+          created_by?: string | null
+          effective_date?: string
+          event_type?: string
+          id?: string
+          loan_id?: string
+          new_duration_months?: number | null
+          new_installment_amount?: number | null
+          notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loan_events_affected_installment_id_fkey"
+            columns: ["affected_installment_id"]
+            isOneToOne: false
+            referencedRelation: "loan_installments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loan_events_loan_id_fkey"
+            columns: ["loan_id"]
+            isOneToOne: false
+            referencedRelation: "loans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       loan_installments: {
         Row: {
           amount: number
@@ -1497,6 +1554,9 @@ export type Database = {
           paid_at: string | null
           paid_in_payroll_run_id: string | null
           paid_method: string | null
+          rescheduled_from_installment_id: string | null
+          schedule_version: number | null
+          skipped_reason: string | null
           status: string
         }
         Insert: {
@@ -1511,6 +1571,9 @@ export type Database = {
           paid_at?: string | null
           paid_in_payroll_run_id?: string | null
           paid_method?: string | null
+          rescheduled_from_installment_id?: string | null
+          schedule_version?: number | null
+          skipped_reason?: string | null
           status?: string
         }
         Update: {
@@ -1525,6 +1588,9 @@ export type Database = {
           paid_at?: string | null
           paid_in_payroll_run_id?: string | null
           paid_method?: string | null
+          rescheduled_from_installment_id?: string | null
+          schedule_version?: number | null
+          skipped_reason?: string | null
           status?: string
         }
         Relationships: [
@@ -1540,6 +1606,13 @@ export type Database = {
             columns: ["paid_in_payroll_run_id"]
             isOneToOne: false
             referencedRelation: "payroll_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loan_installments_rescheduled_from_installment_id_fkey"
+            columns: ["rescheduled_from_installment_id"]
+            isOneToOne: false
+            referencedRelation: "loan_installments"
             referencedColumns: ["id"]
           },
         ]
