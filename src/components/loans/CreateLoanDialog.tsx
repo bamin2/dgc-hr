@@ -43,6 +43,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useCreateLoan } from "@/hooks/useLoans";
+import { useCompanySettings } from "@/contexts/CompanySettingsContext";
 import { toast } from "sonner";
 
 const formSchema = z.object({
@@ -83,6 +84,7 @@ export function CreateLoanDialog({
 }: CreateLoanDialogProps) {
   const { data: employees = [], isLoading: loadingEmployees } = useEmployees();
   const createLoan = useCreateLoan();
+  const { getCurrencySymbol } = useCompanySettings();
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -140,7 +142,7 @@ export function CreateLoanDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create Loan</DialogTitle>
           <DialogDescription>
@@ -180,7 +182,7 @@ export function CreateLoanDialog({
               name="principal_amount"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Principal Amount (SAR)</FormLabel>
+                  <FormLabel>Principal Amount ({getCurrencySymbol()})</FormLabel>
                   <FormControl>
                     <Input type="number" step="0.01" min="0" {...field} />
                   </FormControl>
@@ -227,7 +229,7 @@ export function CreateLoanDialog({
                     </FormControl>
                     {calculatedInstallment && (
                       <FormDescription>
-                        Monthly installment: SAR {calculatedInstallment}
+                        Monthly installment: {getCurrencySymbol()} {calculatedInstallment}
                       </FormDescription>
                     )}
                     <FormMessage />
@@ -240,7 +242,7 @@ export function CreateLoanDialog({
                 name="installment_amount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Installment Amount (SAR)</FormLabel>
+                    <FormLabel>Installment Amount ({getCurrencySymbol()})</FormLabel>
                     <FormControl>
                       <Input type="number" step="0.01" min="0" {...field} />
                     </FormControl>
