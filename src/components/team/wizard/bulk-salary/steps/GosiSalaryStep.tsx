@@ -28,7 +28,17 @@ interface GosiSalaryStepProps {
   onUpdateData: <K extends keyof BulkSalaryWizardData>(field: K, value: BulkSalaryWizardData[K]) => void;
 }
 
-export function GosiSalaryStep({ data, gosiEmployees, workLocations, allowanceTemplates, currency, onUpdateData }: GosiSalaryStepProps) {
+export function GosiSalaryStep({ 
+  data, 
+  gosiEmployees, 
+  workLocations, 
+  allowanceTemplates = [], 
+  currency, 
+  onUpdateData 
+}: GosiSalaryStepProps) {
+  // Ensure allowanceTemplates is always an array
+  const safeAllowanceTemplates = allowanceTemplates || [];
+
   const formatCurrency = (amount: number | undefined) => {
     if (amount === undefined) return '-';
     return new Intl.NumberFormat('en-US', { 
@@ -66,10 +76,15 @@ export function GosiSalaryStep({ data, gosiEmployees, workLocations, allowanceTe
   const getHousingAllowance = (employeeId: string): number => {
     const employeeAllowances = data.perEmployeeAllowances[employeeId] || [];
     
+    // Guard against undefined or empty allowanceTemplates
+    if (safeAllowanceTemplates.length === 0) {
+      return 0;
+    }
+    
     // Find housing allowance by template name
     for (const allowance of employeeAllowances) {
       if (allowance.templateId) {
-        const template = allowanceTemplates.find(t => t.id === allowance.templateId);
+        const template = safeAllowanceTemplates.find(t => t.id === allowance.templateId);
         if (template?.name?.toLowerCase().includes('housing')) {
           return allowance.amount || 0;
         }
@@ -136,7 +151,7 @@ export function GosiSalaryStep({ data, gosiEmployees, workLocations, allowanceTe
       afterDeductions: afterData.deductions,
       deductionChange: afterData.deductions - beforeData.deductions,
     };
-  }, [gosiEmployees, data.gosiHandling, data.gosiPerEmployee, workLocations, data.perEmployeeAllowances, allowanceTemplates]);
+  }, [gosiEmployees, data.gosiHandling, data.gosiPerEmployee, workLocations, data.perEmployeeAllowances, safeAllowanceTemplates]);
 
   const getChangeIcon = (change: number) => {
     if (change > 0) return <TrendingUp className="h-4 w-4 text-green-600" />;
