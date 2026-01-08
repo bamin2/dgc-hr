@@ -109,9 +109,9 @@ export function usePayrollRunEmployees(runId: string | null) {
         `
         id, first_name, last_name, employee_code, salary, nationality,
         gosi_registered_salary, is_subject_to_gosi,
-        department:departments(name),
-        position:positions(title),
-        work_location:work_locations(id, gosi_enabled, gosi_nationality_rates)
+        department:departments!employees_department_id_fkey(name),
+        position:positions!employees_position_id_fkey(title),
+        work_location:work_locations!employees_work_location_id_fkey(id, gosi_enabled, gosi_nationality_rates)
       `
       )
       .in("id", employeeIds);
