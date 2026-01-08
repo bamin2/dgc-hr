@@ -9,15 +9,18 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Info, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { TeamMemberWithGosi } from "@/hooks/useBulkSalaryWizard";
 import { BulkSalaryWizardData, GosiHandling } from "../types";
+import { WorkLocation } from "@/hooks/useWorkLocations";
+import { getCountryCodeByName } from "@/data/countries";
 
 interface GosiSalaryStepProps {
   data: BulkSalaryWizardData;
   gosiEmployees: TeamMemberWithGosi[];
+  workLocations: WorkLocation[];
   currency: string;
   onUpdateData: <K extends keyof BulkSalaryWizardData>(field: K, value: BulkSalaryWizardData[K]) => void;
 }
 
-export function GosiSalaryStep({ data, gosiEmployees, currency, onUpdateData }: GosiSalaryStepProps) {
+export function GosiSalaryStep({ data, gosiEmployees, workLocations, currency, onUpdateData }: GosiSalaryStepProps) {
   const formatCurrency = (amount: number | undefined) => {
     if (amount === undefined) return '-';
     return new Intl.NumberFormat('en-US', { 
@@ -39,37 +42,57 @@ export function GosiSalaryStep({ data, gosiEmployees, currency, onUpdateData }: 
     });
   };
 
-  const calculateGosiDeduction = (salary: number | string | undefined) => {
+  // Get GOSI rate for an employee based on their work location and nationality
+  const getGosiRate = (employee: TeamMemberWithGosi): number => {
+    const workLocation = workLocations.find(wl => wl.id === employee.workLocationId);
+    if (!workLocation?.gosi_enabled) return 0;
+    
+    const nationalityCode = getCountryCodeByName(employee.nationality || '');
+    const rates = (workLocation.gosi_nationality_rates || []) as Array<{nationality: string; percentage: number}>;
+    const matchingRate = rates.find(r => r.nationality === nationalityCode);
+    
+    return matchingRate?.percentage || 0;
+  };
+
+  const calculateGosiDeduction = (salary: number | string | undefined, employee: TeamMemberWithGosi): number => {
     const amount = typeof salary === 'string' ? parseFloat(salary) : salary;
     if (!amount) return 0;
-    return amount * 0.08;
+    
+    const rate = getGosiRate(employee);
+    return (amount * rate) / 100;
   };
 
   // Calculate before/after totals
   const gosiTotals = useMemo(() => {
-    const beforeSalaries = gosiEmployees.reduce((sum, e) => sum + (e.gosiRegisteredSalary || 0), 0);
-    const beforeDeductions = beforeSalaries * 0.08;
+    const beforeData = gosiEmployees.reduce((acc, e) => {
+      const gosiSalary = e.gosiRegisteredSalary || 0;
+      const deduction = calculateGosiDeduction(gosiSalary, e);
+      return {
+        salaries: acc.salaries + gosiSalary,
+        deductions: acc.deductions + deduction,
+      };
+    }, { salaries: 0, deductions: 0 });
 
-    let afterSalaries = beforeSalaries;
-    if (data.gosiHandling === 'per_employee') {
-      afterSalaries = gosiEmployees.reduce((sum, e) => {
-        const newSalary = data.gosiPerEmployee[e.id] 
-          ? parseFloat(data.gosiPerEmployee[e.id]) 
-          : (e.gosiRegisteredSalary || 0);
-        return sum + newSalary;
-      }, 0);
-    }
-    const afterDeductions = afterSalaries * 0.08;
+    const afterData = gosiEmployees.reduce((acc, e) => {
+      const newSalary = data.gosiHandling === 'per_employee' && data.gosiPerEmployee[e.id]
+        ? parseFloat(data.gosiPerEmployee[e.id])
+        : (e.gosiRegisteredSalary || 0);
+      const deduction = calculateGosiDeduction(newSalary, e);
+      return {
+        salaries: acc.salaries + newSalary,
+        deductions: acc.deductions + deduction,
+      };
+    }, { salaries: 0, deductions: 0 });
 
     return {
-      beforeSalaries,
-      afterSalaries,
-      salaryChange: afterSalaries - beforeSalaries,
-      beforeDeductions,
-      afterDeductions,
-      deductionChange: afterDeductions - beforeDeductions,
+      beforeSalaries: beforeData.salaries,
+      afterSalaries: afterData.salaries,
+      salaryChange: afterData.salaries - beforeData.salaries,
+      beforeDeductions: beforeData.deductions,
+      afterDeductions: afterData.deductions,
+      deductionChange: afterData.deductions - beforeData.deductions,
     };
-  }, [gosiEmployees, data.gosiHandling, data.gosiPerEmployee]);
+  }, [gosiEmployees, data.gosiHandling, data.gosiPerEmployee, workLocations]);
 
   const getChangeIcon = (change: number) => {
     if (change > 0) return <TrendingUp className="h-4 w-4 text-green-600" />;
@@ -97,7 +120,7 @@ export function GosiSalaryStep({ data, gosiEmployees, currency, onUpdateData }: 
         <AlertDescription>
           Showing employees marked as subject to GOSI in their employee profile.
           GOSI registered salary may differ from actual salary and typically updates annually (Jan 1).
-          The GOSI deduction is calculated as 8% of the GOSI registered salary.
+          GOSI deduction rates vary by nationality as configured in work location settings.
         </AlertDescription>
       </Alert>
 
@@ -152,42 +175,49 @@ export function GosiSalaryStep({ data, gosiEmployees, currency, onUpdateData }: 
           <Label className="text-base font-medium">GOSI Employees</Label>
           <ScrollArea className="h-[300px] border rounded-lg">
             <div className="divide-y">
-              {gosiEmployees.map(employee => (
-                <div key={employee.id} className="flex items-center gap-4 px-4 py-3">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={employee.avatar} />
-                    <AvatarFallback>
-                      {getInitials(employee.firstName, employee.lastName)}
-                    </AvatarFallback>
-                  </Avatar>
+              {gosiEmployees.map(employee => {
+                const ratePercentage = getGosiRate(employee);
+                
+                return (
+                  <div key={employee.id} className="flex items-center gap-4 px-4 py-3">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={employee.avatar} />
+                      <AvatarFallback>
+                        {getInitials(employee.firstName, employee.lastName)}
+                      </AvatarFallback>
+                    </Avatar>
 
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">
-                      {employee.firstName} {employee.lastName}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Current: {formatCurrency(employee.gosiRegisteredSalary)}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <div className="relative w-40">
-                      <Input
-                        type="number"
-                        placeholder="New GOSI salary"
-                        value={data.gosiPerEmployee[employee.id] || ''}
-                        onChange={(e) => handlePerEmployeeChange(employee.id, e.target.value)}
-                        className="h-9"
-                      />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">
+                        {employee.firstName} {employee.lastName}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Current: {formatCurrency(employee.gosiRegisteredSalary)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Rate: {ratePercentage}% ({employee.nationality || 'No nationality'})
+                      </p>
                     </div>
-                    {data.gosiPerEmployee[employee.id] && (
-                      <span className="text-xs text-muted-foreground whitespace-nowrap">
-                        = {formatCurrency(calculateGosiDeduction(data.gosiPerEmployee[employee.id]))} deduction
-                      </span>
-                    )}
+
+                    <div className="flex items-center gap-2">
+                      <div className="relative w-40">
+                        <Input
+                          type="number"
+                          placeholder="New GOSI salary"
+                          value={data.gosiPerEmployee[employee.id] || ''}
+                          onChange={(e) => handlePerEmployeeChange(employee.id, e.target.value)}
+                          className="h-9"
+                        />
+                      </div>
+                      {data.gosiPerEmployee[employee.id] && (
+                        <span className="text-xs text-muted-foreground whitespace-nowrap">
+                          = {formatCurrency(calculateGosiDeduction(data.gosiPerEmployee[employee.id], employee))} deduction
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </ScrollArea>
           {gosiEmployees.length > 0 && (
@@ -226,7 +256,10 @@ export function GosiSalaryStep({ data, gosiEmployees, currency, onUpdateData }: 
 
             {/* GOSI Deductions Row */}
             <div className="grid grid-cols-4 gap-4 items-center">
-              <div className="text-sm font-medium">GOSI Deductions (8%)</div>
+              <div className="text-sm font-medium">
+                <span>GOSI Deductions</span>
+                <p className="text-xs text-muted-foreground font-normal">(Rates vary by nationality)</p>
+              </div>
               <div className="text-right text-sm">{formatCurrency(gosiTotals.beforeDeductions)}</div>
               <div className="text-right text-sm font-medium">{formatCurrency(gosiTotals.afterDeductions)}</div>
               <div className={`text-right text-sm font-medium flex items-center justify-end gap-1 ${getChangeColor(gosiTotals.deductionChange)}`}>
