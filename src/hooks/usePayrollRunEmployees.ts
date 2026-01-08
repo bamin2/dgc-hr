@@ -105,38 +105,69 @@ export function usePayrollRunEmployees(runId: string | null) {
     // Fetch employee data with work location for GOSI settings
     const { data: employees, error: empError } = await supabase
       .from("employees")
-      .select(`
+      .select(
+        `
         id, first_name, last_name, employee_code, salary, nationality,
         gosi_registered_salary, is_subject_to_gosi,
         department:departments(name),
         position:positions(title),
         work_location:work_locations(id, gosi_enabled, gosi_nationality_rates)
-      `)
+      `
+      )
       .in("id", employeeIds);
 
-    if (empError) throw empError;
+    if (empError) {
+      console.error("snapshotEmployees: employees query failed", {
+        payrollRunId,
+        employeeIdsCount: employeeIds.length,
+        empError,
+      });
+      throw empError;
+    }
+
+    if (!employees || employees.length === 0) {
+      throw new Error("No employees found for the selected IDs");
+    }
 
     // Fetch all allowances for selected employees
     const { data: allAllowances, error: allowError } = await supabase
       .from("employee_allowances")
-      .select(`
+      .select(
+        `
         id, employee_id, allowance_template_id, custom_name, custom_amount, percentage,
         allowance_template:allowance_templates(id, name, amount, amount_type, percentage_of, is_taxable)
-      `)
+      `
+      )
       .in("employee_id", employeeIds);
 
-    if (allowError) throw allowError;
+    if (allowError) {
+      console.error("snapshotEmployees: allowances query failed", {
+        payrollRunId,
+        employeeIdsCount: employeeIds.length,
+        allowError,
+      });
+      throw allowError;
+    }
 
     // Fetch all deductions for selected employees
     const { data: allDeductions, error: deductError } = await supabase
       .from("employee_deductions")
-      .select(`
+      .select(
+        `
         id, employee_id, deduction_template_id, custom_name, custom_amount,
         deduction_template:deduction_templates(id, name, amount, amount_type, percentage_of)
-      `)
+      `
+      )
       .in("employee_id", employeeIds);
 
-    if (deductError) throw deductError;
+    if (deductError) {
+      console.error("snapshotEmployees: deductions query failed", {
+        payrollRunId,
+        employeeIdsCount: employeeIds.length,
+        deductError,
+      });
+      throw deductError;
+    }
 
     // Create snapshots with full calculations
     const snapshots = (employees || []).map((emp) => {
@@ -252,7 +283,12 @@ export function usePayrollRunEmployees(runId: string | null) {
       .upsert(snapshots, { onConflict: "payroll_run_id,employee_id" });
 
     if (error) {
-      console.error("Snapshot upsert error:", error);
+      console.error("snapshotEmployees: upsert failed", {
+        payrollRunId,
+        employeeIdsCount: employeeIds.length,
+        snapshotsCount: snapshots.length,
+        error,
+      });
       throw error;
     }
 
