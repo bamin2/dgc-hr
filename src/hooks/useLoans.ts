@@ -1,0 +1,409 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+
+export interface Loan {
+  id: string;
+  employee_id: string;
+  requested_by: string | null;
+  created_by: string | null;
+  principal_amount: number;
+  repayment_frequency: string;
+  duration_months: number | null;
+  installment_amount: number | null;
+  start_date: string;
+  deduct_from_payroll: boolean;
+  status: "requested" | "approved" | "rejected" | "active" | "closed" | "cancelled";
+  approved_by: string | null;
+  approved_at: string | null;
+  disbursed_at: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  employee?: {
+    id: string;
+    first_name: string;
+    last_name: string;
+    full_name: string | null;
+    avatar_url: string | null;
+    department_id: string | null;
+  };
+}
+
+export interface LoanInstallment {
+  id: string;
+  loan_id: string;
+  installment_number: number;
+  due_date: string;
+  amount: number;
+  status: "due" | "paid" | "skipped";
+  paid_at: string | null;
+  paid_method: "payroll" | "manual" | null;
+  paid_in_payroll_run_id: string | null;
+  created_at: string;
+}
+
+export interface LoanWithInstallments extends Loan {
+  installments: LoanInstallment[];
+}
+
+export function useLoans(filters?: { status?: string; employeeId?: string }) {
+  return useQuery({
+    queryKey: ["loans", filters],
+    queryFn: async () => {
+      let query = supabase
+        .from("loans")
+        .select(`
+          *,
+          employee:employees(id, first_name, last_name, full_name, avatar_url, department_id)
+        `)
+        .order("created_at", { ascending: false });
+
+      if (filters?.status) {
+        query = query.eq("status", filters.status);
+      }
+      if (filters?.employeeId) {
+        query = query.eq("employee_id", filters.employeeId);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data as Loan[];
+    },
+  });
+}
+
+export function useMyLoans() {
+  const { user } = useAuth();
+  
+  return useQuery({
+    queryKey: ["my-loans", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      const { data, error } = await supabase
+        .from("loans")
+        .select(`
+          *,
+          employee:employees(id, first_name, last_name, full_name, avatar_url, department_id)
+        `)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data as Loan[];
+    },
+    enabled: !!user?.id,
+  });
+}
+
+export function useLoan(loanId: string | null) {
+  return useQuery({
+    queryKey: ["loan", loanId],
+    queryFn: async () => {
+      if (!loanId) return null;
+
+      const { data: loan, error: loanError } = await supabase
+        .from("loans")
+        .select(`
+          *,
+          employee:employees(id, first_name, last_name, full_name, avatar_url, department_id)
+        `)
+        .eq("id", loanId)
+        .single();
+
+      if (loanError) throw loanError;
+
+      const { data: installments, error: installmentsError } = await supabase
+        .from("loan_installments")
+        .select("*")
+        .eq("loan_id", loanId)
+        .order("installment_number", { ascending: true });
+
+      if (installmentsError) throw installmentsError;
+
+      return {
+        ...loan,
+        installments: installments || [],
+      } as LoanWithInstallments;
+    },
+    enabled: !!loanId,
+  });
+}
+
+export function useLoanInstallments(loanId: string | null) {
+  return useQuery({
+    queryKey: ["loan-installments", loanId],
+    queryFn: async () => {
+      if (!loanId) return [];
+
+      const { data, error } = await supabase
+        .from("loan_installments")
+        .select("*")
+        .eq("loan_id", loanId)
+        .order("installment_number", { ascending: true });
+
+      if (error) throw error;
+      return data as LoanInstallment[];
+    },
+    enabled: !!loanId,
+  });
+}
+
+interface RequestLoanParams {
+  principal_amount: number;
+  duration_months?: number;
+  installment_amount?: number;
+  start_date: string;
+  deduct_from_payroll: boolean;
+  notes?: string;
+}
+
+export function useRequestLoan() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async (params: RequestLoanParams) => {
+      // Get employee_id for current user
+      const { data: employee, error: empError } = await supabase
+        .from("employees")
+        .select("id")
+        .eq("user_id", user?.id)
+        .single();
+
+      if (empError) throw new Error("Could not find employee record");
+
+      const { data, error } = await supabase
+        .from("loans")
+        .insert({
+          employee_id: employee.id,
+          requested_by: user?.id,
+          principal_amount: params.principal_amount,
+          duration_months: params.duration_months,
+          installment_amount: params.installment_amount,
+          start_date: params.start_date,
+          deduct_from_payroll: params.deduct_from_payroll,
+          notes: params.notes,
+          status: "requested",
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["loans"] });
+      queryClient.invalidateQueries({ queryKey: ["my-loans"] });
+    },
+  });
+}
+
+interface CreateLoanParams {
+  employee_id: string;
+  principal_amount: number;
+  duration_months?: number;
+  installment_amount?: number;
+  start_date: string;
+  deduct_from_payroll: boolean;
+  notes?: string;
+  auto_disburse?: boolean;
+}
+
+export function useCreateLoan() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async (params: CreateLoanParams) => {
+      const { data, error } = await supabase
+        .from("loans")
+        .insert({
+          employee_id: params.employee_id,
+          created_by: user?.id,
+          principal_amount: params.principal_amount,
+          duration_months: params.duration_months,
+          installment_amount: params.installment_amount,
+          start_date: params.start_date,
+          deduct_from_payroll: params.deduct_from_payroll,
+          notes: params.notes,
+          status: params.auto_disburse ? "active" : "approved",
+          approved_by: user?.id,
+          approved_at: new Date().toISOString(),
+          disbursed_at: params.auto_disburse ? new Date().toISOString() : null,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // If auto_disburse, generate installments
+      if (params.auto_disburse) {
+        const { error: genError } = await supabase.rpc("generate_loan_installments", {
+          loan_uuid: data.id,
+        });
+        if (genError) throw genError;
+      }
+
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["loans"] });
+    },
+  });
+}
+
+export function useApproveLoan() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async (loanId: string) => {
+      const { error } = await supabase
+        .from("loans")
+        .update({
+          status: "approved",
+          approved_by: user?.id,
+          approved_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", loanId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["loans"] });
+      queryClient.invalidateQueries({ queryKey: ["loan"] });
+    },
+  });
+}
+
+export function useRejectLoan() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async ({ loanId, reason }: { loanId: string; reason?: string }) => {
+      const { error } = await supabase
+        .from("loans")
+        .update({
+          status: "rejected",
+          approved_by: user?.id,
+          approved_at: new Date().toISOString(),
+          notes: reason,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", loanId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["loans"] });
+      queryClient.invalidateQueries({ queryKey: ["loan"] });
+    },
+  });
+}
+
+export function useDisburseLoan() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (loanId: string) => {
+      // Update loan status
+      const { error: updateError } = await supabase
+        .from("loans")
+        .update({
+          status: "active",
+          disbursed_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", loanId);
+
+      if (updateError) throw updateError;
+
+      // Generate installments
+      const { error: genError } = await supabase.rpc("generate_loan_installments", {
+        loan_uuid: loanId,
+      });
+
+      if (genError) throw genError;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["loans"] });
+      queryClient.invalidateQueries({ queryKey: ["loan"] });
+      queryClient.invalidateQueries({ queryKey: ["loan-installments"] });
+    },
+  });
+}
+
+export function useCancelLoan() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (loanId: string) => {
+      const { error } = await supabase
+        .from("loans")
+        .update({
+          status: "cancelled",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", loanId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["loans"] });
+      queryClient.invalidateQueries({ queryKey: ["loan"] });
+    },
+  });
+}
+
+export function useMarkInstallmentPaid() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ installmentId, method }: { installmentId: string; method: "payroll" | "manual"; payrollRunId?: string }) => {
+      const { error } = await supabase
+        .from("loan_installments")
+        .update({
+          status: "paid",
+          paid_at: new Date().toISOString(),
+          paid_method: method,
+        })
+        .eq("id", installmentId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["loans"] });
+      queryClient.invalidateQueries({ queryKey: ["loan"] });
+      queryClient.invalidateQueries({ queryKey: ["loan-installments"] });
+    },
+  });
+}
+
+export function useMarkInstallmentsPaidByPayroll() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ installmentIds, payrollRunId }: { installmentIds: string[]; payrollRunId: string }) => {
+      const { error } = await supabase
+        .from("loan_installments")
+        .update({
+          status: "paid",
+          paid_at: new Date().toISOString(),
+          paid_method: "payroll",
+          paid_in_payroll_run_id: payrollRunId,
+        })
+        .in("id", installmentIds);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["loans"] });
+      queryClient.invalidateQueries({ queryKey: ["loan"] });
+      queryClient.invalidateQueries({ queryKey: ["loan-installments"] });
+      queryClient.invalidateQueries({ queryKey: ["loan-installments-due"] });
+    },
+  });
+}
