@@ -36,6 +36,7 @@ import TimeManagement from "./pages/TimeManagement";
 import Documents from "./pages/Documents";
 import Directory from "./pages/Directory";
 import Loans from "./pages/Loans";
+import Approvals from "./pages/Approvals";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -61,6 +62,7 @@ const App = () => (
                 <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
                 <Route path="/attendance" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><TimeManagement /></ProtectedRoute>} />
                 <Route path="/time-off" element={<ProtectedRoute><TimeOff /></ProtectedRoute>} />
+                <Route path="/approvals" element={<ProtectedRoute><Approvals /></ProtectedRoute>} />
                 <Route path="/benefits" element={<ProtectedRoute><Benefits /></ProtectedRoute>} />
                 <Route path="/benefits/plans/:id" element={<ProtectedRoute><BenefitDetail /></ProtectedRoute>} />
                 <Route path="/benefits/enroll" element={<ProtectedRoute><BenefitEnrollment /></ProtectedRoute>} />

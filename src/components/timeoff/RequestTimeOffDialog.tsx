@@ -28,6 +28,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useLeaveTypes } from "@/hooks/useLeaveTypes";
 import { useCreateLeaveRequest } from "@/hooks/useLeaveRequests";
+import { useInitiateApproval } from "@/hooks/useApprovalEngine";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -44,6 +45,7 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
 
   const { data: leaveTypes, isLoading: typesLoading } = useLeaveTypes();
   const createRequest = useCreateLeaveRequest();
+  const initiateApproval = useInitiateApproval();
 
   // Reset form when dialog closes
   useEffect(() => {
@@ -96,7 +98,7 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
         ? differenceInCalendarDays(dateRange.to, dateRange.from) + 1 
         : 1;
 
-      await createRequest.mutateAsync({
+      const result = await createRequest.mutateAsync({
         employee_id: profile.employee_id,
         leave_type_id: leaveTypeId,
         start_date: startDate,
@@ -104,6 +106,15 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
         days_count: daysCount,
         reason: note || undefined,
       });
+
+      // Initiate the approval workflow
+      if (result?.id) {
+        await initiateApproval.mutateAsync({
+          requestId: result.id,
+          requestType: "time_off",
+          employeeId: profile.employee_id,
+        });
+      }
 
       onOpenChange(false);
     } catch (error) {

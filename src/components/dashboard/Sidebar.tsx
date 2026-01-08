@@ -20,6 +20,7 @@ import {
   HelpCircle,
   BookUser,
   HandCoins,
+  CheckSquare,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -37,6 +38,7 @@ const mainMenuItems = [
   { icon: Calendar, label: "Calendar", path: "/calendar" },
   { icon: Briefcase, label: "Projects", path: "/projects" },
   { icon: Clock, label: "Time Off", path: "/time-off" },
+  { icon: CheckSquare, label: "Approvals", path: "/approvals" },
 ];
 
 // MANAGEMENT - HR & Manager roles only
