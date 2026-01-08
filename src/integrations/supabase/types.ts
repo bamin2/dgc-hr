@@ -2885,6 +2885,7 @@ export type Database = {
           country: string | null
           created_at: string
           currency: string | null
+          gosi_base_calculation: string | null
           gosi_enabled: boolean | null
           gosi_nationality_rates: Json | null
           id: string
@@ -2897,6 +2898,7 @@ export type Database = {
           country?: string | null
           created_at?: string
           currency?: string | null
+          gosi_base_calculation?: string | null
           gosi_enabled?: boolean | null
           gosi_nationality_rates?: Json | null
           id?: string
@@ -2909,6 +2911,7 @@ export type Database = {
           country?: string | null
           created_at?: string
           currency?: string | null
+          gosi_base_calculation?: string | null
           gosi_enabled?: boolean | null
           gosi_nationality_rates?: Json | null
           id?: string
