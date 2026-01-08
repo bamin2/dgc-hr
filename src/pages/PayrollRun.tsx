@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Check, Calendar as CalendarIcon, Users, DollarSign, FileCheck } from "lucide-react";
 import { startOfMonth, endOfMonth, format } from "date-fns";
-import { Sidebar } from "@/components/dashboard/Sidebar";
+import { Sidebar, Header } from "@/components/dashboard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -431,7 +431,9 @@ export default function PayrollRun() {
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />
-      <main className="flex-1 overflow-auto">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <Header />
+        <main className="flex-1 overflow-auto">
         <div className="p-6 lg:p-8 space-y-6">
           {/* Header */}
           <div className="flex items-center gap-4">
@@ -509,7 +511,8 @@ export default function PayrollRun() {
             )}
           </div>
         </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }
