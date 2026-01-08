@@ -5,3 +5,4 @@ export { RequestLoanDialog } from "./RequestLoanDialog";
 export { LoanDetailSheet } from "./LoanDetailSheet";
 export { LoanInstallmentsTable } from "./LoanInstallmentsTable";
 export { LoanInstallmentsSection } from "./LoanInstallmentsSection";
+export { PayrollLoanInstallments } from "./PayrollLoanInstallments";

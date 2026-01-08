@@ -19,6 +19,7 @@ import {
   Receipt,
   HelpCircle,
   BookUser,
+  HandCoins,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -44,6 +45,7 @@ const managementMenuItems = [
   { icon: Clock, label: "Time Management", path: "/time-management" },
   { icon: FileText, label: "Reports", path: "/reports" },
   { icon: Wallet, label: "Payrolls", path: "/payroll" },
+  { icon: HandCoins, label: "Loans", path: "/loans" },
   { icon: Gift, label: "Benefits", path: "/benefits" },
 ];
 

@@ -24,13 +24,16 @@ import {
 } from "@/components/ui/collapsible";
 import { PayrollRunEmployee } from "@/hooks/usePayrollRunEmployees";
 import { usePayrollRunAdjustments } from "@/hooks/usePayrollRunAdjustments";
+import { PayrollLoanInstallments } from "@/components/loans/PayrollLoanInstallments";
 
 interface AdjustmentsStepProps {
   runId: string | null;
   employees: PayrollRunEmployee[];
+  payPeriodStart?: string;
+  payPeriodEnd?: string;
 }
 
-export function AdjustmentsStep({ runId, employees }: AdjustmentsStepProps) {
+export function AdjustmentsStep({ runId, employees, payPeriodStart, payPeriodEnd }: AdjustmentsStepProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [expandedEmployee, setExpandedEmployee] = useState<string | null>(null);
   const [newAdjustment, setNewAdjustment] = useState({
@@ -246,6 +249,15 @@ export function AdjustmentsStep({ runId, employees }: AdjustmentsStepProps) {
           </div>
         )}
       </div>
+
+      {/* Loan Installments Section */}
+      {payPeriodStart && payPeriodEnd && (
+        <PayrollLoanInstallments
+          payPeriodStart={payPeriodStart}
+          payPeriodEnd={payPeriodEnd}
+          employeeIds={employees.map((e) => e.employeeId)}
+        />
+      )}
 
       {/* Add Adjustment Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
