@@ -97,13 +97,31 @@ export function PayrollRunWizard({
     }
 
     if (currentStep === 2 && runId) {
+      if (selectedEmployeeIds.length === 0) {
+        toast({
+          title: "No employees selected",
+          description: "Please select at least one employee to continue.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       // Snapshot employees when moving past employee selection - pass runId explicitly to avoid stale closure
       try {
         await snapshotEmployees(runId, selectedEmployeeIds);
-      } catch (error) {
+      } catch (error: unknown) {
+        console.error("Failed to snapshot employees", { runId, selectedEmployeeIds, error });
+
+        const message =
+          error instanceof Error
+            ? error.message
+            : typeof error === "object" && error && "message" in error
+              ? String((error as { message: unknown }).message)
+              : "Unknown error";
+
         toast({
           title: "Error",
-          description: "Failed to save employee selection. Please try again.",
+          description: `Failed to save employee selection: ${message}`,
           variant: "destructive",
         });
         return;
@@ -219,7 +237,13 @@ export function PayrollRunWizard({
               )}
               
               {currentStep < STEPS.length - 1 ? (
-                <Button onClick={handleNext} disabled={createRun.isPending}>
+                <Button
+                  onClick={handleNext}
+                  disabled={
+                    createRun.isPending ||
+                    (currentStep === 2 && selectedEmployeeIds.length === 0)
+                  }
+                >
                   {createRun.isPending ? "Creating..." : "Continue"}
                 </Button>
               ) : (
