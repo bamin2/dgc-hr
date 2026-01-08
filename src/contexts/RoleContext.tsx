@@ -21,7 +21,7 @@ interface RoleContextType {
   isTeamMember: (employeeId: string) => boolean;
   canApproveLeaveFor: (employeeId: string) => boolean;
   getEmployeeRole: (employeeId: string) => AppRole;
-  updateEmployeeRole: (employeeId: string, newRole: AppRole) => void;
+  updateEmployeeRole: (employeeId: string, newRole: AppRole) => Promise<{ error?: string }>;
   setCurrentUserRole: (role: AppRole) => void; // For demo purposes
   // Impersonation
   isImpersonating: boolean;
@@ -99,19 +99,25 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
     fetchUserRole();
   }, [user, profile]);
 
-  // Fetch all user roles for employee management
+  // Fetch all user roles for employee management (with employee_id mapping)
   useEffect(() => {
     const fetchAllRoles = async () => {
       if (!user) return;
 
+      // Join user_roles with profiles to get employee_id mapping
       const { data, error } = await supabase
         .from('user_roles')
-        .select('id, user_id, role');
+        .select(`
+          id, 
+          user_id, 
+          role,
+          profiles!inner(employee_id)
+        `);
 
       if (!error && data) {
         setUserRoles(data.map(r => ({
           id: r.id,
-          userId: r.user_id,
+          userId: (r.profiles as unknown as { employee_id: string })?.employee_id || r.user_id,
           role: r.role,
         })));
       }
@@ -191,33 +197,53 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
   }, [actualRole]);
 
   const getEmployeeRole = useCallback((employeeId: string): AppRole => {
+    // userRoles now contains the correct user IDs after the update
+    // We need to find by matching - but since we store userId, we check all roles
+    // This is a sync function, so we rely on the local state
     const userRole = userRoles.find(ur => ur.userId === employeeId);
     return userRole?.role || 'employee';
   }, [userRoles]);
 
-  const updateEmployeeRole = useCallback(async (employeeId: string, newRole: AppRole) => {
-    // Update in database
+  const updateEmployeeRole = useCallback(async (employeeId: string, newRole: AppRole): Promise<{ error?: string }> => {
+    // First, find the user_id associated with this employee
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('employee_id', employeeId)
+      .single();
+
+    if (profileError || !profile) {
+      console.error('No user account linked to this employee:', profileError);
+      return { error: 'No user account linked to this employee. Create a login first.' };
+    }
+
+    const userId = profile.id;
+
+    // Delete existing roles for this user first, then insert the new one
+    await supabase
+      .from('user_roles')
+      .delete()
+      .eq('user_id', userId);
+
     const { error } = await supabase
       .from('user_roles')
-      .upsert({
-        user_id: employeeId,
+      .insert({
+        user_id: userId,
         role: newRole,
-      }, {
-        onConflict: 'user_id',
       });
 
-    if (!error) {
-      // Update local state
-      setUserRoles(prev => {
-        const existing = prev.find(ur => ur.userId === employeeId);
-        if (existing) {
-          return prev.map(ur => 
-            ur.userId === employeeId ? { ...ur, role: newRole } : ur
-          );
-        }
-        return [...prev, { id: `role-${employeeId}`, userId: employeeId, role: newRole }];
-      });
+    if (error) {
+      console.error('Failed to update role:', error);
+      return { error: 'Failed to update role in database.' };
     }
+
+    // Update local state with the correct userId
+    setUserRoles(prev => {
+      const filtered = prev.filter(ur => ur.userId !== userId);
+      return [...filtered, { id: `role-${userId}`, userId, role: newRole }];
+    });
+
+    return {};
   }, []);
 
   // For demo purposes - allows switching the current user's role
