@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Sidebar, Header } from '@/components/dashboard';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
@@ -145,14 +145,77 @@ const SettingsPage = () => {
     { value: 'organization', label: 'Organization', icon: Network, requiresAdmin: true },
     { value: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, requiresAdmin: true },
     { value: 'approvals', label: 'Approvals', icon: GitBranch, requiresAdmin: true },
+    { value: 'payroll', label: 'Payroll', icon: Wallet, requiresAdmin: true },
     { value: 'preferences', label: 'Preferences', icon: User, requiresAdmin: false },
     { value: 'notifications', label: 'Notifications', icon: Bell, requiresAdmin: false },
-    { value: 'payroll', label: 'Payroll', icon: Wallet, requiresAdmin: true },
     { value: 'integrations', label: 'Integrations', icon: Puzzle, requiresAdmin: false },
     { value: 'security', label: 'Security', icon: Shield, requiresAdmin: false }
   ];
 
   const visibleTabs = allTabs.filter(tab => !tab.requiresAdmin || canManageRoles);
+  const adminTabs = visibleTabs.filter(tab => tab.requiresAdmin);
+  const personalTabs = visibleTabs.filter(tab => !tab.requiresAdmin);
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'company':
+        return canManageRoles ? (
+          <div className="space-y-6">
+            <CompanyProfileForm 
+              settings={companySettings} 
+              onChange={handleCompanySettingsChange} 
+            />
+            <AuditLogCard />
+          </div>
+        ) : null;
+      case 'organization':
+        return canManageRoles ? <OrganizationSettingsTab /> : null;
+      case 'dashboard':
+        return canManageRoles ? (
+          <DashboardSettingsTab 
+            visibility={companySettings.dashboardCardVisibility ?? defaultDashboardCardVisibility}
+            onChange={(visibility) => setCompanySettings(prev => ({ ...prev, dashboardCardVisibility: visibility }))}
+          />
+        ) : null;
+      case 'approvals':
+        return canManageRoles ? <ApprovalSettingsTab /> : null;
+      case 'payroll':
+        return canManageRoles ? <PayrollSettingsTab /> : null;
+      case 'preferences':
+        return (
+          <UserPreferencesForm 
+            preferences={userPreferences} 
+            onChange={setUserPreferences} 
+          />
+        );
+      case 'notifications':
+        return (
+          <NotificationSettingsForm 
+            settings={notificationSettings} 
+            onChange={setNotificationSettings} 
+          />
+        );
+      case 'integrations':
+        return (
+          <IntegrationsGrid 
+            integrations={integrations}
+            onConnect={handleConnectIntegration}
+            onDisconnect={handleDisconnectIntegration}
+            onConfigure={handleConfigureIntegration}
+          />
+        );
+      case 'security':
+        return (
+          <SecuritySettings 
+            sessions={sessions}
+            onRevokeSession={handleRevokeSession}
+            onRevokeAllSessions={handleRevokeAllSessions}
+          />
+        );
+      default:
+        return null;
+    }
+  };
 
   if (isLoading) {
     return <SettingsPageSkeleton />;
@@ -188,95 +251,97 @@ const SettingsPage = () => {
               </Button>
             </div>
 
-            {/* Tabs */}
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
-              <TabsList 
-                className="grid w-full h-auto gap-1 p-1 overflow-x-auto" 
-                style={{ gridTemplateColumns: `repeat(${visibleTabs.length}, minmax(60px, 1fr))` }}
-              >
-                {visibleTabs.map((tab) => {
-                  const Icon = tab.icon;
-                  return (
-                    <TabsTrigger 
-                      key={tab.value} 
-                      value={tab.value}
-                      className="flex items-center justify-center gap-1 sm:gap-2 py-2 sm:py-2.5 px-1 sm:px-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            {/* Two-column layout: Sidebar + Content */}
+            <div className="flex flex-col md:flex-row gap-6">
+              {/* Settings Sidebar Navigation */}
+              <aside className="w-full md:w-56 lg:w-64 shrink-0">
+                <div className="bg-card border rounded-lg p-2">
+                  {/* Mobile: Dropdown selector */}
+                  <div className="md:hidden">
+                    <select
+                      value={activeTab}
+                      onChange={(e) => setActiveTab(e.target.value)}
+                      className="w-full px-3 py-2 bg-background border rounded-md text-sm"
                     >
-                      <Icon className="h-4 w-4 shrink-0" />
-                      <span className="hidden sm:inline text-xs lg:text-sm">{tab.label}</span>
-                    </TabsTrigger>
-                  );
-                })}
-              </TabsList>
+                      {adminTabs.length > 0 && (
+                        <optgroup label="Admin Settings">
+                          {adminTabs.map(tab => (
+                            <option key={tab.value} value={tab.value}>{tab.label}</option>
+                          ))}
+                        </optgroup>
+                      )}
+                      <optgroup label="Personal Settings">
+                        {personalTabs.map(tab => (
+                          <option key={tab.value} value={tab.value}>{tab.label}</option>
+                        ))}
+                      </optgroup>
+                    </select>
+                  </div>
 
-              {canManageRoles && (
-                <TabsContent value="company" className="mt-6 space-y-6">
-                  <CompanyProfileForm 
-                    settings={companySettings} 
-                    onChange={handleCompanySettingsChange} 
-                  />
-                  <AuditLogCard />
-                </TabsContent>
-              )}
+                  {/* Desktop: Vertical navigation */}
+                  <nav className="hidden md:block space-y-4">
+                    {adminTabs.length > 0 && (
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground px-3 py-2 uppercase tracking-wider">
+                          Admin Settings
+                        </p>
+                        <div className="space-y-1">
+                          {adminTabs.map(tab => {
+                            const Icon = tab.icon;
+                            const isActive = activeTab === tab.value;
+                            return (
+                              <button
+                                key={tab.value}
+                                onClick={() => setActiveTab(tab.value)}
+                                className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
+                                  isActive 
+                                    ? 'bg-primary/10 text-primary font-medium' 
+                                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                                }`}
+                              >
+                                <Icon className="h-4 w-4 shrink-0" />
+                                <span>{tab.label}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
 
-              {canManageRoles && (
-                <TabsContent value="organization" className="mt-6">
-                  <OrganizationSettingsTab />
-                </TabsContent>
-              )}
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground px-3 py-2 uppercase tracking-wider">
+                        Personal Settings
+                      </p>
+                      <div className="space-y-1">
+                        {personalTabs.map(tab => {
+                          const Icon = tab.icon;
+                          const isActive = activeTab === tab.value;
+                          return (
+                            <button
+                              key={tab.value}
+                              onClick={() => setActiveTab(tab.value)}
+                              className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
+                                isActive 
+                                  ? 'bg-primary/10 text-primary font-medium' 
+                                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                              }`}
+                            >
+                              <Icon className="h-4 w-4 shrink-0" />
+                              <span>{tab.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </nav>
+                </div>
+              </aside>
 
-              {canManageRoles && (
-                <TabsContent value="dashboard" className="mt-6">
-                  <DashboardSettingsTab 
-                    visibility={companySettings.dashboardCardVisibility ?? defaultDashboardCardVisibility}
-                    onChange={(visibility) => setCompanySettings(prev => ({ ...prev, dashboardCardVisibility: visibility }))}
-                  />
-                </TabsContent>
-              )}
-
-              {canManageRoles && (
-                <TabsContent value="approvals" className="mt-6">
-                  <ApprovalSettingsTab />
-                </TabsContent>
-              )}
-
-              <TabsContent value="preferences" className="mt-6">
-                <UserPreferencesForm 
-                  preferences={userPreferences} 
-                  onChange={setUserPreferences} 
-                />
-              </TabsContent>
-
-              <TabsContent value="notifications" className="mt-6">
-                <NotificationSettingsForm 
-                  settings={notificationSettings} 
-                  onChange={setNotificationSettings} 
-                />
-              </TabsContent>
-
-              {canManageRoles && (
-                <TabsContent value="payroll" className="mt-6">
-                  <PayrollSettingsTab />
-                </TabsContent>
-              )}
-
-              <TabsContent value="integrations" className="mt-6">
-                <IntegrationsGrid 
-                  integrations={integrations}
-                  onConnect={handleConnectIntegration}
-                  onDisconnect={handleDisconnectIntegration}
-                  onConfigure={handleConfigureIntegration}
-                />
-              </TabsContent>
-
-              <TabsContent value="security" className="mt-6">
-                <SecuritySettings 
-                  sessions={sessions}
-                  onRevokeSession={handleRevokeSession}
-                  onRevokeAllSessions={handleRevokeAllSessions}
-                />
-              </TabsContent>
-            </Tabs>
+              {/* Content Area */}
+              <div className="flex-1 min-w-0">
+                {renderTabContent()}
+              </div>
+            </div>
           </div>
         </main>
       </div>
