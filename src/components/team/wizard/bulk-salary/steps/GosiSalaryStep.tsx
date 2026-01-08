@@ -72,16 +72,42 @@ export function GosiSalaryStep({
     return matchingRate?.percentage || 0;
   };
 
-  // Get housing allowance for an employee
-  const getHousingAllowance = (employeeId: string): number => {
+  // Get ORIGINAL housing allowance for an employee (for "before" calculations)
+  // Only considers existing allowances with their original amounts
+  const getOriginalHousingAllowance = (employeeId: string): number => {
     const employeeAllowances = data.perEmployeeAllowances[employeeId] || [];
     
-    // Guard against undefined or empty allowanceTemplates
     if (safeAllowanceTemplates.length === 0) {
       return 0;
     }
     
-    // Find housing allowance by template name
+    for (const allowance of employeeAllowances) {
+      // Only consider existing allowances (from database)
+      if (!allowance.isExisting) continue;
+      
+      if (allowance.templateId) {
+        const template = safeAllowanceTemplates.find(t => t.id === allowance.templateId);
+        if (template?.name?.toLowerCase().includes('housing')) {
+          return allowance.originalAmount || allowance.amount || 0;
+        }
+      }
+      if (allowance.customName?.toLowerCase().includes('housing')) {
+        return allowance.originalAmount || allowance.amount || 0;
+      }
+    }
+    
+    return 0;
+  };
+
+  // Get NEW housing allowance for an employee (for "after" calculations)
+  // Considers all allowances including newly added ones
+  const getNewHousingAllowance = (employeeId: string): number => {
+    const employeeAllowances = data.perEmployeeAllowances[employeeId] || [];
+    
+    if (safeAllowanceTemplates.length === 0) {
+      return 0;
+    }
+    
     for (const allowance of employeeAllowances) {
       if (allowance.templateId) {
         const template = safeAllowanceTemplates.find(t => t.id === allowance.templateId);
@@ -89,7 +115,6 @@ export function GosiSalaryStep({
           return allowance.amount || 0;
         }
       }
-      // Check custom name for housing
       if (allowance.customName?.toLowerCase().includes('housing')) {
         return allowance.amount || 0;
       }
@@ -99,12 +124,15 @@ export function GosiSalaryStep({
   };
 
   // Calculate GOSI base based on work location settings
-  const getGosiBase = (employee: TeamMemberWithGosi): number => {
+  // mode: 'before' uses original housing allowance, 'after' uses new/current values
+  const getGosiBase = (employee: TeamMemberWithGosi, mode: 'before' | 'after' = 'after'): number => {
     const workLocation = workLocations.find(wl => wl.id === employee.workLocationId);
     
     if (workLocation?.gosi_base_calculation === 'basic_plus_housing') {
       const basicSalary = employee.salary || 0;
-      const housingAllowance = getHousingAllowance(employee.id);
+      const housingAllowance = mode === 'before' 
+        ? getOriginalHousingAllowance(employee.id)
+        : getNewHousingAllowance(employee.id);
       return basicSalary + housingAllowance;
     }
     
@@ -122,8 +150,9 @@ export function GosiSalaryStep({
 
   // Calculate before/after totals
   const gosiTotals = useMemo(() => {
+    // BEFORE: Use original values (existing allowances only)
     const beforeData = gosiEmployees.reduce((acc, e) => {
-      const gosiBase = getGosiBase(e);
+      const gosiBase = getGosiBase(e, 'before');
       const deduction = calculateGosiDeduction(gosiBase, e);
       return {
         salaries: acc.salaries + gosiBase,
@@ -131,8 +160,9 @@ export function GosiSalaryStep({
       };
     }, { salaries: 0, deductions: 0 });
 
+    // AFTER: Use new values (including newly added allowances)
     const afterData = gosiEmployees.reduce((acc, e) => {
-      const currentGosiBase = getGosiBase(e);
+      const currentGosiBase = getGosiBase(e, 'after');
       const newSalary = data.gosiHandling === 'per_employee' && data.gosiPerEmployee[e.id]
         ? parseFloat(data.gosiPerEmployee[e.id])
         : currentGosiBase;
@@ -237,7 +267,8 @@ export function GosiSalaryStep({
               {gosiEmployees.map(employee => {
                 const ratePercentage = getGosiRate(employee);
                 const workLocation = workLocations.find(wl => wl.id === employee.workLocationId);
-                const gosiBase = getGosiBase(employee);
+                const gosiBaseBefore = getGosiBase(employee, 'before');
+                const gosiBaseAfter = getGosiBase(employee, 'after');
                 const isBasicPlusHousing = workLocation?.gosi_base_calculation === 'basic_plus_housing';
                 
                 return (
@@ -255,8 +286,10 @@ export function GosiSalaryStep({
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {isBasicPlusHousing 
-                          ? `Base: ${formatCurrency(gosiBase)} (Basic + Housing)`
-                          : `Current: ${formatCurrency(gosiBase)}`
+                          ? gosiBaseBefore !== gosiBaseAfter
+                            ? `Before: ${formatCurrency(gosiBaseBefore)} → After: ${formatCurrency(gosiBaseAfter)}`
+                            : `Base: ${formatCurrency(gosiBaseAfter)} (Basic + Housing)`
+                          : `Current: ${formatCurrency(gosiBaseAfter)}`
                         }
                       </p>
                       <p className="text-xs text-muted-foreground">
@@ -274,10 +307,10 @@ export function GosiSalaryStep({
                           className="h-9"
                         />
                       </div>
-                      {(data.gosiPerEmployee[employee.id] || isBasicPlusHousing) && (
+                    {(data.gosiPerEmployee[employee.id] || isBasicPlusHousing) && (
                         <span className="text-xs text-muted-foreground whitespace-nowrap">
                           = {formatCurrency(calculateGosiDeduction(
-                            data.gosiPerEmployee[employee.id] || gosiBase, 
+                            data.gosiPerEmployee[employee.id] || gosiBaseAfter, 
                             employee
                           ))} deduction
                         </span>
