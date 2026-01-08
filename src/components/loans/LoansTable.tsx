@@ -19,6 +19,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LoanStatusBadge } from "./LoanStatusBadge";
 import { Loan } from "@/hooks/useLoans";
+import { useCompanySettings } from "@/contexts/CompanySettingsContext";
 
 interface LoansTableProps {
   loans: Loan[];
@@ -39,13 +40,7 @@ export function LoansTable({
   onDisburse,
   showEmployeeColumn = true,
 }: LoansTableProps) {
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "SAR",
-      minimumFractionDigits: 2,
-    }).format(amount);
-  };
+  const { formatCurrency } = useCompanySettings();
 
   const getEmployeeName = (loan: Loan) => {
     if (!loan.employee) return "Unknown";

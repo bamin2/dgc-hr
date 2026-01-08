@@ -5,9 +5,11 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSalaryHistory, SalaryChangeType } from "@/hooks/useSalaryHistory";
 import { format } from "date-fns";
+import { useCompanySettings } from "@/contexts/CompanySettingsContext";
 
 interface SalaryHistoryCardProps {
   employeeId: string;
+  currencyCode?: string;
   maxItems?: number;
 }
 
@@ -29,16 +31,16 @@ const changeTypeVariants: Record<SalaryChangeType, 'default' | 'secondary' | 'ou
   bulk_update: 'secondary',
 };
 
-export function SalaryHistoryCard({ employeeId, maxItems = 5 }: SalaryHistoryCardProps) {
+export function SalaryHistoryCard({ employeeId, currencyCode, maxItems = 5 }: SalaryHistoryCardProps) {
   const { data: history, isLoading } = useSalaryHistory(employeeId);
+  const { formatCurrency, formatCurrencyWithCode } = useCompanySettings();
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
+  const formatSalaryCurrency = (amount: number) => {
+    // Use work location currency if provided, otherwise use HQ currency
+    if (currencyCode) {
+      return formatCurrencyWithCode(amount, currencyCode);
+    }
+    return formatCurrency(amount);
   };
 
   const calculateChange = (previous: number | null, current: number) => {
@@ -145,11 +147,11 @@ export function SalaryHistoryCard({ employeeId, maxItems = 5 }: SalaryHistoryCar
                       {record.previousSalary !== null ? (
                         <>
                           <span className="text-muted-foreground">
-                            {formatCurrency(record.previousSalary)}
+                            {formatSalaryCurrency(record.previousSalary)}
                           </span>
                           <span className="text-muted-foreground">→</span>
                           <span className="font-medium">
-                            {formatCurrency(record.newSalary)}
+                            {formatSalaryCurrency(record.newSalary)}
                           </span>
                           {change && (
                             <span className={`flex items-center gap-0.5 text-xs ${
@@ -160,7 +162,7 @@ export function SalaryHistoryCard({ employeeId, maxItems = 5 }: SalaryHistoryCar
                               ) : (
                                 <TrendingDown className="h-3 w-3" />
                               )}
-                              {isIncrease ? '+' : ''}{formatCurrency(change.diff)}
+                              {isIncrease ? '+' : ''}{formatSalaryCurrency(change.diff)}
                               <span className="text-muted-foreground ml-1">
                                 ({isIncrease ? '+' : ''}{change.percentage.toFixed(1)}%)
                               </span>
@@ -169,7 +171,7 @@ export function SalaryHistoryCard({ employeeId, maxItems = 5 }: SalaryHistoryCar
                         </>
                       ) : (
                         <span className="font-medium">
-                          {formatCurrency(record.newSalary)}
+                          {formatSalaryCurrency(record.newSalary)}
                         </span>
                       )}
                     </div>

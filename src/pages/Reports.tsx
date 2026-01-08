@@ -23,12 +23,14 @@ import { useReportAnalytics, reportsList, type ReportSummary } from '@/hooks/use
 import { useToast } from '@/hooks/use-toast';
 import { DateRange } from 'react-day-picker';
 import { useSalaryAnalytics } from '@/hooks/useSalaryAnalytics';
+import { useCompanySettings } from '@/contexts/CompanySettingsContext';
 
 type ReportType = 'attendance' | 'payroll' | 'benefits' | 'employees' | 'leave';
 type ReportPeriod = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'custom';
 
 const Reports = () => {
   const { toast } = useToast();
+  const { formatCurrency } = useCompanySettings();
   const [activeTab, setActiveTab] = useState('overview');
   
   // Filters
@@ -216,7 +218,7 @@ const Reports = () => {
                     <div className="space-y-2">
                       <p className="text-sm text-muted-foreground">Total Gross Pay (YTD)</p>
                       <p className="text-3xl font-bold">
-                        ${payrollData.reduce((sum, d) => sum + d.grossPay, 0).toLocaleString()}
+                        {formatCurrency(payrollData.reduce((sum, d) => sum + d.grossPay, 0))}
                       </p>
                     </div>
                   </CardContent>
@@ -226,7 +228,7 @@ const Reports = () => {
                     <div className="space-y-2">
                       <p className="text-sm text-muted-foreground">Total Taxes (YTD)</p>
                       <p className="text-3xl font-bold text-blue-600">
-                        ${payrollData.reduce((sum, d) => sum + d.taxes, 0).toLocaleString()}
+                        {formatCurrency(payrollData.reduce((sum, d) => sum + d.taxes, 0))}
                       </p>
                     </div>
                   </CardContent>
@@ -236,7 +238,7 @@ const Reports = () => {
                     <div className="space-y-2">
                       <p className="text-sm text-muted-foreground">Total Net Pay (YTD)</p>
                       <p className="text-3xl font-bold text-emerald-600">
-                        ${payrollData.reduce((sum, d) => sum + d.netPay, 0).toLocaleString()}
+                        {formatCurrency(payrollData.reduce((sum, d) => sum + d.netPay, 0))}
                       </p>
                     </div>
                   </CardContent>

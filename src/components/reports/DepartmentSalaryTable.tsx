@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/table';
 import { Progress } from '@/components/ui/progress';
 import type { DepartmentSalary } from '@/hooks/useSalaryAnalytics';
+import { useCompanySettings } from '@/contexts/CompanySettingsContext';
 
 interface DepartmentSalaryTableProps {
   data: DepartmentSalary[];
@@ -16,14 +17,17 @@ interface DepartmentSalaryTableProps {
 }
 
 export function DepartmentSalaryTable({ data, isLoading }: DepartmentSalaryTableProps) {
+  const { getCurrencySymbol } = useCompanySettings();
+  const symbol = getCurrencySymbol();
+
   const formatCurrency = (value: number) => {
     if (value >= 1000000) {
-      return `$${(value / 1000000).toFixed(2)}M`;
+      return `${symbol}${(value / 1000000).toFixed(2)}M`;
     }
     if (value >= 1000) {
-      return `$${(value / 1000).toFixed(0)}K`;
+      return `${symbol}${(value / 1000).toFixed(0)}K`;
     }
-    return `$${value.toLocaleString()}`;
+    return `${symbol}${value.toLocaleString()}`;
   };
 
   if (isLoading) {

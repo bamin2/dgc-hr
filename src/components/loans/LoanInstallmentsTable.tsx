@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LoanInstallment } from "@/hooks/useLoans";
+import { useCompanySettings } from "@/contexts/CompanySettingsContext";
 
 interface LoanInstallmentsTableProps {
   installments: LoanInstallment[];
@@ -23,13 +24,7 @@ export function LoanInstallmentsTable({
   canMarkPaid = false,
   onMarkPaid,
 }: LoanInstallmentsTableProps) {
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "SAR",
-      minimumFractionDigits: 2,
-    }).format(amount);
-  };
+  const { formatCurrency } = useCompanySettings();
 
   const getStatusBadge = (installment: LoanInstallment) => {
     if (installment.status === "paid") {

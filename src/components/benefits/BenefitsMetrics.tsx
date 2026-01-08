@@ -2,12 +2,15 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Heart, Users, FileText, DollarSign } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { BenefitsMetrics as BenefitsMetricsType } from '@/hooks/useBenefitsMetrics';
+import { useCompanySettings } from '@/contexts/CompanySettingsContext';
 
 interface BenefitsMetricsProps {
   metrics: BenefitsMetricsType;
 }
 
 export const BenefitsMetrics = ({ metrics }: BenefitsMetricsProps) => {
+  const { formatCurrency } = useCompanySettings();
+
   const cards = [
     {
       title: 'Total Plans',
@@ -35,7 +38,7 @@ export const BenefitsMetrics = ({ metrics }: BenefitsMetricsProps) => {
     },
     {
       title: 'Monthly Cost',
-      value: `$${metrics.monthlyBenefitsCost.toLocaleString()}`,
+      value: formatCurrency(metrics.monthlyBenefitsCost),
       subtitle: 'Total contributions',
       icon: DollarSign,
       iconBg: 'bg-blue-100 dark:bg-blue-900/30',

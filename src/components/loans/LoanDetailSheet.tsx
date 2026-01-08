@@ -16,6 +16,7 @@ import { LoanStatusBadge } from "./LoanStatusBadge";
 import { LoanInstallmentsTable } from "./LoanInstallmentsTable";
 import { useLoan, useApproveLoan, useRejectLoan, useDisburseLoan, useMarkInstallmentPaid } from "@/hooks/useLoans";
 import { toast } from "sonner";
+import { useCompanySettings } from "@/contexts/CompanySettingsContext";
 
 interface LoanDetailSheetProps {
   loanId: string | null;
@@ -29,14 +30,7 @@ export function LoanDetailSheet({ loanId, open, onOpenChange }: LoanDetailSheetP
   const rejectLoan = useRejectLoan();
   const disburseLoan = useDisburseLoan();
   const markPaid = useMarkInstallmentPaid();
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "SAR",
-      minimumFractionDigits: 2,
-    }).format(amount);
-  };
+  const { formatCurrency } = useCompanySettings();
 
   const handleApprove = async () => {
     if (!loanId) return;

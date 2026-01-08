@@ -12,6 +12,7 @@ import {
 import { useLoans, Loan } from "@/hooks/useLoans";
 import { useApproveLoan, useRejectLoan, useDisburseLoan } from "@/hooks/useLoans";
 import { toast } from "sonner";
+import { useCompanySettings } from "@/contexts/CompanySettingsContext";
 
 export default function Loans() {
   const [activeTab, setActiveTab] = useState("all");
@@ -58,18 +59,12 @@ export default function Loans() {
     }
   };
 
+  const { formatCurrency } = useCompanySettings();
+
   // Calculate metrics
   const activeLoans = allLoans.filter(l => l.status === "active");
   const totalDisbursed = activeLoans.reduce((sum, l) => sum + l.principal_amount, 0);
   const pendingCount = pendingLoans.length;
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "SAR",
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
 
   return (
     <div className="flex min-h-screen bg-background">
