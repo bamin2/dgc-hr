@@ -119,6 +119,12 @@ export function CreateLoanDialog({
     : null;
 
   const onSubmit = async (data: FormData) => {
+    // Prevent double submission
+    if (createLoan.isPending) return;
+    
+    // Close dialog immediately to prevent double clicks
+    onOpenChange(false);
+    
     try {
       await createLoan.mutateAsync({
         employee_id: data.employee_id,
@@ -131,7 +137,6 @@ export function CreateLoanDialog({
         auto_disburse: data.auto_disburse,
       });
       toast.success("Loan created successfully");
-      onOpenChange(false);
       form.reset();
     } catch (error) {
       toast.error("Failed to create loan");

@@ -6,3 +6,5 @@ export { LoanDetailSheet } from "./LoanDetailSheet";
 export { LoanInstallmentsTable } from "./LoanInstallmentsTable";
 export { LoanInstallmentsSection } from "./LoanInstallmentsSection";
 export { PayrollLoanInstallments } from "./PayrollLoanInstallments";
+export { DeleteLoanDialog } from "./DeleteLoanDialog";
+export { AdHocPaymentDialog } from "./AdHocPaymentDialog";

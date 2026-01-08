@@ -1491,7 +1491,9 @@ export type Database = {
           due_date: string
           id: string
           installment_number: number
+          is_partial_payment: boolean | null
           loan_id: string
+          original_amount: number | null
           paid_at: string | null
           paid_in_payroll_run_id: string | null
           paid_method: string | null
@@ -1503,7 +1505,9 @@ export type Database = {
           due_date: string
           id?: string
           installment_number: number
+          is_partial_payment?: boolean | null
           loan_id: string
+          original_amount?: number | null
           paid_at?: string | null
           paid_in_payroll_run_id?: string | null
           paid_method?: string | null
@@ -1515,7 +1519,9 @@ export type Database = {
           due_date?: string
           id?: string
           installment_number?: number
+          is_partial_payment?: boolean | null
           loan_id?: string
+          original_amount?: number | null
           paid_at?: string | null
           paid_in_payroll_run_id?: string | null
           paid_method?: string | null

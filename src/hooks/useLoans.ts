@@ -407,3 +407,156 @@ export function useMarkInstallmentsPaidByPayroll() {
     },
   });
 }
+
+export function useDeleteLoan() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (loanId: string) => {
+      const { error } = await supabase
+        .from("loans")
+        .delete()
+        .eq("id", loanId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["loans"] });
+      queryClient.invalidateQueries({ queryKey: ["loan"] });
+      queryClient.invalidateQueries({ queryKey: ["my-loans"] });
+    },
+  });
+}
+
+interface AdHocPaymentParams {
+  loanId: string;
+  amount: number;
+  rescheduleOption: "reduce_duration" | "reduce_amount" | "apply_next";
+}
+
+export function useMakeAdHocPayment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ loanId, amount, rescheduleOption }: AdHocPaymentParams) => {
+      // Get loan and installments
+      const { data: loan, error: loanError } = await supabase
+        .from("loans")
+        .select("*, loan_installments(*)")
+        .eq("id", loanId)
+        .single();
+
+      if (loanError) throw loanError;
+
+      const dueInstallments = (loan.loan_installments || [])
+        .filter((i: any) => i.status === "due")
+        .sort((a: any, b: any) => a.installment_number - b.installment_number);
+
+      if (dueInstallments.length === 0) {
+        throw new Error("No due installments found");
+      }
+
+      if (rescheduleOption === "apply_next") {
+        // Mark installments as paid until amount is exhausted
+        let remaining = amount;
+        const toMark: string[] = [];
+        
+        for (const inst of dueInstallments) {
+          if (remaining >= inst.amount) {
+            toMark.push(inst.id);
+            remaining -= inst.amount;
+          } else {
+            break;
+          }
+        }
+
+        if (toMark.length > 0) {
+          const { error } = await supabase
+            .from("loan_installments")
+            .update({
+              status: "paid",
+              paid_at: new Date().toISOString(),
+              paid_method: "manual",
+            })
+            .in("id", toMark);
+
+          if (error) throw error;
+        }
+      } else if (rescheduleOption === "reduce_duration") {
+        // Keep same installment amount, reduce number of installments
+        const currentInstallmentAmount = loan.installment_amount || dueInstallments[0]?.amount || 0;
+        const currentOutstanding = dueInstallments.reduce((sum: number, i: any) => sum + i.amount, 0);
+        const newBalance = currentOutstanding - amount;
+        const newInstallmentCount = Math.ceil(newBalance / currentInstallmentAmount);
+        
+        // Mark excess installments as paid (from the end)
+        const installmentsToRemove = dueInstallments.length - newInstallmentCount;
+        if (installmentsToRemove > 0) {
+          const toRemove = dueInstallments.slice(-installmentsToRemove).map((i: any) => i.id);
+          await supabase
+            .from("loan_installments")
+            .delete()
+            .in("id", toRemove);
+        }
+
+        // Update loan duration
+        const paidCount = (loan.loan_installments || []).filter((i: any) => i.status === "paid").length;
+        await supabase
+          .from("loans")
+          .update({ 
+            duration_months: paidCount + newInstallmentCount,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", loanId);
+
+      } else if (rescheduleOption === "reduce_amount") {
+        // Keep same duration, reduce installment amount
+        const currentOutstanding = dueInstallments.reduce((sum: number, i: any) => sum + i.amount, 0);
+        const newBalance = currentOutstanding - amount;
+        const newInstallmentAmount = newBalance / dueInstallments.length;
+
+        // Update all due installments with new amount
+        for (const inst of dueInstallments) {
+          await supabase
+            .from("loan_installments")
+            .update({ 
+              amount: Math.round(newInstallmentAmount * 100) / 100,
+              original_amount: inst.original_amount || inst.amount,
+            })
+            .eq("id", inst.id);
+        }
+
+        // Update loan installment_amount
+        await supabase
+          .from("loans")
+          .update({ 
+            installment_amount: Math.round(newInstallmentAmount * 100) / 100,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", loanId);
+      }
+
+      // Check if loan is fully paid
+      const { data: updatedLoan } = await supabase
+        .from("loans")
+        .select("*, loan_installments(*)")
+        .eq("id", loanId)
+        .single();
+
+      if (updatedLoan) {
+        const stillDue = (updatedLoan.loan_installments || []).filter((i: any) => i.status === "due");
+        if (stillDue.length === 0) {
+          await supabase
+            .from("loans")
+            .update({ status: "closed", updated_at: new Date().toISOString() })
+            .eq("id", loanId);
+        }
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["loans"] });
+      queryClient.invalidateQueries({ queryKey: ["loan"] });
+      queryClient.invalidateQueries({ queryKey: ["loan-installments"] });
+    },
+  });
+}

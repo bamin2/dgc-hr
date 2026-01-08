@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { format } from "date-fns";
-import { CheckCircle, XCircle, Banknote, Calendar, User, FileText } from "lucide-react";
+import { CheckCircle, XCircle, Banknote, User, FileText, Trash2, CreditCard } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -14,7 +15,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { LoanStatusBadge } from "./LoanStatusBadge";
 import { LoanInstallmentsTable } from "./LoanInstallmentsTable";
-import { useLoan, useApproveLoan, useRejectLoan, useDisburseLoan, useMarkInstallmentPaid } from "@/hooks/useLoans";
+import { DeleteLoanDialog } from "./DeleteLoanDialog";
+import { AdHocPaymentDialog } from "./AdHocPaymentDialog";
+import { useLoan, useApproveLoan, useRejectLoan, useDisburseLoan, useMarkInstallmentPaid, Loan } from "@/hooks/useLoans";
 import { toast } from "sonner";
 import { useCompanySettings } from "@/contexts/CompanySettingsContext";
 
@@ -25,6 +28,8 @@ interface LoanDetailSheetProps {
 }
 
 export function LoanDetailSheet({ loanId, open, onOpenChange }: LoanDetailSheetProps) {
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const { data: loan, isLoading } = useLoan(loanId);
   const approveLoan = useApproveLoan();
   const rejectLoan = useRejectLoan();
@@ -90,10 +95,22 @@ export function LoanDetailSheet({ loanId, open, onOpenChange }: LoanDetailSheetP
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
         <SheetHeader>
-          <SheetTitle className="flex items-center gap-2">
-            <Banknote className="h-5 w-5" />
-            Loan Details
-          </SheetTitle>
+          <div className="flex items-center justify-between">
+            <SheetTitle className="flex items-center gap-2">
+              <Banknote className="h-5 w-5" />
+              Loan Details
+            </SheetTitle>
+            {loan && !["closed"].includes(loan.status) && (
+              <Button 
+                variant="ghost" 
+                size="icon"
+                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                onClick={() => setDeleteDialogOpen(true)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
           <SheetDescription>
             View and manage loan information
           </SheetDescription>
@@ -129,6 +146,16 @@ export function LoanDetailSheet({ loanId, open, onOpenChange }: LoanDetailSheetP
                       Reject
                     </Button>
                   </>
+                )}
+                {loan.status === "active" && (
+                  <Button 
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setPaymentDialogOpen(true)}
+                  >
+                    <CreditCard className="h-4 w-4 mr-1" />
+                    Make Payment
+                  </Button>
                 )}
                 {loan.status === "approved" && (
                   <Button 
@@ -248,6 +275,21 @@ export function LoanDetailSheet({ loanId, open, onOpenChange }: LoanDetailSheetP
           </div>
         ) : null}
       </SheetContent>
+
+      {/* Delete Dialog */}
+      <DeleteLoanDialog
+        loan={loan ? { ...loan, employee: loan.employee } as Loan : null}
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onDeleted={() => onOpenChange(false)}
+      />
+
+      {/* Ad Hoc Payment Dialog */}
+      <AdHocPaymentDialog
+        loan={loan || null}
+        open={paymentDialogOpen}
+        onOpenChange={setPaymentDialogOpen}
+      />
     </Sheet>
   );
 }
