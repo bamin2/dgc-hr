@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { getCountryCodeByName } from '@/data/countries';
 
 export interface EmployeeCompensationPreview {
   id: string;
@@ -89,11 +90,13 @@ export function useEmployeesWithCompensation(locationId?: string) {
           const workLocation = emp.work_location as any;
           if (emp.is_subject_to_gosi && workLocation?.gosi_enabled) {
             const gosiBase = emp.gosi_registered_salary || baseSalary;
-            const rates = workLocation.gosi_nationality_rates as any;
-            const nationality = emp.nationality?.toLowerCase() || '';
-            const isSaudi = nationality === 'saudi' || nationality === 'sa' || nationality === 'saudi arabia';
-            const rate = isSaudi ? (rates?.saudi_rate || 9.75) : (rates?.non_saudi_rate || 2);
-            gosiDeduction = (gosiBase * rate) / 100;
+            const rates = (workLocation.gosi_nationality_rates || []) as Array<{nationality: string; percentage: number}>;
+            const nationalityCode = getCountryCodeByName(emp.nationality || '');
+            const matchingRate = rates.find(r => r.nationality === nationalityCode);
+            
+            if (matchingRate) {
+              gosiDeduction = (gosiBase * matchingRate.percentage) / 100;
+            }
           }
 
           // Calculate other deductions

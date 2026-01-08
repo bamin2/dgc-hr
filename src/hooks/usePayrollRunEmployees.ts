@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getCountryCodeByName } from "@/data/countries";
 
 export interface PayrollRunEmployee {
   id: string;
@@ -212,22 +213,17 @@ export function usePayrollRunEmployees(runId: string | null) {
 
       // Calculate GOSI deduction
       let gosiDeduction = 0;
-      const workLocation = emp.work_location as { id: string; gosi_enabled: boolean | null; gosi_nationality_rates: GosiNationalityRates | null } | null;
+      const workLocation = emp.work_location as { id: string; gosi_enabled: boolean | null; gosi_nationality_rates: Array<{nationality: string; percentage: number}> | null } | null;
       
       if (emp.is_subject_to_gosi && workLocation?.gosi_enabled) {
         const gosiBase = emp.gosi_registered_salary || baseSalary;
-        const rates = workLocation.gosi_nationality_rates || {};
-        const nationality = emp.nationality?.toLowerCase() || "";
+        const rates = workLocation.gosi_nationality_rates || [];
+        const nationalityCode = getCountryCodeByName(emp.nationality || "");
+        const matchingRate = rates.find(r => r.nationality === nationalityCode);
         
-        // Get rate based on nationality (Saudi vs non-Saudi)
-        let rate = 0;
-        if (nationality.includes("saudi") && !nationality.includes("non")) {
-          rate = rates.saudi || 0.1; // 10% default for Saudi
-        } else {
-          rate = rates.non_saudi || 0.02; // 2% default for non-Saudi
+        if (matchingRate) {
+          gosiDeduction = (gosiBase * matchingRate.percentage) / 100;
         }
-        
-        gosiDeduction = gosiBase * rate;
       }
 
       // Calculate other deductions
