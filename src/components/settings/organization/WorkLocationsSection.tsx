@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Plus, Pencil, Trash2, Building2, Wifi } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   AlertDialog,
@@ -102,7 +103,13 @@ export function WorkLocationsSection() {
         <CardContent>
           {workLocations && workLocations.length > 0 ? (
             <div className="space-y-2">
-              {workLocations.map((location) => (
+              {[...workLocations]
+                .sort((a, b) => {
+                  if (a.is_hq && !b.is_hq) return -1;
+                  if (!a.is_hq && b.is_hq) return 1;
+                  return a.name.localeCompare(b.name);
+                })
+                .map((location) => (
                 <div
                   key={location.id}
                   className="flex items-center justify-between rounded-lg border p-3"
@@ -114,7 +121,12 @@ export function WorkLocationsSection() {
                       <Building2 className="h-5 w-5 text-muted-foreground" />
                     )}
                     <div>
-                      <p className="font-medium">{location.name}</p>
+                      <p className="font-medium flex items-center gap-2">
+                        {location.name}
+                        {location.is_hq && (
+                          <Badge variant="secondary" className="text-xs">HQ</Badge>
+                        )}
+                      </p>
                       <p className="text-sm text-muted-foreground">
                         {[location.city, location.country].filter(Boolean).join(", ") || "No address"}
                         {location.employeeCount > 0 && (

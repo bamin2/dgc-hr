@@ -43,6 +43,7 @@ export function WorkLocationFormDialog({
   const [country, setCountry] = useState("");
   const [currency, setCurrency] = useState("USD");
   const [isRemote, setIsRemote] = useState(false);
+  const [isHQ, setIsHQ] = useState(false);
 
   useEffect(() => {
     if (workLocation) {
@@ -52,6 +53,7 @@ export function WorkLocationFormDialog({
       setCountry(workLocation.country || "");
       setCurrency(workLocation.currency || "USD");
       setIsRemote(workLocation.is_remote);
+      setIsHQ(workLocation.is_hq);
     } else {
       setName("");
       setAddress("");
@@ -59,6 +61,7 @@ export function WorkLocationFormDialog({
       setCountry("");
       setCurrency("USD");
       setIsRemote(false);
+      setIsHQ(false);
     }
   }, [workLocation, open]);
 
@@ -79,6 +82,7 @@ export function WorkLocationFormDialog({
       country: country || null,
       currency,
       is_remote: isRemote,
+      is_hq: isHQ,
     });
   };
 
@@ -169,6 +173,17 @@ export function WorkLocationFormDialog({
               />
               <Label htmlFor="is_remote" className="font-normal">
                 This is a remote/virtual location
+              </Label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="is_hq"
+                checked={isHQ}
+                onCheckedChange={(checked) => setIsHQ(checked === true)}
+              />
+              <Label htmlFor="is_hq" className="font-normal">
+                Mark as Headquarters (HQ)
               </Label>
             </div>
           </div>

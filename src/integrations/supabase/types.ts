@@ -3168,6 +3168,7 @@ export type Database = {
           gosi_enabled: boolean | null
           gosi_nationality_rates: Json | null
           id: string
+          is_hq: boolean | null
           is_remote: boolean | null
           name: string
         }
@@ -3181,6 +3182,7 @@ export type Database = {
           gosi_enabled?: boolean | null
           gosi_nationality_rates?: Json | null
           id?: string
+          is_hq?: boolean | null
           is_remote?: boolean | null
           name: string
         }
@@ -3194,6 +3196,7 @@ export type Database = {
           gosi_enabled?: boolean | null
           gosi_nationality_rates?: Json | null
           id?: string
+          is_hq?: boolean | null
           is_remote?: boolean | null
           name?: string
         }
