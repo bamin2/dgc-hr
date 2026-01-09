@@ -21,12 +21,9 @@ export function AnnouncementsCard({ collapsed }: AnnouncementsCardProps) {
           <p className="text-xs text-sidebar-muted mt-0.5">
             Get the latest company news and updates.
           </p>
-          <a 
-            href="#" 
-            className="text-xs font-medium text-sidebar-primary hover:underline mt-2 inline-block"
-          >
-            View Announcements →
-          </a>
+          <span className="text-xs font-medium text-sidebar-muted mt-2 inline-block">
+            Announcements coming soon
+          </span>
         </div>
       </div>
     </div>
