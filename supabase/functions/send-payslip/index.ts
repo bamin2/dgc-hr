@@ -11,6 +11,10 @@ const corsHeaders = {
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
+// Brand colors
+const BRAND_PRIMARY = "#804EEC";
+const BRAND_PRIMARY_DARK = "#6B3FD4";
+
 interface SendPayslipRequest {
   payrollRunId: string;
   employeeIds?: string[];
@@ -19,6 +23,16 @@ interface SendPayslipRequest {
 interface ResendResponse {
   id?: string;
   error?: { message: string };
+}
+
+interface CompanyData {
+  name: string;
+  email?: string;
+  phone?: string;
+  website?: string;
+  logo_url?: string;
+  address_city?: string;
+  address_country?: string;
 }
 
 async function sendEmail(to: string[], subject: string, html: string, from: string): Promise<ResendResponse> {
@@ -99,12 +113,14 @@ serve(async (req: Request): Promise<Response> => {
       throw new Error(`Payroll run not found: ${runError?.message}`);
     }
 
+    // Get company settings with all branding data
     const { data: companySettings } = await supabase
       .from("company_settings")
-      .select("name, email")
+      .select("name, email, phone, website, logo_url, address_city, address_country")
       .single();
 
-    const companyName = companySettings?.name || "Company";
+    const company: CompanyData = companySettings || { name: "Company" };
+    const companyName = company.name || "Company";
     const fromEmail = `${companyName} <noreply@updates.dgcholding.com>`;
 
     let employeesQuery = supabase
@@ -168,6 +184,13 @@ serve(async (req: Request): Promise<Response> => {
 
       const html = generatePayslipEmailHtml({
         companyName,
+        companyLogo: company.logo_url,
+        companyPhone: company.phone,
+        companyWebsite: company.website,
+        companyEmail: company.email,
+        companyAddress: company.address_city && company.address_country 
+          ? `${company.address_city}, ${company.address_country}` 
+          : undefined,
         employeeName,
         payPeriodStart: payrollRun.pay_period_start,
         payPeriodEnd: payrollRun.pay_period_end,
@@ -241,11 +264,70 @@ function formatMonth(dateStr: string): string {
 
 interface PayslipEmailData {
   companyName: string;
+  companyLogo?: string;
+  companyPhone?: string;
+  companyWebsite?: string;
+  companyEmail?: string;
+  companyAddress?: string;
   employeeName: string;
   payPeriodStart: string;
   payPeriodEnd: string;
   netPay: string;
   currency: string;
+}
+
+function generateEmailHeader(data: PayslipEmailData): string {
+  const logoSection = data.companyLogo 
+    ? `<img src="${data.companyLogo}" alt="${data.companyName}" style="max-height:45px;max-width:150px;margin-right:15px;vertical-align:middle;" />`
+    : `<div style="display:inline-block;width:45px;height:45px;background:rgba(255,255,255,0.2);border-radius:8px;margin-right:15px;vertical-align:middle;text-align:center;line-height:45px;font-size:20px;font-weight:bold;color:white;">${data.companyName.charAt(0)}</div>`;
+
+  return `
+    <tr>
+      <td style="background:linear-gradient(135deg,${BRAND_PRIMARY} 0%,${BRAND_PRIMARY_DARK} 100%);padding:25px 30px;border-radius:12px 12px 0 0;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+          <tr>
+            <td style="vertical-align:middle;">
+              ${logoSection}
+              <span style="color:#ffffff;font-size:22px;font-weight:600;vertical-align:middle;">${data.companyName}</span>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>`;
+}
+
+function generateEmailFooter(data: PayslipEmailData): string {
+  const phone = data.companyPhone || "+973 17000342";
+  const website = data.companyWebsite || "www.dgcholding.com";
+  const email = data.companyEmail || "info@dgcholding.com";
+  const address = data.companyAddress || "Manama, Kingdom of Bahrain";
+
+  return `
+    <tr>
+      <td style="background-color:#f9fafb;padding:25px 30px;border-top:1px solid #e5e7eb;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+          <tr>
+            <td style="text-align:center;">
+              <p style="color:#18181b;margin:0 0 8px 0;font-size:14px;font-weight:600;">${data.companyName}</p>
+              <p style="color:#71717a;margin:0 0 4px 0;font-size:12px;">${address}</p>
+              <p style="color:#71717a;margin:0 0 15px 0;font-size:12px;">
+                <a href="tel:${phone.replace(/\s/g, '')}" style="color:#71717a;text-decoration:none;">${phone}</a>
+                &nbsp;|&nbsp;
+                <a href="mailto:${email}" style="color:${BRAND_PRIMARY};text-decoration:none;">${email}</a>
+              </p>
+              <p style="margin:0 0 15px 0;">
+                <a href="https://${website}" style="color:${BRAND_PRIMARY};text-decoration:none;font-size:12px;font-weight:500;">${website}</a>
+              </p>
+              <hr style="border:none;border-top:1px solid #e5e7eb;margin:15px 0;" />
+              <p style="color:#a1a1aa;margin:0;font-size:11px;line-height:1.5;">
+                This is an automated notification from ${data.companyName}.<br />
+                Please do not reply directly to this email.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>`;
 }
 
 function generatePayslipEmailHtml(data: PayslipEmailData): string {
@@ -255,28 +337,37 @@ function generatePayslipEmailHtml(data: PayslipEmailData): string {
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
 <body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background-color:#f4f4f5;">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;padding:20px;">
-    <tr><td style="background:linear-gradient(135deg,#3b82f6 0%,#1d4ed8 100%);padding:30px;border-radius:12px 12px 0 0;">
-      <h1 style="color:#ffffff;margin:0;font-size:24px;">${data.companyName}</h1>
-    </td></tr>
-    <tr><td style="background-color:#ffffff;padding:30px;border-radius:0 0 12px 12px;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
-      <div style="text-align:center;margin-bottom:20px;">
-        <div style="display:inline-block;background-color:#dbeafe;border-radius:50%;width:60px;height:60px;line-height:60px;text-align:center;">
-          <span style="font-size:24px;">📄</span>
+    ${generateEmailHeader(data)}
+    <tr>
+      <td style="background-color:#ffffff;padding:30px;">
+        <div style="text-align:center;margin-bottom:20px;">
+          <div style="display:inline-block;background:linear-gradient(135deg,${BRAND_PRIMARY}20 0%,${BRAND_PRIMARY}10 100%);border-radius:50%;width:70px;height:70px;line-height:70px;text-align:center;">
+            <span style="font-size:32px;">💰</span>
+          </div>
         </div>
-      </div>
-      <h2 style="color:#18181b;margin:0 0 10px 0;font-size:20px;text-align:center;">Your Payslip is Ready</h2>
-      <p style="color:#52525b;margin:0 0 20px 0;line-height:1.6;text-align:center;">Hi ${data.employeeName}, your payslip for ${formatMonth(data.payPeriodStart)} is now available.</p>
-      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#f4f4f5;border-radius:8px;margin-bottom:20px;">
-        <tr><td style="padding:20px;">
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
-            <tr><td style="padding:8px 0;color:#71717a;font-size:14px;">Pay Period</td><td style="padding:8px 0;color:#18181b;font-size:14px;text-align:right;">${formatDate(data.payPeriodStart)} - ${formatDate(data.payPeriodEnd)}</td></tr>
-            <tr><td style="padding:8px 0;color:#71717a;font-size:14px;">Net Pay</td><td style="padding:8px 0;color:#3b82f6;font-size:18px;text-align:right;font-weight:700;">${data.currency} ${data.netPay}</td></tr>
-          </table>
-        </td></tr>
-      </table>
-      <p style="color:#52525b;margin:0 0 20px 0;line-height:1.6;text-align:center;font-size:14px;">Please log in to the HR portal to download your detailed payslip.</p>
-      <p style="color:#71717a;margin:20px 0 0 0;font-size:12px;text-align:center;">This is an automated notification from ${data.companyName}</p>
-    </td></tr>
+        <h2 style="color:#18181b;margin:0 0 10px 0;font-size:22px;text-align:center;font-weight:600;">Your Payslip is Ready</h2>
+        <p style="color:#52525b;margin:0 0 25px 0;line-height:1.6;text-align:center;font-size:15px;">Hi <strong style="color:#18181b;">${data.employeeName}</strong>, your payslip for <strong style="color:#18181b;">${formatMonth(data.payPeriodStart)}</strong> is now available.</p>
+        
+        <!-- Net Pay Highlight -->
+        <div style="background:linear-gradient(135deg,${BRAND_PRIMARY} 0%,${BRAND_PRIMARY_DARK} 100%);border-radius:12px;padding:25px;margin-bottom:20px;text-align:center;">
+          <p style="color:rgba(255,255,255,0.8);margin:0 0 8px 0;font-size:12px;text-transform:uppercase;letter-spacing:1px;">Net Pay</p>
+          <p style="color:#ffffff;margin:0;font-size:32px;font-weight:700;">${data.currency} ${data.netPay}</p>
+        </div>
+        
+        <!-- Pay Period Details -->
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#fafafa;border-radius:10px;border:1px solid #e5e7eb;margin-bottom:20px;">
+          <tr><td style="padding:20px;">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+              <tr><td style="padding:10px 0;color:#71717a;font-size:13px;">Pay Period</td><td style="padding:10px 0;color:#18181b;font-size:14px;text-align:right;font-weight:500;">${formatDate(data.payPeriodStart)} - ${formatDate(data.payPeriodEnd)}</td></tr>
+              <tr><td style="padding:10px 0;color:#71717a;font-size:13px;border-top:1px solid #e5e7eb;">Status</td><td style="padding:10px 0;text-align:right;border-top:1px solid #e5e7eb;"><span style="background-color:#dcfce7;color:#16a34a;padding:4px 10px;border-radius:4px;font-size:12px;font-weight:600;">Issued</span></td></tr>
+            </table>
+          </td></tr>
+        </table>
+        
+        <p style="color:#71717a;margin:0;font-size:13px;text-align:center;line-height:1.5;">Please log in to the HR portal to download your detailed payslip.<br />Contact HR if you have any questions about your compensation.</p>
+      </td>
+    </tr>
+    ${generateEmailFooter(data)}
   </table>
 </body>
 </html>`;

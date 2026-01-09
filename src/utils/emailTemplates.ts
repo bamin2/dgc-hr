@@ -1,8 +1,16 @@
 import { format } from "date-fns";
 
+// Brand colors
+const BRAND_PRIMARY = "#804EEC";
+const BRAND_PRIMARY_DARK = "#6B3FD4";
+
 interface BaseEmailData {
   companyName: string;
   companyLogo?: string;
+  companyPhone?: string;
+  companyWebsite?: string;
+  companyAddress?: string;
+  companyEmail?: string;
 }
 
 interface LeaveRequestEmailData extends BaseEmailData {
@@ -25,8 +33,64 @@ interface PayslipEmailData extends BaseEmailData {
   currency: string;
 }
 
+// Shared email header with logo and branding
+function generateEmailHeader(data: BaseEmailData, gradientColors: { from: string; to: string } = { from: BRAND_PRIMARY, to: BRAND_PRIMARY_DARK }): string {
+  const logoSection = data.companyLogo 
+    ? `<img src="${data.companyLogo}" alt="${data.companyName}" style="max-height:45px;max-width:150px;margin-right:15px;vertical-align:middle;" />`
+    : `<div style="display:inline-block;width:45px;height:45px;background:rgba(255,255,255,0.2);border-radius:8px;margin-right:15px;vertical-align:middle;text-align:center;line-height:45px;font-size:20px;font-weight:bold;color:white;">${data.companyName.charAt(0)}</div>`;
+
+  return `
+    <tr>
+      <td style="background:linear-gradient(135deg,${gradientColors.from} 0%,${gradientColors.to} 100%);padding:25px 30px;border-radius:12px 12px 0 0;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+          <tr>
+            <td style="vertical-align:middle;">
+              ${logoSection}
+              <span style="color:#ffffff;font-size:22px;font-weight:600;vertical-align:middle;">${data.companyName}</span>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>`;
+}
+
+// Shared email footer with contact info and disclaimer
+function generateEmailFooter(data: BaseEmailData): string {
+  const phone = data.companyPhone || "+973 17000342";
+  const website = data.companyWebsite || "www.dgcholding.com";
+  const email = data.companyEmail || "info@dgcholding.com";
+  const address = data.companyAddress || "Manama, Kingdom of Bahrain";
+
+  return `
+    <tr>
+      <td style="background-color:#f9fafb;padding:25px 30px;border-top:1px solid #e5e7eb;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+          <tr>
+            <td style="text-align:center;">
+              <p style="color:#18181b;margin:0 0 8px 0;font-size:14px;font-weight:600;">${data.companyName}</p>
+              <p style="color:#71717a;margin:0 0 4px 0;font-size:12px;">${address}</p>
+              <p style="color:#71717a;margin:0 0 15px 0;font-size:12px;">
+                <a href="tel:${phone.replace(/\s/g, '')}" style="color:#71717a;text-decoration:none;">${phone}</a>
+                &nbsp;|&nbsp;
+                <a href="mailto:${email}" style="color:${BRAND_PRIMARY};text-decoration:none;">${email}</a>
+              </p>
+              <p style="margin:0 0 15px 0;">
+                <a href="https://${website}" style="color:${BRAND_PRIMARY};text-decoration:none;font-size:12px;font-weight:500;">${website}</a>
+              </p>
+              <hr style="border:none;border-top:1px solid #e5e7eb;margin:15px 0;" />
+              <p style="color:#a1a1aa;margin:0;font-size:11px;line-height:1.5;">
+                This is an automated notification from ${data.companyName}.<br />
+                Please do not reply directly to this email.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>`;
+}
+
 export function generateLeaveRequestSubmittedEmail(data: LeaveRequestEmailData): string {
-  const { companyName, employeeName, leaveType, startDate, endDate, daysCount, reason } = data;
+  const { employeeName, leaveType, startDate, endDate, daysCount, reason } = data;
   
   return `
 <!DOCTYPE html>
@@ -35,58 +99,66 @@ export function generateLeaveRequestSubmittedEmail(data: LeaveRequestEmailData):
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f4f4f5;">
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; padding: 20px;">
+<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background-color:#f4f4f5;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;padding:20px;">
+    ${generateEmailHeader(data)}
     <tr>
-      <td style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); padding: 30px; border-radius: 12px 12px 0 0;">
-        <h1 style="color: #ffffff; margin: 0; font-size: 24px;">${companyName}</h1>
-      </td>
-    </tr>
-    <tr>
-      <td style="background-color: #ffffff; padding: 30px; border-radius: 0 0 12px 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-        <h2 style="color: #18181b; margin: 0 0 20px 0; font-size: 20px;">Leave Request Submitted</h2>
+      <td style="background-color:#ffffff;padding:30px;">
+        <!-- Action Required Badge -->
+        <div style="text-align:center;margin-bottom:20px;">
+          <span style="display:inline-block;background:linear-gradient(135deg,${BRAND_PRIMARY} 0%,${BRAND_PRIMARY_DARK} 100%);color:#ffffff;font-size:11px;font-weight:600;padding:6px 14px;border-radius:20px;text-transform:uppercase;letter-spacing:0.5px;">
+            Action Required
+          </span>
+        </div>
         
-        <p style="color: #52525b; margin: 0 0 20px 0; line-height: 1.6;">
-          <strong>${employeeName}</strong> has submitted a leave request that requires your review.
+        <h2 style="color:#18181b;margin:0 0 15px 0;font-size:22px;text-align:center;font-weight:600;">Leave Request Submitted</h2>
+        
+        <p style="color:#52525b;margin:0 0 25px 0;line-height:1.6;text-align:center;font-size:15px;">
+          <strong style="color:#18181b;">${employeeName}</strong> has submitted a leave request that requires your review.
         </p>
         
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f4f4f5; border-radius: 8px; margin-bottom: 20px;">
+        <!-- Request Details Card -->
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#fafafa;border-radius:10px;border:1px solid #e5e7eb;margin-bottom:20px;">
           <tr>
-            <td style="padding: 20px;">
+            <td style="padding:20px;">
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
                 <tr>
-                  <td style="padding: 8px 0; color: #71717a; font-size: 14px;">Leave Type</td>
-                  <td style="padding: 8px 0; color: #18181b; font-size: 14px; text-align: right; font-weight: 600;">${leaveType}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 8px 0; color: #71717a; font-size: 14px;">From</td>
-                  <td style="padding: 8px 0; color: #18181b; font-size: 14px; text-align: right;">${format(new Date(startDate), "MMM d, yyyy")}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 8px 0; color: #71717a; font-size: 14px;">To</td>
-                  <td style="padding: 8px 0; color: #18181b; font-size: 14px; text-align: right;">${format(new Date(endDate), "MMM d, yyyy")}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 8px 0; color: #71717a; font-size: 14px;">Duration</td>
-                  <td style="padding: 8px 0; color: #18181b; font-size: 14px; text-align: right; font-weight: 600;">${daysCount} day${daysCount !== 1 ? "s" : ""}</td>
-                </tr>
-                ${reason ? `
-                <tr>
-                  <td colspan="2" style="padding: 12px 0 0 0; border-top: 1px solid #e4e4e7; color: #52525b; font-size: 14px;">
-                    <strong>Reason:</strong> ${reason}
+                  <td style="padding:10px 0;color:#71717a;font-size:13px;border-bottom:1px solid #e5e7eb;">Leave Type</td>
+                  <td style="padding:10px 0;color:#18181b;font-size:14px;text-align:right;font-weight:600;border-bottom:1px solid #e5e7eb;">
+                    <span style="background-color:${BRAND_PRIMARY}15;color:${BRAND_PRIMARY};padding:4px 10px;border-radius:4px;">${leaveType}</span>
                   </td>
                 </tr>
-                ` : ""}
+                <tr>
+                  <td style="padding:10px 0;color:#71717a;font-size:13px;border-bottom:1px solid #e5e7eb;">Start Date</td>
+                  <td style="padding:10px 0;color:#18181b;font-size:14px;text-align:right;border-bottom:1px solid #e5e7eb;">${format(new Date(startDate), "EEEE, MMM d, yyyy")}</td>
+                </tr>
+                <tr>
+                  <td style="padding:10px 0;color:#71717a;font-size:13px;border-bottom:1px solid #e5e7eb;">End Date</td>
+                  <td style="padding:10px 0;color:#18181b;font-size:14px;text-align:right;border-bottom:1px solid #e5e7eb;">${format(new Date(endDate), "EEEE, MMM d, yyyy")}</td>
+                </tr>
+                <tr>
+                  <td style="padding:10px 0;color:#71717a;font-size:13px;">Total Duration</td>
+                  <td style="padding:10px 0;color:${BRAND_PRIMARY};font-size:16px;text-align:right;font-weight:700;">${daysCount} day${daysCount !== 1 ? "s" : ""}</td>
+                </tr>
               </table>
             </td>
           </tr>
         </table>
         
-        <p style="color: #71717a; margin: 20px 0 0 0; font-size: 12px; text-align: center;">
-          This is an automated notification from ${companyName}
+        ${reason ? `
+        <!-- Reason Section -->
+        <div style="background-color:#f0f9ff;border-left:4px solid ${BRAND_PRIMARY};padding:15px 18px;margin-bottom:20px;border-radius:0 8px 8px 0;">
+          <p style="color:#71717a;margin:0 0 5px 0;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Reason</p>
+          <p style="color:#18181b;margin:0;font-size:14px;line-height:1.5;">${reason}</p>
+        </div>
+        ` : ""}
+        
+        <p style="color:#71717a;margin:0;font-size:13px;text-align:center;line-height:1.5;">
+          Please log in to the HR portal to review and approve this request.
         </p>
       </td>
     </tr>
+    ${generateEmailFooter(data)}
   </table>
 </body>
 </html>
@@ -94,7 +166,7 @@ export function generateLeaveRequestSubmittedEmail(data: LeaveRequestEmailData):
 }
 
 export function generateLeaveRequestApprovedEmail(data: LeaveRequestEmailData): string {
-  const { companyName, employeeName, leaveType, startDate, endDate, daysCount, reviewerName } = data;
+  const { employeeName, leaveType, startDate, endDate, daysCount, reviewerName } = data;
   
   return `
 <!DOCTYPE html>
@@ -103,59 +175,58 @@ export function generateLeaveRequestApprovedEmail(data: LeaveRequestEmailData): 
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f4f4f5;">
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; padding: 20px;">
+<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background-color:#f4f4f5;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;padding:20px;">
+    ${generateEmailHeader(data, { from: "#22c55e", to: "#16a34a" })}
     <tr>
-      <td style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); padding: 30px; border-radius: 12px 12px 0 0;">
-        <h1 style="color: #ffffff; margin: 0; font-size: 24px;">${companyName}</h1>
-      </td>
-    </tr>
-    <tr>
-      <td style="background-color: #ffffff; padding: 30px; border-radius: 0 0 12px 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-        <div style="text-align: center; margin-bottom: 20px;">
-          <div style="display: inline-block; background-color: #dcfce7; border-radius: 50%; padding: 15px;">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
+      <td style="background-color:#ffffff;padding:30px;">
+        <!-- Success Icon -->
+        <div style="text-align:center;margin-bottom:20px;">
+          <div style="display:inline-block;background-color:#dcfce7;border-radius:50%;width:70px;height:70px;line-height:70px;text-align:center;">
+            <span style="font-size:32px;">✓</span>
           </div>
         </div>
         
-        <h2 style="color: #18181b; margin: 0 0 10px 0; font-size: 20px; text-align: center;">Leave Request Approved</h2>
+        <h2 style="color:#18181b;margin:0 0 10px 0;font-size:22px;text-align:center;font-weight:600;">Leave Request Approved</h2>
         
-        <p style="color: #52525b; margin: 0 0 20px 0; line-height: 1.6; text-align: center;">
-          Hi ${employeeName}, your leave request has been approved${reviewerName ? ` by ${reviewerName}` : ""}.
+        <p style="color:#52525b;margin:0 0 25px 0;line-height:1.6;text-align:center;font-size:15px;">
+          Hi <strong style="color:#18181b;">${employeeName}</strong>, great news! Your leave request has been approved${reviewerName ? ` by <strong style="color:#18181b;">${reviewerName}</strong>` : ""}.
         </p>
         
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f4f4f5; border-radius: 8px; margin-bottom: 20px;">
+        <!-- Approved Details Card -->
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#f0fdf4;border-radius:10px;border:1px solid #bbf7d0;margin-bottom:20px;">
           <tr>
-            <td style="padding: 20px;">
+            <td style="padding:20px;">
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
                 <tr>
-                  <td style="padding: 8px 0; color: #71717a; font-size: 14px;">Leave Type</td>
-                  <td style="padding: 8px 0; color: #18181b; font-size: 14px; text-align: right; font-weight: 600;">${leaveType}</td>
+                  <td style="padding:10px 0;color:#71717a;font-size:13px;border-bottom:1px solid #bbf7d0;">Leave Type</td>
+                  <td style="padding:10px 0;color:#18181b;font-size:14px;text-align:right;font-weight:600;border-bottom:1px solid #bbf7d0;">
+                    <span style="background-color:#22c55e15;color:#16a34a;padding:4px 10px;border-radius:4px;">${leaveType}</span>
+                  </td>
                 </tr>
                 <tr>
-                  <td style="padding: 8px 0; color: #71717a; font-size: 14px;">From</td>
-                  <td style="padding: 8px 0; color: #18181b; font-size: 14px; text-align: right;">${format(new Date(startDate), "MMM d, yyyy")}</td>
+                  <td style="padding:10px 0;color:#71717a;font-size:13px;border-bottom:1px solid #bbf7d0;">Start Date</td>
+                  <td style="padding:10px 0;color:#18181b;font-size:14px;text-align:right;border-bottom:1px solid #bbf7d0;">${format(new Date(startDate), "EEEE, MMM d, yyyy")}</td>
                 </tr>
                 <tr>
-                  <td style="padding: 8px 0; color: #71717a; font-size: 14px;">To</td>
-                  <td style="padding: 8px 0; color: #18181b; font-size: 14px; text-align: right;">${format(new Date(endDate), "MMM d, yyyy")}</td>
+                  <td style="padding:10px 0;color:#71717a;font-size:13px;border-bottom:1px solid #bbf7d0;">End Date</td>
+                  <td style="padding:10px 0;color:#18181b;font-size:14px;text-align:right;border-bottom:1px solid #bbf7d0;">${format(new Date(endDate), "EEEE, MMM d, yyyy")}</td>
                 </tr>
                 <tr>
-                  <td style="padding: 8px 0; color: #71717a; font-size: 14px;">Duration</td>
-                  <td style="padding: 8px 0; color: #18181b; font-size: 14px; text-align: right; font-weight: 600;">${daysCount} day${daysCount !== 1 ? "s" : ""}</td>
+                  <td style="padding:10px 0;color:#71717a;font-size:13px;">Total Duration</td>
+                  <td style="padding:10px 0;color:#16a34a;font-size:16px;text-align:right;font-weight:700;">${daysCount} day${daysCount !== 1 ? "s" : ""}</td>
                 </tr>
               </table>
             </td>
           </tr>
         </table>
         
-        <p style="color: #71717a; margin: 20px 0 0 0; font-size: 12px; text-align: center;">
-          This is an automated notification from ${companyName}
+        <p style="color:#71717a;margin:0;font-size:13px;text-align:center;line-height:1.5;">
+          Enjoy your time off! Don't forget to set your out-of-office message if needed.
         </p>
       </td>
     </tr>
+    ${generateEmailFooter(data)}
   </table>
 </body>
 </html>
@@ -163,7 +234,7 @@ export function generateLeaveRequestApprovedEmail(data: LeaveRequestEmailData): 
 }
 
 export function generateLeaveRequestRejectedEmail(data: LeaveRequestEmailData): string {
-  const { companyName, employeeName, leaveType, startDate, endDate, daysCount, rejectionReason, reviewerName } = data;
+  const { employeeName, leaveType, startDate, endDate, daysCount, rejectionReason, reviewerName } = data;
   
   return `
 <!DOCTYPE html>
@@ -172,69 +243,60 @@ export function generateLeaveRequestRejectedEmail(data: LeaveRequestEmailData): 
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f4f4f5;">
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; padding: 20px;">
+<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background-color:#f4f4f5;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;padding:20px;">
+    ${generateEmailHeader(data, { from: "#ef4444", to: "#dc2626" })}
     <tr>
-      <td style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); padding: 30px; border-radius: 12px 12px 0 0;">
-        <h1 style="color: #ffffff; margin: 0; font-size: 24px;">${companyName}</h1>
-      </td>
-    </tr>
-    <tr>
-      <td style="background-color: #ffffff; padding: 30px; border-radius: 0 0 12px 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-        <div style="text-align: center; margin-bottom: 20px;">
-          <div style="display: inline-block; background-color: #fee2e2; border-radius: 50%; padding: 15px;">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="15" y1="9" x2="9" y2="15"></line>
-              <line x1="9" y1="9" x2="15" y2="15"></line>
-            </svg>
+      <td style="background-color:#ffffff;padding:30px;">
+        <!-- Rejected Icon -->
+        <div style="text-align:center;margin-bottom:20px;">
+          <div style="display:inline-block;background-color:#fee2e2;border-radius:50%;width:70px;height:70px;line-height:70px;text-align:center;">
+            <span style="font-size:32px;">✗</span>
           </div>
         </div>
         
-        <h2 style="color: #18181b; margin: 0 0 10px 0; font-size: 20px; text-align: center;">Leave Request Rejected</h2>
+        <h2 style="color:#18181b;margin:0 0 10px 0;font-size:22px;text-align:center;font-weight:600;">Leave Request Rejected</h2>
         
-        <p style="color: #52525b; margin: 0 0 20px 0; line-height: 1.6; text-align: center;">
-          Hi ${employeeName}, your leave request has been rejected${reviewerName ? ` by ${reviewerName}` : ""}.
+        <p style="color:#52525b;margin:0 0 25px 0;line-height:1.6;text-align:center;font-size:15px;">
+          Hi <strong style="color:#18181b;">${employeeName}</strong>, unfortunately your leave request has been declined${reviewerName ? ` by <strong style="color:#18181b;">${reviewerName}</strong>` : ""}.
         </p>
         
         ${rejectionReason ? `
-        <div style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
-          <p style="color: #991b1b; margin: 0; font-size: 14px;">
-            <strong>Reason:</strong> ${rejectionReason}
-          </p>
+        <!-- Rejection Reason -->
+        <div style="background-color:#fef2f2;border-left:4px solid #ef4444;padding:15px 18px;margin-bottom:20px;border-radius:0 8px 8px 0;">
+          <p style="color:#b91c1c;margin:0 0 5px 0;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Rejection Reason</p>
+          <p style="color:#7f1d1d;margin:0;font-size:14px;line-height:1.5;">${rejectionReason}</p>
         </div>
         ` : ""}
         
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f4f4f5; border-radius: 8px; margin-bottom: 20px;">
+        <!-- Request Details Card -->
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#fafafa;border-radius:10px;border:1px solid #e5e7eb;margin-bottom:20px;">
           <tr>
-            <td style="padding: 20px;">
+            <td style="padding:20px;">
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
                 <tr>
-                  <td style="padding: 8px 0; color: #71717a; font-size: 14px;">Leave Type</td>
-                  <td style="padding: 8px 0; color: #18181b; font-size: 14px; text-align: right; font-weight: 600;">${leaveType}</td>
+                  <td style="padding:10px 0;color:#71717a;font-size:13px;border-bottom:1px solid #e5e7eb;">Leave Type</td>
+                  <td style="padding:10px 0;color:#18181b;font-size:14px;text-align:right;font-weight:600;border-bottom:1px solid #e5e7eb;">${leaveType}</td>
                 </tr>
                 <tr>
-                  <td style="padding: 8px 0; color: #71717a; font-size: 14px;">From</td>
-                  <td style="padding: 8px 0; color: #18181b; font-size: 14px; text-align: right;">${format(new Date(startDate), "MMM d, yyyy")}</td>
+                  <td style="padding:10px 0;color:#71717a;font-size:13px;border-bottom:1px solid #e5e7eb;">Requested Dates</td>
+                  <td style="padding:10px 0;color:#18181b;font-size:14px;text-align:right;border-bottom:1px solid #e5e7eb;">${format(new Date(startDate), "MMM d")} - ${format(new Date(endDate), "MMM d, yyyy")}</td>
                 </tr>
                 <tr>
-                  <td style="padding: 8px 0; color: #71717a; font-size: 14px;">To</td>
-                  <td style="padding: 8px 0; color: #18181b; font-size: 14px; text-align: right;">${format(new Date(endDate), "MMM d, yyyy")}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 8px 0; color: #71717a; font-size: 14px;">Duration</td>
-                  <td style="padding: 8px 0; color: #18181b; font-size: 14px; text-align: right; font-weight: 600;">${daysCount} day${daysCount !== 1 ? "s" : ""}</td>
+                  <td style="padding:10px 0;color:#71717a;font-size:13px;">Duration</td>
+                  <td style="padding:10px 0;color:#71717a;font-size:14px;text-align:right;">${daysCount} day${daysCount !== 1 ? "s" : ""}</td>
                 </tr>
               </table>
             </td>
           </tr>
         </table>
         
-        <p style="color: #71717a; margin: 20px 0 0 0; font-size: 12px; text-align: center;">
-          This is an automated notification from ${companyName}
+        <p style="color:#71717a;margin:0;font-size:13px;text-align:center;line-height:1.5;">
+          If you have questions, please speak with your manager or HR department.
         </p>
       </td>
     </tr>
+    ${generateEmailFooter(data)}
   </table>
 </body>
 </html>
@@ -242,7 +304,7 @@ export function generateLeaveRequestRejectedEmail(data: LeaveRequestEmailData): 
 }
 
 export function generatePayslipEmail(data: PayslipEmailData): string {
-  const { companyName, employeeName, payPeriodStart, payPeriodEnd, netPay, currency } = data;
+  const { employeeName, payPeriodStart, payPeriodEnd, netPay, currency } = data;
   
   return `
 <!DOCTYPE html>
@@ -251,59 +313,57 @@ export function generatePayslipEmail(data: PayslipEmailData): string {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f4f4f5;">
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; padding: 20px;">
+<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background-color:#f4f4f5;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;padding:20px;">
+    ${generateEmailHeader(data)}
     <tr>
-      <td style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); padding: 30px; border-radius: 12px 12px 0 0;">
-        <h1 style="color: #ffffff; margin: 0; font-size: 24px;">${companyName}</h1>
-      </td>
-    </tr>
-    <tr>
-      <td style="background-color: #ffffff; padding: 30px; border-radius: 0 0 12px 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-        <div style="text-align: center; margin-bottom: 20px;">
-          <div style="display: inline-block; background-color: #dbeafe; border-radius: 50%; padding: 15px;">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-              <polyline points="14 2 14 8 20 8"></polyline>
-              <line x1="16" y1="13" x2="8" y2="13"></line>
-              <line x1="16" y1="17" x2="8" y2="17"></line>
-              <polyline points="10 9 9 9 8 9"></polyline>
-            </svg>
+      <td style="background-color:#ffffff;padding:30px;">
+        <!-- Payslip Icon -->
+        <div style="text-align:center;margin-bottom:20px;">
+          <div style="display:inline-block;background:linear-gradient(135deg,${BRAND_PRIMARY}20 0%,${BRAND_PRIMARY}10 100%);border-radius:50%;width:70px;height:70px;line-height:70px;text-align:center;">
+            <span style="font-size:32px;">💰</span>
           </div>
         </div>
         
-        <h2 style="color: #18181b; margin: 0 0 10px 0; font-size: 20px; text-align: center;">Your Payslip is Ready</h2>
+        <h2 style="color:#18181b;margin:0 0 10px 0;font-size:22px;text-align:center;font-weight:600;">Your Payslip is Ready</h2>
         
-        <p style="color: #52525b; margin: 0 0 20px 0; line-height: 1.6; text-align: center;">
-          Hi ${employeeName}, your payslip for ${format(new Date(payPeriodStart), "MMMM yyyy")} is now available.
+        <p style="color:#52525b;margin:0 0 25px 0;line-height:1.6;text-align:center;font-size:15px;">
+          Hi <strong style="color:#18181b;">${employeeName}</strong>, your payslip for <strong style="color:#18181b;">${format(new Date(payPeriodStart), "MMMM yyyy")}</strong> is now available.
         </p>
         
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f4f4f5; border-radius: 8px; margin-bottom: 20px;">
+        <!-- Net Pay Highlight -->
+        <div style="background:linear-gradient(135deg,${BRAND_PRIMARY} 0%,${BRAND_PRIMARY_DARK} 100%);border-radius:12px;padding:25px;margin-bottom:20px;text-align:center;">
+          <p style="color:rgba(255,255,255,0.8);margin:0 0 8px 0;font-size:12px;text-transform:uppercase;letter-spacing:1px;">Net Pay</p>
+          <p style="color:#ffffff;margin:0;font-size:32px;font-weight:700;">${currency} ${netPay}</p>
+        </div>
+        
+        <!-- Pay Period Details -->
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#fafafa;border-radius:10px;border:1px solid #e5e7eb;margin-bottom:20px;">
           <tr>
-            <td style="padding: 20px;">
+            <td style="padding:20px;">
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
                 <tr>
-                  <td style="padding: 8px 0; color: #71717a; font-size: 14px;">Pay Period</td>
-                  <td style="padding: 8px 0; color: #18181b; font-size: 14px; text-align: right;">${format(new Date(payPeriodStart), "MMM d")} - ${format(new Date(payPeriodEnd), "MMM d, yyyy")}</td>
+                  <td style="padding:10px 0;color:#71717a;font-size:13px;">Pay Period</td>
+                  <td style="padding:10px 0;color:#18181b;font-size:14px;text-align:right;font-weight:500;">${format(new Date(payPeriodStart), "MMM d")} - ${format(new Date(payPeriodEnd), "MMM d, yyyy")}</td>
                 </tr>
                 <tr>
-                  <td style="padding: 8px 0; color: #71717a; font-size: 14px;">Net Pay</td>
-                  <td style="padding: 8px 0; color: #3b82f6; font-size: 18px; text-align: right; font-weight: 700;">${currency} ${netPay}</td>
+                  <td style="padding:10px 0;color:#71717a;font-size:13px;border-top:1px solid #e5e7eb;">Status</td>
+                  <td style="padding:10px 0;text-align:right;border-top:1px solid #e5e7eb;">
+                    <span style="background-color:#dcfce7;color:#16a34a;padding:4px 10px;border-radius:4px;font-size:12px;font-weight:600;">Issued</span>
+                  </td>
                 </tr>
               </table>
             </td>
           </tr>
         </table>
         
-        <p style="color: #52525b; margin: 0 0 20px 0; line-height: 1.6; text-align: center; font-size: 14px;">
-          Your payslip PDF is attached to this email.
-        </p>
-        
-        <p style="color: #71717a; margin: 20px 0 0 0; font-size: 12px; text-align: center;">
-          This is an automated notification from ${companyName}
+        <p style="color:#71717a;margin:0;font-size:13px;text-align:center;line-height:1.5;">
+          Please log in to the HR portal to download your detailed payslip.<br />
+          Contact HR if you have any questions about your compensation.
         </p>
       </td>
     </tr>
+    ${generateEmailFooter(data)}
   </table>
 </body>
 </html>
