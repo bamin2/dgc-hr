@@ -377,13 +377,13 @@ export default function EmployeeProfile() {
                         label="Monthly Salary" 
                         value={formatCurrency(employee.salary)} 
                       />
-                      <InfoRow 
-                        label="Bank Account" 
-                        value={employee.bankAccountNumber 
-                          ? `${employee.bankName || "Bank"} ••••${employee.bankAccountNumber.slice(-4)}` 
-                          : "Not specified"
-                        } 
-                      />
+                        <InfoRow 
+                          label="Bank Account" 
+                          value={employee.iban 
+                            ? `${employee.bankName || "Bank"} ••••${employee.iban.slice(-4)}` 
+                            : "Not specified"
+                          } 
+                        />
                     </CardContent>
                   </Card>
                 )}
