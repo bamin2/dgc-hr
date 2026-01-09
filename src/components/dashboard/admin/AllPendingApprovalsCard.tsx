@@ -37,7 +37,7 @@ export function AllPendingApprovalsCard({ pendingApprovals, isLoading }: AllPend
       label: 'Time Off', 
       count: pendingApprovals.leaveRequests, 
       icon: CalendarDays,
-      path: '/time-off?status=pending'
+      path: '/approvals?tab=all-requests&type=time_off'
     },
     { 
       label: 'Loans', 
