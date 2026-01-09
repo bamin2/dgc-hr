@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { queryKeys } from "@/lib/queryKeys";
 
 export interface Bank {
   id: string;
@@ -21,7 +22,7 @@ export interface BankInput {
 
 export const useBanks = () => {
   return useQuery({
-    queryKey: ["banks"],
+    queryKey: queryKeys.company.banks,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("banks")
@@ -49,7 +50,7 @@ export const useCreateBank = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["banks"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.company.banks });
       toast.success("Bank added successfully");
     },
     onError: (error: Error) => {
@@ -74,7 +75,7 @@ export const useUpdateBank = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["banks"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.company.banks });
       toast.success("Bank updated successfully");
     },
     onError: (error: Error) => {
@@ -112,7 +113,7 @@ export const useDeleteBank = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["banks"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.company.banks });
       toast.success("Bank deleted successfully");
     },
     onError: (error: Error) => {

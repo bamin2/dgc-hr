@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { queryKeys } from '@/lib/queryKeys';
 
 export interface Notification {
   id: string;
@@ -55,7 +56,7 @@ export function useNotifications() {
   const queryClient = useQueryClient();
 
   const query = useQuery({
-    queryKey: ['notifications', user?.id],
+    queryKey: user?.id ? queryKeys.notifications.byUser(user.id) : queryKeys.notifications.all,
     staleTime: 1000 * 60, // 1 minute
     queryFn: async () => {
       if (!user?.id) throw new Error('No user');
@@ -82,7 +83,9 @@ export function useNotifications() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications', user?.id] });
+      if (user?.id) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.notifications.byUser(user.id) });
+      }
     },
   });
 
@@ -99,7 +102,9 @@ export function useNotifications() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications', user?.id] });
+      if (user?.id) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.notifications.byUser(user.id) });
+      }
     },
   });
 
@@ -113,7 +118,9 @@ export function useNotifications() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications', user?.id] });
+      if (user?.id) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.notifications.byUser(user.id) });
+      }
     },
   });
 
@@ -130,7 +137,9 @@ export function useNotifications() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications', user?.id] });
+      if (user?.id) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.notifications.byUser(user.id) });
+      }
     },
   });
 
@@ -150,7 +159,7 @@ export function useUnreadNotificationsCount() {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ['notifications-unread-count', user?.id],
+    queryKey: user?.id ? queryKeys.notifications.unreadCount(user.id) : queryKeys.notifications.unread,
     staleTime: 1000 * 60, // 1 minute
     queryFn: async () => {
       if (!user?.id) return 0;

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { queryKeys } from '@/lib/queryKeys';
 
 export type ClaimStatus = 'pending' | 'approved' | 'rejected' | 'processing';
 
@@ -51,7 +52,7 @@ export function useBenefitClaims(filters?: {
   planId?: string;
 }) {
   return useQuery({
-    queryKey: ['benefit-claims', filters],
+    queryKey: [...queryKeys.benefits.claims, filters],
     queryFn: async () => {
       let query = supabase
         .from('benefit_claims')
@@ -102,7 +103,7 @@ export function useBenefitClaims(filters?: {
 
 export function useBenefitClaim(claimId: string | undefined) {
   return useQuery({
-    queryKey: ['benefit-claim', claimId],
+    queryKey: [...queryKeys.benefits.claims, claimId],
     queryFn: async () => {
       if (!claimId) return null;
 
@@ -184,7 +185,7 @@ export function useCreateBenefitClaim() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['benefit-claims'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.benefits.claims });
     },
   });
 }
@@ -218,8 +219,8 @@ export function useApproveBenefitClaim() {
       return data;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['benefit-claims'] });
-      queryClient.invalidateQueries({ queryKey: ['benefit-claim', variables.claimId] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.benefits.claims });
+      queryClient.invalidateQueries({ queryKey: [...queryKeys.benefits.claims, variables.claimId] });
     },
   });
 }
@@ -253,8 +254,8 @@ export function useRejectBenefitClaim() {
       return data;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['benefit-claims'] });
-      queryClient.invalidateQueries({ queryKey: ['benefit-claim', variables.claimId] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.benefits.claims });
+      queryClient.invalidateQueries({ queryKey: [...queryKeys.benefits.claims, variables.claimId] });
     },
   });
 }
@@ -281,8 +282,8 @@ export function useUpdateClaimStatus() {
       return data;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['benefit-claims'] });
-      queryClient.invalidateQueries({ queryKey: ['benefit-claim', variables.claimId] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.benefits.claims });
+      queryClient.invalidateQueries({ queryKey: [...queryKeys.benefits.claims, variables.claimId] });
     },
   });
 }

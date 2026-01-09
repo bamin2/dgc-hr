@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { queryKeys } from '@/lib/queryKeys';
 
 export interface Position {
   id: string;
@@ -58,7 +59,7 @@ async function fetchPositionsWithCounts(): Promise<Position[]> {
 
 export function usePositionsManagement() {
   return useQuery({
-    queryKey: ['positions-management'],
+    queryKey: queryKeys.organizations.positions,
     queryFn: fetchPositionsWithCounts,
   });
 }
@@ -83,8 +84,8 @@ export function useCreatePosition() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['positions-management'] });
-      queryClient.invalidateQueries({ queryKey: ['positions'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.organizations.positions });
+      queryClient.invalidateQueries({ queryKey: queryKeys.positions.all });
     },
   });
 }
@@ -110,8 +111,8 @@ export function useUpdatePosition() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['positions-management'] });
-      queryClient.invalidateQueries({ queryKey: ['positions'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.organizations.positions });
+      queryClient.invalidateQueries({ queryKey: queryKeys.positions.all });
     },
   });
 }
@@ -142,8 +143,8 @@ export function useDeletePosition() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['positions-management'] });
-      queryClient.invalidateQueries({ queryKey: ['positions'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.organizations.positions });
+      queryClient.invalidateQueries({ queryKey: queryKeys.positions.all });
     },
   });
 }

@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { queryKeys } from "@/lib/queryKeys";
 
 export type EntityType = 'employee' | 'leave_request' | 'loan' | 'document' | 'compensation' | 'leave_balance';
 export type ActionType = 'create' | 'update' | 'delete' | 'approve' | 'reject' | 'skip' | 'upload';
@@ -50,7 +51,7 @@ export interface UseAuditLogsOptions {
 
 export function useAuditLogs({ filters = {}, page = 1, pageSize = 50 }: UseAuditLogsOptions = {}) {
   return useQuery({
-    queryKey: ['audit-logs', filters, page, pageSize],
+    queryKey: [...queryKeys.audit.logs, filters, page, pageSize],
     queryFn: async () => {
       let query = supabase
         .from('audit_logs')
@@ -135,7 +136,7 @@ export function useAuditLogs({ filters = {}, page = 1, pageSize = 50 }: UseAudit
 // Hook for getting unique performers for filter dropdown
 export function useAuditPerformers() {
   return useQuery({
-    queryKey: ['audit-performers'],
+    queryKey: [...queryKeys.audit.logs, 'performers'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('audit_logs')

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { queryKeys } from '@/lib/queryKeys';
 
 interface Department {
   id: string;
@@ -65,7 +66,7 @@ async function fetchDepartmentsWithCounts(): Promise<Department[]> {
 
 export function useDepartmentsManagement() {
   return useQuery({
-    queryKey: ['departments-management'],
+    queryKey: queryKeys.organizations.departments,
     queryFn: fetchDepartmentsWithCounts,
   });
 }
@@ -89,8 +90,8 @@ export function useCreateDepartment() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['departments-management'] });
-      queryClient.invalidateQueries({ queryKey: ['departments'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.organizations.departments });
+      queryClient.invalidateQueries({ queryKey: queryKeys.departments.all });
     },
   });
 }
@@ -115,8 +116,8 @@ export function useUpdateDepartment() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['departments-management'] });
-      queryClient.invalidateQueries({ queryKey: ['departments'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.organizations.departments });
+      queryClient.invalidateQueries({ queryKey: queryKeys.departments.all });
     },
   });
 }
@@ -147,8 +148,8 @@ export function useDeleteDepartment() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['departments-management'] });
-      queryClient.invalidateQueries({ queryKey: ['departments'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.organizations.departments });
+      queryClient.invalidateQueries({ queryKey: queryKeys.departments.all });
     },
   });
 }
