@@ -239,9 +239,8 @@ export function useUpdateExitInterview() {
       if (error) throw error;
       return data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.workflows.offboarding.all });
-      queryClient.invalidateQueries({ queryKey: ['offboarding-record'] });
     },
   });
 }
@@ -263,7 +262,7 @@ export function useUpdateOffboardingAsset() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['offboarding-record'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workflows.offboarding.all });
     },
   });
 }
@@ -285,7 +284,7 @@ export function useUpdateOffboardingAccessSystem() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['offboarding-record'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workflows.offboarding.all });
     },
   });
 }

@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { queryKeys } from "@/lib/queryKeys";
 
 export interface SmartTag {
   id: string;
@@ -20,7 +21,7 @@ export type SmartTagUpdate = Partial<SmartTagInsert>;
 
 export function useSmartTags() {
   return useQuery({
-    queryKey: ["smart-tags"],
+    queryKey: queryKeys.smartTags.all,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("smart_tags")
@@ -36,7 +37,7 @@ export function useSmartTags() {
 
 export function useActiveSmartTags() {
   return useQuery({
-    queryKey: ["smart-tags", "active"],
+    queryKey: queryKeys.smartTags.active,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("smart_tags")
@@ -72,7 +73,7 @@ export function useCreateSmartTag() {
       return data as SmartTag;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["smart-tags"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.smartTags.all });
       toast.success("Smart tag created successfully");
     },
     onError: (error: Error) => {
@@ -97,7 +98,7 @@ export function useUpdateSmartTag() {
       return data as SmartTag;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["smart-tags"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.smartTags.all });
       toast.success("Smart tag updated successfully");
     },
     onError: (error: Error) => {
@@ -119,7 +120,7 @@ export function useDeleteSmartTag() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["smart-tags"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.smartTags.all });
       toast.success("Smart tag deleted successfully");
     },
     onError: (error: Error) => {

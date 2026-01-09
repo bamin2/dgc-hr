@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect } from 'react';
+import { queryKeys } from '@/lib/queryKeys';
 
 export interface UserSession {
   id: string;
@@ -53,7 +54,7 @@ export const useUserSessions = () => {
 
   // Fetch all sessions for current user
   const { data: sessions = [], isLoading, refetch } = useQuery({
-    queryKey: ['user-sessions', user?.id],
+    queryKey: queryKeys.users.sessions.byUser(user?.id || ''),
     queryFn: async () => {
       if (!user?.id) return [];
       
@@ -141,7 +142,7 @@ export const useUserSessions = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user-sessions'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.sessions.all });
     },
   });
 
@@ -159,7 +160,7 @@ export const useUserSessions = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user-sessions'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.sessions.all });
     },
   });
 

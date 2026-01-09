@@ -181,8 +181,8 @@ export function useCreateLeaveRequest() {
       
       // Invalidate notifications after a short delay to allow the edge function to complete
       setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ['notifications'] });
-        queryClient.invalidateQueries({ queryKey: ['notifications-unread-count'] });
+        queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
+        queryClient.invalidateQueries({ queryKey: queryKeys.notifications.unread });
       }, 1500);
     },
     onError: (error) => {

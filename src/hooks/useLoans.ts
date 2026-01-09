@@ -194,7 +194,6 @@ export function useRequestLoan() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.loans.all });
-      queryClient.invalidateQueries({ queryKey: ['my-loans'] });
     },
   });
 }
@@ -312,9 +311,6 @@ export function useApproveLoan() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.loans.all });
-      queryClient.invalidateQueries({ queryKey: ['loan'] });
-      queryClient.invalidateQueries({ queryKey: ['loan-installments'] });
-      queryClient.invalidateQueries({ queryKey: ['my-loans'] });
     },
   });
 }
@@ -363,8 +359,6 @@ export function useRejectLoan() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.loans.all });
-      queryClient.invalidateQueries({ queryKey: ['loan'] });
-      queryClient.invalidateQueries({ queryKey: ['my-loans'] });
     },
   });
 }
@@ -395,8 +389,6 @@ export function useDisburseLoan() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.loans.all });
-      queryClient.invalidateQueries({ queryKey: ['loan'] });
-      queryClient.invalidateQueries({ queryKey: ['loan-installments'] });
     },
   });
 }
@@ -418,7 +410,6 @@ export function useCancelLoan() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.loans.all });
-      queryClient.invalidateQueries({ queryKey: ['loan'] });
     },
   });
 }
@@ -441,8 +432,6 @@ export function useMarkInstallmentPaid() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.loans.all });
-      queryClient.invalidateQueries({ queryKey: ['loan'] });
-      queryClient.invalidateQueries({ queryKey: ['loan-installments'] });
     },
   });
 }
@@ -466,8 +455,6 @@ export function useMarkInstallmentsPaidByPayroll() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.loans.all });
-      queryClient.invalidateQueries({ queryKey: ['loan'] });
-      queryClient.invalidateQueries({ queryKey: ['loan-installments'] });
       queryClient.invalidateQueries({ queryKey: queryKeys.loans.installmentsDue });
     },
   });
@@ -487,8 +474,6 @@ export function useDeleteLoan() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.loans.all });
-      queryClient.invalidateQueries({ queryKey: ['loan'] });
-      queryClient.invalidateQueries({ queryKey: ['my-loans'] });
     },
   });
 }
@@ -620,8 +605,6 @@ export function useMakeAdHocPayment() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.loans.all });
-      queryClient.invalidateQueries({ queryKey: ['loan'] });
-      queryClient.invalidateQueries({ queryKey: ['loan-installments'] });
     },
   });
 }
