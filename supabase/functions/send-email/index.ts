@@ -75,13 +75,13 @@ serve(async (req: Request): Promise<Response> => {
     let emailResult: ResendResponse = {};
 
     if (type.startsWith("leave_request_") && leaveRequestId) {
-      // Fetch leave request details (separate queries to avoid self-join issue)
+      // Fetch leave request details
       const { data: leaveRequest, error: fetchError } = await supabase
         .from("leave_requests")
         .select(`
           *,
           employee:employees!leave_requests_employee_id_fkey (
-            id, first_name, last_name, email, manager_id
+            id, first_name, last_name, email, avatar_url
           ),
           leave_type:leave_types (id, name),
           reviewer:employees!leave_requests_reviewed_by_fkey (id, first_name, last_name)
@@ -93,87 +93,139 @@ serve(async (req: Request): Promise<Response> => {
         throw new Error(`Leave request not found: ${fetchError?.message}`);
       }
 
-      // Fetch manager separately if employee has one
-      let manager: { id: string; first_name: string; last_name: string; email: string; user_id: string } | null = null;
-      if (leaveRequest.employee.manager_id) {
-        const { data: managerData } = await supabase
-          .from("employees")
-          .select("id, first_name, last_name, email, user_id")
-          .eq("id", leaveRequest.employee.manager_id)
-          .single();
-        manager = managerData;
-      }
-
       const employeeName = `${leaveRequest.employee.first_name} ${leaveRequest.employee.last_name}`;
       const employeeEmail = leaveRequest.employee.email;
       const leaveTypeName = leaveRequest.leave_type?.name || "Leave";
 
+      // Get requester's user_id for notifications
+      const { data: requesterProfile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("employee_id", leaveRequest.employee.id)
+        .single();
+
       if (type === "leave_request_submitted") {
-        // Notify manager if exists
-        if (manager?.email) {
-          // Check manager's notification preferences
-          const { data: prefs } = await supabase
-            .from("notification_preferences")
-            .select("email_leave_submissions")
-            .eq("user_id", manager.user_id)
+        // Find the pending approval step from the approval workflow (configured in Settings)
+        const { data: pendingStep, error: stepError } = await supabase
+          .from("request_approval_steps")
+          .select(`
+            id,
+            step_number,
+            approver_type,
+            approver_user_id
+          `)
+          .eq("request_id", leaveRequestId)
+          .eq("request_type", "time_off")
+          .eq("status", "pending")
+          .order("step_number", { ascending: true })
+          .limit(1)
+          .single();
+
+        if (stepError) {
+          console.log("No pending approval step found:", stepError.message);
+        }
+
+        if (pendingStep?.approver_user_id) {
+          // Get the approver's employee details via their user_id
+          const { data: approverProfile } = await supabase
+            .from("profiles")
+            .select("employee_id")
+            .eq("id", pendingStep.approver_user_id)
             .single();
 
-          if (prefs?.email_leave_submissions !== false) {
-            const html = generateLeaveSubmittedHtml({
-              companyName,
-              companyLogo: company.logo_url,
-              companyPhone: company.phone,
-              companyWebsite: company.website,
-              companyEmail: company.email,
-              companyAddress: company.address_city && company.address_country 
-                ? `${company.address_city}, ${company.address_country}` 
-                : undefined,
-              employeeName,
-              leaveType: leaveTypeName,
-              startDate: leaveRequest.start_date,
-              endDate: leaveRequest.end_date,
-              daysCount: leaveRequest.days_count,
-              reason: leaveRequest.reason,
-            });
+          if (approverProfile?.employee_id) {
+            const { data: approver } = await supabase
+              .from("employees")
+              .select("id, first_name, last_name, email")
+              .eq("id", approverProfile.employee_id)
+              .single();
 
-            const result = await sendEmail(
-              [manager.email],
-              `Leave Request: ${employeeName} - ${leaveTypeName}`,
-              html,
-              fromEmail
-            );
+            if (approver?.email) {
+              // Check approver's notification preferences
+              const { data: prefs } = await supabase
+                .from("notification_preferences")
+                .select("email_leave_submissions")
+                .eq("user_id", pendingStep.approver_user_id)
+                .single();
 
-            emailResult = result;
-            emailSent = true;
+              if (prefs?.email_leave_submissions !== false) {
+                const html = generateLeaveSubmittedHtml({
+                  companyName,
+                  companyLogo: company.logo_url,
+                  companyPhone: company.phone,
+                  companyWebsite: company.website,
+                  companyEmail: company.email,
+                  companyAddress: company.address_city && company.address_country 
+                    ? `${company.address_city}, ${company.address_country}` 
+                    : undefined,
+                  employeeName,
+                  leaveType: leaveTypeName,
+                  startDate: leaveRequest.start_date,
+                  endDate: leaveRequest.end_date,
+                  daysCount: leaveRequest.days_count,
+                  reason: leaveRequest.reason,
+                });
 
-            // Log the email
-            await supabase.from("email_logs").insert({
-              recipient_email: manager.email,
-              recipient_user_id: manager.user_id,
-              employee_id: manager.id,
-              email_type: type,
-              subject: `Leave Request: ${employeeName} - ${leaveTypeName}`,
-              status: result.error ? "failed" : "sent",
-              resend_id: result.id,
-              error_message: result.error?.message,
-              metadata: { leave_request_id: leaveRequestId },
-              sent_at: new Date().toISOString(),
-            });
+                const result = await sendEmail(
+                  [approver.email],
+                  `Leave Request: ${employeeName} - ${leaveTypeName}`,
+                  html,
+                  fromEmail
+                );
+
+                emailResult = result;
+                emailSent = true;
+
+                // Log the email
+                await supabase.from("email_logs").insert({
+                  recipient_email: approver.email,
+                  recipient_user_id: pendingStep.approver_user_id,
+                  employee_id: approver.id,
+                  email_type: type,
+                  subject: `Leave Request: ${employeeName} - ${leaveTypeName}`,
+                  status: result.error ? "failed" : "sent",
+                  resend_id: result.id,
+                  error_message: result.error?.message,
+                  metadata: { leave_request_id: leaveRequestId },
+                  sent_at: new Date().toISOString(),
+                });
+              }
+
+              // Create in-app notification for the approver
+              await supabase.from("notifications").insert({
+                user_id: pendingStep.approver_user_id,
+                type: "approval",
+                title: "New Leave Request",
+                message: `${employeeName} has submitted a ${leaveTypeName} request for ${leaveRequest.days_count} day${leaveRequest.days_count !== 1 ? "s" : ""}`,
+                priority: "medium",
+                action_url: "/approvals",
+                actor_name: employeeName,
+                actor_avatar: leaveRequest.employee.avatar_url,
+                metadata: { request_id: leaveRequestId, request_type: "time_off" },
+              });
+            }
           }
+        }
+
+        // Create confirmation notification for the requester
+        if (requesterProfile?.id) {
+          await supabase.from("notifications").insert({
+            user_id: requesterProfile.id,
+            type: "leave_request",
+            title: "Leave Request Submitted",
+            message: `Your ${leaveTypeName} request for ${leaveRequest.days_count} day${leaveRequest.days_count !== 1 ? "s" : ""} has been submitted and is pending approval`,
+            priority: "low",
+            action_url: "/approvals?tab=my-requests",
+            metadata: { request_id: leaveRequestId },
+          });
         }
       } else if (type === "leave_request_approved" || type === "leave_request_rejected") {
         // Notify employee
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("id")
-          .eq("employee_id", leaveRequest.employee.id)
-          .single();
-
-        if (profile) {
+        if (requesterProfile) {
           const { data: prefs } = await supabase
             .from("notification_preferences")
             .select("email_leave_approvals")
-            .eq("user_id", profile.id)
+            .eq("user_id", requesterProfile.id)
             .single();
 
           if (prefs?.email_leave_approvals !== false) {
@@ -217,7 +269,7 @@ serve(async (req: Request): Promise<Response> => {
             // Log the email
             await supabase.from("email_logs").insert({
               recipient_email: employeeEmail,
-              recipient_user_id: profile.id,
+              recipient_user_id: requesterProfile.id,
               employee_id: leaveRequest.employee.id,
               email_type: type,
               subject,
@@ -228,6 +280,24 @@ serve(async (req: Request): Promise<Response> => {
               sent_at: new Date().toISOString(),
             });
           }
+
+          // Create in-app notification for the requester
+          const notificationTitle = type === "leave_request_approved" 
+            ? "Leave Request Approved" 
+            : "Leave Request Rejected";
+          const notificationMessage = type === "leave_request_approved"
+            ? `Your ${leaveTypeName} request has been approved`
+            : `Your ${leaveTypeName} request has been rejected${leaveRequest.rejection_reason ? `: ${leaveRequest.rejection_reason}` : ""}`;
+
+          await supabase.from("notifications").insert({
+            user_id: requesterProfile.id,
+            type: "approval",
+            title: notificationTitle,
+            message: notificationMessage,
+            priority: type === "leave_request_approved" ? "medium" : "high",
+            action_url: "/approvals?tab=my-requests",
+            metadata: { request_id: leaveRequestId, status: type === "leave_request_approved" ? "approved" : "rejected" },
+          });
         }
       }
     }

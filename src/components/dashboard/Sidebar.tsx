@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -30,16 +30,7 @@ import { AnnouncementsCard } from "./AnnouncementsCard";
 import { useRole } from "@/contexts/RoleContext";
 import { useCompanySettings } from "@/contexts/CompanySettingsContext";
 import { RoleBadge } from "@/components/employees/RoleBadge";
-
-// MAIN - Visible to all employees
-const mainMenuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/" },
-  { icon: BookUser, label: "Directory", path: "/directory" },
-  { icon: Calendar, label: "Calendar", path: "/calendar" },
-  { icon: Briefcase, label: "Projects", path: "/projects" },
-  { icon: Clock, label: "Time Off", path: "/time-off" },
-  { icon: CheckSquare, label: "Approvals", path: "/approvals" },
-];
+import { usePendingApprovalsCount } from "@/hooks/usePendingApprovalsCount";
 
 // MANAGEMENT - HR & Manager roles only
 const managementMenuItems = [
@@ -72,6 +63,17 @@ export function Sidebar() {
   }, [collapsed]);
   const { currentUser, canAccessManagement, canAccessCompany } = useRole();
   const { settings } = useCompanySettings();
+  const { data: pendingCount = 0 } = usePendingApprovalsCount();
+
+  // MAIN - Visible to all employees (with dynamic badge)
+  const mainMenuItems = useMemo(() => [
+    { icon: LayoutDashboard, label: "Dashboard", path: "/" },
+    { icon: BookUser, label: "Directory", path: "/directory" },
+    { icon: Calendar, label: "Calendar", path: "/calendar" },
+    { icon: Briefcase, label: "Projects", path: "/projects" },
+    { icon: Clock, label: "Time Off", path: "/time-off" },
+    { icon: CheckSquare, label: "Approvals", path: "/approvals", badge: pendingCount },
+  ], [pendingCount]);
 
   const initials = currentUser.name
     .split(' ')
