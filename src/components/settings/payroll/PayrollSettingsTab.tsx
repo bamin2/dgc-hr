@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 import { AllowanceTemplatesSection } from "./AllowanceTemplatesSection";
 import { DeductionTemplatesSection } from "./DeductionTemplatesSection";
 import { LocationGeneralSettings } from "./LocationGeneralSettings";
+import { BanksSection } from "./BanksSection";
 import { useWorkLocations } from "@/hooks/useWorkLocations";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MapPin, Building2 } from "lucide-react";
@@ -59,9 +61,13 @@ export function PayrollSettingsTab() {
       <div>
         <h3 className="text-lg font-medium">Payroll Templates</h3>
         <p className="text-sm text-muted-foreground">
-          Manage allowance and deduction templates per work location. Each location has its own templates with matching currency.
+          Manage banks, allowance and deduction templates per work location.
         </p>
       </div>
+
+      <BanksSection />
+
+      <Separator />
 
       <Tabs value={selectedLocationId} onValueChange={setSelectedLocationId}>
         <TabsList className="w-full justify-start h-auto flex-wrap gap-1 bg-muted/50 p-1">

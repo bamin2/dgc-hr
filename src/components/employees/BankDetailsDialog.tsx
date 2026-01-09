@@ -9,7 +9,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Employee, useUpdateEmployee } from "@/hooks/useEmployees";
+import { useBanks } from "@/hooks/useBanks";
 import { toast } from "@/hooks/use-toast";
 
 interface BankDetailsDialogProps {
@@ -23,6 +31,9 @@ export function BankDetailsDialog({ open, onOpenChange, employee }: BankDetailsD
   const [accountNumber, setAccountNumber] = useState(employee.bankAccountNumber || "");
   const [iban, setIban] = useState(employee.iban || "");
   const updateEmployee = useUpdateEmployee();
+  const { data: banks } = useBanks();
+
+  const activeBanks = banks?.filter((b) => b.is_active) || [];
 
   useEffect(() => {
     if (open) {
@@ -77,12 +88,18 @@ export function BankDetailsDialog({ open, onOpenChange, employee }: BankDetailsD
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <Label htmlFor="bankName">Bank Name</Label>
-            <Input
-              id="bankName"
-              placeholder="e.g., National Bank of Bahrain"
-              value={bankName}
-              onChange={(e) => setBankName(e.target.value)}
-            />
+            <Select value={bankName} onValueChange={setBankName}>
+              <SelectTrigger id="bankName">
+                <SelectValue placeholder="Select a bank" />
+              </SelectTrigger>
+              <SelectContent>
+                {activeBanks.map((bank) => (
+                  <SelectItem key={bank.id} value={bank.name}>
+                    {bank.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="accountNumber">Account Number (Optional)</Label>

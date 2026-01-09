@@ -245,6 +245,36 @@ export type Database = {
           },
         ]
       }
+      banks: {
+        Row: {
+          country: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          swift_code: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          swift_code?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          country?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          swift_code?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       benefit_beneficiaries: {
         Row: {
           created_at: string
