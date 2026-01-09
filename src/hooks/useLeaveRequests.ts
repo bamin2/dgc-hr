@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { queryKeys } from '@/lib/queryKeys';
 
 export type LeaveRequestStatus = 'pending' | 'approved' | 'rejected';
 
@@ -52,7 +53,7 @@ export function useLeaveRequests(options: UseLeaveRequestsOptions = {}) {
   const { status, employeeId } = options;
 
   return useQuery({
-    queryKey: ['leave-requests', { status, employeeId }],
+    queryKey: [...queryKeys.leave.requests.all, { status, employeeId }],
     queryFn: async () => {
       let query = supabase
         .from('leave_requests')
@@ -104,7 +105,7 @@ export function usePendingLeaveRequests() {
 
 export function useLeaveRequest(id: string) {
   return useQuery({
-    queryKey: ['leave-request', id],
+    queryKey: [...queryKeys.leave.requests.all, id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('leave_requests')
@@ -175,8 +176,8 @@ export function useCreateLeaveRequest() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['leave-requests'] });
-      queryClient.invalidateQueries({ queryKey: ['leave-balances'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.leave.requests.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.leave.balances.all });
       
       // Invalidate notifications after a short delay to allow the edge function to complete
       setTimeout(() => {
@@ -216,8 +217,8 @@ export function useApproveLeaveRequest() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['leave-requests'] });
-      queryClient.invalidateQueries({ queryKey: ['leave-balances'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.leave.requests.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.leave.balances.all });
       toast.success('Leave request approved');
     },
     onError: (error) => {
@@ -261,8 +262,8 @@ export function useRejectLeaveRequest() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['leave-requests'] });
-      queryClient.invalidateQueries({ queryKey: ['leave-balances'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.leave.requests.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.leave.balances.all });
       toast.success('Leave request rejected');
     },
     onError: (error) => {
@@ -284,8 +285,8 @@ export function useDeleteLeaveRequest() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['leave-requests'] });
-      queryClient.invalidateQueries({ queryKey: ['leave-balances'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.leave.requests.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.leave.balances.all });
       toast.success('Leave request deleted');
     },
     onError: (error) => {
@@ -310,7 +311,7 @@ export function useUpdateLeaveRequest() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['leave-requests'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.leave.requests.all });
       toast.success('Leave request updated');
     },
     onError: (error) => {

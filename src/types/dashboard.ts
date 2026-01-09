@@ -1,5 +1,9 @@
-// Dashboard section and card configuration types
+/**
+ * Centralized Dashboard Types
+ * These types are shared across dashboard-related hooks and components
+ */
 
+// Dashboard section and card configuration types
 export type DashboardSection = 'personal' | 'team' | 'admin';
 export type DataScope = 'self' | 'team' | 'organization';
 

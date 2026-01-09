@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { queryKeys } from "@/lib/queryKeys";
 
 export interface DashboardPayrollRecord {
   id: string;
@@ -65,7 +66,7 @@ export function usePayrollDashboardData(monthFilter: string = "all") {
 
   // Fetch all payroll runs
   const runsQuery = useQuery({
-    queryKey: ["payroll-dashboard-runs"],
+    queryKey: queryKeys.payroll.dashboardRuns,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("payroll_runs")

@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PayrollRun } from "@/data/payroll";
+import { queryKeys } from "@/lib/queryKeys";
 
 interface DbPayrollRun {
   id: string;
@@ -46,7 +47,7 @@ const transformDbRun = (run: DbPayrollRun): PayrollRun => ({
 
 export function usePayrollRuns() {
   return useQuery({
-    queryKey: ["payroll-runs"],
+    queryKey: queryKeys.payroll.runs.all,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("payroll_runs")
@@ -114,8 +115,8 @@ export function useAddPayrollRun() {
       return transformDbRun(newRun);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["payroll-runs"] });
-      queryClient.invalidateQueries({ queryKey: ["payroll-dashboard-runs"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.payroll.runs.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.payroll.dashboardRuns });
     },
   });
 }

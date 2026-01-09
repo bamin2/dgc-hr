@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Json } from '@/integrations/supabase/types';
+import { queryKeys } from '@/lib/queryKeys';
 
 export interface SalaryDeductionTier {
   from_days: number;
@@ -45,7 +46,7 @@ function parseLeaveType(data: any): LeaveType {
 
 export function useLeaveTypes() {
   return useQuery({
-    queryKey: ['leave-types'],
+    queryKey: queryKeys.leave.types,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('leave_types')
@@ -61,7 +62,7 @@ export function useLeaveTypes() {
 
 export function useAllLeaveTypes() {
   return useQuery({
-    queryKey: ['leave-types', 'all'],
+    queryKey: [...queryKeys.leave.types, 'all'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('leave_types')
@@ -93,7 +94,7 @@ export function useCreateLeaveType() {
       return parseLeaveType(data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['leave-types'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.leave.types });
       toast.success('Leave type created successfully');
     },
     onError: (error) => {
@@ -123,7 +124,7 @@ export function useUpdateLeaveType() {
       return parseLeaveType(data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['leave-types'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.leave.types });
       toast.success('Leave type updated successfully');
     },
     onError: (error) => {
