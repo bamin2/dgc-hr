@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { queryKeys } from '@/lib/queryKeys';
 
 export interface AdminDashboardData {
   orgStats: {
@@ -59,7 +60,7 @@ function calculateNextPayrollDate(payrollDayOfMonth: number): string {
 
 export function useAdminDashboard() {
   return useQuery({
-    queryKey: ['admin-dashboard'],
+    queryKey: queryKeys.dashboard.admin,
     queryFn: async (): Promise<AdminDashboardData> => {
       const today = new Date();
       const firstDayThisMonth = new Date(today.getFullYear(), today.getMonth(), 1)

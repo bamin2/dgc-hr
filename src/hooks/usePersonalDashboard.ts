@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useRole } from '@/contexts/RoleContext';
+import { queryKeys } from '@/lib/queryKeys';
 
 export interface PersonalDashboardData {
   employeeId: string | null;
@@ -71,7 +72,7 @@ export function usePersonalDashboard() {
   const { isImpersonating, effectiveEmployeeId } = useRole();
 
   return useQuery({
-    queryKey: ['personal-dashboard', effectiveEmployeeId, isImpersonating],
+    queryKey: [...queryKeys.dashboard.personal, effectiveEmployeeId, isImpersonating],
     queryFn: async (): Promise<PersonalDashboardData> => {
       // Use effectiveEmployeeId directly if impersonating, otherwise look up from profile
       let employeeId = effectiveEmployeeId;

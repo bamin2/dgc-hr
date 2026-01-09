@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { queryKeys } from '@/lib/queryKeys';
 
 export interface LeaveBalance {
   id: string;
@@ -34,7 +35,7 @@ export function useLeaveBalances(employeeId?: string, year?: number) {
   const currentYear = year || new Date().getFullYear();
 
   return useQuery({
-    queryKey: ['leave-balances', employeeId, currentYear],
+    queryKey: [...queryKeys.leave.balances.all, employeeId, currentYear],
     queryFn: async () => {
       let query = supabase
         .from('leave_balances')
@@ -133,7 +134,7 @@ export function useCreateLeaveBalance() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['leave-balances'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.leave.balances.all });
       toast.success('Leave balance created successfully');
     },
     onError: (error) => {
@@ -158,7 +159,7 @@ export function useUpdateLeaveBalance() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['leave-balances'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.leave.balances.all });
       toast.success('Leave balance updated successfully');
     },
     onError: (error) => {
@@ -181,7 +182,7 @@ export function useBulkCreateLeaveBalances() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['leave-balances'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.leave.balances.all });
       toast.success('Leave balances created successfully');
     },
     onError: (error) => {

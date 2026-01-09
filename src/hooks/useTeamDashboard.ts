@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { queryKeys } from '@/lib/queryKeys';
 
 export interface TeamDashboardData {
   teamMemberCount: number;
@@ -18,7 +19,7 @@ export interface TeamDashboardData {
 
 export function useTeamDashboard(teamMemberIds: string[]) {
   return useQuery({
-    queryKey: ['team-dashboard', teamMemberIds],
+    queryKey: queryKeys.dashboard.team(teamMemberIds),
     queryFn: async (): Promise<TeamDashboardData> => {
       if (!teamMemberIds.length) {
         return {

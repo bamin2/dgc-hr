@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { queryKeys } from '@/lib/queryKeys';
 
 export interface LeaveBalanceAdjustment {
   id: string;
@@ -105,7 +106,7 @@ export function useCreateLeaveBalanceAdjustment() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['leave-balance-adjustments'] });
-      queryClient.invalidateQueries({ queryKey: ['leave-balances'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.leave.balances.all });
       toast.success('Balance adjustment created successfully');
     },
     onError: (error) => {
@@ -225,7 +226,7 @@ export function useCreateLeaveBalance() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['all-employee-balances'] });
-      queryClient.invalidateQueries({ queryKey: ['leave-balances'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.leave.balances.all });
       toast.success('Leave balance assigned successfully');
     },
     onError: (error) => {
@@ -315,7 +316,7 @@ export function useBulkInitializeBalances() {
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['all-employee-balances'] });
-      queryClient.invalidateQueries({ queryKey: ['leave-balances'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.leave.balances.all });
       toast.success(`Initialized ${result.created} leave balances`);
     },
     onError: (error) => {
