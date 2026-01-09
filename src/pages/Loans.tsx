@@ -8,9 +8,9 @@ import {
   LoansTable,
   CreateLoanDialog,
   LoanDetailSheet,
+  LoanApprovalDialog,
 } from "@/components/loans";
-import { useLoans, Loan } from "@/hooks/useLoans";
-import { useApproveLoan, useRejectLoan, useDisburseLoan } from "@/hooks/useLoans";
+import { useLoans, Loan, useDisburseLoan } from "@/hooks/useLoans";
 import { toast } from "sonner";
 import { useCompanySettings } from "@/contexts/CompanySettingsContext";
 
@@ -19,12 +19,12 @@ export default function Loans() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null);
   const [detailSheetOpen, setDetailSheetOpen] = useState(false);
+  const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
+  const [loanForApproval, setLoanForApproval] = useState<Loan | null>(null);
 
   const { data: allLoans = [], isLoading: loadingAll } = useLoans();
   const { data: pendingLoans = [], isLoading: loadingPending } = useLoans({ status: "requested" });
   
-  const approveLoan = useApproveLoan();
-  const rejectLoan = useRejectLoan();
   const disburseLoan = useDisburseLoan();
 
   const handleViewDetails = (loan: Loan) => {
@@ -32,22 +32,14 @@ export default function Loans() {
     setDetailSheetOpen(true);
   };
 
-  const handleApprove = async (loan: Loan) => {
-    try {
-      await approveLoan.mutateAsync(loan.id);
-      toast.success("Loan approved successfully");
-    } catch (error) {
-      toast.error("Failed to approve loan");
-    }
+  const handleApprove = (loan: Loan) => {
+    setLoanForApproval(loan);
+    setApprovalDialogOpen(true);
   };
 
-  const handleReject = async (loan: Loan) => {
-    try {
-      await rejectLoan.mutateAsync({ loanId: loan.id });
-      toast.success("Loan rejected");
-    } catch (error) {
-      toast.error("Failed to reject loan");
-    }
+  const handleReject = (loan: Loan) => {
+    setLoanForApproval(loan);
+    setApprovalDialogOpen(true);
   };
 
   const handleDisburse = async (loan: Loan) => {
@@ -180,6 +172,12 @@ export default function Loans() {
         loanId={selectedLoan?.id || null}
         open={detailSheetOpen}
         onOpenChange={setDetailSheetOpen}
+      />
+
+      <LoanApprovalDialog
+        loan={loanForApproval}
+        open={approvalDialogOpen}
+        onOpenChange={setApprovalDialogOpen}
       />
     </DashboardLayout>
   );

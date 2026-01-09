@@ -21,7 +21,8 @@ import { AdHocPaymentDialog } from "./AdHocPaymentDialog";
 import { RestructureLoanDialog } from "./RestructureLoanDialog";
 import { SkipInstallmentDialog } from "./SkipInstallmentDialog";
 import { LoanEventsTimeline } from "./LoanEventsTimeline";
-import { useLoan, useApproveLoan, useRejectLoan, useDisburseLoan, useMarkInstallmentPaid, Loan, LoanInstallment } from "@/hooks/useLoans";
+import { LoanApprovalDialog } from "./LoanApprovalDialog";
+import { useLoan, useDisburseLoan, useMarkInstallmentPaid, Loan, LoanInstallment } from "@/hooks/useLoans";
 import { toast } from "sonner";
 import { useCompanySettings } from "@/contexts/CompanySettingsContext";
 
@@ -36,34 +37,13 @@ export function LoanDetailSheet({ loanId, open, onOpenChange }: LoanDetailSheetP
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [restructureDialogOpen, setRestructureDialogOpen] = useState(false);
   const [skipDialogOpen, setSkipDialogOpen] = useState(false);
+  const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
   const [selectedInstallment, setSelectedInstallment] = useState<LoanInstallment | null>(null);
   
   const { data: loan, isLoading } = useLoan(loanId);
-  const approveLoan = useApproveLoan();
-  const rejectLoan = useRejectLoan();
   const disburseLoan = useDisburseLoan();
   const markPaid = useMarkInstallmentPaid();
   const { formatCurrency } = useCompanySettings();
-
-  const handleApprove = async () => {
-    if (!loanId) return;
-    try {
-      await approveLoan.mutateAsync(loanId);
-      toast.success("Loan approved");
-    } catch (error) {
-      toast.error("Failed to approve loan");
-    }
-  };
-
-  const handleReject = async () => {
-    if (!loanId) return;
-    try {
-      await rejectLoan.mutateAsync({ loanId });
-      toast.success("Loan rejected");
-    } catch (error) {
-      toast.error("Failed to reject loan");
-    }
-  };
 
   const handleDisburse = async () => {
     if (!loanId) return;
@@ -140,25 +120,13 @@ export function LoanDetailSheet({ loanId, open, onOpenChange }: LoanDetailSheetP
               <LoanStatusBadge status={loan.status} />
               <div className="flex gap-2">
                 {loan.status === "requested" && (
-                  <>
-                    <Button 
-                      size="sm" 
-                      onClick={handleApprove}
-                      disabled={approveLoan.isPending}
-                    >
-                      <CheckCircle className="h-4 w-4 mr-1" />
-                      Approve
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="destructive"
-                      onClick={handleReject}
-                      disabled={rejectLoan.isPending}
-                    >
-                      <XCircle className="h-4 w-4 mr-1" />
-                      Reject
-                    </Button>
-                  </>
+                  <Button 
+                    size="sm" 
+                    onClick={() => setApprovalDialogOpen(true)}
+                  >
+                    <CheckCircle className="h-4 w-4 mr-1" />
+                    Review
+                  </Button>
                 )}
                 {loan.status === "active" && (
                   <>
@@ -343,6 +311,13 @@ export function LoanDetailSheet({ loanId, open, onOpenChange }: LoanDetailSheetP
           onOpenChange={setSkipDialogOpen}
         />
       )}
+
+      {/* Approval Dialog */}
+      <LoanApprovalDialog
+        loan={loan ? { ...loan, employee: loan.employee } as Loan : null}
+        open={approvalDialogOpen}
+        onOpenChange={setApprovalDialogOpen}
+      />
     </Sheet>
   );
 }

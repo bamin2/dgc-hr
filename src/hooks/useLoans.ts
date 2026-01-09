@@ -253,27 +253,68 @@ export function useCreateLoan() {
   });
 }
 
+interface ApproveLoanParams {
+  loanId: string;
+  deductFromPayroll: boolean;
+  autoDisburse: boolean;
+}
+
 export function useApproveLoan() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async (loanId: string) => {
-      const { error } = await supabase
+    mutationFn: async ({ loanId, deductFromPayroll, autoDisburse }: ApproveLoanParams) => {
+      // Update loan with HR options
+      const { data: loan, error } = await supabase
         .from("loans")
         .update({
-          status: "approved",
+          status: autoDisburse ? "active" : "approved",
           approved_by: user?.id,
           approved_at: new Date().toISOString(),
+          deduct_from_payroll: deductFromPayroll,
+          disbursed_at: autoDisburse ? new Date().toISOString() : null,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", loanId);
+        .eq("id", loanId)
+        .select(`
+          *,
+          employee:employees(id, user_id, first_name, last_name, full_name)
+        `)
+        .single();
 
       if (error) throw error;
+
+      // Generate installments if auto-disbursing
+      if (autoDisburse) {
+        const { error: genError } = await supabase.rpc("generate_loan_installments", {
+          loan_uuid: loanId,
+        });
+        if (genError) throw genError;
+      }
+
+      // Send notification to employee if they have a user_id
+      const employeeUserId = loan.employee?.user_id;
+      if (employeeUserId) {
+        await supabase.from("notifications").insert({
+          user_id: employeeUserId,
+          type: "approval",
+          title: "Loan Approved",
+          message: `Your loan request for ${loan.principal_amount.toLocaleString()} has been approved.`,
+          priority: "medium",
+          is_read: false,
+          action_url: `/employees/${loan.employee.id}?tab=loans`,
+          metadata: { loanId },
+        });
+      }
+
+      return loan;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["loans"] });
       queryClient.invalidateQueries({ queryKey: ["loan"] });
+      queryClient.invalidateQueries({ queryKey: ["loan-installments"] });
+      queryClient.invalidateQueries({ queryKey: ["my-loans"] });
     },
   });
 }
@@ -284,7 +325,8 @@ export function useRejectLoan() {
 
   return useMutation({
     mutationFn: async ({ loanId, reason }: { loanId: string; reason?: string }) => {
-      const { error } = await supabase
+      // Get loan with employee info first
+      const { data: loan, error } = await supabase
         .from("loans")
         .update({
           status: "rejected",
@@ -293,13 +335,36 @@ export function useRejectLoan() {
           notes: reason,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", loanId);
+        .eq("id", loanId)
+        .select(`
+          *,
+          employee:employees(id, user_id, first_name, last_name, full_name)
+        `)
+        .single();
 
       if (error) throw error;
+
+      // Send notification to employee if they have a user_id
+      const employeeUserId = loan.employee?.user_id;
+      if (employeeUserId) {
+        await supabase.from("notifications").insert({
+          user_id: employeeUserId,
+          type: "approval",
+          title: "Loan Request Declined",
+          message: `Your loan request for ${loan.principal_amount.toLocaleString()} has been declined.${reason ? ` Reason: ${reason}` : ""}`,
+          priority: "medium",
+          is_read: false,
+          action_url: `/employees/${loan.employee.id}?tab=loans`,
+          metadata: { loanId },
+        });
+      }
+
+      return loan;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["loans"] });
       queryClient.invalidateQueries({ queryKey: ["loan"] });
+      queryClient.invalidateQueries({ queryKey: ["my-loans"] });
     },
   });
 }
