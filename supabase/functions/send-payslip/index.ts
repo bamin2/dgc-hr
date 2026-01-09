@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { processTemplate, formatMonth, formatCurrency, formatDate, type TemplateData } from "../_shared/templateProcessor.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
@@ -31,9 +32,15 @@ interface CompanyData {
   phone?: string;
   website?: string;
   logo_url?: string;
-  document_logo_url?: string; // Preferred logo for documents/emails
+  document_logo_url?: string;
   address_city?: string;
   address_country?: string;
+}
+
+interface EmailTemplate {
+  subject: string;
+  body_content: string;
+  is_active: boolean;
 }
 
 async function sendEmail(to: string[], subject: string, html: string, from: string): Promise<ResendResponse> {
@@ -124,6 +131,15 @@ serve(async (req: Request): Promise<Response> => {
     const companyName = company.name || "Company";
     const fromEmail = `${companyName} <noreply@updates.dgcholding.com>`;
 
+    // Fetch email template from database
+    const { data: emailTemplate } = await supabase
+      .from("email_templates")
+      .select("subject, body_content, is_active")
+      .eq("type", "payslip_issued")
+      .single();
+
+    const useCustomTemplate = emailTemplate?.is_active && emailTemplate?.body_content;
+
     let employeesQuery = supabase
       .from("payroll_run_employees")
       .select(`
@@ -178,28 +194,85 @@ serve(async (req: Request): Promise<Response> => {
       }
 
       const employeeName = `${employee.first_name} ${employee.last_name}`;
-      const netPay = (pe.net_pay || 0).toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      });
+      const netPayFormatted = formatCurrency(pe.net_pay || 0, currency);
+      const grossPayFormatted = formatCurrency(pe.gross_pay || pe.base_salary || 0, currency);
 
-      const html = generatePayslipEmailHtml({
-        companyName,
-        companyLogo: company.document_logo_url || company.logo_url,
-        companyPhone: company.phone,
-        companyWebsite: company.website,
-        companyEmail: company.email,
-        companyAddress: company.address_city && company.address_country 
-          ? `${company.address_city}, ${company.address_country}` 
-          : undefined,
-        employeeName,
-        payPeriodStart: payrollRun.pay_period_start,
-        payPeriodEnd: payrollRun.pay_period_end,
-        netPay,
-        currency,
-      });
+      let subject: string;
+      let html: string;
 
-      const subject = `Your Payslip - ${formatMonth(payrollRun.pay_period_start)}`;
+      if (useCustomTemplate) {
+        // Use custom template from database
+        const templateData: TemplateData = {
+          employee: {
+            first_name: employee.first_name,
+            last_name: employee.last_name,
+            full_name: employeeName,
+            email: employee.email,
+            employee_code: employee.employee_code,
+          },
+          work_location: {
+            name: payrollRun.work_location?.name,
+            currency: currency,
+          },
+          company: {
+            name: companyName,
+            email: company.email,
+            phone: company.phone,
+            website: company.website,
+            full_address: company.address_city && company.address_country 
+              ? `${company.address_city}, ${company.address_country}` 
+              : undefined,
+          },
+          payroll: {
+            pay_period: formatMonth(payrollRun.pay_period_start),
+            pay_period_start: payrollRun.pay_period_start,
+            pay_period_end: payrollRun.pay_period_end,
+            gross_pay: pe.gross_pay || pe.base_salary || 0,
+            net_pay: pe.net_pay || 0,
+            total_allowances: pe.total_allowances || 0,
+            total_deductions: pe.total_deductions || 0,
+          },
+          system: {
+            current_date: new Date().toISOString(),
+            current_year: new Date().getFullYear().toString(),
+          },
+        };
+
+        // Process subject and body with smart tags
+        subject = processTemplate(emailTemplate!.subject, templateData);
+        const processedBody = processTemplate(emailTemplate!.body_content, templateData);
+        
+        // Wrap in email template with header/footer
+        html = wrapInEmailTemplate({
+          companyName,
+          companyLogo: company.document_logo_url || company.logo_url,
+          companyPhone: company.phone,
+          companyWebsite: company.website,
+          companyEmail: company.email,
+          companyAddress: company.address_city && company.address_country 
+            ? `${company.address_city}, ${company.address_country}` 
+            : undefined,
+          bodyContent: processedBody,
+        });
+      } else {
+        // Fallback to hardcoded template
+        subject = `Your Payslip - ${formatMonth(payrollRun.pay_period_start)}`;
+        html = generatePayslipEmailHtml({
+          companyName,
+          companyLogo: company.document_logo_url || company.logo_url,
+          companyPhone: company.phone,
+          companyWebsite: company.website,
+          companyEmail: company.email,
+          companyAddress: company.address_city && company.address_country 
+            ? `${company.address_city}, ${company.address_country}` 
+            : undefined,
+          employeeName,
+          payPeriodStart: payrollRun.pay_period_start,
+          payPeriodEnd: payrollRun.pay_period_end,
+          netPay: (pe.net_pay || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+          currency,
+        });
+      }
 
       try {
         const emailResult = await sendEmail([employee.email], subject, html, fromEmail);
@@ -213,7 +286,7 @@ serve(async (req: Request): Promise<Response> => {
           status: emailResult.error ? "failed" : "sent",
           resend_id: emailResult.id,
           error_message: emailResult.error?.message,
-          metadata: { payroll_run_id: payrollRunId, net_pay: pe.net_pay },
+          metadata: { payroll_run_id: payrollRunId, net_pay: pe.net_pay, used_custom_template: useCustomTemplate },
           sent_at: new Date().toISOString(),
         });
 
@@ -253,14 +326,33 @@ serve(async (req: Request): Promise<Response> => {
   }
 });
 
-function formatDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+interface EmailWrapperData {
+  companyName: string;
+  companyLogo?: string;
+  companyPhone?: string;
+  companyWebsite?: string;
+  companyEmail?: string;
+  companyAddress?: string;
+  bodyContent: string;
 }
 
-function formatMonth(dateStr: string): string {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+function wrapInEmailTemplate(data: EmailWrapperData): string {
+  return `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background-color:#f4f4f5;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;padding:20px;">
+    ${generateEmailHeader(data)}
+    <tr>
+      <td style="background-color:#ffffff;padding:30px;">
+        ${data.bodyContent}
+      </td>
+    </tr>
+    ${generateEmailFooter(data)}
+  </table>
+</body>
+</html>`;
 }
 
 interface PayslipEmailData {
@@ -277,7 +369,7 @@ interface PayslipEmailData {
   currency: string;
 }
 
-function generateEmailHeader(data: PayslipEmailData): string {
+function generateEmailHeader(data: { companyName: string; companyLogo?: string }): string {
   const logoSection = data.companyLogo 
     ? `<img src="${data.companyLogo}" alt="${data.companyName}" style="max-height:45px;max-width:150px;margin-right:15px;vertical-align:middle;" />`
     : `<div style="display:inline-block;width:45px;height:45px;background:rgba(255,255,255,0.2);border-radius:8px;margin-right:15px;vertical-align:middle;text-align:center;line-height:45px;font-size:20px;font-weight:bold;color:white;">${data.companyName.charAt(0)}</div>`;
@@ -297,7 +389,7 @@ function generateEmailHeader(data: PayslipEmailData): string {
     </tr>`;
 }
 
-function generateEmailFooter(data: PayslipEmailData): string {
+function generateEmailFooter(data: { companyName: string; companyPhone?: string; companyWebsite?: string; companyEmail?: string; companyAddress?: string }): string {
   const phone = data.companyPhone || "+973 17000342";
   const website = data.companyWebsite || "www.dgcholding.com";
   const email = data.companyEmail || "info@dgcholding.com";
