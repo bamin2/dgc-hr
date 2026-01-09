@@ -54,6 +54,9 @@ export interface CompanySettings {
   };
   payrollDayOfMonth: number; // Day of month when payroll is processed (1-31)
   dashboardCardVisibility?: DashboardCardVisibility;
+  // Employee self-service settings
+  employeeCanViewCompensation?: boolean;
+  showCompensationLineItems?: boolean;
 }
 
 // Employee Table Columns Configuration
@@ -175,7 +178,9 @@ export const companySettings: CompanySettings = {
     currency: 'USD',
     weekendDays: [5, 6] // Friday-Saturday
   },
-  payrollDayOfMonth: 25
+  payrollDayOfMonth: 25,
+  employeeCanViewCompensation: true,
+  showCompensationLineItems: false,
 };
 
 export const userPreferences: UserPreferences = {

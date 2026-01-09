@@ -12,7 +12,8 @@ import {
   SecuritySettings,
   AuditLogCard,
   OrganizationSettingsTab,
-  DashboardSettingsTab
+  DashboardSettingsTab,
+  SelfServiceSettings
 } from '@/components/settings';
 import { PayrollSettingsTab } from '@/components/settings/payroll';
 import { ApprovalSettingsTab } from '@/components/settings/approvals';
@@ -27,7 +28,7 @@ import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { useNotificationPreferences } from '@/hooks/useNotificationPreferences';
 import { useUserSessions } from '@/hooks/useUserSessions';
 import { useRole } from '@/contexts/RoleContext';
-import { Settings, Building2, User, Bell, Puzzle, Shield, Save, Wallet, Loader2, Network, LayoutDashboard, GitBranch } from 'lucide-react';
+import { Settings, Building2, User, Bell, Puzzle, Shield, Save, Wallet, Loader2, Network, LayoutDashboard, GitBranch, UserCircle } from 'lucide-react';
 import { DashboardCardVisibility, defaultDashboardCardVisibility } from '@/data/settings';
 import { toast } from 'sonner';
 
@@ -65,7 +66,7 @@ const SettingsPage = () => {
   const [integrations, setIntegrations] = useState(initialIntegrations);
   const [activeTab, setActiveTab] = useState(() => {
     const tabFromUrl = searchParams.get('tab');
-    const validTabs = ['company', 'organization', 'dashboard', 'approvals', 'payroll', 'preferences', 'notifications', 'integrations', 'security'];
+    const validTabs = ['company', 'organization', 'dashboard', 'selfservice', 'approvals', 'payroll', 'preferences', 'notifications', 'integrations', 'security'];
     if (tabFromUrl && validTabs.includes(tabFromUrl)) {
       return tabFromUrl;
     }
@@ -75,7 +76,7 @@ const SettingsPage = () => {
   // Update active tab when URL changes
   useEffect(() => {
     const tabFromUrl = searchParams.get('tab');
-    const validTabs = ['company', 'organization', 'dashboard', 'approvals', 'payroll', 'preferences', 'notifications', 'integrations', 'security'];
+    const validTabs = ['company', 'organization', 'dashboard', 'selfservice', 'approvals', 'payroll', 'preferences', 'notifications', 'integrations', 'security'];
     if (tabFromUrl && validTabs.includes(tabFromUrl)) {
       setActiveTab(tabFromUrl);
     }
@@ -156,6 +157,7 @@ const SettingsPage = () => {
     { value: 'company', label: 'Company Profile', icon: Building2, requiresAdmin: true },
     { value: 'organization', label: 'Organization', icon: Network, requiresAdmin: true },
     { value: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, requiresAdmin: true },
+    { value: 'selfservice', label: 'Self-Service', icon: UserCircle, requiresAdmin: true },
     { value: 'approvals', label: 'Approvals', icon: GitBranch, requiresAdmin: true },
     { value: 'payroll', label: 'Payroll', icon: Wallet, requiresAdmin: true },
     { value: 'preferences', label: 'Preferences', icon: User, requiresAdmin: false },
@@ -187,6 +189,14 @@ const SettingsPage = () => {
           <DashboardSettingsTab 
             visibility={companySettings.dashboardCardVisibility ?? defaultDashboardCardVisibility}
             onChange={(visibility) => setCompanySettings(prev => ({ ...prev, dashboardCardVisibility: visibility }))}
+          />
+        ) : null;
+      case 'selfservice':
+        return canManageRoles ? (
+          <SelfServiceSettings
+            employeeCanViewCompensation={companySettings.employeeCanViewCompensation ?? true}
+            showCompensationLineItems={companySettings.showCompensationLineItems ?? false}
+            onChange={(field, value) => setCompanySettings(prev => ({ ...prev, [field]: value }))}
           />
         ) : null;
       case 'approvals':
