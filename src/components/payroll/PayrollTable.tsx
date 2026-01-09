@@ -15,13 +15,19 @@ import { PayrollRecord } from "@/data/payroll";
 
 interface PayrollTableProps {
   records: PayrollRecord[];
+  currency?: string;
 }
 
-export function PayrollTable({ records }: PayrollTableProps) {
+export function PayrollTable({ records, currency = "USD" }: PayrollTableProps) {
   const navigate = useNavigate();
 
   const formatCurrency = (amount: number) => {
-    return `$${amount.toLocaleString()}`;
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
   };
 
   const getTotalDeductions = (deductions: PayrollRecord['deductions']) => {
