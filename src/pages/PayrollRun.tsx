@@ -81,21 +81,32 @@ export default function PayrollRun() {
     setIsProcessing(true);
     
     try {
-      const records = selectedRecords.map((e) => ({
-        payroll_run_id: "", // Will be set by the hook
-        employee_id: e.id,
-        employee_name: `${e.firstName} ${e.lastName}`,
-        department: e.department,
-        base_salary: getMonthlySalary(e.salary),
-        overtime: 0,
-        bonuses: adjustments[e.id]?.bonus || 0,
-        tax_deduction: 0,
-        insurance_deduction: 0,
-        other_deduction: adjustments[e.id]?.deduction || 0,
-        net_pay: getMonthlySalary(e.salary) + (adjustments[e.id]?.bonus || 0) - (adjustments[e.id]?.deduction || 0),
-        status: "paid",
-        paid_date: new Date().toISOString().split("T")[0],
-      }));
+      const records = selectedRecords.map((e) => {
+        const baseSalary = getMonthlySalary(e.salary);
+        const bonus = adjustments[e.id]?.bonus || 0;
+        const deduction = adjustments[e.id]?.deduction || 0;
+        const grossPay = baseSalary + bonus;
+        const totalDeductions = deduction;
+        const netPay = grossPay - totalDeductions;
+
+        return {
+          payroll_run_id: "", // Will be set by the hook
+          employee_id: e.id,
+          employee_name: `${e.firstName} ${e.lastName}`,
+          employee_code: e.employeeId,
+          department: e.department,
+          position: e.position,
+          base_salary: baseSalary,
+          housing_allowance: 0,
+          transportation_allowance: 0,
+          other_allowances: bonus > 0 ? { bonus } : {},
+          gross_pay: grossPay,
+          gosi_deduction: 0,
+          other_deductions: deduction > 0 ? { adjustment: deduction } : {},
+          total_deductions: totalDeductions,
+          net_pay: netPay,
+        };
+      });
 
       await addPayrollRun.mutateAsync({
         payPeriodStart: payPeriod.startDate,
