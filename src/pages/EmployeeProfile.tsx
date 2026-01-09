@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -20,6 +20,9 @@ import {
   KeyRound,
   RotateCcw,
 } from "lucide-react";
+import { useEmployeeAllowances } from "@/hooks/useEmployeeAllowances";
+import { useEmployeeDeductions } from "@/hooks/useEmployeeDeductions";
+import { Separator } from "@/components/ui/separator";
 import { Sidebar, Header } from "@/components/dashboard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -44,6 +47,8 @@ export default function EmployeeProfile() {
   const { profile } = useAuth();
   const { data: employee, isLoading, error } = useEmployee(id);
   const { data: allEmployees = [] } = useEmployees();
+  const { data: allowances = [] } = useEmployeeAllowances(id);
+  const { data: deductions = [] } = useEmployeeDeductions(id);
   const updateEmployee = useUpdateEmployee();
   const [formOpen, setFormOpen] = useState(false);
   const [createLoginOpen, setCreateLoginOpen] = useState(false);
@@ -65,6 +70,55 @@ export default function EmployeeProfile() {
       maximumFractionDigits: 0,
     }).format(amount);
   };
+
+  // Calculate allowance and deduction amounts
+  const compensationBreakdown = useMemo(() => {
+    const baseSalary = employee?.salary || 0;
+    
+    const allowanceItems = allowances.map((a: any) => {
+      let amount = 0;
+      if (a.custom_amount) {
+        amount = a.custom_amount;
+      } else if (a.allowance_template) {
+        const template = a.allowance_template;
+        if (template.amount_type === 'percentage' && template.percentage_of === 'base_salary') {
+          amount = (baseSalary * template.amount) / 100;
+        } else {
+          amount = template.amount || 0;
+        }
+      }
+      return {
+        id: a.id,
+        name: a.custom_name || a.allowance_template?.name || 'Allowance',
+        amount,
+      };
+    });
+
+    const deductionItems = deductions.map((d: any) => {
+      let amount = 0;
+      if (d.custom_amount) {
+        amount = d.custom_amount;
+      } else if (d.deduction_template) {
+        const template = d.deduction_template;
+        if (template.amount_type === 'percentage' && template.percentage_of === 'base_salary') {
+          amount = (baseSalary * template.amount) / 100;
+        } else {
+          amount = template.amount || 0;
+        }
+      }
+      return {
+        id: d.id,
+        name: d.custom_name || d.deduction_template?.name || 'Deduction',
+        amount,
+      };
+    });
+
+    const totalAllowances = allowanceItems.reduce((sum, a) => sum + a.amount, 0);
+    const totalDeductions = deductionItems.reduce((sum, d) => sum + d.amount, 0);
+    const totalMonthlySalary = baseSalary + totalAllowances - totalDeductions;
+
+    return { baseSalary, allowanceItems, deductionItems, totalAllowances, totalDeductions, totalMonthlySalary };
+  }, [employee?.salary, allowances, deductions]);
   
   // Check if viewing own profile
   const isOwnProfile = profile?.employee_id === id;
@@ -372,18 +426,61 @@ export default function EmployeeProfile() {
                         </Button>
                       )}
                     </CardHeader>
-                    <CardContent className="space-y-4 pt-4">
+                    <CardContent className="space-y-3 pt-4">
+                      {/* Basic Salary */}
                       <InfoRow 
-                        label="Monthly Salary" 
+                        label="Basic Salary" 
                         value={formatCurrency(employee.salary)} 
                       />
-                        <InfoRow 
-                          label="Bank Account" 
-                          value={employee.iban 
-                            ? `${employee.bankName || "Bank"} ••••${employee.iban.slice(-4)}` 
-                            : "Not specified"
-                          } 
-                        />
+                      
+                      {/* Allowances Section */}
+                      {compensationBreakdown.allowanceItems.length > 0 && (
+                        <>
+                          <Separator className="my-2" />
+                          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Allowances</p>
+                          {compensationBreakdown.allowanceItems.map((allowance) => (
+                            <InfoRow
+                              key={allowance.id}
+                              label={allowance.name}
+                              value={formatCurrency(allowance.amount)}
+                            />
+                          ))}
+                        </>
+                      )}
+                      
+                      {/* Deductions Section */}
+                      {compensationBreakdown.deductionItems.length > 0 && (
+                        <>
+                          <Separator className="my-2" />
+                          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Deductions</p>
+                          {compensationBreakdown.deductionItems.map((deduction) => (
+                            <InfoRow
+                              key={deduction.id}
+                              label={deduction.name}
+                              value={`-${formatCurrency(deduction.amount)}`}
+                            />
+                          ))}
+                        </>
+                      )}
+                      
+                      {/* Total Monthly Salary */}
+                      <Separator className="my-2" />
+                      <div className="flex justify-between items-center pt-1">
+                        <span className="text-sm font-semibold">Total Monthly Salary</span>
+                        <span className="text-sm font-semibold text-primary">
+                          {formatCurrency(compensationBreakdown.totalMonthlySalary)}
+                        </span>
+                      </div>
+                      
+                      {/* Bank Account */}
+                      <Separator className="my-2" />
+                      <InfoRow 
+                        label="Bank Account" 
+                        value={employee.iban 
+                          ? `${employee.bankName || "Bank"} ••••${employee.iban.slice(-4)}` 
+                          : "Not specified"
+                        } 
+                      />
                     </CardContent>
                   </Card>
                 )}
