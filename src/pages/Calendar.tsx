@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek } from "date-fns";
-import { Sidebar } from "@/components/dashboard/Sidebar";
-import { Header } from "@/components/dashboard/Header";
+import { DashboardLayout } from "@/components/dashboard";
 import {
   CalendarHeader,
   CalendarFilters,
@@ -159,149 +158,145 @@ export default function Calendar() {
   };
 
   return (
-    <div className="flex h-screen w-full bg-background overflow-hidden">
-      <Sidebar />
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Header />
-        <main className="flex-1 p-4 sm:p-6 overflow-y-auto overflow-x-hidden flex flex-col">
-          <CalendarHeader
-            currentDate={selectedDate}
-            todayEvents={todayEvents}
-            onScheduleClick={handleScheduleClick}
-            onCreateClick={() => setCreateDialogOpen(true)}
-          />
+    <DashboardLayout>
+      <div className="flex flex-col h-full">
+        <CalendarHeader
+          currentDate={selectedDate}
+          todayEvents={todayEvents}
+          onScheduleClick={handleScheduleClick}
+          onCreateClick={() => setCreateDialogOpen(true)}
+        />
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between py-3 border-b border-border gap-3">
-            <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between py-3 border-b border-border gap-3">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleToday}
+              className="px-3 py-1.5 text-sm font-medium border border-border rounded-md hover:bg-muted transition-colors"
+            >
+              Today
+            </button>
+            <div className="flex items-center gap-1">
               <button
-                onClick={handleToday}
-                className="px-3 py-1.5 text-sm font-medium border border-border rounded-md hover:bg-muted transition-colors"
+                onClick={handlePrevious}
+                className="h-8 w-8 flex items-center justify-center rounded-md hover:bg-muted transition-colors"
               >
-                Today
-              </button>
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={handlePrevious}
-                  className="h-8 w-8 flex items-center justify-center rounded-md hover:bg-muted transition-colors"
-                >
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-                <button
-                  onClick={handleNext}
-                  className="h-8 w-8 flex items-center justify-center rounded-md hover:bg-muted transition-colors"
-                >
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              </div>
-
-              {/* Show week dates only in week view - hidden on mobile */}
-              {viewMode === "week" && (
-                <div className="hidden lg:flex items-center gap-1">
-                  {weekDates.map((date) => {
-                    const day = date.toLocaleDateString("en-US", { weekday: "short" });
-                    const dayNum = date.getDate().toString().padStart(2, "0");
-                    const isToday = date.toDateString() === new Date().toDateString();
-                    const isSelected = date.toDateString() === selectedDate.toDateString();
-                    return (
-                      <button
-                        key={date.toISOString()}
-                        onClick={() => handleDateSelect(date)}
-                        className={`flex flex-col items-center px-2 lg:px-3 py-1.5 rounded-lg transition-colors ${
-                          isSelected
-                            ? "bg-primary text-primary-foreground"
-                            : isToday
-                            ? "bg-accent text-accent-foreground"
-                            : "hover:bg-muted"
-                        }`}
-                      >
-                        <span className="text-xs font-medium">{day}</span>
-                        <span className="text-sm font-bold">{dayNum}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* Show date display in day view */}
-              {viewMode === "day" && (
-                <span className="text-lg font-semibold">
-                  {format(selectedDate, "EEEE, MMMM d, yyyy")}
-                </span>
-              )}
-
-              {/* Show month display in month view */}
-              {viewMode === "month" && (
-                <span className="text-lg font-semibold">
-                  {format(currentDate, "MMMM yyyy")}
-                </span>
-              )}
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Select
-                value={viewMode}
-                onValueChange={(v) => setViewMode(v as "day" | "week" | "month")}
-              >
-                <SelectTrigger className="w-24 h-8">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="day">Day</SelectItem>
-                  <SelectItem value="week">Week</SelectItem>
-                  <SelectItem value="month">Month</SelectItem>
-                </SelectContent>
-              </Select>
-              <CalendarFilters
-                open={filtersOpen}
-                onOpenChange={setFiltersOpen}
-                filters={filters}
-                onFiltersChange={setFilters}
-              />
-              <button
-                onClick={handleExportClick}
-                className="h-8 px-3 flex items-center gap-1.5 text-sm border border-border rounded-md hover:bg-muted transition-colors"
-              >
-                <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                Export
+              </button>
+              <button
+                onClick={handleNext}
+                className="h-8 w-8 flex items-center justify-center rounded-md hover:bg-muted transition-colors"
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
               </button>
             </div>
+
+            {/* Show week dates only in week view - hidden on mobile */}
+            {viewMode === "week" && (
+              <div className="hidden lg:flex items-center gap-1">
+                {weekDates.map((date) => {
+                  const day = date.toLocaleDateString("en-US", { weekday: "short" });
+                  const dayNum = date.getDate().toString().padStart(2, "0");
+                  const isToday = date.toDateString() === new Date().toDateString();
+                  const isSelected = date.toDateString() === selectedDate.toDateString();
+                  return (
+                    <button
+                      key={date.toISOString()}
+                      onClick={() => handleDateSelect(date)}
+                      className={`flex flex-col items-center px-2 lg:px-3 py-1.5 rounded-lg transition-colors ${
+                        isSelected
+                          ? "bg-primary text-primary-foreground"
+                          : isToday
+                          ? "bg-accent text-accent-foreground"
+                          : "hover:bg-muted"
+                      }`}
+                    >
+                      <span className="text-xs font-medium">{day}</span>
+                      <span className="text-sm font-bold">{dayNum}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Show date display in day view */}
+            {viewMode === "day" && (
+              <span className="text-lg font-semibold">
+                {format(selectedDate, "EEEE, MMMM d, yyyy")}
+              </span>
+            )}
+
+            {/* Show month display in month view */}
+            {viewMode === "month" && (
+              <span className="text-lg font-semibold">
+                {format(currentDate, "MMMM yyyy")}
+              </span>
+            )}
           </div>
 
-          {/* Calendar Views */}
-          {viewMode === "day" && (
-            <DayView
-              date={selectedDate}
-              events={filteredEvents}
-              onEventClick={handleEventClick}
+          <div className="flex items-center gap-2">
+            <Select
+              value={viewMode}
+              onValueChange={(v) => setViewMode(v as "day" | "week" | "month")}
+            >
+              <SelectTrigger className="w-24 h-8">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="day">Day</SelectItem>
+                <SelectItem value="week">Week</SelectItem>
+                <SelectItem value="month">Month</SelectItem>
+              </SelectContent>
+            </Select>
+            <CalendarFilters
+              open={filtersOpen}
+              onOpenChange={setFiltersOpen}
+              filters={filters}
+              onFiltersChange={setFilters}
             />
-          )}
+            <button
+              onClick={handleExportClick}
+              className="h-8 px-3 flex items-center gap-1.5 text-sm border border-border rounded-md hover:bg-muted transition-colors"
+            >
+              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Export
+            </button>
+          </div>
+        </div>
 
-          {viewMode === "week" && (
-            <WeekView
-              weekDates={weekDates}
-              events={filteredEvents}
-              onEventClick={handleEventClick}
-            />
-          )}
+        {/* Calendar Views */}
+        {viewMode === "day" && (
+          <DayView
+            date={selectedDate}
+            events={filteredEvents}
+            onEventClick={handleEventClick}
+          />
+        )}
 
-          {viewMode === "month" && (
-            <MonthView
-              currentDate={currentDate}
-              events={filteredEvents}
-              onEventClick={handleEventClick}
-              onDateClick={(date) => {
-                setSelectedDate(date);
-                setViewMode("day");
-              }}
-            />
-          )}
-        </main>
+        {viewMode === "week" && (
+          <WeekView
+            weekDates={weekDates}
+            events={filteredEvents}
+            onEventClick={handleEventClick}
+          />
+        )}
+
+        {viewMode === "month" && (
+          <MonthView
+            currentDate={currentDate}
+            events={filteredEvents}
+            onEventClick={handleEventClick}
+            onDateClick={(date) => {
+              setSelectedDate(date);
+              setViewMode("day");
+            }}
+          />
+        )}
       </div>
 
       <CreateEventDialog
@@ -314,6 +309,6 @@ export default function Calendar() {
         open={eventSheetOpen}
         onOpenChange={setEventSheetOpen}
       />
-    </div>
+    </DashboardLayout>
   );
 }
