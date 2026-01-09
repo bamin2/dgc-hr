@@ -976,6 +976,45 @@ export type Database = {
         }
         Relationships: []
       }
+      email_action_tokens: {
+        Row: {
+          action_type: string
+          created_at: string | null
+          expires_at: string
+          id: string
+          request_id: string
+          request_type: string
+          step_id: string
+          token: string
+          used_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          request_id: string
+          request_type: string
+          step_id: string
+          token: string
+          used_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          request_id?: string
+          request_type?: string
+          step_id?: string
+          token?: string
+          used_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       email_logs: {
         Row: {
           created_at: string | null
