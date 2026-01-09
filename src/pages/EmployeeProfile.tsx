@@ -23,7 +23,7 @@ import {
 import { useEmployeeAllowances } from "@/hooks/useEmployeeAllowances";
 import { useEmployeeDeductions } from "@/hooks/useEmployeeDeductions";
 import { Separator } from "@/components/ui/separator";
-import { Sidebar, Header } from "@/components/dashboard";
+import { DashboardLayout } from "@/components/dashboard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -40,6 +40,18 @@ import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { toast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+
+function InfoRow({ label, value, icon }: { label: string; value?: string | null; icon?: React.ReactNode }) {
+  return (
+    <div className="flex justify-between items-start py-2">
+      <span className="text-sm text-muted-foreground flex items-center gap-2">
+        {icon}
+        {label}
+      </span>
+      <span className="text-sm font-medium text-foreground text-right">{value || 'Not specified'}</span>
+    </div>
+  );
+}
 
 export default function EmployeeProfile() {
   const { id } = useParams<{ id: string }>();
@@ -155,36 +167,26 @@ export default function EmployeeProfile() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen bg-background">
-        <Sidebar />
-        <div className="flex-1 flex flex-col">
-          <Header />
-          <main className="flex-1 p-6">
-            <Skeleton className="h-8 w-40 mb-4" />
-            <Skeleton className="h-48 w-full mb-6" />
-            <Skeleton className="h-96 w-full" />
-          </main>
-        </div>
-      </div>
+      <DashboardLayout>
+        <Skeleton className="h-8 w-40 mb-4" />
+        <Skeleton className="h-48 w-full mb-6" />
+        <Skeleton className="h-96 w-full" />
+      </DashboardLayout>
     );
   }
 
   if (!employee || error) {
     return (
-      <div className="flex min-h-screen bg-background">
-        <Sidebar />
-        <div className="flex-1 flex flex-col">
-          <Header />
-          <main className="flex-1 p-6 flex items-center justify-center">
-            <div className="text-center">
-              <h2 className="text-xl font-semibold mb-2">Employee not found</h2>
-              <Button onClick={() => navigate('/employees')}>
-                Back to Employees
-              </Button>
-            </div>
-          </main>
+      <DashboardLayout>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold mb-2">Employee not found</h2>
+            <Button onClick={() => navigate('/employees')}>
+              Back to Employees
+            </Button>
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
@@ -232,576 +234,431 @@ export default function EmployeeProfile() {
     });
   };
 
-  return (
-    <div className="flex min-h-screen bg-background">
-      <Sidebar />
-      
-      <div className="flex-1 flex flex-col">
-        <Header />
-        
-        <main className="flex-1 p-6">
-          {/* Back Button */}
-          <Button
-            variant="ghost"
-            className="mb-4 gap-2"
-            onClick={() => navigate('/employees')}
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Employees
-          </Button>
+  const handleRoleChange = async (newRole: AppRole) => {
+    if (!id) return;
+    
+    try {
+      await updateEmployeeRole(id, newRole);
+      toast({
+        title: "Role updated",
+        description: `Employee role has been changed to ${roleDescriptions[newRole]?.label || newRole}.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update employee role.",
+        variant: "destructive",
+      });
+    }
+  };
 
-          {/* Profile Header Card */}
-          <Card className="mb-6">
-            <CardContent className="p-6">
-              <div className="flex flex-col md:flex-row md:items-center gap-6">
-                <Avatar className="h-24 w-24 ring-4 ring-background shadow-xl">
-                  <AvatarImage src={employee.avatar} alt={employee.fullName} />
-                  <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-semibold">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
-                
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h1 className="text-2xl font-bold text-foreground">
-                      {employee.fullName}
-                    </h1>
-                    <StatusBadge status={employee.status} />
-                    <RoleBadge role={employeeRole} />
-                  </div>
-                  <p className="text-lg text-muted-foreground mb-1">{employee.position}</p>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Building2 className="h-4 w-4" />
-                      {employee.department}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Briefcase className="h-4 w-4" />
-                      {employee.employeeId}
-                    </span>
-                    {employee.workLocationName && (
-                      <span className="flex items-center gap-1">
-                        <MapPin className="h-4 w-4" />
-                        {employee.workLocationCountry && (
-                          <span>{getCountryByName(employee.workLocationCountry)?.flag}</span>
-                        )}
-                        {employee.workLocationName}
-                      </span>
+  return (
+    <DashboardLayout>
+      {/* Back Button */}
+      <Button
+        variant="ghost"
+        className="mb-4 gap-2"
+        onClick={() => navigate('/employees')}
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Back to Employees
+      </Button>
+
+      {/* Profile Header Card */}
+      <Card className="mb-6">
+        <CardContent className="p-6">
+          <div className="flex flex-col md:flex-row md:items-center gap-6">
+            <Avatar className="h-24 w-24 ring-4 ring-background shadow-xl">
+              <AvatarImage src={employee.avatar} alt={employee.fullName} />
+              <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-semibold">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+            
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-2">
+                <h1 className="text-2xl font-bold text-foreground">
+                  {employee.fullName}
+                </h1>
+                <StatusBadge status={employee.status} />
+                <RoleBadge role={employeeRole} />
+              </div>
+              <p className="text-lg text-muted-foreground mb-1">{employee.position}</p>
+              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <span className="flex items-center gap-1">
+                  <Building2 className="h-4 w-4" />
+                  {employee.department}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Briefcase className="h-4 w-4" />
+                  {employee.employeeId}
+                </span>
+                {employee.workLocationName && (
+                  <span className="flex items-center gap-1">
+                    <MapPin className="h-4 w-4" />
+                    {employee.workLocationCountry && (
+                      <span>{getCountryByName(employee.workLocationCountry)?.flag}</span>
                     )}
-                  </div>
-                </div>
-                
-                {canEditEmployees && (
-                  <div className="flex gap-2">
-                    <Button variant="outline" className="gap-2" onClick={() => setFormOpen(true)}>
-                      <Pencil className="h-4 w-4" />
-                      Edit
-                    </Button>
-                    <Button variant="outline" className="gap-2">
-                      <MessageSquare className="h-4 w-4" />
-                      Message
-                    </Button>
-                    <Button variant="outline" className="gap-2 text-destructive hover:text-destructive">
-                      <UserX className="h-4 w-4" />
-                      Deactivate
-                    </Button>
-                  </div>
+                    {employee.workLocationName}
+                  </span>
                 )}
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Tabs Section */}
-          <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="bg-muted/50">
-              <TabsTrigger value="overview" className="gap-2">
-                <User className="h-4 w-4" />
-                Overview
-              </TabsTrigger>
-              <TabsTrigger value="employment" className="gap-2">
-                <Briefcase className="h-4 w-4" />
-                Employment
-              </TabsTrigger>
-              {hasFullAccess && (
-                <>
-                  <TabsTrigger value="documents" className="gap-2">
-                    <FileText className="h-4 w-4" />
-                    Documents
-                  </TabsTrigger>
-                  <TabsTrigger value="timeoff" className="gap-2">
-                    <Clock className="h-4 w-4" />
-                    Time Off
-                  </TabsTrigger>
-                  <TabsTrigger value="activity" className="gap-2">
-                    <Activity className="h-4 w-4" />
-                    Activity
-                  </TabsTrigger>
-                  <TabsTrigger value="roles" className="gap-2">
-                    <Shield className="h-4 w-4" />
-                    Roles
-                  </TabsTrigger>
-                </>
-              )}
-            </TabsList>
-
-            <TabsContent value="overview" className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Personal Information */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base font-medium flex items-center gap-2">
-                      <User className="h-4 w-4 text-primary" />
-                      Personal Information
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <InfoRow label="First Name" value={employee.firstName} />
-                    {employee.secondName && (
-                      <InfoRow label="Second Name" value={employee.secondName} />
-                    )}
-                    <InfoRow label="Last Name" value={employee.lastName} />
-                    <InfoRow label="Full Name" value={employee.fullName} />
-                    <InfoRow 
-                      label="Date of Birth" 
-                      value={employee.dateOfBirth ? format(new Date(employee.dateOfBirth), 'MMMM d, yyyy') : 'Not specified'} 
-                    />
-                    <InfoRow label="Gender" value={employee.gender || 'Not specified'} />
-                    <InfoRow label="Nationality" value={employee.nationality || 'Not specified'} />
-                  </CardContent>
-                </Card>
-
-                {/* Contact Information */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base font-medium flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-primary" />
-                      Contact Information
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <InfoRow label="Email" value={employee.email} icon={<Mail className="h-4 w-4" />} />
-                    <InfoRow label="Phone" value={employee.phone} icon={<Phone className="h-4 w-4" />} />
-                    <InfoRow 
-                      label="Address" 
-                      value={employee.address || 'Not specified'} 
-                      icon={<MapPin className="h-4 w-4" />}
-                    />
-                  </CardContent>
-                </Card>
-
-                {/* Emergency Contact */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base font-medium flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-primary" />
-                      Emergency Contact
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {employee.emergencyContact ? (
-                      <>
-                        <InfoRow label="Name" value={employee.emergencyContact.name} />
-                        <InfoRow label="Relationship" value={employee.emergencyContact.relationship} />
-                        <InfoRow label="Phone" value={employee.emergencyContact.phone} />
-                      </>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">No emergency contact specified</p>
-                    )}
-                  </CardContent>
-                </Card>
+            </div>
+            
+            {canEditEmployees && (
+              <div className="flex gap-2">
+                <Button variant="outline" className="gap-2" onClick={() => setFormOpen(true)}>
+                  <Pencil className="h-4 w-4" />
+                  Edit
+                </Button>
+                <Button variant="outline" className="gap-2">
+                  <MessageSquare className="h-4 w-4" />
+                  Message
+                </Button>
+                <Button variant="outline" className="gap-2 text-destructive hover:text-destructive">
+                  <UserX className="h-4 w-4" />
+                  Deactivate
+                </Button>
               </div>
-            </TabsContent>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
-            <TabsContent value="employment" className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Job Details - Always visible */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base font-medium flex items-center gap-2">
-                      <Briefcase className="h-4 w-4 text-primary" />
-                      Job Details
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <InfoRow label="Employee ID" value={employee.employeeId} />
-                    <InfoRow label="Department" value={employee.department} />
-                    <InfoRow label="Position" value={employee.position} />
-                    <InfoRow 
-                      label="Join Date" 
-                      value={format(new Date(employee.joinDate), 'MMMM d, yyyy')} 
-                    />
-                    <InfoRow label="Manager" value={(() => {
-                      if (!employee.managerId) return 'Not assigned';
-                      const mgr = allEmployees.find(e => e.id === employee.managerId);
-                      return mgr ? `${mgr.firstName} ${mgr.lastName}` : employee.manager || 'Not assigned';
-                    })()} />
-                  </CardContent>
-                </Card>
+      {/* Tabs Section */}
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList className="bg-muted/50">
+          <TabsTrigger value="overview" className="gap-2">
+            <User className="h-4 w-4" />
+            Overview
+          </TabsTrigger>
+          <TabsTrigger value="employment" className="gap-2">
+            <Briefcase className="h-4 w-4" />
+            Employment
+          </TabsTrigger>
+          {hasFullAccess && (
+            <>
+              <TabsTrigger value="documents" className="gap-2">
+                <FileText className="h-4 w-4" />
+                Documents
+              </TabsTrigger>
+              <TabsTrigger value="timeoff" className="gap-2">
+                <Clock className="h-4 w-4" />
+                Time Off
+              </TabsTrigger>
+              <TabsTrigger value="activity" className="gap-2">
+                <Activity className="h-4 w-4" />
+                Activity
+              </TabsTrigger>
+              <TabsTrigger value="roles" className="gap-2">
+                <Shield className="h-4 w-4" />
+                Roles
+              </TabsTrigger>
+            </>
+          )}
+        </TabsList>
 
-                {/* Compensation - Only for own profile or HR/Admin */}
-                {hasFullAccess && (
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-base font-medium flex items-center gap-2">
-                        <CreditCard className="h-4 w-4 text-primary" />
-                        Compensation
-                      </CardTitle>
+        <TabsContent value="overview" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Personal Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base font-medium flex items-center gap-2">
+                  <User className="h-4 w-4 text-primary" />
+                  Personal Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <InfoRow label="First Name" value={employee.firstName} />
+                {employee.secondName && (
+                  <InfoRow label="Second Name" value={employee.secondName} />
+                )}
+                <InfoRow label="Last Name" value={employee.lastName} />
+                <InfoRow label="Full Name" value={employee.fullName} />
+                <InfoRow 
+                  label="Date of Birth" 
+                  value={employee.dateOfBirth ? format(new Date(employee.dateOfBirth), 'MMMM d, yyyy') : 'Not specified'} 
+                />
+                <InfoRow label="Gender" value={employee.gender || 'Not specified'} />
+                <InfoRow label="Nationality" value={employee.nationality || 'Not specified'} />
+              </CardContent>
+            </Card>
+
+            {/* Contact Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base font-medium flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-primary" />
+                  Contact Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <InfoRow label="Email" value={employee.email} icon={<Mail className="h-4 w-4" />} />
+                <InfoRow label="Phone" value={employee.phone} icon={<Phone className="h-4 w-4" />} />
+                <InfoRow 
+                  label="Address" 
+                  value={employee.address || 'Not specified'} 
+                  icon={<MapPin className="h-4 w-4" />}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Emergency Contact */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base font-medium flex items-center gap-2">
+                  <Phone className="h-4 w-4 text-primary" />
+                  Emergency Contact
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {employee.emergencyContact ? (
+                  <>
+                    <InfoRow label="Name" value={employee.emergencyContact.name} />
+                    <InfoRow label="Relationship" value={employee.emergencyContact.relationship} />
+                    <InfoRow label="Phone" value={employee.emergencyContact.phone} />
+                  </>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No emergency contact specified</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="employment" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Job Details - Always visible */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base font-medium flex items-center gap-2">
+                  <Briefcase className="h-4 w-4 text-primary" />
+                  Job Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <InfoRow label="Employee ID" value={employee.employeeId} />
+                <InfoRow label="Department" value={employee.department} />
+                <InfoRow label="Position" value={employee.position} />
+                <InfoRow 
+                  label="Join Date" 
+                  value={employee.joinDate ? format(new Date(employee.joinDate), 'MMMM d, yyyy') : 'Not specified'} 
+                />
+                <InfoRow label="Work Location" value={employee.workLocationName || 'Not specified'} />
+              </CardContent>
+            </Card>
+
+            {/* Compensation - Only for those with access */}
+            {hasFullAccess && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base font-medium flex items-center gap-2">
+                    <CreditCard className="h-4 w-4 text-primary" />
+                    Compensation
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <InfoRow label="Base Salary" value={formatCurrency(compensationBreakdown.baseSalary)} />
+                  
+                  {compensationBreakdown.allowanceItems.length > 0 && (
+                    <>
+                      <Separator />
+                      <p className="text-xs font-medium text-muted-foreground uppercase">Allowances</p>
+                      {compensationBreakdown.allowanceItems.map((item) => (
+                        <InfoRow key={item.id} label={item.name} value={formatCurrency(item.amount)} />
+                      ))}
+                    </>
+                  )}
+                  
+                  {compensationBreakdown.deductionItems.length > 0 && (
+                    <>
+                      <Separator />
+                      <p className="text-xs font-medium text-muted-foreground uppercase">Deductions</p>
+                      {compensationBreakdown.deductionItems.map((item) => (
+                        <InfoRow key={item.id} label={item.name} value={`-${formatCurrency(item.amount)}`} />
+                      ))}
+                    </>
+                  )}
+                  
+                  <Separator />
+                  <div className="flex justify-between items-center pt-2">
+                    <span className="text-sm font-medium">Net Monthly Salary</span>
+                    <span className="text-lg font-bold text-primary">{formatCurrency(compensationBreakdown.totalMonthlySalary)}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Bank Details */}
+            {hasFullAccess && (
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle className="text-base font-medium flex items-center gap-2">
+                    <CreditCard className="h-4 w-4 text-primary" />
+                    Bank Details
+                  </CardTitle>
                   {canEditEmployees && (
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="text-xs"
-                      onClick={() => setBankDialogOpen(true)}
-                    >
-                      Edit Bank Account Details
+                    <Button variant="ghost" size="sm" onClick={() => setBankDialogOpen(true)}>
+                      <Pencil className="h-4 w-4" />
                     </Button>
                   )}
-                    </CardHeader>
-                    <CardContent className="space-y-3 pt-4">
-                      {/* Basic Salary */}
-                      <InfoRow 
-                        label="Basic Salary" 
-                        value={formatCurrency(employee.salary)} 
-                      />
-                      
-                      {/* Allowances Section */}
-                      {compensationBreakdown.allowanceItems.length > 0 && (
-                        <>
-                          <Separator className="my-2" />
-                          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Allowances</p>
-                          {compensationBreakdown.allowanceItems.map((allowance) => (
-                            <InfoRow
-                              key={allowance.id}
-                              label={allowance.name}
-                              value={formatCurrency(allowance.amount)}
-                            />
-                          ))}
-                        </>
-                      )}
-                      
-                      {/* Gross Pay - shown after allowances, before deductions */}
-                      {compensationBreakdown.allowanceItems.length > 0 && (
-                        <>
-                          <Separator className="my-2" />
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm font-medium">Gross Pay</span>
-                            <span className="text-sm font-medium">
-                              {formatCurrency(compensationBreakdown.grossPay)}
-                            </span>
-                          </div>
-                        </>
-                      )}
-                      
-                      {/* Deductions Section */}
-                      {compensationBreakdown.deductionItems.length > 0 && (
-                        <>
-                          <Separator className="my-2" />
-                          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Deductions</p>
-                          {compensationBreakdown.deductionItems.map((deduction) => (
-                            <InfoRow
-                              key={deduction.id}
-                              label={deduction.name}
-                              value={`-${formatCurrency(deduction.amount)}`}
-                            />
-                          ))}
-                        </>
-                      )}
-                      
-                      {/* Total Monthly Salary */}
-                      <Separator className="my-2" />
-                      <div className="flex justify-between items-center pt-1">
-                        <span className="text-sm font-semibold">Total Monthly Salary</span>
-                        <span className="text-sm font-semibold text-primary">
-                          {formatCurrency(compensationBreakdown.totalMonthlySalary)}
-                        </span>
-                      </div>
-                      
-                      {/* Bank Account */}
-                      <Separator className="my-2" />
-                      <InfoRow 
-                        label="Bank Account" 
-                        value={employee.iban 
-                          ? `${employee.bankName || "Bank"} ••••${employee.iban.slice(-4)}` 
-                          : "Not specified"
-                        } 
-                      />
-                    </CardContent>
-                  </Card>
-                )}
-                
-                <BankDetailsDialog
-                  open={bankDialogOpen}
-                  onOpenChange={setBankDialogOpen}
-                  employee={employee}
-                />
-              </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <InfoRow label="Bank Name" value={employee.bankName} />
+                  <InfoRow label="Account Number" value={employee.bankAccountNumber} />
+                  <InfoRow label="IBAN" value={employee.iban} />
+                </CardContent>
+              </Card>
+            )}
 
-              {/* Salary History - Only for own profile or HR/Admin */}
-              {hasFullAccess && (
-                <SalaryHistoryCard employeeId={employee.id} />
-              )}
-            </TabsContent>
-
+            {/* Salary History */}
             {hasFullAccess && (
-              <>
-                <TabsContent value="documents">
-                  <EmployeeDocumentsTab 
-                    employeeId={employee.id} 
-                    canEdit={canEditEmployees}
-                  />
-                </TabsContent>
+              <SalaryHistoryCard employeeId={employee.id} />
+            )}
+          </div>
+        </TabsContent>
 
-                <TabsContent value="timeoff">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                    <Card>
-                      <CardContent className="p-6">
-                        <div className="text-sm text-muted-foreground mb-1">Annual Leave</div>
-                        <div className="text-2xl font-bold text-foreground">12 days</div>
-                        <div className="text-xs text-muted-foreground">remaining of 20</div>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardContent className="p-6">
-                        <div className="text-sm text-muted-foreground mb-1">Sick Leave</div>
-                        <div className="text-2xl font-bold text-foreground">8 days</div>
-                        <div className="text-xs text-muted-foreground">remaining of 10</div>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardContent className="p-6">
-                        <div className="text-sm text-muted-foreground mb-1">Personal Leave</div>
-                        <div className="text-2xl font-bold text-foreground">3 days</div>
-                        <div className="text-xs text-muted-foreground">remaining of 5</div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base">Leave History</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-muted-foreground text-sm">No leave requests found.</p>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
+        {hasFullAccess && (
+          <TabsContent value="documents" className="space-y-6">
+            <EmployeeDocumentsTab employeeId={employee.id} />
+          </TabsContent>
+        )}
 
-                <TabsContent value="activity">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base">Recent Activity</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <ActivityItem
-                        date="Today"
-                        action="Clocked in at 9:02 AM"
-                      />
-                      <ActivityItem
-                        date="Yesterday"
-                        action="Submitted expense report for $234.50"
-                      />
-                      <ActivityItem
-                        date="2 days ago"
-                        action="Completed onboarding training module"
-                      />
-                      <ActivityItem
-                        date="1 week ago"
-                        action="Updated profile information"
-                      />
-                    </CardContent>
-                  </Card>
-                </TabsContent>
+        {hasFullAccess && (
+          <TabsContent value="timeoff" className="space-y-6">
+            <Card>
+              <CardContent className="p-12 text-center">
+                <Clock className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+                <h3 className="text-lg font-medium mb-2">Time Off History</h3>
+                <p className="text-muted-foreground">Coming soon...</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
 
-                <TabsContent value="roles" className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Current Role */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-base font-medium flex items-center gap-2">
-                          <Shield className="h-4 w-4 text-primary" />
-                          Current Role
-                        </CardTitle>
-                        <CardDescription>
-                          The employee's current access level and permissions
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="flex items-center gap-3">
-                          <RoleBadge role={employeeRole} />
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          {roleDescriptions[employeeRole]}
-                        </p>
-                      </CardContent>
-                    </Card>
+        {hasFullAccess && (
+          <TabsContent value="activity" className="space-y-6">
+            <Card>
+              <CardContent className="p-12 text-center">
+                <Activity className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+                <h3 className="text-lg font-medium mb-2">Activity Log</h3>
+                <p className="text-muted-foreground">Coming soon...</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
 
-                    {/* Role Assignment */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-base font-medium flex items-center gap-2">
-                          <Shield className="h-4 w-4 text-primary" />
-                          Assign Role
-                        </CardTitle>
-                        <CardDescription>
-                          {canManageRoles 
-                            ? "Change this employee's role and permissions"
-                            : "Only HR and Admin can change roles"
-                          }
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <RoleSelectorWithDescription
-                          value={employeeRole}
-                          onValueChange={async (newRole: AppRole) => {
-                            if (id) {
-                              const result = await updateEmployeeRole(id, newRole);
-                              if (result?.error) {
-                                toast({
-                                  title: "Failed to update role",
-                                  description: result.error,
-                                  variant: "destructive",
-                                });
-                              } else {
-                                toast({
-                                  title: "Role updated",
-                                  description: `${employee.firstName}'s role has been changed to ${newRole}.`,
-                                });
-                              }
-                            }
-                          }}
-                          disabled={!canManageRoles}
-                        />
-                      </CardContent>
-                    </Card>
-                  </div>
+        {hasFullAccess && (
+          <TabsContent value="roles" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Current Role */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base font-medium flex items-center gap-2">
+                    <Shield className="h-4 w-4 text-primary" />
+                    System Role
+                  </CardTitle>
+                  <CardDescription>
+                    The employee's access level and permissions in the system
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {canManageRoles ? (
+                    <RoleSelectorWithDescription
+                      currentRole={employeeRole}
+                      onRoleChange={handleRoleChange}
+                    />
+                  ) : (
+                    <div className="flex items-center gap-3">
+                      <RoleBadge role={employeeRole} />
+                      <span className="text-sm text-muted-foreground">
+                        {roleDescriptions[employeeRole]?.description || 'No description available'}
+                      </span>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
-                  {/* Account Access (HR/Admin only) */}
-                  {canManageRoles && (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-base font-medium flex items-center gap-2">
-                          <KeyRound className="h-4 w-4 text-primary" />
-                          Account Access
-                        </CardTitle>
-                        <CardDescription>
-                          Manage login credentials for this employee
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="flex gap-3">
+              {/* Login Management */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base font-medium flex items-center gap-2">
+                    <KeyRound className="h-4 w-4 text-primary" />
+                    Login Management
+                  </CardTitle>
+                  <CardDescription>
+                    Manage the employee's system access and credentials
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {employee.userId ? (
+                    <>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <div className="w-2 h-2 rounded-full bg-green-500" />
+                        Login account active
+                      </div>
+                      {canManageRoles && (
                         <Button 
                           variant="outline" 
-                          className="gap-2"
-                          onClick={() => setCreateLoginOpen(true)}
-                        >
-                          <KeyRound className="h-4 w-4" />
-                          Create Login
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          className="gap-2"
+                          className="w-full gap-2"
                           onClick={() => setResetPasswordOpen(true)}
                         >
                           <RotateCcw className="h-4 w-4" />
                           Reset Password
                         </Button>
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {/* Role Permissions Info */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base font-medium">Role Permissions</CardTitle>
-                      <CardDescription>
-                        What each role can access in the system
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {(['employee', 'manager', 'hr', 'admin'] as AppRole[]).map((role) => (
-                          <div 
-                            key={role} 
-                            className={`p-4 rounded-lg border ${role === employeeRole ? 'border-primary bg-primary/5' : 'border-border'}`}
-                          >
-                            <div className="flex items-center gap-2 mb-2">
-                              <RoleBadge role={role} />
-                            </div>
-                            <p className="text-xs text-muted-foreground">
-                              {roleDescriptions[role]}
-                            </p>
-                          </div>
-                        ))}
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <div className="w-2 h-2 rounded-full bg-amber-500" />
+                        No login account
                       </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-              </>
-            )}
-          </Tabs>
-        </main>
-      </div>
+                      {canManageRoles && (
+                        <Button 
+                          variant="outline" 
+                          className="w-full gap-2"
+                          onClick={() => setCreateLoginOpen(true)}
+                        >
+                          <KeyRound className="h-4 w-4" />
+                          Create Login
+                        </Button>
+                      )}
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        )}
+      </Tabs>
 
+      {/* Dialogs */}
       <EmployeeForm
         open={formOpen}
         onOpenChange={setFormOpen}
         employee={employee}
         onSave={handleSave}
+        allEmployees={allEmployees}
       />
-
+      
       <CreateLoginDialog
         open={createLoginOpen}
         onOpenChange={setCreateLoginOpen}
-        employee={{
-          id: employee.id,
-          firstName: employee.firstName,
-          lastName: employee.lastName,
-          email: employee.email,
-        }}
+        employee={employee}
       />
-
+      
       <ResetPasswordDialog
         open={resetPasswordOpen}
         onOpenChange={setResetPasswordOpen}
-        employee={{
-          id: employee.id,
-          firstName: employee.firstName,
-          lastName: employee.lastName,
-          email: employee.email,
-        }}
+        employee={employee}
       />
-    </div>
-  );
-}
-
-function InfoRow({ 
-  label, 
-  value, 
-  icon 
-}: { 
-  label: string; 
-  value: string; 
-  icon?: React.ReactNode;
-}) {
-  return (
-    <div className="flex justify-between items-start">
-      <span className="text-sm text-muted-foreground flex items-center gap-2">
-        {icon}
-        {label}
-      </span>
-      <span className="text-sm font-medium text-foreground text-right max-w-[60%]">
-        {value}
-      </span>
-    </div>
-  );
-}
-
-function ActivityItem({ date, action }: { date: string; action: string }) {
-  return (
-    <div className="flex items-start gap-3">
-      <div className="h-2 w-2 rounded-full bg-primary mt-2" />
-      <div>
-        <p className="text-sm text-foreground">{action}</p>
-        <p className="text-xs text-muted-foreground">{date}</p>
-      </div>
-    </div>
+      
+      <BankDetailsDialog
+        open={bankDialogOpen}
+        onOpenChange={setBankDialogOpen}
+        employee={employee}
+      />
+    </DashboardLayout>
   );
 }

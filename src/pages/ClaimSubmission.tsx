@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sidebar, Header } from '@/components/dashboard';
+import { DashboardLayout } from '@/components/dashboard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -97,193 +97,187 @@ const ClaimSubmission = () => {
   const isLoading = employeesLoading || enrollmentsLoading;
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <Sidebar />
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Header />
-        <main className="flex-1 p-6 overflow-auto">
-        <div className="max-w-2xl mx-auto space-y-6">
-          {/* Back Button */}
-          <Button variant="ghost" onClick={() => navigate('/benefits')} className="mb-2">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Benefits
-          </Button>
+    <DashboardLayout>
+      <div className="max-w-2xl mx-auto space-y-6">
+        {/* Back Button */}
+        <Button variant="ghost" onClick={() => navigate('/benefits')} className="mb-2">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Benefits
+        </Button>
 
-          {/* Header */}
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Submit Claim</h1>
-            <p className="text-muted-foreground">Submit a new benefits claim for processing</p>
+        {/* Header */}
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Submit Claim</h1>
+          <p className="text-muted-foreground">Submit a new benefits claim for processing</p>
+        </div>
+
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
+        ) : (
+          /* Form */
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <Card className="border-border/50">
+              <CardHeader>
+                <CardTitle className="text-lg">Claim Details</CardTitle>
+                <CardDescription>Provide information about your claim</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="employee">Employee *</Label>
+                  <Select value={employeeId} onValueChange={(v) => { setEmployeeId(v); setEnrollmentId(''); }}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select employee" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {activeEmployees.map((employee) => (
+                        <SelectItem key={employee.id} value={employee.id}>
+                          {employee.firstName} {employee.lastName} - {employee.department || 'No department'}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-          {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-          ) : (
-            /* Form */
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <Card className="border-border/50">
-                <CardHeader>
-                  <CardTitle className="text-lg">Claim Details</CardTitle>
-                  <CardDescription>Provide information about your claim</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="employee">Employee *</Label>
-                    <Select value={employeeId} onValueChange={(v) => { setEmployeeId(v); setEnrollmentId(''); }}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select employee" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {activeEmployees.map((employee) => (
-                          <SelectItem key={employee.id} value={employee.id}>
-                            {employee.firstName} {employee.lastName} - {employee.department || 'No department'}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="plan">Benefit Plan *</Label>
-                    <Select value={enrollmentId} onValueChange={setEnrollmentId} disabled={!employeeId}>
-                      <SelectTrigger>
-                        <SelectValue placeholder={employeeId ? "Select benefit plan" : "Select employee first"} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {employeeEnrollments.map((enrollment) => (
-                          <SelectItem key={enrollment.id} value={enrollment.id}>
-                            <div className="flex items-center gap-2">
-                              {enrollment.plan?.type && (
-                                <BenefitTypeBadge type={enrollment.plan.type as any} showIcon={false} />
-                              )}
-                              {enrollment.plan?.name || 'Unknown plan'}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {employeeId && employeeEnrollments.length === 0 && (
-                      <p className="text-xs text-amber-600">This employee has no active benefit enrollments.</p>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="claimType">Claim Type *</Label>
-                      <Select value={claimType} onValueChange={setClaimType}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select claim type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {claimTypes.map((type) => (
-                            <SelectItem key={type} value={type}>{type}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="amount">Claim Amount *</Label>
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                        <Input
-                          id="amount"
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          placeholder="0.00"
-                          value={amount}
-                          onChange={(e) => setAmount(e.target.value)}
-                          className="pl-7"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Date of Service *</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              'w-full justify-start text-left font-normal',
-                              !dateOfService && 'text-muted-foreground'
+                <div className="space-y-2">
+                  <Label htmlFor="plan">Benefit Plan *</Label>
+                  <Select value={enrollmentId} onValueChange={setEnrollmentId} disabled={!employeeId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={employeeId ? "Select benefit plan" : "Select employee first"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {employeeEnrollments.map((enrollment) => (
+                        <SelectItem key={enrollment.id} value={enrollment.id}>
+                          <div className="flex items-center gap-2">
+                            {enrollment.plan?.type && (
+                              <BenefitTypeBadge type={enrollment.plan.type as any} showIcon={false} />
                             )}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {dateOfService ? format(dateOfService, 'PPP') : 'Select date'}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={dateOfService}
-                            onSelect={setDateOfService}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
+                            {enrollment.plan?.name || 'Unknown plan'}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {employeeId && employeeEnrollments.length === 0 && (
+                    <p className="text-xs text-amber-600">This employee has no active benefit enrollments.</p>
+                  )}
+                </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="provider">Provider Name *</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="claimType">Claim Type *</Label>
+                    <Select value={claimType} onValueChange={setClaimType}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select claim type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {claimTypes.map((type) => (
+                          <SelectItem key={type} value={type}>{type}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="amount">Claim Amount *</Label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
                       <Input
-                        id="provider"
-                        placeholder="e.g., Bay Area Medical Center"
-                        value={provider}
-                        onChange={(e) => setProvider(e.target.value)}
+                        id="amount"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        placeholder="0.00"
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                        className="pl-7"
                       />
                     </div>
                   </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Date of Service *</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            'w-full justify-start text-left font-normal',
+                            !dateOfService && 'text-muted-foreground'
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {dateOfService ? format(dateOfService, 'PPP') : 'Select date'}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={dateOfService}
+                          onSelect={setDateOfService}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="description">Description</Label>
-                    <Textarea
-                      id="description"
-                      placeholder="Provide additional details about the claim..."
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      rows={3}
+                    <Label htmlFor="provider">Provider Name *</Label>
+                    <Input
+                      id="provider"
+                      placeholder="e.g., Bay Area Medical Center"
+                      value={provider}
+                      onChange={(e) => setProvider(e.target.value)}
                     />
                   </div>
+                </div>
 
-                  <div className="space-y-2">
-                    <Label>Supporting Documents</Label>
-                    <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-primary/50 transition-colors cursor-pointer">
-                      <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                      <p className="text-sm text-muted-foreground">
-                        Drag and drop files here, or click to browse
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        PDF, JPG, PNG up to 10MB each
-                      </p>
-                    </div>
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    placeholder="Provide additional details about the claim..."
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows={3}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Supporting Documents</Label>
+                  <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-primary/50 transition-colors cursor-pointer">
+                    <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                    <p className="text-sm text-muted-foreground">
+                      Drag and drop files here, or click to browse
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      PDF, JPG, PNG up to 10MB each
+                    </p>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </CardContent>
+            </Card>
 
-              <div className="flex gap-3">
-                <Button type="button" variant="outline" onClick={() => navigate('/benefits')} className="flex-1">
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={!isValid || createClaim.isPending} className="flex-1">
-                  {createClaim.isPending ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Send className="mr-2 h-4 w-4" />
-                  )}
-                  Submit Claim
-                </Button>
-              </div>
-            </form>
-          )}
-        </div>
-        </main>
+            <div className="flex gap-3">
+              <Button type="button" variant="outline" onClick={() => navigate('/benefits')} className="flex-1">
+                Cancel
+              </Button>
+              <Button type="submit" disabled={!isValid || createClaim.isPending} className="flex-1">
+                {createClaim.isPending ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="mr-2 h-4 w-4" />
+                )}
+                Submit Claim
+              </Button>
+            </div>
+          </form>
+        )}
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 
