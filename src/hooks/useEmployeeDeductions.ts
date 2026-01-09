@@ -3,10 +3,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { EmployeeDeduction } from '@/data/payrollTemplates';
 import { createDeductionSnapshot, CompensationComponent } from './useSalaryHistory';
 import { Json } from '@/integrations/supabase/types';
+import { queryKeys } from '@/lib/queryKeys';
 
 export function useEmployeeDeductions(employeeId?: string) {
   return useQuery({
-    queryKey: ['employee-deductions', employeeId],
+    queryKey: queryKeys.compensation.deductions.byEmployee(employeeId || ''),
     queryFn: async () => {
       let query = supabase
         .from('employee_deductions')
@@ -105,8 +106,8 @@ export function useAssignDeductions() {
       }
     },
     onSuccess: (_, { employeeId }) => {
-      queryClient.invalidateQueries({ queryKey: ['employee-deductions', employeeId] });
-      queryClient.invalidateQueries({ queryKey: ['salary-history', employeeId] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.compensation.deductions.byEmployee(employeeId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.compensation.salaryHistory(employeeId) });
     },
   });
 }
@@ -146,8 +147,8 @@ export function useAddEmployeeDeduction() {
       return data;
     },
     onSuccess: (_, { employee_id }) => {
-      queryClient.invalidateQueries({ queryKey: ['employee-deductions', employee_id] });
-      queryClient.invalidateQueries({ queryKey: ['salary-history', employee_id] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.compensation.deductions.byEmployee(employee_id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.compensation.salaryHistory(employee_id) });
     },
   });
 }
@@ -176,8 +177,8 @@ export function useRemoveEmployeeDeduction() {
       return employeeId;
     },
     onSuccess: (employeeId) => {
-      queryClient.invalidateQueries({ queryKey: ['employee-deductions', employeeId] });
-      queryClient.invalidateQueries({ queryKey: ['salary-history', employeeId] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.compensation.deductions.byEmployee(employeeId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.compensation.salaryHistory(employeeId) });
     },
   });
 }

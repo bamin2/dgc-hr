@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-
+import { queryKeys } from "@/lib/queryKeys";
 export interface LoanEvent {
   id: string;
   loan_id: string;
@@ -149,11 +149,11 @@ export function useSkipInstallment() {
       return newInstallment;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["loans"] });
-      queryClient.invalidateQueries({ queryKey: ["loan", variables.loanId] });
-      queryClient.invalidateQueries({ queryKey: ["loan-installments", variables.loanId] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.loans.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.loans.detail(variables.loanId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.loans.installments(variables.loanId) });
       queryClient.invalidateQueries({ queryKey: ["loan-events", variables.loanId] });
-      queryClient.invalidateQueries({ queryKey: ["loan-installments-due-for-payroll"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.loans.installmentsDue });
     },
   });
 }
@@ -310,9 +310,9 @@ export function useRestructureLoan() {
       return { newPrincipal, duration, installmentAmount };
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["loans"] });
-      queryClient.invalidateQueries({ queryKey: ["loan", variables.loanId] });
-      queryClient.invalidateQueries({ queryKey: ["loan-installments", variables.loanId] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.loans.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.loans.detail(variables.loanId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.loans.installments(variables.loanId) });
       queryClient.invalidateQueries({ queryKey: ["loan-events", variables.loanId] });
     },
   });

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { CompanySettings, DashboardCardVisibility, defaultDashboardCardVisibility } from '@/data/settings';
 import { Json } from '@/integrations/supabase/types';
+import { queryKeys } from '@/lib/queryKeys';
 
 const SETTINGS_ID = '00000000-0000-0000-0000-000000000001';
 
@@ -132,7 +133,7 @@ export function useCompanySettingsDb() {
   const queryClient = useQueryClient();
 
   const query = useQuery({
-    queryKey: ['company-settings'],
+    queryKey: queryKeys.company.settings,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('company_settings')
@@ -156,7 +157,7 @@ export function useCompanySettingsDb() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['company-settings'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.company.settings });
     },
   });
 

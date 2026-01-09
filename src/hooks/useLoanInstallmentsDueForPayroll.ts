@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { queryKeys } from "@/lib/queryKeys";
 
 export interface InstallmentDueForPayroll {
   id: string;
@@ -28,7 +29,7 @@ export function useLoanInstallmentsDueForPayroll({
   employeeIds,
 }: UseLoanInstallmentsDueForPayrollParams) {
   return useQuery({
-    queryKey: ["loan-installments-due", payPeriodStart, payPeriodEnd, employeeIds],
+    queryKey: queryKeys.loans.installmentsDueForPayroll(payPeriodStart, payPeriodEnd, employeeIds),
     queryFn: async () => {
       if (!employeeIds.length || !payPeriodStart || !payPeriodEnd) {
         return { payrollDeductions: [], nonPayrollInstallments: [] };

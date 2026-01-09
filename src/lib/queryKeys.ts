@@ -53,9 +53,14 @@ export const queryKeys = {
       all: ['payroll-runs'] as const,
       detail: (id: string) => ['payroll-runs', id] as const,
       byLocation: (locationId: string) => ['payroll-runs', 'location', locationId] as const,
+      byLocationV2: (locationId: string) => ['payroll-runs-v2', locationId] as const,
+      single: (runId: string) => ['payroll-run', runId] as const,
       employees: (runId: string) => ['payroll-run-employees', runId] as const,
       adjustments: (runId: string) => ['payroll-run-adjustments', runId] as const,
     },
+    draftCounts: ['payroll-draft-counts'] as const,
+    draftCheck: (locationId: string, periodStart: string, periodEnd: string) => 
+      ['payroll-draft-check', locationId, periodStart, periodEnd] as const,
     dashboard: ['payroll-dashboard'] as const,
     dashboardRuns: ['payroll-dashboard-runs'] as const,
   },
@@ -73,9 +78,12 @@ export const queryKeys = {
     all: ['loans'] as const,
     detail: (id: string) => ['loan', id] as const,
     byEmployee: (employeeId: string) => ['loans', 'employee', employeeId] as const,
+    withInstallments: (employeeId: string) => ['employee-loans-with-installments', employeeId] as const,
     my: (userId: string) => ['my-loans', userId] as const,
     installments: (loanId: string) => ['loan-installments', loanId] as const,
     installmentsDue: ['loan-installments-due'] as const,
+    installmentsDueForPayroll: (start: string, end: string, employeeIds: string[]) => 
+      ['loan-installments-due', start, end, employeeIds] as const,
     withFilters: (filters?: { status?: string; employeeId?: string }) => ['loans', filters] as const,
   },
   
@@ -115,6 +123,26 @@ export const queryKeys = {
     },
     claims: ['benefit-claims'] as const,
     metrics: ['benefits-metrics'] as const,
+  },
+  
+  // Employee compensation queries
+  compensation: {
+    allowances: {
+      byEmployee: (employeeId: string) => ['employee-allowances', employeeId] as const,
+    },
+    deductions: {
+      byEmployee: (employeeId: string) => ['employee-deductions', employeeId] as const,
+    },
+    salaryHistory: (employeeId: string) => ['salary-history', employeeId] as const,
+  },
+  
+  // Approvals queries
+  approvals: {
+    pending: ['pending-approvals'] as const,
+    pendingCount: ['pending-approvals-count'] as const,
+    steps: (requestId: string, requestType: string) => ['request-approval-steps', requestId, requestType] as const,
+    myRequests: ['my-requests'] as const,
+    teamRequests: ['team-requests'] as const,
   },
   
   // Company/Settings queries

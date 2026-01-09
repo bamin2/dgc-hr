@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { queryKeys } from "@/lib/queryKeys";
 
 export function useClockInOut() {
   const { user } = useAuth();
@@ -75,7 +76,7 @@ export function useClockInOut() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["today-attendance"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard-metrics"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.metrics });
       toast.success("Clocked in successfully");
     },
     onError: (error) => {
@@ -110,7 +111,7 @@ export function useClockInOut() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["today-attendance"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard-metrics"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.metrics });
       toast.success("Clocked out successfully");
     },
     onError: (error) => {

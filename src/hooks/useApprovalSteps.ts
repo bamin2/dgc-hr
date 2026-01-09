@@ -2,11 +2,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { RequestApprovalStep, PendingApproval, RequestType, ApprovalStepStatus } from "@/types/approvals";
 import { toast } from "sonner";
+import { queryKeys } from "@/lib/queryKeys";
 
 // Fetch pending approvals for current user
 export function usePendingApprovals() {
   return useQuery({
-    queryKey: ["pending-approvals"],
+    queryKey: queryKeys.approvals.pending,
     queryFn: async (): Promise<PendingApproval[]> => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
@@ -72,7 +73,7 @@ export function usePendingApprovals() {
 // Fetch approval steps for a specific request
 export function useRequestApprovalSteps(requestId: string | null, requestType: RequestType | null) {
   return useQuery({
-    queryKey: ["request-approval-steps", requestId, requestType],
+    queryKey: queryKeys.approvals.steps(requestId || '', requestType || ''),
     enabled: !!requestId && !!requestType,
     queryFn: async (): Promise<RequestApprovalStep[]> => {
       const { data, error } = await supabase
@@ -181,10 +182,10 @@ export function useApproveStep() {
       return { step, hasNextStep: !!nextStep };
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["pending-approvals"] });
-      queryClient.invalidateQueries({ queryKey: ["pending-approvals-count"] });
-      queryClient.invalidateQueries({ queryKey: ["request-approval-steps"] });
-      queryClient.invalidateQueries({ queryKey: ["leave-requests"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.approvals.pending });
+      queryClient.invalidateQueries({ queryKey: queryKeys.approvals.pendingCount });
+      queryClient.invalidateQueries({ queryKey: ['request-approval-steps'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.leave.requests.all });
       toast.success("Request approved");
     },
     onError: (error) => {
@@ -250,10 +251,10 @@ export function useRejectStep() {
       return { step };
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["pending-approvals"] });
-      queryClient.invalidateQueries({ queryKey: ["pending-approvals-count"] });
-      queryClient.invalidateQueries({ queryKey: ["request-approval-steps"] });
-      queryClient.invalidateQueries({ queryKey: ["leave-requests"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.approvals.pending });
+      queryClient.invalidateQueries({ queryKey: queryKeys.approvals.pendingCount });
+      queryClient.invalidateQueries({ queryKey: ['request-approval-steps'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.leave.requests.all });
       toast.success("Request rejected");
     },
     onError: (error) => {
@@ -266,7 +267,7 @@ export function useRejectStep() {
 // Get my submitted requests with their approval steps
 export function useMyRequests() {
   return useQuery({
-    queryKey: ["my-requests"],
+    queryKey: queryKeys.approvals.myRequests,
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
@@ -329,7 +330,7 @@ export function useMyRequests() {
 // Get team requests (for managers)
 export function useTeamRequests() {
   return useQuery({
-    queryKey: ["team-requests"],
+    queryKey: queryKeys.approvals.teamRequests,
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];

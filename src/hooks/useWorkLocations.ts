@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Json } from "@/integrations/supabase/types";
+import { queryKeys } from "@/lib/queryKeys";
 
 // Type for per-nationality GOSI rates
 export interface GosiNationalityRate {
@@ -80,7 +81,7 @@ async function fetchWorkLocationsWithCounts(): Promise<WorkLocation[]> {
 
 export function useWorkLocations() {
   return useQuery({
-    queryKey: ["work-locations"],
+    queryKey: queryKeys.company.workLocations,
     queryFn: fetchWorkLocationsWithCounts,
   });
 }
@@ -107,7 +108,7 @@ export function useCreateWorkLocation() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["work-locations"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.company.workLocations });
     },
   });
 }
@@ -148,7 +149,7 @@ export function useUpdateWorkLocation() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["work-locations"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.company.workLocations });
     },
   });
 }
@@ -179,7 +180,7 @@ export function useDeleteWorkLocation() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["work-locations"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.company.workLocations });
     },
   });
 }

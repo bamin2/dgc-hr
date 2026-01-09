@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PayrollRunStatus } from "@/components/payroll/PayrollRunStatusBadge";
 import { PayrollRunData } from "@/components/payroll/PayrollRunCard";
+import { queryKeys } from "@/lib/queryKeys";
 
 // Database types
 interface DbPayrollRun {
@@ -31,7 +32,7 @@ const transformDbRun = (run: DbPayrollRun): PayrollRunData => ({
 // Fetch payroll runs for a specific location
 export function usePayrollRunsByLocation(locationId: string | null) {
   return useQuery({
-    queryKey: ["payroll-runs-v2", locationId],
+    queryKey: queryKeys.payroll.runs.byLocationV2(locationId || ''),
     queryFn: async () => {
       if (!locationId) return [];
 
@@ -55,7 +56,7 @@ export function usePayrollRunsByLocation(locationId: string | null) {
 // Get draft counts per location
 export function useDraftCountsByLocation() {
   return useQuery({
-    queryKey: ["payroll-draft-counts"],
+    queryKey: queryKeys.payroll.draftCounts,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("payroll_runs")
@@ -85,7 +86,7 @@ export function useCheckExistingDraft(
   periodEnd: string | null
 ) {
   return useQuery({
-    queryKey: ["payroll-draft-check", locationId, periodStart, periodEnd],
+    queryKey: queryKeys.payroll.draftCheck(locationId || '', periodStart || '', periodEnd || ''),
     queryFn: async () => {
       if (!locationId || !periodStart || !periodEnd) return null;
 
@@ -141,8 +142,8 @@ export function useCreatePayrollRun() {
       return transformDbRun(data);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["payroll-runs-v2", variables.locationId] });
-      queryClient.invalidateQueries({ queryKey: ["payroll-draft-counts"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.payroll.runs.byLocationV2(variables.locationId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.payroll.draftCounts });
     },
   });
 }
@@ -177,8 +178,8 @@ export function useUpdatePayrollRun() {
       return transformDbRun(data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["payroll-runs-v2"] });
-      queryClient.invalidateQueries({ queryKey: ["payroll-draft-counts"] });
+      queryClient.invalidateQueries({ queryKey: ['payroll-runs-v2'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.payroll.draftCounts });
     },
   });
 }
@@ -254,7 +255,7 @@ export function useIssuePayslips() {
       return transformDbRun(data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["payroll-runs-v2"] });
+      queryClient.invalidateQueries({ queryKey: ['payroll-runs-v2'] });
     },
   });
 }
@@ -262,7 +263,7 @@ export function useIssuePayslips() {
 // Get a single payroll run
 export function usePayrollRun(runId: string | null) {
   return useQuery({
-    queryKey: ["payroll-run", runId],
+    queryKey: queryKeys.payroll.runs.single(runId || ''),
     queryFn: async () => {
       if (!runId) return null;
 
