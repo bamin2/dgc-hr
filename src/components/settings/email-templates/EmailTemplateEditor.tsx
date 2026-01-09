@@ -20,6 +20,8 @@ import { Toggle } from "@/components/ui/toggle";
 import { EmailTemplate, useEmailTemplates, templateVariables } from "@/hooks/useEmailTemplates";
 import { EmailTemplatePreview } from "./EmailTemplatePreview";
 import { RichTextEditor } from "./RichTextEditor";
+import { EmailTemplateVersionHistory } from "./EmailTemplateVersionHistory";
+import { EmailTemplateVersion } from "@/hooks/useEmailTemplateVersions";
 
 interface EmailTemplateEditorProps {
   template: EmailTemplate;
@@ -73,6 +75,13 @@ export function EmailTemplateEditor({ template, open, onClose }: EmailTemplateEd
     setBodyContent((prev) => prev + variable);
   };
 
+  const handleRestoreVersion = (version: EmailTemplateVersion) => {
+    setSubject(version.subject);
+    setBodyContent(version.body_content);
+    setIsActive(version.is_active);
+    toast.success(`Restored to version ${version.version_number}. Click Save to apply changes.`);
+  };
+
   const handleSendTestEmail = async () => {
     if (!user?.email) {
       toast.error("Could not determine your email address");
@@ -118,6 +127,11 @@ export function EmailTemplateEditor({ template, open, onClose }: EmailTemplateEd
                   {isActive ? "Active" : "Inactive"}
                 </Label>
               </div>
+              <EmailTemplateVersionHistory
+                templateId={template.id}
+                templateType={template.type}
+                onRestore={handleRestoreVersion}
+              />
               <Button
                 variant="outline"
                 onClick={handleSendTestEmail}
