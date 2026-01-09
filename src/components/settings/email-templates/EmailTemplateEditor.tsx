@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
-import { Save, Eye, Code, Variable, Loader2, FileText } from "lucide-react";
+import { Save, Eye, Code, Variable, Loader2, FileText, Send } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Dialog,
   DialogContent,
@@ -26,11 +29,13 @@ interface EmailTemplateEditorProps {
 
 export function EmailTemplateEditor({ template, open, onClose }: EmailTemplateEditorProps) {
   const { updateTemplate } = useEmailTemplates();
+  const { user } = useAuth();
   const [subject, setSubject] = useState(template.subject);
   const [bodyContent, setBodyContent] = useState(template.body_content);
   const [isActive, setIsActive] = useState(template.is_active);
   const [activeTab, setActiveTab] = useState<"edit" | "preview">("edit");
   const [editorMode, setEditorMode] = useState<"visual" | "html">("visual");
+  const [isSendingTest, setIsSendingTest] = useState(false);
 
   // Reset form when template changes
   useEffect(() => {
@@ -68,6 +73,34 @@ export function EmailTemplateEditor({ template, open, onClose }: EmailTemplateEd
     setBodyContent((prev) => prev + variable);
   };
 
+  const handleSendTestEmail = async () => {
+    if (!user?.email) {
+      toast.error("Could not determine your email address");
+      return;
+    }
+
+    setIsSendingTest(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("send-test-email", {
+        body: {
+          subject,
+          bodyContent,
+          recipientEmail: user.email,
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      toast.success(`Test email sent to ${user.email}`);
+    } catch (error) {
+      console.error("Failed to send test email:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to send test email");
+    } finally {
+      setIsSendingTest(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={() => onClose()}>
       <DialogContent className="max-w-5xl h-[85vh] flex flex-col p-0">
@@ -85,6 +118,18 @@ export function EmailTemplateEditor({ template, open, onClose }: EmailTemplateEd
                   {isActive ? "Active" : "Inactive"}
                 </Label>
               </div>
+              <Button
+                variant="outline"
+                onClick={handleSendTestEmail}
+                disabled={isSendingTest || !subject || !bodyContent}
+              >
+                {isSendingTest ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4 mr-2" />
+                )}
+                Send Test
+              </Button>
               <Button
                 onClick={handleSave}
                 disabled={!hasChanges || updateTemplate.isPending}
