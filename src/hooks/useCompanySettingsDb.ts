@@ -23,7 +23,7 @@ interface DbCompanySettings {
   address_country: string | null;
   logo_url: string | null;
   dashboard_display_type: string | null;
-  dashboard_icon_url: string | null;
+  dashboard_icon_name: string | null;
   primary_color: string | null;
   timezone: string | null;
   date_format: string | null;
@@ -58,7 +58,7 @@ function transformFromDb(row: DbCompanySettings): CompanySettings {
     branding: {
       logoUrl: row.logo_url || '',
       dashboardDisplayType: (row.dashboard_display_type as 'logo' | 'icon') || 'logo',
-      dashboardIconUrl: row.dashboard_icon_url || '',
+      dashboardIconName: row.dashboard_icon_name || 'Building2',
       primaryColor: row.primary_color || '#804EEC',
       timezone: row.timezone || 'America/Los_Angeles',
       dateFormat: row.date_format || 'MM/DD/YYYY',
@@ -97,7 +97,7 @@ function transformToDb(settings: Partial<CompanySettings>): Record<string, unkno
   if (settings.branding) {
     if (settings.branding.logoUrl !== undefined) db.logo_url = settings.branding.logoUrl;
     if (settings.branding.dashboardDisplayType !== undefined) db.dashboard_display_type = settings.branding.dashboardDisplayType;
-    if (settings.branding.dashboardIconUrl !== undefined) db.dashboard_icon_url = settings.branding.dashboardIconUrl;
+    if (settings.branding.dashboardIconName !== undefined) db.dashboard_icon_name = settings.branding.dashboardIconName;
     if (settings.branding.primaryColor !== undefined) db.primary_color = settings.branding.primaryColor;
     if (settings.branding.timezone !== undefined) db.timezone = settings.branding.timezone;
     if (settings.branding.dateFormat !== undefined) db.date_format = settings.branding.dateFormat;

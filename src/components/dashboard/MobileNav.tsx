@@ -18,6 +18,7 @@ import {
   BookUser,
   Menu,
   X,
+  icons,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -130,13 +131,12 @@ export function MobileNav() {
 
   // Determine what to display in sidebar based on settings
   const displayType = settings.branding.dashboardDisplayType || 'logo';
-  const displayUrl = displayType === 'icon' 
-    ? settings.branding.dashboardIconUrl 
-    : settings.branding.logoUrl;
+  const iconName = settings.branding.dashboardIconName;
+  const DashboardIcon = displayType === 'icon' && iconName ? icons[iconName as keyof typeof icons] : null;
   
-  const hasDisplayImage = displayUrl && 
-    displayUrl !== "/placeholder.svg" && 
-    displayUrl !== "";
+  const hasLogoImage = settings.branding.logoUrl && 
+    settings.branding.logoUrl !== "/placeholder.svg" && 
+    settings.branding.logoUrl !== "";
 
   const handleClose = () => setOpen(false);
 
@@ -156,18 +156,24 @@ export function MobileNav() {
         {/* Logo Section */}
         <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
           <div className="flex items-center gap-3">
-            <Avatar className="w-10 h-10 rounded-xl">
-              {hasDisplayImage ? (
-                <AvatarImage
-                  src={displayUrl}
-                  alt={settings.name}
-                  className="object-cover"
-                />
-              ) : null}
-              <AvatarFallback className="rounded-xl bg-sidebar-primary text-sidebar-primary-foreground font-bold text-lg">
-                {companyInitials.charAt(0) || "F"}
-              </AvatarFallback>
-            </Avatar>
+            {displayType === 'icon' && DashboardIcon ? (
+              <div className="w-10 h-10 rounded-xl bg-sidebar-primary flex items-center justify-center">
+                <DashboardIcon className="w-6 h-6 text-sidebar-primary-foreground" />
+              </div>
+            ) : (
+              <Avatar className="w-10 h-10 rounded-xl">
+                {hasLogoImage ? (
+                  <AvatarImage
+                    src={settings.branding.logoUrl}
+                    alt={settings.name}
+                    className="object-cover"
+                  />
+                ) : null}
+                <AvatarFallback className="rounded-xl bg-sidebar-primary text-sidebar-primary-foreground font-bold text-lg">
+                  {companyInitials.charAt(0) || "F"}
+                </AvatarFallback>
+              </Avatar>
+            )}
             <span className="text-xl font-bold tracking-tight">{companyDisplayName}</span>
           </div>
           <Button
