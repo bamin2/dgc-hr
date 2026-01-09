@@ -234,6 +234,10 @@ export const queryKeys = {
   users: {
     hr: ['hr-users'] as const,
     all: ['all-users-for-approvals'] as const,
+    sessions: {
+      all: ['user-sessions'] as const,
+      byUser: (userId: string) => ['user-sessions', userId] as const,
+    },
   },
   
   // Public holidays
