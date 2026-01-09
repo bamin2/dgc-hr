@@ -20,39 +20,12 @@ export interface EmailTemplateUpdate {
   is_active?: boolean;
 }
 
-// Define available variables for each template type
-export const templateVariables: Record<string, { name: string; description: string }[]> = {
-  leave_request_submitted: [
-    { name: "employeeName", description: "Employee's full name" },
-    { name: "leaveType", description: "Type of leave requested" },
-    { name: "startDate", description: "Leave start date" },
-    { name: "endDate", description: "Leave end date" },
-    { name: "daysCount", description: "Total number of days" },
-    { name: "reason", description: "Reason for leave (optional)" },
-  ],
-  leave_request_approved: [
-    { name: "employeeName", description: "Employee's full name" },
-    { name: "leaveType", description: "Type of leave requested" },
-    { name: "startDate", description: "Leave start date" },
-    { name: "endDate", description: "Leave end date" },
-    { name: "daysCount", description: "Total number of days" },
-    { name: "reviewerName", description: "Name of approver (optional)" },
-  ],
-  leave_request_rejected: [
-    { name: "employeeName", description: "Employee's full name" },
-    { name: "leaveType", description: "Type of leave requested" },
-    { name: "startDate", description: "Leave start date" },
-    { name: "endDate", description: "Leave end date" },
-    { name: "daysCount", description: "Total number of days" },
-    { name: "reviewerName", description: "Name of reviewer (optional)" },
-    { name: "rejectionReason", description: "Reason for rejection (optional)" },
-  ],
-  payslip_issued: [
-    { name: "employeeName", description: "Employee's full name" },
-    { name: "payPeriod", description: "Pay period (e.g., January 2026)" },
-    { name: "netPay", description: "Net pay amount" },
-    { name: "currency", description: "Currency code (e.g., BHD)" },
-  ],
+// Map email template types to relevant smart tag categories
+export const templateTagCategories: Record<string, string[]> = {
+  leave_request_submitted: ["Employee", "Leave", "Company", "Date"],
+  leave_request_approved: ["Employee", "Leave", "Company", "Date"],
+  leave_request_rejected: ["Employee", "Leave", "Company", "Date"],
+  payslip_issued: ["Employee", "Payroll", "Compensation", "Company", "Date"],
 };
 
 export function useEmailTemplates() {

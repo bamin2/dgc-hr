@@ -1,4 +1,7 @@
+import { useMemo } from "react";
 import { useCompanySettings } from "@/contexts/CompanySettingsContext";
+import { useActiveSmartTags } from "@/hooks/useSmartTags";
+import { renderTemplate, RenderData } from "@/utils/templateRenderer";
 
 interface EmailTemplatePreviewProps {
   templateType: string;
@@ -6,73 +9,123 @@ interface EmailTemplatePreviewProps {
   bodyContent: string;
 }
 
-// Sample data for preview
-const sampleData: Record<string, Record<string, string>> = {
+// Sample data for preview - now using RenderData format for templateRenderer
+const sampleRenderData: Record<string, RenderData & { customFields?: Record<string, string> }> = {
   leave_request_submitted: {
-    employeeName: "John Smith",
-    leaveType: "Annual Leave",
-    startDate: "Monday, Jan 15, 2026",
-    endDate: "Wednesday, Jan 17, 2026",
-    daysCount: "3",
-    reason: "Family vacation to the beach",
+    employee: {
+      first_name: "John",
+      last_name: "Smith",
+      email: "john.smith@company.com",
+    },
+    customFields: {
+      leave_type: "Annual Leave",
+      leave_start_date: "Monday, Jan 15, 2026",
+      leave_end_date: "Wednesday, Jan 17, 2026",
+      leave_days_count: "3",
+      leave_reason: "Family vacation to the beach",
+    },
   },
   leave_request_approved: {
-    employeeName: "John Smith",
-    leaveType: "Annual Leave",
-    startDate: "Monday, Jan 15, 2026",
-    endDate: "Wednesday, Jan 17, 2026",
-    daysCount: "3",
-    reviewerName: "Sarah Johnson",
+    employee: {
+      first_name: "John",
+      last_name: "Smith",
+      email: "john.smith@company.com",
+    },
+    customFields: {
+      leave_type: "Annual Leave",
+      leave_start_date: "Monday, Jan 15, 2026",
+      leave_end_date: "Wednesday, Jan 17, 2026",
+      leave_days_count: "3",
+      reviewer_name: "Sarah Johnson",
+    },
   },
   leave_request_rejected: {
-    employeeName: "John Smith",
-    leaveType: "Annual Leave",
-    startDate: "Monday, Jan 15, 2026",
-    endDate: "Wednesday, Jan 17, 2026",
-    daysCount: "3",
-    reviewerName: "Sarah Johnson",
-    rejectionReason: "Team coverage is insufficient during this period. Please consider alternative dates.",
+    employee: {
+      first_name: "John",
+      last_name: "Smith",
+      email: "john.smith@company.com",
+    },
+    customFields: {
+      leave_type: "Annual Leave",
+      leave_start_date: "Monday, Jan 15, 2026",
+      leave_end_date: "Wednesday, Jan 17, 2026",
+      leave_days_count: "3",
+      reviewer_name: "Sarah Johnson",
+      rejection_reason: "Team coverage is insufficient during this period. Please consider alternative dates.",
+    },
   },
   payslip_issued: {
-    employeeName: "John Smith",
-    payPeriod: "January 2026",
-    netPay: "3,500.00",
-    currency: "BHD",
+    employee: {
+      first_name: "John",
+      last_name: "Smith",
+      email: "john.smith@company.com",
+      salary: 5000,
+      net_salary: 3500,
+    },
+    customFields: {
+      pay_period: "January 2026",
+      net_pay: "3,500.00",
+      gross_pay: "5,000.00",
+      total_deductions: "1,500.00",
+      total_earnings: "5,000.00",
+    },
   },
 };
 
-function replaceVariables(content: string, data: Record<string, string>): string {
+// Helper to replace custom email-specific fields
+function replaceCustomFields(content: string, customFields?: Record<string, string>): string {
+  if (!customFields) return content;
+  
   let result = content;
-  
-  // Replace simple variables {{variableName}}
-  for (const [key, value] of Object.entries(data)) {
-    result = result.replace(new RegExp(`\\{\\{${key}\\}\\}`, "g"), value);
+  for (const [field, value] of Object.entries(customFields)) {
+    // Convert field name to tag format (e.g., leave_type -> <<Leave Type>>)
+    const tagName = field
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+    
+    // Replace both plain and HTML-encoded versions
+    const plainPattern = new RegExp(`<<${tagName}>>`, 'gi');
+    const encodedPattern = new RegExp(`&lt;&lt;${tagName}&gt;&gt;`, 'gi');
+    result = result.replace(plainPattern, value).replace(encodedPattern, value);
   }
-  
-  // Handle conditional blocks {{#variableName}}...{{/variableName}}
-  for (const [key, value] of Object.entries(data)) {
-    const conditionalRegex = new RegExp(`\\{\\{#${key}\\}\\}([\\s\\S]*?)\\{\\{\\/${key}\\}\\}`, "g");
-    if (value) {
-      // If value exists, keep the content but remove the conditional tags
-      result = result.replace(conditionalRegex, "$1");
-    } else {
-      // If value is empty, remove the entire block
-      result = result.replace(conditionalRegex, "");
-    }
-  }
-  
-  // Remove any remaining conditional blocks for undefined variables
-  result = result.replace(/\{{#\w+\}\}[\s\S]*?\{\{\/\w+\}\}/g, "");
   
   return result;
 }
 
 export function EmailTemplatePreview({ templateType, subject, bodyContent }: EmailTemplatePreviewProps) {
   const { settings } = useCompanySettings();
-  const data = sampleData[templateType] || {};
+  const { data: smartTags } = useActiveSmartTags();
   
-  const processedSubject = replaceVariables(subject, data);
-  const processedBody = replaceVariables(bodyContent, data);
+  const sampleData = sampleRenderData[templateType] || { employee: { first_name: "John", last_name: "Smith" } };
+  
+  // Add company data from settings
+  const renderData: RenderData = useMemo(() => ({
+    ...sampleData,
+    company: {
+      name: settings.name || "Company",
+      email: settings.email || "info@company.com",
+      phone: settings.phone || "+973 17000342",
+      logo_url: (settings as any).logoUrl,
+      document_logo_url: (settings as any).documentLogoUrl,
+      address_city: (settings as any).addressCity,
+      address_country: (settings as any).addressCountry,
+      website: settings.website,
+    },
+  }), [sampleData, settings]);
+  
+  // Process templates using the shared renderer
+  const processedSubject = useMemo(() => {
+    let result = renderTemplate(subject, renderData, smartTags || []);
+    result = replaceCustomFields(result, sampleData.customFields);
+    return result;
+  }, [subject, renderData, smartTags, sampleData.customFields]);
+  
+  const processedBody = useMemo(() => {
+    let result = renderTemplate(bodyContent, renderData, smartTags || []);
+    result = replaceCustomFields(result, sampleData.customFields);
+    return result;
+  }, [bodyContent, renderData, smartTags, sampleData.customFields]);
   
   const companyName = settings.name || "Company";
   const companyLogo = (settings as any).documentLogoUrl || (settings as any).logoUrl;
