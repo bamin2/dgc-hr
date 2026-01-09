@@ -224,14 +224,29 @@ export function formatCurrency(amount: number, currency?: string): string {
 }
 
 /**
+ * Decode HTML entities so we can match smart tags that were HTML-encoded by TipTap editor
+ */
+function decodeHtmlEntities(text: string): string {
+  return text
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, " ");
+}
+
+/**
  * Process a template string by replacing smart tags with actual values
  * Supports both new <<Tag Name>> syntax and legacy {{tagName}} syntax
+ * Also handles HTML-encoded tags from rich text editors
  * @param template The template string with smart tag placeholders
  * @param data The data to use for replacement
  * @returns The processed template string
  */
 export function processTemplate(template: string, data: TemplateData): string {
-  let result = template;
+  // First, decode HTML entities so we can match smart tags that were HTML-encoded
+  let result = decodeHtmlEntities(template);
   
   // Handle conditional sections first {{#fieldName}}...{{/fieldName}}
   result = processConditionalSections(result, data);
