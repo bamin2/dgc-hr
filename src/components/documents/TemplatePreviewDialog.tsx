@@ -1,3 +1,4 @@
+import DOMPurify from "dompurify";
 import {
   Dialog,
   DialogContent,
@@ -80,6 +81,8 @@ export function TemplatePreviewDialog({
     },
     smartTags
   );
+  // Sanitize the rendered content to prevent XSS
+  const sanitizedContent = DOMPurify.sanitize(renderedContent);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -98,7 +101,7 @@ export function TemplatePreviewDialog({
           <div className="bg-white dark:bg-card border rounded-lg p-8 shadow-sm">
             <div 
               className="prose prose-sm dark:prose-invert max-w-none"
-              dangerouslySetInnerHTML={{ __html: renderedContent }}
+              dangerouslySetInnerHTML={{ __html: sanitizedContent }}
             />
           </div>
         </ScrollArea>
