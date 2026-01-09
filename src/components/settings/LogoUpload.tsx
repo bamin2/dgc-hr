@@ -44,6 +44,9 @@ export const LogoUpload = ({
         toast.error('Image must be less than 5MB');
         return;
       }
+
+      // Detect if original file is PNG (for transparency preservation)
+      const isPngFile = file.type === 'image/png';
       
       const reader = new FileReader();
       reader.onloadend = async () => {
@@ -51,9 +54,9 @@ export const LogoUpload = ({
         if (result) {
           setIsUploading(true);
           try {
-            // Resize the full image to fit within 400x400
-            const resizedBlob = await resizeImage(result, 400);
-            await uploadLogo(resizedBlob);
+            // Resize the full image to fit within 400x400, preserving PNG transparency
+            const { blob: resizedBlob, isPng } = await resizeImage(result, 400, isPngFile);
+            await uploadLogo(resizedBlob, isPng);
           } catch (error) {
             console.error('Error processing image:', error);
             toast.error('Failed to process image');
@@ -73,10 +76,12 @@ export const LogoUpload = ({
     }
   };
 
-  const uploadLogo = async (imageBlob: Blob) => {
+  const uploadLogo = async (imageBlob: Blob, isPng: boolean) => {
     try {
-      // Generate unique filename
-      const fileName = `company/logo-${Date.now()}.jpg`;
+      // Generate unique filename with correct extension
+      const extension = isPng ? 'png' : 'jpg';
+      const contentType = isPng ? 'image/png' : 'image/jpeg';
+      const fileName = `company/logo-${Date.now()}.${extension}`;
       
       // Delete old logo if it exists in our bucket
       if (value && value.includes('avatars')) {
@@ -86,13 +91,13 @@ export const LogoUpload = ({
         }
       }
       
-      // Upload to Supabase Storage
+      // Upload to Supabase Storage with correct content type
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(fileName, imageBlob, {
           cacheControl: '3600',
           upsert: true,
-          contentType: 'image/jpeg',
+          contentType: contentType,
         });
       
       if (uploadError) {

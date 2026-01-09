@@ -222,7 +222,7 @@ export function renderTemplate(
     
     // Handle company logo - render as image tag for HTML templates
     if (company.logo_url) {
-      const logoImg = `<img src="${company.logo_url}" alt="${company.name || 'Company'} Logo" style="max-height: 80px; width: auto;" />`;
+      const logoImg = `<img src="${company.logo_url}" alt="${company.name || 'Company'} Logo" style="max-height: 80px; width: auto; background: transparent;" />`;
       result = replaceTag(result, "Company Logo", logoImg);
     } else {
       result = replaceTag(result, "Company Logo", "");

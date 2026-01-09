@@ -18,7 +18,8 @@ function createImage(url: string): Promise<HTMLImageElement> {
 export async function getCroppedImg(
   imageSrc: string,
   croppedAreaPixels: CroppedAreaPixels,
-  maxDimension?: number
+  maxDimension?: number,
+  preserveTransparency?: boolean
 ): Promise<Blob> {
   const image = await createImage(imageSrc);
   const canvas = document.createElement('canvas');
@@ -55,20 +56,24 @@ export async function getCroppedImg(
     outputHeight
   );
 
-  // Return as Blob
+  // Detect if image is PNG (has transparency)
+  const isPng = preserveTransparency || imageSrc.startsWith('data:image/png');
+
+  // Return as Blob - preserve PNG format for transparent images
   return new Promise((resolve, reject) => {
     canvas.toBlob(
       (blob) => (blob ? resolve(blob) : reject(new Error('Canvas is empty'))),
-      'image/jpeg',
-      0.9
+      isPng ? 'image/png' : 'image/jpeg',
+      isPng ? undefined : 0.9
     );
   });
 }
 
 export async function resizeImage(
   imageSrc: string,
-  maxDimension: number
-): Promise<Blob> {
+  maxDimension: number,
+  preserveTransparency?: boolean
+): Promise<{ blob: Blob; isPng: boolean }> {
   const image = await createImage(imageSrc);
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
@@ -93,11 +98,14 @@ export async function resizeImage(
   // Draw the full image scaled to output dimensions
   ctx.drawImage(image, 0, 0, outputWidth, outputHeight);
 
+  // Detect if image is PNG (has transparency)
+  const isPng = preserveTransparency || imageSrc.startsWith('data:image/png');
+
   return new Promise((resolve, reject) => {
     canvas.toBlob(
-      (blob) => (blob ? resolve(blob) : reject(new Error('Canvas is empty'))),
-      'image/jpeg',
-      0.9
+      (blob) => (blob ? resolve({ blob, isPng }) : reject(new Error('Canvas is empty'))),
+      isPng ? 'image/png' : 'image/jpeg',
+      isPng ? undefined : 0.9
     );
   });
 }
