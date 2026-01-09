@@ -798,6 +798,50 @@ export type Database = {
           },
         ]
       }
+      document_expiry_notifications: {
+        Row: {
+          created_at: string | null
+          days_before_expiry: number
+          employee_document_id: string
+          id: string
+          is_sent: boolean | null
+          notify_employee: boolean | null
+          notify_hr: boolean | null
+          notify_manager: boolean | null
+          sent_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          days_before_expiry?: number
+          employee_document_id: string
+          id?: string
+          is_sent?: boolean | null
+          notify_employee?: boolean | null
+          notify_hr?: boolean | null
+          notify_manager?: boolean | null
+          sent_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          days_before_expiry?: number
+          employee_document_id?: string
+          id?: string
+          is_sent?: boolean | null
+          notify_employee?: boolean | null
+          notify_hr?: boolean | null
+          notify_manager?: boolean | null
+          sent_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_expiry_notifications_employee_document_id_fkey"
+            columns: ["employee_document_id"]
+            isOneToOne: false
+            referencedRelation: "employee_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_templates: {
         Row: {
           category: string
@@ -831,6 +875,33 @@ export type Database = {
           is_active?: boolean | null
           name?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      document_types: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          requires_expiry: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          requires_expiry?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          requires_expiry?: boolean | null
         }
         Relationships: []
       }
@@ -926,6 +997,75 @@ export type Database = {
           },
           {
             foreignKeyName: "employee_deductions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_documents: {
+        Row: {
+          created_at: string | null
+          document_name: string
+          document_number: string | null
+          document_type_id: string
+          employee_id: string
+          expiry_date: string | null
+          file_name: string
+          file_size: number | null
+          file_url: string
+          id: string
+          issue_date: string | null
+          mime_type: string | null
+          notes: string | null
+          updated_at: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          document_name: string
+          document_number?: string | null
+          document_type_id: string
+          employee_id: string
+          expiry_date?: string | null
+          file_name: string
+          file_size?: number | null
+          file_url: string
+          id?: string
+          issue_date?: string | null
+          mime_type?: string | null
+          notes?: string | null
+          updated_at?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          document_name?: string
+          document_number?: string | null
+          document_type_id?: string
+          employee_id?: string
+          expiry_date?: string | null
+          file_name?: string
+          file_size?: number | null
+          file_url?: string
+          id?: string
+          issue_date?: string | null
+          mime_type?: string | null
+          notes?: string | null
+          updated_at?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_documents_document_type_id_fkey"
+            columns: ["document_type_id"]
+            isOneToOne: false
+            referencedRelation: "document_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_documents_employee_id_fkey"
             columns: ["employee_id"]
             isOneToOne: false
             referencedRelation: "employees"
