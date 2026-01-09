@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Sidebar, Header } from '@/components/dashboard';
+import { DashboardLayout } from '@/components/dashboard';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { EnrollmentForm } from '@/components/benefits';
@@ -44,33 +44,27 @@ const BenefitEnrollment = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <Sidebar />
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Header />
-        <main className="flex-1 p-6 overflow-auto">
-        <div className="max-w-2xl mx-auto space-y-6">
-          {/* Back Button */}
-          <Button variant="ghost" onClick={() => navigate('/benefits')} className="mb-2">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Benefits
-          </Button>
+    <DashboardLayout>
+      <div className="max-w-2xl mx-auto space-y-6">
+        {/* Back Button */}
+        <Button variant="ghost" onClick={() => navigate('/benefits')} className="mb-2">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Benefits
+        </Button>
 
-          {/* Header */}
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">New Enrollment</h1>
-            <p className="text-muted-foreground">Enroll an employee in a benefit plan</p>
-          </div>
-
-          {/* Form */}
-          <EnrollmentForm 
-            onSubmit={handleSubmit}
-            onCancel={() => navigate('/benefits')}
-          />
+        {/* Header */}
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">New Enrollment</h1>
+          <p className="text-muted-foreground">Enroll an employee in a benefit plan</p>
         </div>
-        </main>
+
+        {/* Form */}
+        <EnrollmentForm 
+          onSubmit={handleSubmit}
+          onCancel={() => navigate('/benefits')}
+        />
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 

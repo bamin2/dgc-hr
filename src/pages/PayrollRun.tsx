@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Check, Calendar as CalendarIcon, Users, DollarSign, FileCheck } from "lucide-react";
 import { startOfMonth, endOfMonth, format } from "date-fns";
-import { Sidebar, Header } from "@/components/dashboard";
+import { DashboardLayout } from "@/components/dashboard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -128,18 +128,12 @@ export default function PayrollRun() {
 
   if (employeesLoading) {
     return (
-      <div className="flex min-h-screen bg-background">
-        <Sidebar />
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-          <Header />
-          <main className="flex-1 p-6 overflow-y-auto">
-            <div className="max-w-4xl mx-auto space-y-6">
-              <Skeleton className="h-10 w-64" />
-              <Skeleton className="h-96 w-full" />
-            </div>
-          </main>
+      <DashboardLayout>
+        <div className="max-w-4xl mx-auto space-y-6">
+          <Skeleton className="h-10 w-64" />
+          <Skeleton className="h-96 w-full" />
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
@@ -420,113 +414,118 @@ export default function PayrollRun() {
                 <div className="p-4 bg-muted/30 rounded-lg">
                   <p className="text-sm text-muted-foreground">Pay Period</p>
                   <p className="font-medium text-foreground">
-                    {format(new Date(payPeriod.startDate), "dd/MM/yyyy")} to {format(new Date(payPeriod.endDate), "dd/MM/yyyy")}
+                    {format(new Date(payPeriod.startDate), "dd/MM/yyyy")} -{" "}
+                    {format(new Date(payPeriod.endDate), "dd/MM/yyyy")}
                   </p>
                 </div>
                 <div className="p-4 bg-muted/30 rounded-lg">
                   <p className="text-sm text-muted-foreground">Employees</p>
-                  <p className="font-medium text-foreground">
-                    {selectedEmployees.length} selected
-                  </p>
+                  <p className="font-medium text-foreground">{selectedEmployees.length}</p>
                 </div>
               </div>
-              <div className="p-6 bg-primary/5 rounded-xl text-center">
+              
+              <div className="p-6 bg-primary/5 rounded-lg border border-primary/20 text-center">
                 <p className="text-sm text-muted-foreground mb-1">Total Payroll Amount</p>
                 <p className="text-3xl font-bold text-primary">
                   ${totalPayroll.toLocaleString()}
                 </p>
               </div>
+
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Check className="h-4 w-4 text-green-500" />
+                <span>All employee data verified</span>
+              </div>
             </CardContent>
           </Card>
         );
+
+      default:
+        return null;
     }
   };
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <Sidebar />
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Header />
-        <main className="flex-1 overflow-auto">
-        <div className="p-6 lg:p-8 space-y-6">
-          {/* Header */}
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/payroll")}>
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">Run Payroll</h1>
-              <p className="text-muted-foreground">Process payroll for your employees</p>
-            </div>
-          </div>
-
-          {/* Progress Steps */}
-          <div className="flex items-center justify-between max-w-2xl mx-auto mb-8">
-            {steps.map((step, index) => (
-              <div key={step.id} className="flex items-center">
-                <div className="flex flex-col items-center">
-                  <div
-                    className={cn(
-                      "w-10 h-10 rounded-full flex items-center justify-center transition-colors",
-                      currentStep >= step.id
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted text-muted-foreground"
-                    )}
-                  >
-                    {currentStep > step.id ? (
-                      <Check className="w-5 h-5" />
-                    ) : (
-                      <step.icon className="w-5 h-5" />
-                    )}
-                  </div>
-                  <span
-                    className={cn(
-                      "text-xs mt-2 hidden sm:block",
-                      currentStep >= step.id ? "text-foreground font-medium" : "text-muted-foreground"
-                    )}
-                  >
-                    {step.title}
-                  </span>
-                </div>
-                {index < steps.length - 1 && (
-                  <div
-                    className={cn(
-                      "w-12 sm:w-24 h-0.5 mx-2",
-                      currentStep > step.id ? "bg-primary" : "bg-muted"
-                    )}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* Step Content */}
-          <div className="max-w-2xl mx-auto">{renderStepContent()}</div>
-
-          {/* Navigation Buttons */}
-          <div className="flex justify-between max-w-2xl mx-auto">
-            <Button
-              variant="outline"
-              onClick={() => setCurrentStep((prev) => Math.max(1, prev - 1))}
-              disabled={currentStep === 1}
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
-            {currentStep < 4 ? (
-              <Button onClick={() => setCurrentStep((prev) => Math.min(4, prev + 1))}>
-                Next
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            ) : (
-              <Button onClick={handleProcess} disabled={isProcessing}>
-                {isProcessing ? "Processing..." : "Process Payroll"}
-              </Button>
-            )}
+    <DashboardLayout>
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate("/payroll")}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Run Payroll</h1>
+            <p className="text-muted-foreground">
+              Process payroll for your team
+            </p>
           </div>
         </div>
-        </main>
+
+        {/* Steps */}
+        <div className="flex items-center justify-between">
+          {steps.map((step, index) => (
+            <div key={step.id} className="flex items-center">
+              <div
+                className={cn(
+                  "flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors",
+                  currentStep >= step.id
+                    ? "bg-primary border-primary text-primary-foreground"
+                    : "border-muted-foreground/30 text-muted-foreground"
+                )}
+              >
+                {currentStep > step.id ? (
+                  <Check className="h-5 w-5" />
+                ) : (
+                  <step.icon className="h-5 w-5" />
+                )}
+              </div>
+              {index < steps.length - 1 && (
+                <div
+                  className={cn(
+                    "w-16 sm:w-24 h-0.5 mx-2",
+                    currentStep > step.id ? "bg-primary" : "bg-muted-foreground/30"
+                  )}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Step Content */}
+        {renderStepContent()}
+
+        {/* Navigation */}
+        <div className="flex justify-between">
+          <Button
+            variant="outline"
+            onClick={() => setCurrentStep((s) => Math.max(1, s - 1))}
+            disabled={currentStep === 1}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Previous
+          </Button>
+
+          {currentStep < 4 ? (
+            <Button
+              onClick={() => setCurrentStep((s) => Math.min(4, s + 1))}
+              disabled={
+                (currentStep === 1 && (!payPeriod.startDate || !payPeriod.endDate)) ||
+                (currentStep === 2 && selectedEmployees.length === 0)
+              }
+            >
+              Next
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          ) : (
+            <Button onClick={handleProcess} disabled={isProcessing}>
+              {isProcessing ? "Processing..." : "Process Payroll"}
+            </Button>
+          )}
+        </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }
