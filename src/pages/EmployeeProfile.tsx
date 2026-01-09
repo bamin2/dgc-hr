@@ -30,6 +30,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { StatusBadge, EmployeeForm, RoleBadge, RoleSelectorWithDescription, CreateLoginDialog, ResetPasswordDialog, SalaryHistoryCard, BankDetailsDialog } from "@/components/employees";
+import { EmployeeDocumentsTab } from "@/components/employees/documents";
 import { useEmployee, useUpdateEmployee, useEmployees, Employee } from "@/hooks/useEmployees";
 import { useWorkLocations } from "@/hooks/useWorkLocations";
 import { getCountryByName, getCountryCodeByName } from "@/data/countries";
