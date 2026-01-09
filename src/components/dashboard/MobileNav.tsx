@@ -49,10 +49,10 @@ const managementMenuItems = [
 // COMPANY - HR & Manager roles only
 const companyMenuItems = [
   { icon: FileStack, label: "Documents", path: "/documents" },
-  { icon: Puzzle, label: "Integrations", path: "/integrations" },
-  { icon: Receipt, label: "Invoices", path: "/invoices" },
+  { icon: Puzzle, label: "Integrations", path: "/integrations", comingSoon: true },
+  { icon: Receipt, label: "Invoices", path: "/invoices", comingSoon: true },
   { icon: Settings, label: "Settings", path: "/settings" },
-  { icon: HelpCircle, label: "Help & Center", path: "/help" },
+  { icon: HelpCircle, label: "Help & Center", path: "/help", comingSoon: true },
 ];
 
 interface NavItemProps {
@@ -61,9 +61,24 @@ interface NavItemProps {
   path: string;
   isActive: boolean;
   onClick: () => void;
+  comingSoon?: boolean;
 }
 
-function NavItem({ icon: Icon, label, path, isActive, onClick }: NavItemProps) {
+function NavItem({ icon: Icon, label, path, isActive, onClick, comingSoon }: NavItemProps) {
+  if (comingSoon) {
+    return (
+      <div
+        className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground/50 cursor-not-allowed"
+      >
+        <Icon className="w-5 h-5" />
+        <span className="font-medium">{label}</span>
+        <span className="ml-auto text-[10px] font-medium bg-muted text-muted-foreground px-1.5 py-0.5 rounded">
+          Soon
+        </span>
+      </div>
+    );
+  }
+
   return (
     <Link
       to={path}
@@ -83,7 +98,12 @@ function NavItem({ icon: Icon, label, path, isActive, onClick }: NavItemProps) {
 
 interface NavSectionProps {
   label: string;
-  items: typeof mainMenuItems;
+  items: Array<{
+    icon: React.ElementType;
+    label: string;
+    path: string;
+    comingSoon?: boolean;
+  }>;
   currentPath: string;
   onItemClick: () => void;
 }
@@ -100,8 +120,9 @@ function NavSection({ label, items, currentPath, onItemClick }: NavSectionProps)
           icon={item.icon}
           label={item.label}
           path={item.path}
-          isActive={currentPath === item.path}
+          isActive={!item.comingSoon && currentPath === item.path}
           onClick={onItemClick}
+          comingSoon={item.comingSoon}
         />
       ))}
     </div>

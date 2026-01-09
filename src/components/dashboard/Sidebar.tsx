@@ -46,10 +46,10 @@ const managementMenuItems = [
 // COMPANY - HR & Manager roles only
 const companyMenuItems = [
   { icon: FileStack, label: "Documents", path: "/documents" },
-  { icon: Puzzle, label: "Integrations", path: "/integrations" },
-  { icon: Receipt, label: "Invoices", path: "/invoices" },
+  { icon: Puzzle, label: "Integrations", path: "/integrations", comingSoon: true },
+  { icon: Receipt, label: "Invoices", path: "/invoices", comingSoon: true },
   { icon: Settings, label: "Settings", path: "/settings" },
-  { icon: HelpCircle, label: "Help & Center", path: "/help" },
+  { icon: HelpCircle, label: "Help & Center", path: "/help", comingSoon: true },
 ];
 
 export function Sidebar() {
