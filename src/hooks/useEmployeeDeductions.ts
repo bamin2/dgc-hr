@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { EmployeeDeduction } from '@/data/payrollTemplates';
+import { createDeductionSnapshot, CompensationComponent } from './useSalaryHistory';
+import { Json } from '@/integrations/supabase/types';
 
 export function useEmployeeDeductions(employeeId?: string) {
   return useQuery({
@@ -32,12 +34,47 @@ interface DeductionInput {
   customAmount?: number;
 }
 
+async function fetchCurrentDeductions(employeeId: string): Promise<CompensationComponent[]> {
+  const { data } = await supabase
+    .from('employee_deductions')
+    .select(`*, deduction_template:deduction_templates(name, amount)`)
+    .eq('employee_id', employeeId);
+  
+  return createDeductionSnapshot(data || []);
+}
+
+async function logDeductionChange(
+  employeeId: string,
+  previousDeductions: CompensationComponent[],
+  newDeductions: CompensationComponent[],
+  reason?: string
+) {
+  const { data: userData } = await supabase.auth.getUser();
+  
+  await supabase.from('salary_history').insert({
+    employee_id: employeeId,
+    previous_salary: null,
+    new_salary: null,
+    change_type: 'deduction_change',
+    reason: reason || 'Deductions updated',
+    effective_date: new Date().toISOString().split('T')[0],
+    changed_by: userData?.user?.id || null,
+    previous_allowances: null,
+    new_allowances: null,
+    previous_deductions: previousDeductions as unknown as Json,
+    new_deductions: newDeductions as unknown as Json,
+  });
+}
+
 export function useAssignDeductions() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ employeeId, deductions }: { employeeId: string; deductions: DeductionInput[] }) => {
-      // First, delete existing deductions for this employee
+    mutationFn: async ({ employeeId, deductions, reason }: { employeeId: string; deductions: DeductionInput[]; reason?: string }) => {
+      // Fetch current deductions before changes
+      const previousDeductions = await fetchCurrentDeductions(employeeId);
+      
+      // Delete existing deductions for this employee
       await supabase
         .from('employee_deductions')
         .delete()
@@ -58,9 +95,18 @@ export function useAssignDeductions() {
         
         if (error) throw error;
       }
+      
+      // Fetch new deductions after changes
+      const newDeductions = await fetchCurrentDeductions(employeeId);
+      
+      // Log the change to salary history
+      if (previousDeductions.length > 0 || newDeductions.length > 0) {
+        await logDeductionChange(employeeId, previousDeductions, newDeductions, reason);
+      }
     },
     onSuccess: (_, { employeeId }) => {
       queryClient.invalidateQueries({ queryKey: ['employee-deductions', employeeId] });
+      queryClient.invalidateQueries({ queryKey: ['salary-history', employeeId] });
     },
   });
 }
@@ -75,6 +121,9 @@ export function useAddEmployeeDeduction() {
       custom_name?: string;
       custom_amount?: number;
     }) => {
+      // Fetch current deductions before changes
+      const previousDeductions = await fetchCurrentDeductions(deduction.employee_id);
+      
       const { data, error } = await supabase
         .from('employee_deductions')
         .insert({
@@ -87,10 +136,18 @@ export function useAddEmployeeDeduction() {
         .single();
       
       if (error) throw error;
+      
+      // Fetch new deductions after changes
+      const newDeductions = await fetchCurrentDeductions(deduction.employee_id);
+      
+      // Log the change
+      await logDeductionChange(deduction.employee_id, previousDeductions, newDeductions, 'Added deduction');
+      
       return data;
     },
     onSuccess: (_, { employee_id }) => {
       queryClient.invalidateQueries({ queryKey: ['employee-deductions', employee_id] });
+      queryClient.invalidateQueries({ queryKey: ['salary-history', employee_id] });
     },
   });
 }
@@ -100,16 +157,27 @@ export function useRemoveEmployeeDeduction() {
   
   return useMutation({
     mutationFn: async ({ id, employeeId }: { id: string; employeeId: string }) => {
+      // Fetch current deductions before changes
+      const previousDeductions = await fetchCurrentDeductions(employeeId);
+      
       const { error } = await supabase
         .from('employee_deductions')
         .delete()
         .eq('id', id);
       
       if (error) throw error;
+      
+      // Fetch new deductions after changes
+      const newDeductions = await fetchCurrentDeductions(employeeId);
+      
+      // Log the change
+      await logDeductionChange(employeeId, previousDeductions, newDeductions, 'Removed deduction');
+      
       return employeeId;
     },
     onSuccess: (employeeId) => {
       queryClient.invalidateQueries({ queryKey: ['employee-deductions', employeeId] });
+      queryClient.invalidateQueries({ queryKey: ['salary-history', employeeId] });
     },
   });
 }
