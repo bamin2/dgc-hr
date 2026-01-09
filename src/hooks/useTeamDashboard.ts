@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { queryKeys } from '@/lib/queryKeys';
+import { getTodayString, formatEmployeeName } from '@/lib/dashboard';
+import { fetchPendingLeaveRequests, fetchUpcomingTimeOff } from '@/lib/dashboard';
 
 export interface TeamDashboardData {
   teamMemberCount: number;
@@ -29,33 +30,17 @@ export function useTeamDashboard(teamMemberIds: string[]) {
         };
       }
 
-      const today = new Date().toISOString().split('T')[0];
+      const today = getTodayString();
 
-      // Fetch pending leave requests and upcoming time off for team
+      // Fetch pending leave requests and upcoming time off for team using shared queries
       const [pendingRes, upcomingRes] = await Promise.all([
-        supabase
-          .from('leave_requests')
-          .select('id')
-          .in('employee_id', teamMemberIds)
-          .eq('status', 'pending'),
-        
-        supabase
-          .from('leave_requests')
-          .select(`
-            id, start_date, end_date, days_count,
-            employee:employees (first_name, last_name, id),
-            leave_type:leave_types (name)
-          `)
-          .in('employee_id', teamMemberIds)
-          .eq('status', 'approved')
-          .gte('start_date', today)
-          .order('start_date', { ascending: true })
-          .limit(10),
+        fetchPendingLeaveRequests(teamMemberIds),
+        fetchUpcomingTimeOff(today, 10, teamMemberIds),
       ]);
 
       const upcomingTimeOff = (upcomingRes.data || []).map((r: any) => ({
         employeeId: r.employee?.id,
-        employeeName: `${r.employee?.first_name || ''} ${r.employee?.last_name || ''}`.trim(),
+        employeeName: formatEmployeeName(r.employee?.first_name, r.employee?.last_name),
         startDate: r.start_date,
         endDate: r.end_date,
         leaveTypeName: r.leave_type?.name || 'Leave',
