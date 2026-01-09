@@ -67,7 +67,7 @@ const SettingsPage = () => {
   const [integrations, setIntegrations] = useState(initialIntegrations);
   const [activeTab, setActiveTab] = useState(() => {
     const tabFromUrl = searchParams.get('tab');
-    const validTabs = ['company', 'organization', 'dashboard', 'selfservice', 'approvals', 'payroll', 'preferences', 'notifications', 'integrations', 'security'];
+    const validTabs = ['company', 'organization', 'dashboard', 'selfservice', 'approvals', 'email-templates', 'payroll', 'preferences', 'notifications', 'integrations', 'security'];
     if (tabFromUrl && validTabs.includes(tabFromUrl)) {
       return tabFromUrl;
     }
@@ -77,7 +77,7 @@ const SettingsPage = () => {
   // Update active tab when URL changes
   useEffect(() => {
     const tabFromUrl = searchParams.get('tab');
-    const validTabs = ['company', 'organization', 'dashboard', 'selfservice', 'approvals', 'payroll', 'preferences', 'notifications', 'integrations', 'security'];
+    const validTabs = ['company', 'organization', 'dashboard', 'selfservice', 'approvals', 'email-templates', 'payroll', 'preferences', 'notifications', 'integrations', 'security'];
     if (tabFromUrl && validTabs.includes(tabFromUrl)) {
       setActiveTab(tabFromUrl);
     }
@@ -160,6 +160,7 @@ const SettingsPage = () => {
     { value: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, requiresAdmin: true },
     { value: 'selfservice', label: 'Self-Service', icon: UserCircle, requiresAdmin: true },
     { value: 'approvals', label: 'Approvals', icon: GitBranch, requiresAdmin: true },
+    { value: 'email-templates', label: 'Email Templates', icon: Mail, requiresAdmin: true },
     { value: 'payroll', label: 'Payroll', icon: Wallet, requiresAdmin: true },
     { value: 'preferences', label: 'Preferences', icon: User, requiresAdmin: false },
     { value: 'notifications', label: 'Notifications', icon: Bell, requiresAdmin: false },
@@ -202,6 +203,8 @@ const SettingsPage = () => {
         ) : null;
       case 'approvals':
         return canManageRoles ? <ApprovalSettingsTab /> : null;
+      case 'email-templates':
+        return canManageRoles ? <EmailTemplatesTab /> : null;
       case 'payroll':
         return canManageRoles ? <PayrollSettingsTab /> : null;
       case 'preferences':
