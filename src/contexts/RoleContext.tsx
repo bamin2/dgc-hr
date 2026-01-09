@@ -1,12 +1,12 @@
 import React, { createContext, useContext, useCallback, useMemo, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { AppRole, mockCurrentUser, UserRole } from '@/data/roles';
+import { AppRole, mockCurrentUser, UserRole, CurrentUser } from '@/data/roles';
 import {
   RoleContextType,
   ImpersonatedEmployee,
-  useCurrentUserRole,
-  useAllUserRoles,
-  useTeamMembers,
+  useCurrentUserRoleQuery,
+  useAllUserRolesQuery,
+  useTeamMembersQuery,
   useImpersonation,
   useRolePermissions,
   useRoleManagement,
@@ -17,10 +17,24 @@ const RoleContext = createContext<RoleContextType | undefined>(undefined);
 export function RoleProvider({ children }: { children: React.ReactNode }) {
   const { user, profile } = useAuth();
 
-  // Core data hooks
-  const { currentUser, setCurrentUser, isLoading: userLoading } = useCurrentUserRole(user, profile);
-  const { userRoles, isLoading: rolesLoading } = useAllUserRoles(user);
-  const { teamMemberIds, isLoading: teamLoading } = useTeamMembers(profile?.employee_id);
+  // Core data hooks - now using React Query for caching
+  const { currentUser: fetchedCurrentUser, isLoading: userLoading } = useCurrentUserRoleQuery(user, profile);
+  const { userRoles, isLoading: rolesLoading } = useAllUserRolesQuery(user);
+  const { teamMemberIds, isLoading: teamLoading } = useTeamMembersQuery(profile?.employee_id);
+
+  // Mutable currentUser state for impersonation role changes
+  const [currentUserOverride, setCurrentUserOverride] = useState<CurrentUser | null>(null);
+  
+  // Use override if set (for impersonation), otherwise use fetched user
+  const currentUser = currentUserOverride || fetchedCurrentUser;
+  
+  // Setter that updates the override
+  const setCurrentUser = useCallback((updater: React.SetStateAction<CurrentUser>) => {
+    setCurrentUserOverride(prev => {
+      const base = prev || fetchedCurrentUser;
+      return typeof updater === 'function' ? updater(base) : updater;
+    });
+  }, [fetchedCurrentUser]);
 
   // Local state for userRoles updates (needed for updateEmployeeRole)
   const [localUserRoles, setLocalUserRoles] = useState<UserRole[]>([]);
@@ -69,8 +83,8 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
     [setCurrentUser]
   );
 
-  // Combined loading state
-  const isLoading = userLoading || rolesLoading || teamLoading;
+  // Combined loading state - but allow progressive loading
+  const isLoading = userLoading;
 
   // Memoized context value to prevent unnecessary re-renders
   const contextValue = useMemo<RoleContextType>(

@@ -217,6 +217,13 @@ export const queryKeys = {
     active: ['smart-tags', 'active'] as const,
   },
   
+  // Role/Permission queries
+  roles: {
+    currentUser: (userId: string) => ['current-user-role', userId] as const,
+    allUserRoles: ['all-user-roles'] as const,
+    teamMembers: (employeeId: string) => ['team-members', employeeId] as const,
+  },
+  
   // Notifications queries
   notifications: {
     all: ['notifications'] as const,
