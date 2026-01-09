@@ -45,6 +45,11 @@ export function LeavesBalancesTab() {
   const { data: leaveRequests, isLoading } = useLeaveRequests();
 
   const filteredEntries = (leaveRequests || []).filter((entry) => {
+    // Exclude public holidays - they should only show on the calendar
+    if (entry.leave_type?.name === 'Public Holiday') {
+      return false;
+    }
+    
     const leaveTypeName = entry.leave_type?.name || '';
     const reason = entry.reason || '';
     return (
