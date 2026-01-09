@@ -139,9 +139,10 @@ export default function EmployeeProfile() {
 
     const totalAllowances = allowanceItems.reduce((sum, a) => sum + a.amount, 0);
     const totalDeductions = deductionItems.reduce((sum, d) => sum + d.amount, 0);
-    const totalMonthlySalary = baseSalary + totalAllowances - totalDeductions;
+    const grossPay = baseSalary + totalAllowances;
+    const totalMonthlySalary = grossPay - totalDeductions;
 
-    return { baseSalary, allowanceItems, deductionItems, totalAllowances, totalDeductions, totalMonthlySalary };
+    return { baseSalary, allowanceItems, deductionItems, totalAllowances, totalDeductions, grossPay, totalMonthlySalary };
   }, [employee?.salary, employee?.isSubjectToGosi, employee?.gosiRegisteredSalary, employee?.workLocationId, employee?.nationality, workLocations, allowances, deductions]);
   
   // Check if viewing own profile
@@ -474,6 +475,19 @@ export default function EmployeeProfile() {
                               value={formatCurrency(allowance.amount)}
                             />
                           ))}
+                        </>
+                      )}
+                      
+                      {/* Gross Pay - shown after allowances, before deductions */}
+                      {compensationBreakdown.allowanceItems.length > 0 && (
+                        <>
+                          <Separator className="my-2" />
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm font-medium">Gross Pay</span>
+                            <span className="text-sm font-medium">
+                              {formatCurrency(compensationBreakdown.grossPay)}
+                            </span>
+                          </div>
                         </>
                       )}
                       
