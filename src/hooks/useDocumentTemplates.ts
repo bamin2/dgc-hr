@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-
+import { queryKeys } from "@/lib/queryKeys";
 export interface DocumentTemplate {
   id: string;
   name: string;
@@ -17,7 +17,7 @@ export type DocumentTemplateInput = Omit<DocumentTemplate, "id" | "created_at" |
 
 export function useDocumentTemplates() {
   return useQuery({
-    queryKey: ["document-templates"],
+    queryKey: queryKeys.documents.templates,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("document_templates")
@@ -33,7 +33,7 @@ export function useDocumentTemplates() {
 
 export function useDocumentTemplate(id: string | undefined) {
   return useQuery({
-    queryKey: ["document-templates", id],
+    queryKey: queryKeys.documents.templateDetail(id || ''),
     queryFn: async () => {
       if (!id) return null;
       const { data, error } = await supabase
@@ -64,7 +64,7 @@ export function useCreateDocumentTemplate() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["document-templates"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.documents.templates });
     },
   });
 }
@@ -85,7 +85,7 @@ export function useUpdateDocumentTemplate() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["document-templates"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.documents.templates });
     },
   });
 }
@@ -103,7 +103,7 @@ export function useDeleteDocumentTemplate() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["document-templates"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.documents.templates });
     },
   });
 }

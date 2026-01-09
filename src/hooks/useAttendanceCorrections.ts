@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { queryKeys } from '@/lib/queryKeys';
 
 export type CorrectionStatus = 'pending_manager' | 'pending_hr' | 'approved' | 'rejected';
 
@@ -84,7 +85,7 @@ export function useAttendanceCorrections(options: UseCorrectionsOptions = {}) {
   const { employeeId, status, managerId } = options;
 
   return useQuery({
-    queryKey: ['attendance-corrections', { employeeId, status, managerId }],
+    queryKey: queryKeys.attendance.corrections.withFilters({ employeeId, status, managerId }),
     queryFn: async () => {
       let query = supabase
         .from('attendance_corrections')
@@ -151,7 +152,7 @@ export function useCreateAttendanceCorrection() {
       return result as AttendanceCorrection;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['attendance-corrections'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.attendance.corrections.all });
       toast.success('Correction request submitted successfully');
     },
     onError: (error) => {
@@ -200,7 +201,7 @@ export function useManagerReviewCorrection() {
       return data as AttendanceCorrection;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['attendance-corrections'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.attendance.corrections.all });
       toast.success(variables.approved ? 'Correction forwarded to HR' : 'Correction rejected');
     },
     onError: (error) => {
@@ -276,8 +277,8 @@ export function useHRReviewCorrection() {
       return data as AttendanceCorrection;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['attendance-corrections'] });
-      queryClient.invalidateQueries({ queryKey: ['attendance-records'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.attendance.corrections.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.attendance.records.all });
       toast.success(variables.approved ? 'Correction approved and applied' : 'Correction rejected');
     },
     onError: (error) => {
@@ -308,7 +309,7 @@ export function useDeleteAttendanceCorrection() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['attendance-corrections'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.attendance.corrections.all });
       toast.success('Correction request deleted');
     },
     onError: (error) => {

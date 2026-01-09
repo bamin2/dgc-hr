@@ -1,10 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AllowanceTemplate } from '@/data/payrollTemplates';
+import { queryKeys } from '@/lib/queryKeys';
 
 export function useAllowanceTemplates() {
   return useQuery({
-    queryKey: ['allowance-templates'],
+    queryKey: queryKeys.templates.allowance.all,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('allowance_templates')
@@ -19,7 +20,7 @@ export function useAllowanceTemplates() {
 
 export function useAllowanceTemplatesByLocation(workLocationId: string) {
   return useQuery({
-    queryKey: ['allowance-templates', 'location', workLocationId],
+    queryKey: queryKeys.templates.allowance.byLocation(workLocationId),
     queryFn: async () => {
       const { data, error } = await supabase
         .from('allowance_templates')
@@ -36,7 +37,7 @@ export function useAllowanceTemplatesByLocation(workLocationId: string) {
 
 export function useActiveAllowanceTemplates() {
   return useQuery({
-    queryKey: ['allowance-templates', 'active'],
+    queryKey: queryKeys.templates.allowance.active,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('allowance_templates')
@@ -52,7 +53,7 @@ export function useActiveAllowanceTemplates() {
 
 export function useActiveAllowanceTemplatesByLocation(workLocationId: string | null) {
   return useQuery({
-    queryKey: ['allowance-templates', 'active', 'location', workLocationId],
+    queryKey: queryKeys.templates.allowance.activeByLocation(workLocationId || ''),
     queryFn: async () => {
       const { data, error } = await supabase
         .from('allowance_templates')
@@ -83,7 +84,7 @@ export function useCreateAllowanceTemplate() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['allowance-templates'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.templates.allowance.all });
     },
   });
 }
@@ -104,7 +105,7 @@ export function useUpdateAllowanceTemplate() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['allowance-templates'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.templates.allowance.all });
     },
   });
 }
@@ -122,7 +123,7 @@ export function useDeleteAllowanceTemplate() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['allowance-templates'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.templates.allowance.all });
     },
   });
 }

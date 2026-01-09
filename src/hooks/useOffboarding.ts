@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { queryKeys } from "@/lib/queryKeys";
 
 // Type aliases from database
 type OffboardingRecord = Database["public"]["Tables"]["offboarding_records"]["Row"];
@@ -50,7 +51,7 @@ export interface OffboardingRecordWithRelations extends OffboardingRecord {
 // Offboarding Records Hook
 export function useOffboardingRecords() {
   return useQuery({
-    queryKey: ["offboarding-records"],
+    queryKey: queryKeys.workflows.offboarding.all,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("offboarding_records")
@@ -76,7 +77,7 @@ export function useOffboardingRecords() {
 // Single Offboarding Record Hook
 export function useOffboardingRecord(id: string | undefined) {
   return useQuery({
-    queryKey: ["offboarding-record", id],
+    queryKey: queryKeys.workflows.offboarding.detail(id || ''),
     queryFn: async () => {
       if (!id) return null;
 
@@ -179,7 +180,7 @@ export function useCreateOffboarding() {
       return record;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["offboarding-records"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workflows.offboarding.all });
     },
   });
 }
@@ -201,8 +202,8 @@ export function useUpdateOffboardingRecord() {
       return data;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["offboarding-records"] });
-      queryClient.invalidateQueries({ queryKey: ["offboarding-record", data.id] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workflows.offboarding.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workflows.offboarding.detail(data.id) });
     },
   });
 }
@@ -217,7 +218,7 @@ export function useDeleteOffboardingRecord() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["offboarding-records"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workflows.offboarding.all });
     },
   });
 }
@@ -239,8 +240,8 @@ export function useUpdateExitInterview() {
       return data;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["offboarding-records"] });
-      queryClient.invalidateQueries({ queryKey: ["offboarding-record"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workflows.offboarding.all });
+      queryClient.invalidateQueries({ queryKey: ['offboarding-record'] });
     },
   });
 }
@@ -262,7 +263,7 @@ export function useUpdateOffboardingAsset() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["offboarding-record"] });
+      queryClient.invalidateQueries({ queryKey: ['offboarding-record'] });
     },
   });
 }
@@ -284,7 +285,7 @@ export function useUpdateOffboardingAccessSystem() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["offboarding-record"] });
+      queryClient.invalidateQueries({ queryKey: ['offboarding-record'] });
     },
   });
 }
