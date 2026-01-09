@@ -22,13 +22,13 @@ export function AdminQuickActions() {
     {
       label: 'Add Employee',
       icon: UserPlus,
-      onClick: () => navigate('/team?action=add'),
+      onClick: () => navigate('/team/add'),
       variant: 'outline' as const,
     },
     {
       label: 'HR Letters',
       icon: FileText,
-      onClick: () => navigate('/documents/templates'),
+      onClick: () => navigate('/documents'),
       variant: 'outline' as const,
     },
     {
