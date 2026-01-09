@@ -669,6 +669,7 @@ export type Database = {
           dashboard_display_type: string | null
           dashboard_icon_name: string | null
           date_format: string | null
+          document_logo_url: string | null
           email: string | null
           employee_can_view_compensation: boolean | null
           id: string
@@ -700,6 +701,7 @@ export type Database = {
           dashboard_display_type?: string | null
           dashboard_icon_name?: string | null
           date_format?: string | null
+          document_logo_url?: string | null
           email?: string | null
           employee_can_view_compensation?: boolean | null
           id?: string
@@ -731,6 +733,7 @@ export type Database = {
           dashboard_display_type?: string | null
           dashboard_icon_name?: string | null
           date_format?: string | null
+          document_logo_url?: string | null
           email?: string | null
           employee_can_view_compensation?: boolean | null
           id?: string

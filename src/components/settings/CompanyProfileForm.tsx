@@ -207,16 +207,30 @@ export const CompanyProfileForm = ({ settings, onChange }: CompanyProfileFormPro
         icon={Palette}
       >
         <div className="space-y-6">
-          <div className="space-y-2">
-            <Label>Company Logo</Label>
-            <p className="text-xs text-muted-foreground">Used for emails, documents, and templates</p>
-            <LogoUpload
-              value={settings.branding.logoUrl}
-              onChange={(v) => updateBranding('logoUrl', v)}
-              label="Upload Logo"
-              fallback={settings.name.slice(0, 2).toUpperCase()}
-              size="lg"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label>Sidebar Logo</Label>
+              <p className="text-xs text-muted-foreground">Displayed in the navigation sidebar</p>
+              <LogoUpload
+                value={settings.branding.logoUrl}
+                onChange={(v) => updateBranding('logoUrl', v)}
+                label="Upload Sidebar Logo"
+                fallback={settings.name.slice(0, 2).toUpperCase()}
+                size="md"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Document Logo</Label>
+              <p className="text-xs text-muted-foreground">Used in generated documents and email templates</p>
+              <LogoUpload
+                value={settings.branding.documentLogoUrl}
+                onChange={(v) => updateBranding('documentLogoUrl', v)}
+                label="Upload Document Logo"
+                fallback={settings.name.slice(0, 2).toUpperCase()}
+                size="lg"
+              />
+            </div>
           </div>
 
           <div className="space-y-3 pt-2 border-t">

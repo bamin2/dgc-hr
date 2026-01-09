@@ -319,6 +319,7 @@ export function TeamOfferStep({
         email: companySettings.email || undefined,
         phone: companySettings.phone || undefined,
         logo_url: companySettings.branding?.logoUrl || undefined,
+        document_logo_url: companySettings.branding?.documentLogoUrl || undefined,
         address_street: companySettings.address?.street || undefined,
         address_city: companySettings.address?.city || undefined,
         address_state: companySettings.address?.state || undefined,

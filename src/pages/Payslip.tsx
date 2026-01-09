@@ -41,7 +41,7 @@ export default function Payslip() {
 
       const { data: companySettings } = await supabase
         .from("company_settings")
-        .select("name, legal_name, logo_url, address_city, address_country, currency")
+        .select("name, legal_name, logo_url, document_logo_url, address_city, address_country, currency")
         .limit(1)
         .maybeSingle();
 
@@ -87,7 +87,7 @@ export default function Payslip() {
           name: companySettings?.name || "Company",
           legalName: companySettings?.legal_name || undefined,
           address: companyAddress,
-          logo: companySettings?.logo_url || undefined,
+          logo: companySettings?.document_logo_url || companySettings?.logo_url || undefined,
         },
         status: payrollRun?.status === 'completed' || payrollRun?.status === 'payslips_issued' ? 'paid' : 'pending',
       };
