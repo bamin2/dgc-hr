@@ -5,20 +5,20 @@ import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PayslipCard } from "@/components/payroll";
-import { PayrollRecord } from "@/data/payroll";
+import { PayslipData } from "@/types/payslip";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function Payslip() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const { data: record, isLoading } = useQuery({
+  const { data: payslip, isLoading } = useQuery({
     queryKey: ["payslip", id],
-    queryFn: async () => {
+    queryFn: async (): Promise<PayslipData | null> => {
       if (!id) return null;
 
-      // Fetch the payroll run employee record
-      const { data, error } = await supabase
+      // Fetch the payroll run employee record with payroll run details
+      const { data: record, error } = await supabase
         .from("payroll_run_employees")
         .select(`
           id,
@@ -46,58 +46,88 @@ export default function Payslip() {
         .maybeSingle();
 
       if (error) throw error;
-      if (!data) return null;
+      if (!record) return null;
 
       // Fetch employee avatar
       const { data: employee } = await supabase
         .from("employees")
-        .select("avatar_url")
-        .eq("id", data.employee_id)
+        .select("avatar_url, work_location_id")
+        .eq("id", record.employee_id)
         .maybeSingle();
 
-      const nameParts = data.employee_name?.split(" ") || ["Unknown"];
-      const firstName = nameParts[0] || "Unknown";
-      const lastName = nameParts.slice(1).join(" ") || "";
+      // Fetch company settings
+      const { data: companySettings } = await supabase
+        .from("company_settings")
+        .select("name, legal_name, logo_url, address_city, address_country, currency")
+        .limit(1)
+        .maybeSingle();
 
-      const otherAllowances = (data.other_allowances as { name: string; amount: number }[]) || [];
-      const bonusesTotal = otherAllowances.reduce((sum, a) => sum + (a.amount || 0), 0) +
-        Number(data.housing_allowance || 0) + Number(data.transportation_allowance || 0);
+      // Fetch HQ work location for currency
+      const { data: hqLocation } = await supabase
+        .from("work_locations")
+        .select("currency")
+        .eq("is_hq", true)
+        .maybeSingle();
 
-      const otherDeductions = (data.other_deductions as { name: string; amount: number }[]) || [];
-      const otherDeductionsTotal = otherDeductions.reduce((sum, d) => sum + (d.amount || 0), 0);
+      const payrollRun = record.payroll_run as { 
+        pay_period_start: string; 
+        pay_period_end: string; 
+        status: string 
+      } | null;
 
-      const payrollRun = data.payroll_run as { pay_period_start: string; pay_period_end: string; status: string } | null;
+      const otherAllowances = (record.other_allowances as { name: string; amount: number }[]) || [];
+      const otherDeductions = (record.other_deductions as { name: string; amount: number }[]) || [];
 
-      const record: PayrollRecord = {
-        id: data.id,
-        employeeId: data.employee_id,
+      // Determine currency: HQ location > company settings > default
+      const currency = hqLocation?.currency || companySettings?.currency || "SAR";
+
+      // Build company address
+      const addressParts = [
+        companySettings?.address_city,
+        companySettings?.address_country
+      ].filter(Boolean);
+      const companyAddress = addressParts.join(", ") || "Not specified";
+
+      const payslipData: PayslipData = {
+        id: record.id,
         employee: {
-          id: data.employee_id,
-          firstName,
-          lastName,
-          department: data.department || "Unassigned",
-          position: data.position || "Unknown",
+          id: record.employee_id,
+          name: record.employee_name || "Unknown",
+          code: record.employee_code || undefined,
+          department: record.department || "Unassigned",
+          position: record.position || "Unknown",
           avatar: employee?.avatar_url || undefined,
-          employeeCode: data.employee_code || undefined,
         },
         payPeriod: {
           startDate: payrollRun?.pay_period_start || "",
           endDate: payrollRun?.pay_period_end || "",
         },
-        baseSalary: Number(data.base_salary) || 0,
-        overtime: 0,
-        bonuses: bonusesTotal,
-        deductions: {
-          tax: 0,
-          insurance: Number(data.gosi_deduction) || 0,
-          other: otherDeductionsTotal,
+        earnings: {
+          baseSalary: Number(record.base_salary) || 0,
+          housingAllowance: Number(record.housing_allowance) || 0,
+          transportationAllowance: Number(record.transportation_allowance) || 0,
+          otherAllowances,
+          grossPay: Number(record.gross_pay) || 0,
         },
-        netPay: Number(data.net_pay) || 0,
-        status: payrollRun?.status === 'completed' || payrollRun?.status === 'payslips_issued' ? 'paid' : 'pending',
-        paidDate: payrollRun?.pay_period_end || undefined,
+        deductions: {
+          gosiContribution: Number(record.gosi_deduction) || 0,
+          otherDeductions,
+          totalDeductions: Number(record.total_deductions) || 0,
+        },
+        netPay: Number(record.net_pay) || 0,
+        currency,
+        company: {
+          name: companySettings?.name || "Company",
+          legalName: companySettings?.legal_name || undefined,
+          address: companyAddress,
+          logo: companySettings?.logo_url || undefined,
+        },
+        status: payrollRun?.status === 'completed' || payrollRun?.status === 'payslips_issued' 
+          ? 'paid' 
+          : 'pending',
       };
 
-      return record;
+      return payslipData;
     },
     enabled: !!id,
   });
@@ -122,7 +152,7 @@ export default function Payslip() {
     );
   }
 
-  if (!record) {
+  if (!payslip) {
     return (
       <div className="flex min-h-screen bg-background">
         <Sidebar />
@@ -150,13 +180,13 @@ export default function Payslip() {
             <div>
               <h1 className="text-2xl font-bold text-foreground">Payslip</h1>
               <p className="text-muted-foreground">
-                {record.employee.firstName} {record.employee.lastName} - {record.id.slice(0, 8)}
+                {payslip.employee.name} - {payslip.id.slice(0, 8)}
               </p>
             </div>
           </div>
 
           {/* Payslip Card */}
-          <PayslipCard record={record} />
+          <PayslipCard payslip={payslip} />
         </div>
       </main>
     </div>
