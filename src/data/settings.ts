@@ -45,7 +45,7 @@ export interface CompanySettings {
   branding: {
     logoUrl: string;
     dashboardDisplayType: 'logo' | 'icon';
-    dashboardIconUrl: string;
+    dashboardIconName: string;
     primaryColor: string;
     timezone: string;
     dateFormat: string;
@@ -168,7 +168,7 @@ export const companySettings: CompanySettings = {
   branding: {
     logoUrl: '/placeholder.svg',
     dashboardDisplayType: 'logo',
-    dashboardIconUrl: '',
+    dashboardIconName: 'Building2',
     primaryColor: '#804EEC',
     timezone: 'America/Los_Angeles',
     dateFormat: 'MM/DD/YYYY',

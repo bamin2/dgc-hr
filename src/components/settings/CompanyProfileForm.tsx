@@ -3,6 +3,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SettingsCard } from './SettingsCard';
 import { LogoUpload } from './LogoUpload';
+import { IconPicker } from './IconPicker';
 import { Building2, Phone, Palette, Calendar } from 'lucide-react';
 import { CountrySelect } from '@/components/ui/country-select';
 import { CurrencySelect } from '@/components/ui/currency-select';
@@ -247,12 +248,9 @@ export const CompanyProfileForm = ({ settings, onChange }: CompanyProfileFormPro
             </div>
             {settings.branding.dashboardDisplayType === 'icon' && (
               <div className="pt-2">
-                <LogoUpload
-                  value={settings.branding.dashboardIconUrl}
-                  onChange={(v) => updateBranding('dashboardIconUrl', v)}
-                  label="Upload Icon"
-                  fallback={settings.name.slice(0, 1).toUpperCase()}
-                  size="lg"
+                <IconPicker
+                  value={settings.branding.dashboardIconName}
+                  onChange={(iconName) => updateBranding('dashboardIconName', iconName)}
                 />
               </div>
             )}
