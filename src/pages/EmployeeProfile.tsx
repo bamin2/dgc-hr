@@ -100,8 +100,12 @@ export default function EmployeeProfile() {
         amount = d.custom_amount;
       } else if (d.deduction_template) {
         const template = d.deduction_template;
-        if (template.amount_type === 'percentage' && template.percentage_of === 'base_salary') {
-          amount = (baseSalary * template.amount) / 100;
+        if (template.amount_type === 'percentage') {
+          if (template.percentage_of === 'base_salary') {
+            amount = (baseSalary * template.amount) / 100;
+          } else if (template.percentage_of === 'gosi_registered_salary') {
+            amount = ((employee?.gosiRegisteredSalary || 0) * template.amount) / 100;
+          }
         } else {
           amount = template.amount || 0;
         }
@@ -113,12 +117,22 @@ export default function EmployeeProfile() {
       };
     });
 
+    // Auto-add GOSI deduction if employee is subject to GOSI
+    if (employee?.isSubjectToGosi && employee?.gosiRegisteredSalary) {
+      const gosiAmount = (employee.gosiRegisteredSalary * 8) / 100;
+      deductionItems.push({
+        id: 'gosi-auto',
+        name: 'GOSI (8%)',
+        amount: gosiAmount,
+      });
+    }
+
     const totalAllowances = allowanceItems.reduce((sum, a) => sum + a.amount, 0);
     const totalDeductions = deductionItems.reduce((sum, d) => sum + d.amount, 0);
     const totalMonthlySalary = baseSalary + totalAllowances - totalDeductions;
 
     return { baseSalary, allowanceItems, deductionItems, totalAllowances, totalDeductions, totalMonthlySalary };
-  }, [employee?.salary, allowances, deductions]);
+  }, [employee?.salary, employee?.isSubjectToGosi, employee?.gosiRegisteredSalary, allowances, deductions]);
   
   // Check if viewing own profile
   const isOwnProfile = profile?.employee_id === id;
