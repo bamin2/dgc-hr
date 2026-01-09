@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TemplateCategoryBadge } from "./TemplateCategoryBadge";
 import { DocumentTemplate } from "@/hooks/useDocumentTemplates";
-import { Edit, Trash2, Eye, FileText } from "lucide-react";
+import { Edit, Trash2, Eye, FileText, Users } from "lucide-react";
 
 interface TemplateCardProps {
   template: DocumentTemplate;
@@ -27,11 +27,19 @@ export function TemplateCard({ template, onEdit, onDelete, onPreview }: Template
             <FileText className="h-5 w-5 text-muted-foreground" />
             <h3 className="font-medium leading-tight">{template.name}</h3>
           </div>
-          {!template.is_active && (
-            <Badge variant="outline" className="text-muted-foreground">
-              Inactive
-            </Badge>
-          )}
+          <div className="flex items-center gap-1">
+            {template.available_for_request && (
+              <Badge variant="secondary" className="text-xs gap-1">
+                <Users className="h-3 w-3" />
+                Requestable
+              </Badge>
+            )}
+            {!template.is_active && (
+              <Badge variant="outline" className="text-muted-foreground">
+                Inactive
+              </Badge>
+            )}
+          </div>
         </div>
         <TemplateCategoryBadge category={template.category} />
       </CardHeader>

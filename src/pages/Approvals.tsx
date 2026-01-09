@@ -19,13 +19,15 @@ const ApprovalsPage = () => {
 
   // Read initial tab from URL params
   const tabParam = searchParams.get("tab");
-  const typeParam = searchParams.get("type");
   
   const getInitialTab = () => {
     if (tabParam === "all-requests" && isHrOrAdmin) {
       return "all-requests";
     }
-    return "approvals";
+    if (tabParam === "approvals") {
+      return "approvals";
+    }
+    return "my-requests";
   };
 
   const [activeTab, setActiveTab] = useState(getInitialTab);
@@ -34,6 +36,8 @@ const ApprovalsPage = () => {
   useEffect(() => {
     if (tabParam === "all-requests" && isHrOrAdmin) {
       setActiveTab("all-requests");
+    } else if (tabParam === "approvals") {
+      setActiveTab("approvals");
     }
   }, [tabParam, isHrOrAdmin]);
 
@@ -47,10 +51,10 @@ const ApprovalsPage = () => {
           </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">
-              Approvals & Requests
+              Requests & Approvals
             </h1>
             <p className="text-sm text-muted-foreground">
-              Manage and track approval requests
+              Submit and track your requests
             </p>
           </div>
         </div>
@@ -58,8 +62,8 @@ const ApprovalsPage = () => {
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <TabsList>
-            <TabsTrigger value="approvals">Approvals</TabsTrigger>
             <TabsTrigger value="my-requests">My Requests</TabsTrigger>
+            <TabsTrigger value="approvals">Approvals</TabsTrigger>
             {isManager && (
               <TabsTrigger value="team-requests">Team Requests</TabsTrigger>
             )}
@@ -68,12 +72,12 @@ const ApprovalsPage = () => {
             )}
           </TabsList>
 
-          <TabsContent value="approvals" className="mt-6">
-            <PendingApprovalsTab />
-          </TabsContent>
-
           <TabsContent value="my-requests" className="mt-6">
             <MyRequestsTab />
+          </TabsContent>
+
+          <TabsContent value="approvals" className="mt-6">
+            <PendingApprovalsTab />
           </TabsContent>
 
           {isManager && (

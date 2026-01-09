@@ -91,6 +91,7 @@ export const queryKeys = {
   documents: {
     templates: ['document-templates'] as const,
     templateDetail: (id: string) => ['document-templates', id] as const,
+    requestableTemplates: ['document-templates', 'requestable'] as const,
     types: ['document-types'] as const,
     byEmployee: (employeeId: string) => ['employee-documents', employeeId] as const,
   },

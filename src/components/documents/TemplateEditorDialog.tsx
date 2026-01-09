@@ -45,6 +45,7 @@ export function TemplateEditorDialog({
   const [description, setDescription] = useState("");
   const [content, setContent] = useState("");
   const [isActive, setIsActive] = useState(true);
+  const [availableForRequest, setAvailableForRequest] = useState(false);
   const [docxTemplateUrl, setDocxTemplateUrl] = useState<string | null>(null);
   const [isUploadingDocx, setIsUploadingDocx] = useState(false);
 
@@ -55,6 +56,7 @@ export function TemplateEditorDialog({
       setDescription(template.description || "");
       setContent(template.content);
       setIsActive(template.is_active);
+      setAvailableForRequest(template.available_for_request ?? false);
       setDocxTemplateUrl(template.docx_template_url);
     } else {
       setName("");
@@ -62,6 +64,7 @@ export function TemplateEditorDialog({
       setDescription("");
       setContent("");
       setIsActive(true);
+      setAvailableForRequest(false);
       setDocxTemplateUrl(null);
     }
   }, [template, open]);
@@ -109,6 +112,7 @@ export function TemplateEditorDialog({
       description: description || null,
       content,
       is_active: isActive,
+      available_for_request: availableForRequest,
       docx_template_url: docxTemplateUrl,
     });
   };
@@ -171,9 +175,21 @@ export function TemplateEditorDialog({
             />
           </div>
 
-          <div className="flex items-center gap-2">
-            <Switch id="is_active" checked={isActive} onCheckedChange={setIsActive} />
-            <Label htmlFor="is_active">Active template</Label>
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-2">
+              <Switch id="is_active" checked={isActive} onCheckedChange={setIsActive} />
+              <Label htmlFor="is_active">Active template</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch 
+                id="available_for_request" 
+                checked={availableForRequest} 
+                onCheckedChange={setAvailableForRequest} 
+              />
+              <Label htmlFor="available_for_request">
+                Available for employee request
+              </Label>
+            </div>
           </div>
 
           <div className="space-y-2 pt-4 border-t">

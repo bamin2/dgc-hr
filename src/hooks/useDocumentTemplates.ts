@@ -9,11 +9,29 @@ export interface DocumentTemplate {
   content: string;
   is_active: boolean;
   docx_template_url: string | null;
+  available_for_request: boolean;
   created_at: string;
   updated_at: string;
 }
 
 export type DocumentTemplateInput = Omit<DocumentTemplate, "id" | "created_at" | "updated_at">;
+
+export function useRequestableTemplates() {
+  return useQuery({
+    queryKey: queryKeys.documents.requestableTemplates,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("document_templates")
+        .select("*")
+        .eq("is_active", true)
+        .eq("available_for_request", true)
+        .order("name", { ascending: true });
+
+      if (error) throw error;
+      return data as DocumentTemplate[];
+    },
+  });
+}
 
 export function useDocumentTemplates() {
   return useQuery({
