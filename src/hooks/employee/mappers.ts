@@ -48,6 +48,8 @@ export function mapDbEmployeeToEmployee(db: DbEmployeeBase): Employee {
     bankName: (db as any).bank_name || undefined,
     bankAccountNumber: (db as any).bank_account_number || undefined,
     iban: (db as any).iban || undefined,
+    passportNumber: (db as any).passport_number || undefined,
+    cprNumber: (db as any).cpr_number || undefined,
   };
 }
 

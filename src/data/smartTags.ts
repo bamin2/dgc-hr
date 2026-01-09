@@ -17,6 +17,8 @@ export const smartTags: SmartTag[] = [
   { tag: "<<Nationality>>", field: "nationality", source: "employee", category: "Employee", description: "Employee's nationality" },
   { tag: "<<Employee Code>>", field: "employee_code", source: "employee", category: "Employee", description: "Employee ID/code" },
   { tag: "<<Date of Birth>>", field: "date_of_birth", source: "employee", category: "Employee", description: "Employee's date of birth" },
+  { tag: "<<Passport Number>>", field: "passport_number", source: "employee", category: "Employee", description: "Employee's passport number" },
+  { tag: "<<CPR Number>>", field: "cpr_number", source: "employee", category: "Employee", description: "Employee's CPR (Civil Personal Registration) number" },
 
   // Employment fields
   { tag: "<<Job Title>>", field: "title", source: "position", category: "Employment", description: "Employee's job title" },

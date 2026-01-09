@@ -48,6 +48,8 @@ export interface Employee {
   bankName?: string;
   bankAccountNumber?: string;
   iban?: string;
+  passportNumber?: string;
+  cprNumber?: string;
 }
 
 // UI-compatible TeamMember interface (for Team views)

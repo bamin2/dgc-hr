@@ -61,6 +61,8 @@ interface FormData {
   managerId: string;
   isSubjectToGosi: boolean;
   gosiRegisteredSalary: string;
+  passportNumber: string;
+  cprNumber: string;
 }
 
 export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeFormProps) {
@@ -96,6 +98,8 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
     managerId: '',
     isSubjectToGosi: false,
     gosiRegisteredSalary: '',
+    passportNumber: '',
+    cprNumber: '',
   });
 
   // Filter potential managers - exclude inactive, self, and employees that would create circular reference
@@ -128,6 +132,8 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
         managerId: employee.managerId || '',
         isSubjectToGosi: employee.isSubjectToGosi || false,
         gosiRegisteredSalary: employee.gosiRegisteredSalary?.toString() || '',
+        passportNumber: employee.passportNumber || '',
+        cprNumber: employee.cprNumber || '',
       });
     } else {
       setFormData({
@@ -149,6 +155,8 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
         managerId: '',
         isSubjectToGosi: false,
         gosiRegisteredSalary: '',
+        passportNumber: '',
+        cprNumber: '',
       });
     }
   }, [employee, open]);
@@ -407,6 +415,24 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
                     value={formData.nationality}
                     onValueChange={(v) => handleChange('nationality', v)}
                     placeholder="Select nationality"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="passportNumber">Passport Number</Label>
+                  <Input
+                    id="passportNumber"
+                    value={formData.passportNumber}
+                    onChange={(e) => handleChange('passportNumber', e.target.value)}
+                    placeholder="Enter passport number"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="cprNumber">CPR Number</Label>
+                  <Input
+                    id="cprNumber"
+                    value={formData.cprNumber}
+                    onChange={(e) => handleChange('cprNumber', e.target.value)}
+                    placeholder="Enter CPR number"
                   />
                 </div>
               </div>
