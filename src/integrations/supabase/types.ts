@@ -949,6 +949,8 @@ export type Database = {
         Row: {
           address: string | null
           avatar_url: string | null
+          bank_account_number: string | null
+          bank_name: string | null
           country: string | null
           created_at: string
           date_of_birth: string | null
@@ -963,6 +965,7 @@ export type Database = {
           full_name: string | null
           gender: Database["public"]["Enums"]["gender_type"] | null
           gosi_registered_salary: number | null
+          iban: string | null
           id: string
           import_batch_id: string | null
           is_subject_to_gosi: boolean | null
@@ -990,6 +993,8 @@ export type Database = {
         Insert: {
           address?: string | null
           avatar_url?: string | null
+          bank_account_number?: string | null
+          bank_name?: string | null
           country?: string | null
           created_at?: string
           date_of_birth?: string | null
@@ -1006,6 +1011,7 @@ export type Database = {
           full_name?: string | null
           gender?: Database["public"]["Enums"]["gender_type"] | null
           gosi_registered_salary?: number | null
+          iban?: string | null
           id?: string
           import_batch_id?: string | null
           is_subject_to_gosi?: boolean | null
@@ -1033,6 +1039,8 @@ export type Database = {
         Update: {
           address?: string | null
           avatar_url?: string | null
+          bank_account_number?: string | null
+          bank_name?: string | null
           country?: string | null
           created_at?: string
           date_of_birth?: string | null
@@ -1049,6 +1057,7 @@ export type Database = {
           full_name?: string | null
           gender?: Database["public"]["Enums"]["gender_type"] | null
           gosi_registered_salary?: number | null
+          iban?: string | null
           id?: string
           import_batch_id?: string | null
           is_subject_to_gosi?: boolean | null

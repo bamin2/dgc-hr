@@ -26,8 +26,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { StatusBadge, EmployeeForm, RoleBadge, RoleSelectorWithDescription, CreateLoginDialog, ResetPasswordDialog, SalaryHistoryCard } from "@/components/employees";
+import { StatusBadge, EmployeeForm, RoleBadge, RoleSelectorWithDescription, CreateLoginDialog, ResetPasswordDialog, SalaryHistoryCard, BankDetailsDialog } from "@/components/employees";
 import { useEmployee, useUpdateEmployee, useEmployees, Employee } from "@/hooks/useEmployees";
+import { useWorkLocations } from "@/hooks/useWorkLocations";
 import { getCountryByName } from "@/data/countries";
 import { AppRole, roleDescriptions } from "@/data/roles";
 import { useRole } from "@/contexts/RoleContext";
@@ -47,7 +48,23 @@ export default function EmployeeProfile() {
   const [formOpen, setFormOpen] = useState(false);
   const [createLoginOpen, setCreateLoginOpen] = useState(false);
   const [resetPasswordOpen, setResetPasswordOpen] = useState(false);
+  const [bankDialogOpen, setBankDialogOpen] = useState(false);
+  const { data: workLocations } = useWorkLocations();
   const employeeRole = id ? getEmployeeRole(id) : 'employee';
+  
+  // Get HQ currency for formatting
+  const hqLocation = workLocations?.find(loc => loc.is_hq);
+  const currency = hqLocation?.currency || "USD";
+  
+  const formatCurrency = (amount: number | undefined) => {
+    if (!amount) return "Not specified";
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
   
   // Check if viewing own profile
   const isOwnProfile = profile?.employee_id === id;
@@ -344,22 +361,38 @@ export default function EmployeeProfile() {
                 {/* Compensation - Only for own profile or HR/Admin */}
                 {hasFullAccess && (
                   <Card>
-                    <CardHeader>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle className="text-base font-medium flex items-center gap-2">
                         <CreditCard className="h-4 w-4 text-primary" />
                         Compensation
                       </CardTitle>
+                      {canEditEmployees && (
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setBankDialogOpen(true)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      )}
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent className="space-y-4 pt-4">
                       <InfoRow 
-                        label="Annual Salary" 
-                        value={employee.salary ? `$${employee.salary.toLocaleString()}` : 'Not specified'} 
+                        label="Monthly Salary" 
+                        value={formatCurrency(employee.salary)} 
                       />
-                      <InfoRow label="Pay Frequency" value="Monthly" />
-                      <InfoRow label="Bank Account" value="••••••1234" />
+                      <InfoRow 
+                        label="Bank Account" 
+                        value={employee.bankAccountNumber 
+                          ? `${employee.bankName || "Bank"} ••••${employee.bankAccountNumber.slice(-4)}` 
+                          : "Not specified"
+                        } 
+                      />
                     </CardContent>
                   </Card>
                 )}
+                
+                <BankDetailsDialog
+                  open={bankDialogOpen}
+                  onOpenChange={setBankDialogOpen}
+                  employee={employee}
+                />
               </div>
 
               {/* Salary History - Only for own profile or HR/Admin */}

@@ -27,6 +27,7 @@ export { OnboardingTaskList } from "./OnboardingTaskList";
 export { CreateLoginDialog } from "./CreateLoginDialog";
 export { ResetPasswordDialog } from "./ResetPasswordDialog";
 export { SalaryHistoryCard } from "./SalaryHistoryCard";
+export { BankDetailsDialog } from "./BankDetailsDialog";
 export { EmployeeExportButton } from "./EmployeeExportButton";
 export { EmployeeImportDialog } from "./EmployeeImportDialog";
 export { ImportHistoryDialog } from "./ImportHistoryDialog";
