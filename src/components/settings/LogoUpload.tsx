@@ -33,15 +33,33 @@ export const LogoUpload = ({
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        toast.error('Please select an image file');
+      // Validate file type (including SVG)
+      const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 'image/webp'];
+      if (!validTypes.includes(file.type) && !file.type.startsWith('image/')) {
+        toast.error('Please select an image file (PNG, JPG, SVG, or WebP)');
         return;
       }
       
       // Validate file size (5MB max)
       if (file.size > 5 * 1024 * 1024) {
         toast.error('Image must be less than 5MB');
+        return;
+      }
+
+      // Handle SVG files - upload directly without processing
+      if (file.type === 'image/svg+xml') {
+        setIsUploading(true);
+        try {
+          await uploadLogo(file, false, true);
+        } catch (error) {
+          console.error('Error uploading SVG:', error);
+          toast.error('Failed to upload SVG');
+        } finally {
+          setIsUploading(false);
+        }
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
         return;
       }
 
@@ -76,11 +94,20 @@ export const LogoUpload = ({
     }
   };
 
-  const uploadLogo = async (imageBlob: Blob, isPng: boolean) => {
+  const uploadLogo = async (imageBlob: Blob, isPng: boolean, isSvg: boolean = false) => {
     try {
       // Generate unique filename with correct extension
-      const extension = isPng ? 'png' : 'jpg';
-      const contentType = isPng ? 'image/png' : 'image/jpeg';
+      let extension = 'jpg';
+      let contentType = 'image/jpeg';
+      
+      if (isSvg) {
+        extension = 'svg';
+        contentType = 'image/svg+xml';
+      } else if (isPng) {
+        extension = 'png';
+        contentType = 'image/png';
+      }
+      
       const fileName = `company/logo-${Date.now()}.${extension}`;
       
       // Delete old logo if it exists in our bucket
@@ -151,7 +178,7 @@ export const LogoUpload = ({
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/*"
+                  accept="image/*,.svg"
                   className="hidden"
                   onChange={handleFileChange}
                   disabled={isUploading}
@@ -169,7 +196,7 @@ export const LogoUpload = ({
               </Button>
             )}
           </div>
-          <p className="text-xs text-muted-foreground">PNG, JPG up to 5MB. Auto-resized to 400×400 max.</p>
+          <p className="text-xs text-muted-foreground">PNG, JPG, or SVG up to 5MB. SVG recommended for best quality.</p>
         </div>
       </div>
     </>
