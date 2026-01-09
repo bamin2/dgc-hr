@@ -228,7 +228,7 @@ export function useIssuePayslips() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (runId: string) => {
+    mutationFn: async ({ runId, sendEmails = false }: { runId: string; sendEmails?: boolean }) => {
       const { data, error } = await supabase
         .from("payroll_runs")
         .update({ status: "payslips_issued" })
@@ -238,6 +238,19 @@ export function useIssuePayslips() {
         .single();
 
       if (error) throw error;
+
+      // Send payslip emails if requested
+      if (sendEmails) {
+        try {
+          await supabase.functions.invoke('send-payslip', {
+            body: { payrollRunId: runId }
+          });
+        } catch (emailError) {
+          console.error('Error sending payslip emails:', emailError);
+          // Don't throw - payslips are still issued, just email failed
+        }
+      }
+
       return transformDbRun(data);
     },
     onSuccess: () => {
