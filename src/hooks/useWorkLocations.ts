@@ -18,6 +18,7 @@ export interface WorkLocation {
   country: string | null;
   currency: string;
   is_remote: boolean;
+  is_hq: boolean;
   created_at: string;
   employeeCount: number;
   gosi_enabled: boolean;
@@ -32,6 +33,7 @@ export interface WorkLocationInput {
   country?: string | null;
   currency?: string;
   is_remote?: boolean;
+  is_hq?: boolean;
   gosi_enabled?: boolean;
   gosi_nationality_rates?: GosiNationalityRate[];
   gosi_base_calculation?: GosiBaseCalculation;
@@ -67,6 +69,7 @@ async function fetchWorkLocationsWithCounts(): Promise<WorkLocation[]> {
     country: loc.country,
     currency: loc.currency || "USD",
     is_remote: loc.is_remote ?? false,
+    is_hq: loc.is_hq ?? false,
     created_at: loc.created_at,
     employeeCount: countMap.get(loc.id) || 0,
     gosi_enabled: loc.gosi_enabled ?? false,
@@ -114,6 +117,15 @@ export function useUpdateWorkLocation() {
   
   return useMutation({
     mutationFn: async ({ id, ...input }: WorkLocationInput & { id: string }) => {
+      // If setting as HQ, first unmark any existing HQ
+      if (input.is_hq) {
+        await supabase
+          .from("work_locations")
+          .update({ is_hq: false })
+          .eq("is_hq", true)
+          .neq("id", id);
+      }
+
       const { data, error } = await supabase
         .from("work_locations")
         .update({
@@ -123,6 +135,7 @@ export function useUpdateWorkLocation() {
           country: input.country,
           currency: input.currency,
           is_remote: input.is_remote,
+          is_hq: input.is_hq,
           gosi_enabled: input.gosi_enabled,
           gosi_nationality_rates: JSON.parse(JSON.stringify(input.gosi_nationality_rates || [])),
           gosi_base_calculation: input.gosi_base_calculation,
