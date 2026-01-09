@@ -136,6 +136,37 @@ const TAG_MAPPINGS: Record<string, (data: TemplateData) => string | undefined> =
   "<<Current Year>>": (d) => d.system?.current_year || new Date().getFullYear().toString(),
 };
 
+// Legacy Handlebars-style tag mappings for backward compatibility with seeded templates
+const LEGACY_TAG_MAPPINGS: Record<string, (data: TemplateData) => string | undefined> = {
+  // Employee fields
+  "{{employeeName}}": (d) => d.employee?.full_name || (d.employee?.first_name && d.employee?.last_name ? `${d.employee.first_name} ${d.employee.last_name}` : undefined),
+  "{{firstName}}": (d) => d.employee?.first_name,
+  "{{lastName}}": (d) => d.employee?.last_name,
+  "{{email}}": (d) => d.employee?.email,
+  
+  // Leave fields
+  "{{leaveType}}": (d) => d.leave?.type,
+  "{{startDate}}": (d) => d.leave?.start_date ? formatShortDate(d.leave.start_date) : undefined,
+  "{{endDate}}": (d) => d.leave?.end_date ? formatShortDate(d.leave.end_date) : undefined,
+  "{{daysCount}}": (d) => d.leave?.days_count?.toString(),
+  "{{reason}}": (d) => d.leave?.reason,
+  "{{reviewerName}}": (d) => d.leave?.reviewer_name,
+  "{{rejectionReason}}": (d) => d.leave?.rejection_reason,
+  
+  // Payroll fields
+  "{{payPeriod}}": (d) => d.payroll?.pay_period || (d.payroll?.pay_period_start ? formatMonth(d.payroll.pay_period_start) : undefined),
+  "{{netPay}}": (d) => d.payroll?.net_pay !== undefined ? formatCurrency(d.payroll.net_pay, d.work_location?.currency) : undefined,
+  "{{grossPay}}": (d) => d.payroll?.gross_pay !== undefined ? formatCurrency(d.payroll.gross_pay, d.work_location?.currency) : undefined,
+  "{{currency}}": (d) => d.work_location?.currency || "",
+  
+  // Company fields
+  "{{companyName}}": (d) => d.company?.name,
+  "{{companyEmail}}": (d) => d.company?.email,
+  
+  // System/misc
+  "{{portalLink}}": () => "#",
+};
+
 /**
  * Format a date string to a readable format
  */
@@ -194,15 +225,19 @@ export function formatCurrency(amount: number, currency?: string): string {
 
 /**
  * Process a template string by replacing smart tags with actual values
- * @param template The template string with <<Tag Name>> placeholders
+ * Supports both new <<Tag Name>> syntax and legacy {{tagName}} syntax
+ * @param template The template string with smart tag placeholders
  * @param data The data to use for replacement
  * @returns The processed template string
  */
 export function processTemplate(template: string, data: TemplateData): string {
   let result = template;
   
-  // Replace all known tags
-  for (const [tag, getValue] of Object.entries(TAG_MAPPINGS)) {
+  // Handle conditional sections first {{#fieldName}}...{{/fieldName}}
+  result = processConditionalSections(result, data);
+  
+  // Process legacy Handlebars-style tags ({{tagName}}) for backward compatibility
+  for (const [tag, getValue] of Object.entries(LEGACY_TAG_MAPPINGS)) {
     const value = getValue(data);
     if (value !== undefined) {
       // Escape special regex characters in the tag
@@ -211,8 +246,15 @@ export function processTemplate(template: string, data: TemplateData): string {
     }
   }
   
-  // Handle conditional sections {{#fieldName}}...{{/fieldName}}
-  result = processConditionalSections(result, data);
+  // Process new smart tags (<<Tag Name>>)
+  for (const [tag, getValue] of Object.entries(TAG_MAPPINGS)) {
+    const value = getValue(data);
+    if (value !== undefined) {
+      // Escape special regex characters in the tag
+      const escapedTag = tag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      result = result.replace(new RegExp(escapedTag, "g"), value);
+    }
+  }
   
   return result;
 }
