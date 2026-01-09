@@ -909,6 +909,7 @@ export type Database = {
       }
       document_templates: {
         Row: {
+          available_for_request: boolean | null
           category: string
           content: string
           created_at: string
@@ -920,6 +921,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          available_for_request?: boolean | null
           category: string
           content: string
           created_at?: string
@@ -931,6 +933,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          available_for_request?: boolean | null
           category?: string
           content?: string
           created_at?: string
@@ -1552,6 +1555,77 @@ export type Database = {
           },
           {
             foreignKeyName: "generated_documents_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "document_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hr_document_requests: {
+        Row: {
+          created_at: string
+          employee_id: string
+          generated_document_id: string | null
+          id: string
+          notes: string | null
+          processed_at: string | null
+          processed_by: string | null
+          rejection_reason: string | null
+          status: string
+          template_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          employee_id: string
+          generated_document_id?: string | null
+          id?: string
+          notes?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          rejection_reason?: string | null
+          status?: string
+          template_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          generated_document_id?: string | null
+          id?: string
+          notes?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          rejection_reason?: string | null
+          status?: string
+          template_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_document_requests_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_document_requests_generated_document_id_fkey"
+            columns: ["generated_document_id"]
+            isOneToOne: false
+            referencedRelation: "generated_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_document_requests_processed_by_fkey"
+            columns: ["processed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_document_requests_template_id_fkey"
             columns: ["template_id"]
             isOneToOne: false
             referencedRelation: "document_templates"
