@@ -420,11 +420,16 @@ export default function EmployeeProfile() {
                         <CreditCard className="h-4 w-4 text-primary" />
                         Compensation
                       </CardTitle>
-                      {canEditEmployees && (
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setBankDialogOpen(true)}>
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                      )}
+                  {canEditEmployees && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="text-xs"
+                      onClick={() => setBankDialogOpen(true)}
+                    >
+                      Edit Bank Account Details
+                    </Button>
+                  )}
                     </CardHeader>
                     <CardContent className="space-y-3 pt-4">
                       {/* Basic Salary */}
