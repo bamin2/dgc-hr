@@ -616,6 +616,8 @@ export type Database = {
           created_at: string | null
           currency: string | null
           dashboard_card_visibility: Json | null
+          dashboard_display_type: string | null
+          dashboard_icon_url: string | null
           date_format: string | null
           email: string | null
           id: string
@@ -643,6 +645,8 @@ export type Database = {
           created_at?: string | null
           currency?: string | null
           dashboard_card_visibility?: Json | null
+          dashboard_display_type?: string | null
+          dashboard_icon_url?: string | null
           date_format?: string | null
           email?: string | null
           id?: string
@@ -670,6 +674,8 @@ export type Database = {
           created_at?: string | null
           currency?: string | null
           dashboard_card_visibility?: Json | null
+          dashboard_display_type?: string | null
+          dashboard_icon_url?: string | null
           date_format?: string | null
           email?: string | null
           id?: string
