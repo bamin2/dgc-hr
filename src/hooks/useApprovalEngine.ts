@@ -163,6 +163,7 @@ export function useInitiateApproval() {
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["leave-requests"] });
       queryClient.invalidateQueries({ queryKey: ["pending-approvals"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-approvals-count"] });
       queryClient.invalidateQueries({ queryKey: ["my-requests"] });
       
       if (result.autoApproved) {
