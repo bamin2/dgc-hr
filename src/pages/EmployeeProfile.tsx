@@ -219,6 +219,8 @@ export default function EmployeeProfile() {
       emergency_contact_relationship: data.emergencyContact?.relationship,
       is_subject_to_gosi: data.isSubjectToGosi || false,
       gosi_registered_salary: data.gosiRegisteredSalary || null,
+      passport_number: data.passportNumber || null,
+      cpr_number: data.cprNumber || null,
     }, {
       onSuccess: () => {
         toast({
@@ -387,6 +389,8 @@ export default function EmployeeProfile() {
                 />
                 <InfoRow label="Gender" value={employee.gender || 'Not specified'} />
                 <InfoRow label="Nationality" value={employee.nationality || 'Not specified'} />
+                <InfoRow label="Passport Number" value={employee.passportNumber} />
+                <InfoRow label="CPR Number" value={employee.cprNumber} />
               </CardContent>
             </Card>
 

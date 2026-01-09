@@ -1246,6 +1246,7 @@ export type Database = {
           bank_account_number: string | null
           bank_name: string | null
           country: string | null
+          cpr_number: string | null
           created_at: string
           date_of_birth: string | null
           department_id: string | null
@@ -1269,6 +1270,7 @@ export type Database = {
           manager_id: string | null
           nationality: string | null
           offer_letter_template: string | null
+          passport_number: string | null
           pay_frequency: Database["public"]["Enums"]["pay_frequency"] | null
           phone: string | null
           position_id: string | null
@@ -1290,6 +1292,7 @@ export type Database = {
           bank_account_number?: string | null
           bank_name?: string | null
           country?: string | null
+          cpr_number?: string | null
           created_at?: string
           date_of_birth?: string | null
           department_id?: string | null
@@ -1315,6 +1318,7 @@ export type Database = {
           manager_id?: string | null
           nationality?: string | null
           offer_letter_template?: string | null
+          passport_number?: string | null
           pay_frequency?: Database["public"]["Enums"]["pay_frequency"] | null
           phone?: string | null
           position_id?: string | null
@@ -1336,6 +1340,7 @@ export type Database = {
           bank_account_number?: string | null
           bank_name?: string | null
           country?: string | null
+          cpr_number?: string | null
           created_at?: string
           date_of_birth?: string | null
           department_id?: string | null
@@ -1361,6 +1366,7 @@ export type Database = {
           manager_id?: string | null
           nationality?: string | null
           offer_letter_template?: string | null
+          passport_number?: string | null
           pay_frequency?: Database["public"]["Enums"]["pay_frequency"] | null
           phone?: string | null
           position_id?: string | null

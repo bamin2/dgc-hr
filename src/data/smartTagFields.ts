@@ -22,6 +22,8 @@ export const SOURCE_FIELDS: Record<string, SourceField[]> = {
     { field: "country", label: "Country", description: "Country of residence" },
     { field: "pay_frequency", label: "Pay Frequency", description: "How often employee is paid" },
     { field: "worker_type", label: "Worker Type", description: "Employee or contractor" },
+    { field: "passport_number", label: "Passport Number", description: "Passport number" },
+    { field: "cpr_number", label: "CPR Number", description: "Civil Personal Registration number" },
   ],
   company: [
     { field: "name", label: "Company Name", description: "Company display name" },
