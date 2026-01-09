@@ -33,6 +33,15 @@ export function BankDetailsDialog({ open, onOpenChange, employee }: BankDetailsD
   }, [open, employee]);
 
   const handleSave = () => {
+    if (!iban.trim()) {
+      toast({
+        title: "IBAN Required",
+        description: "Please enter the IBAN to save bank details.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     updateEmployee.mutate(
       {
         id: employee.id,
@@ -76,7 +85,7 @@ export function BankDetailsDialog({ open, onOpenChange, employee }: BankDetailsD
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="accountNumber">Account Number</Label>
+            <Label htmlFor="accountNumber">Account Number (Optional)</Label>
             <Input
               id="accountNumber"
               placeholder="Enter account number"
@@ -85,7 +94,7 @@ export function BankDetailsDialog({ open, onOpenChange, employee }: BankDetailsD
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="iban">IBAN (Optional)</Label>
+            <Label htmlFor="iban">IBAN</Label>
             <Input
               id="iban"
               placeholder="e.g., BH67NBOB00001234567890"
@@ -98,7 +107,7 @@ export function BankDetailsDialog({ open, onOpenChange, employee }: BankDetailsD
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={updateEmployee.isPending}>
+          <Button onClick={handleSave} disabled={updateEmployee.isPending || !iban.trim()}>
             {updateEmployee.isPending ? "Saving..." : "Save Changes"}
           </Button>
         </DialogFooter>
