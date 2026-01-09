@@ -65,7 +65,7 @@ export function PayslipCard({ record }: PayslipCardProps) {
             <p className="font-medium text-foreground">
               {format(new Date(record.payPeriod.startDate), 'MMM d')} - {format(new Date(record.payPeriod.endDate), 'MMM d, yyyy')}
             </p>
-            <p className="text-sm text-muted-foreground mt-1">Employee ID: {record.employee.employeeId}</p>
+            <p className="text-sm text-muted-foreground mt-1">Employee ID: {record.employee.employeeCode || record.employeeId}</p>
           </div>
         </div>
 

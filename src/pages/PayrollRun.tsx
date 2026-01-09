@@ -9,15 +9,16 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Calendar } from "@/components/ui/calendar";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { mockPayrollRecords } from "@/data/payroll";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useAddPayrollRun } from "@/hooks/usePayrollRuns";
+import { useEmployees } from "@/hooks/useEmployees";
 
 const steps = [
   { id: 1, title: "Pay Period", icon: CalendarIcon },
@@ -29,16 +30,26 @@ const steps = [
 export default function PayrollRun() {
   const navigate = useNavigate();
   const addPayrollRun = useAddPayrollRun();
+  const { data: employees = [], isLoading: employeesLoading } = useEmployees();
+  
+  // Filter to only active employees with salary
+  const activeEmployees = employees.filter(e => e.status === 'active' && e.salary);
+  
   const [currentStep, setCurrentStep] = useState(1);
   const [payPeriod, setPayPeriod] = useState({
     startDate: format(startOfMonth(new Date()), "yyyy-MM-dd"),
     endDate: format(endOfMonth(new Date()), "yyyy-MM-dd"),
   });
-  const [selectedEmployees, setSelectedEmployees] = useState<string[]>(
-    mockPayrollRecords.map((r) => r.employeeId)
-  );
+  const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   const [adjustments, setAdjustments] = useState<Record<string, { bonus: number; deduction: number }>>({});
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Initialize selected employees when data loads
+  useState(() => {
+    if (activeEmployees.length > 0 && selectedEmployees.length === 0) {
+      setSelectedEmployees(activeEmployees.map(e => e.id));
+    }
+  });
 
   const toggleEmployee = (id: string) => {
     setSelectedEmployees((prev) =>
@@ -47,38 +58,41 @@ export default function PayrollRun() {
   };
 
   const toggleAll = () => {
-    if (selectedEmployees.length === mockPayrollRecords.length) {
+    if (selectedEmployees.length === activeEmployees.length) {
       setSelectedEmployees([]);
     } else {
-      setSelectedEmployees(mockPayrollRecords.map((r) => r.employeeId));
+      setSelectedEmployees(activeEmployees.map((e) => e.id));
     }
   };
 
-  const selectedRecords = mockPayrollRecords.filter((r) =>
-    selectedEmployees.includes(r.employeeId)
+  const selectedRecords = activeEmployees.filter((e) =>
+    selectedEmployees.includes(e.id)
   );
 
-  const totalPayroll = selectedRecords.reduce((sum, r) => {
-    const adj = adjustments[r.employeeId] || { bonus: 0, deduction: 0 };
-    return sum + r.netPay + adj.bonus - adj.deduction;
+  // Calculate monthly salary from annual (employees have annual salary)
+  const getMonthlySalary = (salary?: number) => Math.round((salary || 0) / 12);
+
+  const totalPayroll = selectedRecords.reduce((sum, e) => {
+    const adj = adjustments[e.id] || { bonus: 0, deduction: 0 };
+    return sum + getMonthlySalary(e.salary) + adj.bonus - adj.deduction;
   }, 0);
 
   const handleProcess = async () => {
     setIsProcessing(true);
     
     try {
-      const records = selectedRecords.map((r) => ({
+      const records = selectedRecords.map((e) => ({
         payroll_run_id: "", // Will be set by the hook
-        employee_id: r.employeeId,
-        employee_name: `${r.employee.firstName} ${r.employee.lastName}`,
-        department: r.employee.department,
-        base_salary: r.baseSalary,
-        overtime: r.overtime,
-        bonuses: r.bonuses,
-        tax_deduction: r.deductions.tax,
-        insurance_deduction: r.deductions.insurance,
-        other_deduction: r.deductions.other,
-        net_pay: r.netPay,
+        employee_id: e.id,
+        employee_name: `${e.firstName} ${e.lastName}`,
+        department: e.department,
+        base_salary: getMonthlySalary(e.salary),
+        overtime: 0,
+        bonuses: adjustments[e.id]?.bonus || 0,
+        tax_deduction: 0,
+        insurance_deduction: 0,
+        other_deduction: adjustments[e.id]?.deduction || 0,
+        net_pay: getMonthlySalary(e.salary) + (adjustments[e.id]?.bonus || 0) - (adjustments[e.id]?.deduction || 0),
         status: "paid",
         paid_date: new Date().toISOString().split("T")[0],
       }));
@@ -100,6 +114,23 @@ export default function PayrollRun() {
       setIsProcessing(false);
     }
   };
+
+  if (employeesLoading) {
+    return (
+      <div className="flex min-h-screen bg-background">
+        <Sidebar />
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          <Header />
+          <main className="flex-1 p-6 overflow-y-auto">
+            <div className="max-w-4xl mx-auto space-y-6">
+              <Skeleton className="h-10 w-64" />
+              <Skeleton className="h-96 w-full" />
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -201,7 +232,7 @@ export default function PayrollRun() {
               <div className="flex items-center justify-between">
                 <CardTitle>Select Employees</CardTitle>
                 <Button variant="outline" size="sm" onClick={toggleAll}>
-                  {selectedEmployees.length === mockPayrollRecords.length
+                  {selectedEmployees.length === activeEmployees.length
                     ? "Deselect All"
                     : "Select All"}
                 </Button>
@@ -209,39 +240,39 @@ export default function PayrollRun() {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                {mockPayrollRecords.map((record) => (
+                {activeEmployees.map((employee) => (
                   <div
-                    key={record.id}
+                    key={employee.id}
                     className={cn(
                       "flex items-center justify-between p-3 rounded-lg border transition-colors cursor-pointer",
-                      selectedEmployees.includes(record.employeeId)
+                      selectedEmployees.includes(employee.id)
                         ? "bg-primary/5 border-primary/30"
                         : "bg-card border-border hover:bg-muted/50"
                     )}
-                    onClick={() => toggleEmployee(record.employeeId)}
+                    onClick={() => toggleEmployee(employee.id)}
                   >
                     <div className="flex items-center gap-3">
                       <Checkbox
-                        checked={selectedEmployees.includes(record.employeeId)}
-                        onCheckedChange={() => toggleEmployee(record.employeeId)}
+                        checked={selectedEmployees.includes(employee.id)}
+                        onCheckedChange={() => toggleEmployee(employee.id)}
                       />
                       <Avatar className="w-9 h-9">
-                        <AvatarImage src={record.employee.avatar} />
+                        <AvatarImage src={employee.avatar} />
                         <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                          {record.employee.firstName[0]}{record.employee.lastName[0]}
+                          {employee.firstName[0]}{employee.lastName[0]}
                         </AvatarFallback>
                       </Avatar>
                       <div>
                         <p className="font-medium text-foreground text-sm">
-                          {record.employee.firstName} {record.employee.lastName}
+                          {employee.firstName} {employee.lastName}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {record.employee.department}
+                          {employee.department}
                         </p>
                       </div>
                     </div>
                     <span className="font-medium text-foreground">
-                      ${record.baseSalary.toLocaleString()}
+                      ${getMonthlySalary(employee.salary).toLocaleString()}
                     </span>
                   </div>
                 ))}
@@ -258,7 +289,7 @@ export default function PayrollRun() {
                   <div className="text-right">
                     <p className="text-sm text-muted-foreground">Total Amount</p>
                     <p className="text-xl font-bold text-primary">
-                      ${selectedRecords.reduce((sum, r) => sum + r.baseSalary, 0).toLocaleString()}
+                      ${selectedRecords.reduce((sum, e) => sum + getMonthlySalary(e.salary), 0).toLocaleString()}
                     </p>
                   </div>
                 </div>
@@ -275,84 +306,68 @@ export default function PayrollRun() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {selectedRecords.map((record) => (
-                  <div
-                    key={record.id}
-                    className="p-4 rounded-lg bg-muted/30 space-y-3"
-                  >
-                    {/* Employee Header */}
-                    <div className="flex items-center gap-3">
-                      <Avatar className="w-9 h-9">
-                        <AvatarImage src={record.employee.avatar} />
-                        <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                          {record.employee.firstName[0]}{record.employee.lastName[0]}
-                        </AvatarFallback>
-                      </Avatar>
+                {selectedRecords.map((employee) => {
+                  const monthlySalary = getMonthlySalary(employee.salary);
+                  const adj = adjustments[employee.id] || { bonus: 0, deduction: 0 };
+                  const netPay = monthlySalary + adj.bonus - adj.deduction;
+                  
+                  return (
+                    <div
+                      key={employee.id}
+                      className="p-4 rounded-lg bg-muted/30 space-y-3"
+                    >
+                      {/* Employee Header */}
+                      <div className="flex items-center gap-3">
+                        <Avatar className="w-9 h-9">
+                          <AvatarImage src={employee.avatar} />
+                          <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                            {employee.firstName[0]}{employee.lastName[0]}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium text-sm text-foreground">
+                            {employee.firstName} {employee.lastName}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {employee.department}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {/* Earnings Section */}
                       <div>
-                        <p className="font-medium text-sm text-foreground">
-                          {record.employee.firstName} {record.employee.lastName}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {record.employee.department}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    {/* Earnings Section */}
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground mb-2">EARNINGS</p>
-                      <div className="grid grid-cols-3 gap-2 text-sm">
-                        <div>
-                          <p className="text-muted-foreground text-xs">Base Salary</p>
-                          <p className="font-medium">${record.baseSalary.toLocaleString()}</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground text-xs">Overtime</p>
-                          <p className="font-medium">${record.overtime.toLocaleString()}</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground text-xs">Bonuses</p>
-                          <p className="font-medium">${record.bonuses.toLocaleString()}</p>
+                        <p className="text-xs font-medium text-muted-foreground mb-2">EARNINGS</p>
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          <div>
+                            <p className="text-muted-foreground text-xs">Base Salary</p>
+                            <p className="font-medium">${monthlySalary.toLocaleString()}</p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground text-xs">Bonuses</p>
+                            <p className="font-medium">${adj.bonus.toLocaleString()}</p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-
-                    {/* Allowances Section */}
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground mb-2">ALLOWANCES</p>
-                      <div className="text-sm">
-                        <p className="text-xs text-muted-foreground italic">
-                          Allowances from employee templates will appear here
-                        </p>
-                      </div>
-                    </div>
-                    
-                    {/* Deductions Section */}
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground mb-2">DEDUCTIONS</p>
-                      <div className="grid grid-cols-3 gap-2 text-sm">
-                        <div>
-                          <p className="text-muted-foreground text-xs">Tax</p>
-                          <p className="font-medium text-destructive">-${record.deductions.tax.toLocaleString()}</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground text-xs">Insurance</p>
-                          <p className="font-medium text-destructive">-${record.deductions.insurance.toLocaleString()}</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground text-xs">Other</p>
-                          <p className="font-medium text-destructive">-${record.deductions.other.toLocaleString()}</p>
+                      
+                      {/* Deductions Section */}
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground mb-2">DEDUCTIONS</p>
+                        <div className="text-sm">
+                          <div>
+                            <p className="text-muted-foreground text-xs">Other Deductions</p>
+                            <p className="font-medium text-destructive">-${adj.deduction.toLocaleString()}</p>
+                          </div>
                         </div>
                       </div>
+                      
+                      {/* Net Pay */}
+                      <div className="pt-2 border-t flex justify-between items-center">
+                        <span className="font-medium text-sm">Net Pay</span>
+                        <span className="font-bold text-primary">${netPay.toLocaleString()}</span>
+                      </div>
                     </div>
-                    
-                    {/* Net Pay */}
-                    <div className="pt-2 border-t flex justify-between items-center">
-                      <span className="font-medium text-sm">Net Pay</span>
-                      <span className="font-bold text-primary">${record.netPay.toLocaleString()}</span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
               
               {/* Total Summary Footer */}
@@ -368,25 +383,13 @@ export default function PayrollRun() {
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Total Earnings</span>
                     <span className="font-medium">
-                      ${selectedRecords.reduce((sum, r) => sum + r.baseSalary + r.overtime + r.bonuses, 0).toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Total Allowances</span>
-                    <span className="font-medium text-emerald-500">
-                      $0
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Total Deductions</span>
-                    <span className="font-medium text-destructive">
-                      -${selectedRecords.reduce((sum, r) => sum + r.deductions.tax + r.deductions.insurance + r.deductions.other, 0).toLocaleString()}
+                      ${selectedRecords.reduce((sum, e) => sum + getMonthlySalary(e.salary), 0).toLocaleString()}
                     </span>
                   </div>
                   <div className="flex justify-between pt-2 border-t">
                     <span className="font-medium">Final Net Pay</span>
                     <span className="text-xl font-bold text-primary">
-                      ${selectedRecords.reduce((sum, r) => sum + r.netPay, 0).toLocaleString()}
+                      ${totalPayroll.toLocaleString()}
                     </span>
                   </div>
                 </div>

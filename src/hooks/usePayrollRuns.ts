@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { mockPayrollRuns, PayrollRun } from "@/data/payroll";
+import { PayrollRun } from "@/data/payroll";
 
 interface DbPayrollRun {
   id: string;
@@ -53,16 +53,10 @@ export function usePayrollRuns() {
 
       if (error) {
         console.error("Error fetching payroll runs:", error);
-        return mockPayrollRuns;
+        return [];
       }
 
-      if (!data || data.length === 0) {
-        return mockPayrollRuns;
-      }
-
-      // Combine DB runs with mock data, DB runs first
-      const dbRuns = data.map(transformDbRun);
-      return [...dbRuns, ...mockPayrollRuns];
+      return (data || []).map(transformDbRun);
     },
   });
 }
