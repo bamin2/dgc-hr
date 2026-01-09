@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Save, Eye, Code, Variable, Loader2, FileText, Send } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Save, Eye, Code, Tag, Loader2, FileText, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
@@ -17,11 +17,13 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Toggle } from "@/components/ui/toggle";
-import { EmailTemplate, useEmailTemplates, templateVariables } from "@/hooks/useEmailTemplates";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { EmailTemplate, useEmailTemplates, templateTagCategories } from "@/hooks/useEmailTemplates";
 import { EmailTemplatePreview } from "./EmailTemplatePreview";
 import { RichTextEditor } from "./RichTextEditor";
 import { EmailTemplateVersionHistory } from "./EmailTemplateVersionHistory";
 import { EmailTemplateVersion } from "@/hooks/useEmailTemplateVersions";
+import { useActiveSmartTags } from "@/hooks/useSmartTags";
 
 interface EmailTemplateEditorProps {
   template: EmailTemplate;
@@ -32,6 +34,7 @@ interface EmailTemplateEditorProps {
 export function EmailTemplateEditor({ template, open, onClose }: EmailTemplateEditorProps) {
   const { updateTemplate } = useEmailTemplates();
   const { user } = useAuth();
+  const { data: allSmartTags } = useActiveSmartTags();
   const [subject, setSubject] = useState(template.subject);
   const [bodyContent, setBodyContent] = useState(template.body_content);
   const [isActive, setIsActive] = useState(template.is_active);
@@ -46,7 +49,26 @@ export function EmailTemplateEditor({ template, open, onClose }: EmailTemplateEd
     setIsActive(template.is_active);
   }, [template]);
 
-  const variables = templateVariables[template.type] || [];
+  // Filter smart tags by categories relevant to this template type
+  const relevantCategories = templateTagCategories[template.type] || ["Employee", "Company", "Date"];
+  
+  const filteredSmartTags = useMemo(() => {
+    if (!allSmartTags) return [];
+    return allSmartTags.filter(tag => relevantCategories.includes(tag.category));
+  }, [allSmartTags, relevantCategories]);
+
+  // Group tags by category
+  const groupedTags = useMemo(() => {
+    const groups: Record<string, typeof filteredSmartTags> = {};
+    for (const tag of filteredSmartTags) {
+      if (!groups[tag.category]) {
+        groups[tag.category] = [];
+      }
+      groups[tag.category].push(tag);
+    }
+    return groups;
+  }, [filteredSmartTags]);
+
   const hasChanges = 
     subject !== template.subject || 
     bodyContent !== template.body_content || 
@@ -70,9 +92,8 @@ export function EmailTemplateEditor({ template, open, onClose }: EmailTemplateEd
     );
   };
 
-  const handleInsertVariable = (variableName: string) => {
-    const variable = `{{${variableName}}}`;
-    setBodyContent((prev) => prev + variable);
+  const handleInsertTag = (tag: string) => {
+    setBodyContent((prev) => prev + tag);
   };
 
   const handleRestoreVersion = (version: EmailTemplateVersion) => {
@@ -188,7 +209,7 @@ export function EmailTemplateEditor({ template, open, onClose }: EmailTemplateEd
                       placeholder="Enter email subject..."
                     />
                     <p className="text-xs text-muted-foreground">
-                      Use {`{{variableName}}`} syntax for dynamic values
+                      Use smart tags like <code className="bg-muted px-1 rounded">&lt;&lt;First Name&gt;&gt;</code> for dynamic values
                     </p>
                   </div>
 
@@ -237,42 +258,44 @@ export function EmailTemplateEditor({ template, open, onClose }: EmailTemplateEd
                   </div>
                 </div>
 
-                {/* Right: Variables Reference */}
-                <div className="border rounded-lg p-4 bg-muted/20 h-fit">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Variable className="h-4 w-4 text-primary" />
-                    <h4 className="font-medium text-sm">Available Variables</h4>
-                  </div>
-                  <p className="text-xs text-muted-foreground mb-3">
-                    Click to insert into the body
-                  </p>
-                  <div className="space-y-2">
-                    {variables.map((variable) => (
-                      <button
-                        key={variable.name}
-                        onClick={() => handleInsertVariable(variable.name)}
-                        className="w-full text-left p-2 rounded-md hover:bg-muted transition-colors"
-                      >
-                        <Badge variant="secondary" className="font-mono text-xs mb-1">
-                          {`{{${variable.name}}}`}
-                        </Badge>
-                        <p className="text-xs text-muted-foreground">
-                          {variable.description}
-                        </p>
-                      </button>
-                    ))}
-                  </div>
-                  <div className="mt-4 pt-4 border-t">
+                {/* Right: Smart Tags Reference */}
+                <div className="border rounded-lg bg-muted/20 h-full flex flex-col">
+                  <div className="p-4 border-b">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Tag className="h-4 w-4 text-primary" />
+                      <h4 className="font-medium text-sm">Smart Tags</h4>
+                    </div>
                     <p className="text-xs text-muted-foreground">
-                      <strong>Conditional blocks:</strong>
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1 font-mono">
-                      {`{{#variableName}}...{{/variableName}}`}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Content only shows if variable has a value
+                      Click to insert into the email body
                     </p>
                   </div>
+                  <ScrollArea className="flex-1 p-4">
+                    <div className="space-y-4">
+                      {Object.entries(groupedTags).map(([category, tags]) => (
+                        <div key={category}>
+                          <h5 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                            {category}
+                          </h5>
+                          <div className="space-y-1">
+                            {tags.map((tag) => (
+                              <button
+                                key={tag.id}
+                                onClick={() => handleInsertTag(tag.tag)}
+                                className="w-full text-left p-2 rounded-md hover:bg-muted transition-colors"
+                              >
+                                <Badge variant="secondary" className="font-mono text-xs mb-1">
+                                  {tag.tag}
+                                </Badge>
+                                <p className="text-xs text-muted-foreground">
+                                  {tag.description}
+                                </p>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
                 </div>
               </div>
             </TabsContent>
