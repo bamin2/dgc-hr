@@ -24,7 +24,6 @@ import { GosiNationalityRate } from '@/hooks/useWorkLocations';
 interface MyProfileCompensationTabProps {
   employee: Employee;
   canViewCompensation?: boolean;
-  showLineItems?: boolean;
 }
 
 interface CompensationItemProps {
@@ -81,8 +80,7 @@ function MaskedValue({ value, label }: { value: string; label: string }) {
 
 export function MyProfileCompensationTab({ 
   employee, 
-  canViewCompensation = true,
-  showLineItems = false 
+  canViewCompensation = true
 }: MyProfileCompensationTabProps) {
   const { settings } = useCompanySettings();
   const { data: allowances, isLoading: loadingAllowances } = useEmployeeAllowances(employee.id);
@@ -249,7 +247,7 @@ export function MyProfileCompensationTab({
                 + {currency} {totalAllowances.toLocaleString()}
               </span>
             </div>
-            {showLineItems && allowanceItems.length > 0 && (
+            {allowanceItems.length > 0 && (
               <div className="p-3 bg-background">
                 {allowanceItems.map((item) => (
                   <CompensationItem
@@ -277,7 +275,7 @@ export function MyProfileCompensationTab({
                 - {currency} {(totalDeductions + gosiDeduction).toLocaleString()}
               </span>
             </div>
-            {showLineItems && (
+            {(deductionItems.length > 0 || gosiDeduction > 0) && (
               <div className="p-3 bg-background">
                 {deductionItems.map((item) => (
                   <CompensationItem
