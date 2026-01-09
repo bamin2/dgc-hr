@@ -9,10 +9,12 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { RequestTimeOffDialog } from '@/components/timeoff/RequestTimeOffDialog';
+import { EmployeeRequestLoanDialog } from '@/components/loans/EmployeeRequestLoanDialog';
 
 export function PersonalQuickActions() {
   const navigate = useNavigate();
   const [isTimeOffDialogOpen, setIsTimeOffDialogOpen] = useState(false);
+  const [isLoanDialogOpen, setIsLoanDialogOpen] = useState(false);
 
   const actions = [
     {
@@ -24,7 +26,7 @@ export function PersonalQuickActions() {
     {
       label: 'Request Loan',
       icon: Banknote,
-      onClick: () => navigate('/loans?action=request'),
+      onClick: () => setIsLoanDialogOpen(true),
       variant: 'outline' as const,
     },
     {
@@ -65,6 +67,11 @@ export function PersonalQuickActions() {
       <RequestTimeOffDialog 
         open={isTimeOffDialogOpen} 
         onOpenChange={setIsTimeOffDialogOpen} 
+      />
+      
+      <EmployeeRequestLoanDialog 
+        open={isLoanDialogOpen} 
+        onOpenChange={setIsLoanDialogOpen} 
       />
     </Card>
   );
