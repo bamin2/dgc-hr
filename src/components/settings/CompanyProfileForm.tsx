@@ -3,6 +3,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SettingsCard } from './SettingsCard';
 import { LogoUpload } from './LogoUpload';
+import { LogoPreviewSection } from './LogoPreviewSection';
 import { IconPicker } from './IconPicker';
 import { Building2, Phone, Palette, Calendar } from 'lucide-react';
 import { CountrySelect } from '@/components/ui/country-select';
@@ -232,6 +233,15 @@ export const CompanyProfileForm = ({ settings, onChange }: CompanyProfileFormPro
               />
             </div>
           </div>
+
+          {/* Logo Preview Section */}
+          <LogoPreviewSection
+            sidebarLogoUrl={settings.branding.logoUrl}
+            documentLogoUrl={settings.branding.documentLogoUrl}
+            companyName={settings.name}
+            displayType={settings.branding.dashboardDisplayType}
+            iconName={settings.branding.dashboardIconName}
+          />
 
           <div className="space-y-3 pt-2 border-t">
             <div>
