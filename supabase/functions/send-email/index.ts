@@ -150,6 +150,38 @@ serve(async (req: Request): Promise<Response> => {
                 .single();
 
               if (prefs?.email_leave_submissions !== false) {
+                // Generate email action tokens (72-hour expiry)
+                const expiresAt = new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString();
+                const approveToken = crypto.randomUUID();
+                const rejectToken = crypto.randomUUID();
+
+                // Store tokens in database
+                await supabase.from("email_action_tokens").insert([
+                  {
+                    token: approveToken,
+                    action_type: "approve",
+                    request_id: leaveRequestId,
+                    request_type: "time_off",
+                    step_id: pendingStep.id,
+                    user_id: pendingStep.approver_user_id,
+                    expires_at: expiresAt,
+                  },
+                  {
+                    token: rejectToken,
+                    action_type: "reject",
+                    request_id: leaveRequestId,
+                    request_type: "time_off",
+                    step_id: pendingStep.id,
+                    user_id: pendingStep.approver_user_id,
+                    expires_at: expiresAt,
+                  },
+                ]);
+
+                // Build action URLs
+                const functionUrl = `${SUPABASE_URL}/functions/v1/handle-email-action`;
+                const approveUrl = `${functionUrl}?token=${approveToken}&action=approve`;
+                const rejectUrl = `${functionUrl}?token=${rejectToken}&action=reject`;
+
                 const html = generateLeaveSubmittedHtml({
                   companyName,
                   companyLogo: company.document_logo_url || company.logo_url,
@@ -165,6 +197,8 @@ serve(async (req: Request): Promise<Response> => {
                   endDate: leaveRequest.end_date,
                   daysCount: leaveRequest.days_count,
                   reason: leaveRequest.reason,
+                  approveUrl,
+                  rejectUrl,
                 });
 
                 const result = await sendEmail(
@@ -346,6 +380,8 @@ interface LeaveEmailData {
   reason?: string;
   rejectionReason?: string;
   reviewerName?: string;
+  approveUrl?: string;
+  rejectUrl?: string;
 }
 
 function generateEmailHeader(data: LeaveEmailData, gradientColors: { from: string; to: string } = { from: BRAND_PRIMARY, to: BRAND_PRIMARY_DARK }): string {
@@ -403,6 +439,31 @@ function generateEmailFooter(data: LeaveEmailData): string {
 }
 
 function generateLeaveSubmittedHtml(data: LeaveEmailData): string {
+  // Generate action buttons HTML if URLs are provided
+  const actionButtonsHtml = data.approveUrl && data.rejectUrl ? `
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:25px 0;">
+          <tr>
+            <td style="text-align:center;">
+              <table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 auto;">
+                <tr>
+                  <td style="padding-right:10px;">
+                    <a href="${data.approveUrl}" style="display:inline-block;background:#22c55e;color:white;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;">✓ Approve</a>
+                  </td>
+                  <td style="padding-left:10px;">
+                    <a href="${data.rejectUrl}" style="display:inline-block;background:#ef4444;color:white;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;">✗ Reject</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="text-align:center;padding-top:12px;">
+              <p style="color:#a1a1aa;margin:0;font-size:11px;">Or review in the app for more options</p>
+            </td>
+          </tr>
+        </table>` : `
+        <p style="color:#71717a;margin:0;font-size:13px;text-align:center;line-height:1.5;">Please log in to the HR portal to review and approve this request.</p>`;
+
   return `
 <!DOCTYPE html>
 <html>
@@ -428,7 +489,7 @@ function generateLeaveSubmittedHtml(data: LeaveEmailData): string {
           </td></tr>
         </table>
         ${data.reason ? `<div style="background-color:#f0f9ff;border-left:4px solid ${BRAND_PRIMARY};padding:15px 18px;margin-bottom:20px;border-radius:0 8px 8px 0;"><p style="color:#71717a;margin:0 0 5px 0;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Reason</p><p style="color:#18181b;margin:0;font-size:14px;line-height:1.5;">${data.reason}</p></div>` : ""}
-        <p style="color:#71717a;margin:0;font-size:13px;text-align:center;line-height:1.5;">Please log in to the HR portal to review and approve this request.</p>
+        ${actionButtonsHtml}
       </td>
     </tr>
     ${generateEmailFooter(data)}
