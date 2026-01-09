@@ -42,11 +42,15 @@ export function PayrollChart({ data, currency = "USD" }: PayrollChartProps) {
       maximumFractionDigits: 0,
     }).format(value);
   };
+
   const formattedData = data.map((item) => ({
     name: item.department,
     total: item.total,
     employees: item.count,
   }));
+
+  // Dynamic height: minimum 250px, or 40px per department
+  const chartHeight = Math.max(250, data.length * 40);
 
   return (
     <Card className="border-0 shadow-sm">
@@ -54,16 +58,17 @@ export function PayrollChart({ data, currency = "USD" }: PayrollChartProps) {
         <CardTitle className="text-base font-semibold">Payroll by Department</CardTitle>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="h-[250px] w-full">
+        <ChartContainer config={chartConfig} className="w-full" style={{ height: `${chartHeight}px` }}>
           <BarChart data={formattedData} layout="vertical" margin={{ left: 0, right: 20 }}>
             <XAxis type="number" tickFormatter={formatCurrency} />
             <YAxis 
               dataKey="name" 
               type="category" 
-              width={90} 
+              width={100} 
               tick={{ fontSize: 12 }}
               tickLine={false}
               axisLine={false}
+              interval={0}
             />
             <ChartTooltip
               content={
