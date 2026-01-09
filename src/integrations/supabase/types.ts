@@ -623,6 +623,7 @@ export type Database = {
           legal_name: string | null
           logo_url: string | null
           name: string
+          payroll_day_of_month: number | null
           phone: string | null
           primary_color: string | null
           tax_id: string | null
@@ -649,6 +650,7 @@ export type Database = {
           legal_name?: string | null
           logo_url?: string | null
           name?: string
+          payroll_day_of_month?: number | null
           phone?: string | null
           primary_color?: string | null
           tax_id?: string | null
@@ -675,6 +677,7 @@ export type Database = {
           legal_name?: string | null
           logo_url?: string | null
           name?: string
+          payroll_day_of_month?: number | null
           phone?: string | null
           primary_color?: string | null
           tax_id?: string | null

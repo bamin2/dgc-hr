@@ -50,6 +50,7 @@ export interface CompanySettings {
     currency: string;
     weekendDays: number[]; // 0=Sunday, 1=Monday, ..., 5=Friday, 6=Saturday
   };
+  payrollDayOfMonth: number; // Day of month when payroll is processed (1-31)
   dashboardCardVisibility?: DashboardCardVisibility;
 }
 
@@ -169,7 +170,8 @@ export const companySettings: CompanySettings = {
     dateFormat: 'MM/DD/YYYY',
     currency: 'USD',
     weekendDays: [5, 6] // Friday-Saturday
-  }
+  },
+  payrollDayOfMonth: 25
 };
 
 export const userPreferences: UserPreferences = {

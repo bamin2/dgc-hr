@@ -27,6 +27,7 @@ interface DbCompanySettings {
   date_format: string | null;
   currency: string | null;
   weekend_days: number[] | null;
+  payroll_day_of_month: number | null;
   dashboard_card_visibility: Json | null;
   created_at: string;
   updated_at: string;
@@ -60,6 +61,7 @@ function transformFromDb(row: DbCompanySettings): CompanySettings {
       currency: row.currency || 'USD',
       weekendDays: row.weekend_days || [5, 6],
     },
+    payrollDayOfMonth: row.payroll_day_of_month || 25,
     dashboardCardVisibility: row.dashboard_card_visibility 
       ? (row.dashboard_card_visibility as unknown as DashboardCardVisibility)
       : defaultDashboardCardVisibility,
@@ -99,6 +101,10 @@ function transformToDb(settings: Partial<CompanySettings>): Record<string, unkno
 
   if (settings.dashboardCardVisibility !== undefined) {
     db.dashboard_card_visibility = settings.dashboardCardVisibility;
+  }
+
+  if (settings.payrollDayOfMonth !== undefined) {
+    db.payroll_day_of_month = settings.payrollDayOfMonth;
   }
   
   return db;

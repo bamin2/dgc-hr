@@ -41,7 +41,8 @@ export function AdminSection() {
 
         <LoanExposureCard 
           loanExposure={data?.loanExposure || { totalOutstanding: 0, activeLoansCount: 0 }} 
-          isLoading={isLoading} 
+          isLoading={isLoading}
+          currency={data?.hqCurrency}
         />
 
         <LeaveTrendsCard 

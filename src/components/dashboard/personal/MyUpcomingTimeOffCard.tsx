@@ -10,6 +10,7 @@ interface TimeOffData {
   endDate: string;
   leaveTypeName: string;
   daysCount: number;
+  reason?: string | null;
 }
 
 interface MyUpcomingTimeOffCardProps {
@@ -52,18 +53,19 @@ export function MyUpcomingTimeOffCard({ timeOff, isLoading }: MyUpcomingTimeOffC
                 key={item.id} 
                 className="flex items-center justify-between border-l-2 border-primary pl-3"
               >
-                <div>
+                <div className="min-w-0 flex-1">
                   <p className="font-medium text-sm">
                     {format(new Date(item.startDate), 'MMM d')}
                     {item.startDate !== item.endDate && (
                       <> - {format(new Date(item.endDate), 'MMM d')}</>
                     )}
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground truncate">
                     {item.leaveTypeName}
+                    {item.reason && `: ${item.reason}`}
                   </p>
                 </div>
-                <Badge variant="secondary">
+                <Badge variant="secondary" className="ml-2 flex-shrink-0">
                   {item.daysCount} day{item.daysCount !== 1 ? 's' : ''}
                 </Badge>
               </div>

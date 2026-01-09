@@ -19,6 +19,10 @@ const colorMap: Record<string, string> = {
 
 export function CalendarWidget() {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDay, setSelectedDay] = useState<number | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  
   const today = new Date();
   const todayDate = today.getDate();
   const todayMonth = today.getMonth();
@@ -67,6 +71,12 @@ export function CalendarWidget() {
   const handlePrevMonth = () => setCurrentDate(subMonths(currentDate, 1));
   const handleNextMonth = () => setCurrentDate(addMonths(currentDate, 1));
 
+  const handleDayClick = (day: number) => {
+    setSelectedDay(day);
+    setSelectedMonth(currentMonth);
+    setSelectedYear(year);
+  };
+
   return (
     <Card className="p-6">
       <div className="flex items-center justify-between mb-6">
@@ -114,21 +124,25 @@ export function CalendarWidget() {
       <div className="grid grid-cols-7 gap-1">
         {days.map((day, i) => {
           const isToday = day === todayDate && currentMonth === todayMonth && year === todayYear;
+          const isSelected = day === selectedDay && currentMonth === selectedMonth && year === selectedYear;
           const dayEvents = day ? getEventsForDay(day) : [];
           
           return (
             <div key={i} className="aspect-square relative">
               {day && (
                 <button
+                  onClick={() => handleDayClick(day)}
                   className={cn(
                     "w-full h-full flex items-center justify-center rounded-lg text-sm transition-colors relative",
-                    isToday
+                    isSelected
                       ? "bg-primary text-primary-foreground font-semibold"
-                      : "hover:bg-secondary text-foreground"
+                      : isToday
+                        ? "ring-2 ring-primary ring-inset text-primary font-semibold bg-transparent"
+                        : "hover:bg-secondary text-foreground"
                   )}
                 >
                   {day}
-                  {dayEvents.length > 0 && !isToday && (
+                  {dayEvents.length > 0 && !isSelected && (
                     <span
                       className={cn(
                         "absolute bottom-1 w-1.5 h-1.5 rounded-full",
