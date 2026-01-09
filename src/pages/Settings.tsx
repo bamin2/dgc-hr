@@ -17,6 +17,7 @@ import {
 } from '@/components/settings';
 import { PayrollSettingsTab } from '@/components/settings/payroll';
 import { ApprovalSettingsTab } from '@/components/settings/approvals';
+import { EmailTemplatesTab } from '@/components/settings/email-templates';
 import { 
   integrations as initialIntegrations,
   CompanySettings,
@@ -28,7 +29,7 @@ import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { useNotificationPreferences } from '@/hooks/useNotificationPreferences';
 import { useUserSessions } from '@/hooks/useUserSessions';
 import { useRole } from '@/contexts/RoleContext';
-import { Settings, Building2, User, Bell, Puzzle, Shield, Save, Wallet, Loader2, Network, LayoutDashboard, GitBranch, UserCircle } from 'lucide-react';
+import { Settings, Building2, User, Bell, Puzzle, Shield, Save, Wallet, Loader2, Network, LayoutDashboard, GitBranch, UserCircle, Mail } from 'lucide-react';
 import { DashboardCardVisibility, defaultDashboardCardVisibility } from '@/data/settings';
 import { toast } from 'sonner';
 
