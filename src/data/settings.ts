@@ -44,6 +44,7 @@ export interface CompanySettings {
   };
   branding: {
     logoUrl: string;
+    documentLogoUrl: string; // Logo for documents and email templates
     dashboardDisplayType: 'logo' | 'icon';
     dashboardIconName: string;
     primaryColor: string;
@@ -170,6 +171,7 @@ export const companySettings: CompanySettings = {
   },
   branding: {
     logoUrl: '/placeholder.svg',
+    documentLogoUrl: '',
     dashboardDisplayType: 'logo',
     dashboardIconName: 'Building2',
     primaryColor: '#804EEC',

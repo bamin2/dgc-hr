@@ -69,6 +69,7 @@ interface CompanyData {
   email?: string;
   phone?: string;
   logo_url?: string;
+  document_logo_url?: string; // Preferred logo for documents/emails
   address_street?: string;
   address_city?: string;
   address_state?: string;
@@ -220,9 +221,10 @@ export function renderTemplate(
     result = replaceTag(result, "Company Email", company.email || "");
     result = replaceTag(result, "Company Phone", company.phone || "");
     
-    // Handle company logo - render as image tag for HTML templates
-    if (company.logo_url) {
-      const logoImg = `<img src="${company.logo_url}" alt="${company.name || 'Company'} Logo" style="max-height: 80px; width: auto; background: transparent;" />`;
+    // Handle company logo - prefer document_logo_url, fall back to logo_url
+    const logoUrl = company.document_logo_url || company.logo_url;
+    if (logoUrl) {
+      const logoImg = `<img src="${logoUrl}" alt="${company.name || 'Company'} Logo" style="max-height: 80px; width: auto; background: transparent;" />`;
       result = replaceTag(result, "Company Logo", logoImg);
     } else {
       result = replaceTag(result, "Company Logo", "");

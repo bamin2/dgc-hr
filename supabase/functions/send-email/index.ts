@@ -31,6 +31,7 @@ interface CompanyData {
   phone?: string;
   website?: string;
   logo_url?: string;
+  document_logo_url?: string; // Preferred logo for documents/emails
   address_city?: string;
   address_country?: string;
 }
@@ -64,7 +65,7 @@ serve(async (req: Request): Promise<Response> => {
     // Get company settings with all branding data
     const { data: companySettings } = await supabase
       .from("company_settings")
-      .select("name, email, phone, website, logo_url, address_city, address_country")
+      .select("name, email, phone, website, logo_url, document_logo_url, address_city, address_country")
       .single();
 
     const company: CompanyData = companySettings || { name: "Company" };
@@ -151,7 +152,7 @@ serve(async (req: Request): Promise<Response> => {
               if (prefs?.email_leave_submissions !== false) {
                 const html = generateLeaveSubmittedHtml({
                   companyName,
-                  companyLogo: company.logo_url,
+                  companyLogo: company.document_logo_url || company.logo_url,
                   companyPhone: company.phone,
                   companyWebsite: company.website,
                   companyEmail: company.email,
@@ -235,7 +236,7 @@ serve(async (req: Request): Promise<Response> => {
 
             const emailData = {
               companyName,
-              companyLogo: company.logo_url,
+              companyLogo: company.document_logo_url || company.logo_url,
               companyPhone: company.phone,
               companyWebsite: company.website,
               companyEmail: company.email,
