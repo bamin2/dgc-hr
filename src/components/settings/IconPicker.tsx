@@ -37,6 +37,7 @@ import {
   Box,
   Package,
   Users,
+  Slash,
   type LucideIcon,
 } from "lucide-react";
 
@@ -75,6 +76,8 @@ const ICON_OPTIONS: { name: string; icon: LucideIcon }[] = [
   { name: "Box", icon: Box },
   { name: "Package", icon: Package },
   { name: "Users", icon: Users },
+  { name: "Slash", icon: Slash },
+  { name: "SlashFlipped", icon: Slash },
 ];
 
 interface IconPickerProps {
@@ -108,9 +111,9 @@ export function IconPicker({ value, onChange }: IconPickerProps) {
               "p-2 rounded-md hover:bg-accent transition-colors flex items-center justify-center",
               value === name && "bg-primary text-primary-foreground hover:bg-primary/90"
             )}
-            title={name}
+            title={name === "SlashFlipped" ? "Slash (Forward)" : name}
           >
-            <Icon className="w-5 h-5" />
+            <Icon className={cn("w-5 h-5", name === "SlashFlipped" && "scale-x-[-1]")} />
           </button>
         ))}
         {filteredIcons.length === 0 && (
