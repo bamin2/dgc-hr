@@ -32,7 +32,6 @@ const MyProfilePage = () => {
 
   // Get compensation visibility settings
   const canViewCompensation = settings?.employeeCanViewCompensation ?? true;
-  const showLineItems = settings?.showCompensationLineItems ?? false;
 
   if (isLoading || settingsLoading) {
     return <MyProfileSkeleton />;
@@ -94,10 +93,7 @@ const MyProfilePage = () => {
 
             {canViewCompensation && (
               <TabsContent value="compensation" className="m-0">
-                <MyProfileCompensationTab 
-                  employee={employee} 
-                  showLineItems={showLineItems} 
-                />
+                <MyProfileCompensationTab employee={employee} />
               </TabsContent>
             )}
 
