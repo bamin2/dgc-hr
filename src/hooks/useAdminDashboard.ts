@@ -117,12 +117,12 @@ export function useAdminDashboard() {
           `)
           .eq('status', 'active'),
         
-        // Upcoming time off (org-wide)
+        // Upcoming time off (org-wide) - use FK hint to avoid ambiguity
         supabase
           .from('leave_requests')
           .select(`
             id, start_date, end_date, days_count,
-            employee:employees (id, first_name, last_name)
+            employee:employees!leave_requests_employee_id_fkey (id, first_name, last_name)
           `)
           .eq('status', 'approved')
           .gte('start_date', todayStr)

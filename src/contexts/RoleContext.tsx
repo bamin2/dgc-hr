@@ -113,53 +113,48 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
     fetchUserRole();
   }, [user, profile]);
 
-  // Fetch all user roles for employee management (with employee_id mapping)
+  // Fetch all user roles and team members in parallel
   useEffect(() => {
-    const fetchAllRoles = async () => {
+    const fetchRolesAndTeam = async () => {
       if (!user) return;
 
-      // Join user_roles with profiles to get employee_id mapping
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select(`
-          id, 
-          user_id, 
-          role,
-          profiles!inner(employee_id)
-        `);
+      // Fetch user_roles and profiles separately, then merge
+      const [rolesResult, profilesResult, teamResult] = await Promise.all([
+        supabase.from('user_roles').select('id, user_id, role'),
+        supabase.from('profiles').select('id, employee_id'),
+        profile?.employee_id 
+          ? supabase.from('employees').select('id').eq('manager_id', profile.employee_id)
+          : Promise.resolve({ data: [], error: null }),
+      ]);
 
-      if (!error && data) {
-        setUserRoles(data.map(r => ({
+      // Process user roles with employee_id mapping
+      if (!rolesResult.error && rolesResult.data) {
+        const profilesMap = new Map<string, string>();
+        if (!profilesResult.error && profilesResult.data) {
+          profilesResult.data.forEach(p => {
+            if (p.employee_id) {
+              profilesMap.set(p.id, p.employee_id);
+            }
+          });
+        }
+
+        setUserRoles(rolesResult.data.map(r => ({
           id: r.id,
-          userId: (r.profiles as unknown as { employee_id: string })?.employee_id || r.user_id,
+          userId: profilesMap.get(r.user_id) || r.user_id,
           role: r.role,
         })));
       }
-    };
 
-    fetchAllRoles();
-  }, [user]);
-
-  // Fetch team members for managers
-  useEffect(() => {
-    const fetchTeamMembers = async () => {
-      if (!profile?.employee_id) {
+      // Process team members
+      if (!teamResult.error && teamResult.data) {
+        setTeamMemberIds(teamResult.data.map(e => e.id));
+      } else {
         setTeamMemberIds([]);
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from('employees')
-        .select('id')
-        .eq('manager_id', profile.employee_id);
-
-      if (!error && data) {
-        setTeamMemberIds(data.map(e => e.id));
       }
     };
 
-    fetchTeamMembers();
-  }, [profile?.employee_id]);
+    fetchRolesAndTeam();
+  }, [user, profile?.employee_id]);
 
   const hasRole = useCallback((role: AppRole) => {
     return currentUser.role === role;
