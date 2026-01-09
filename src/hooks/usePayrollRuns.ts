@@ -13,20 +13,22 @@ interface DbPayrollRun {
   created_at: string;
 }
 
-interface PayrollRecordInsert {
+interface PayrollEmployeeInsert {
   payroll_run_id: string;
   employee_id: string;
   employee_name: string;
+  employee_code?: string;
   department: string;
+  position?: string;
   base_salary: number;
-  overtime: number;
-  bonuses: number;
-  tax_deduction: number;
-  insurance_deduction: number;
-  other_deduction: number;
+  housing_allowance: number;
+  transportation_allowance: number;
+  other_allowances: Record<string, number>;
+  gross_pay: number;
+  gosi_deduction: number;
+  other_deductions: Record<string, number>;
+  total_deductions: number;
   net_pay: number;
-  status: string;
-  paid_date: string;
 }
 
 // Transform database format to app format
@@ -66,7 +68,7 @@ interface AddPayrollRunParams {
   payPeriodEnd: string;
   totalAmount: number;
   employeeCount: number;
-  records: PayrollRecordInsert[];
+  records: PayrollEmployeeInsert[];
 }
 
 export function useAddPayrollRun() {
@@ -92,7 +94,7 @@ export function useAddPayrollRun() {
         throw runError;
       }
 
-      // Insert all payroll records for this run
+      // Insert all payroll employee records for this run
       if (params.records.length > 0) {
         const recordsWithRunId = params.records.map((r) => ({
           ...r,
@@ -100,11 +102,12 @@ export function useAddPayrollRun() {
         }));
 
         const { error: recordsError } = await supabase
-          .from("payroll_records")
+          .from("payroll_run_employees")
           .insert(recordsWithRunId);
 
         if (recordsError) {
-          console.error("Error inserting payroll records:", recordsError);
+          console.error("Error inserting payroll run employees:", recordsError);
+          throw recordsError;
         }
       }
 
@@ -112,6 +115,7 @@ export function useAddPayrollRun() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["payroll-runs"] });
+      queryClient.invalidateQueries({ queryKey: ["payroll-dashboard-runs"] });
     },
   });
 }
