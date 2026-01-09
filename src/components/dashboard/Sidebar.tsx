@@ -22,6 +22,7 @@ import {
   HandCoins,
   CheckSquare,
   UserCircle,
+  History,
   icons,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -47,6 +48,7 @@ const managementMenuItems = [
 // COMPANY - HR & Manager roles only
 const companyMenuItems = [
   { icon: FileStack, label: "Documents", path: "/documents" },
+  { icon: History, label: "Audit Trail", path: "/audit-trail" },
   { icon: Puzzle, label: "Integrations", path: "/integrations", comingSoon: true },
   { icon: Receipt, label: "Invoices", path: "/invoices", comingSoon: true },
   { icon: Settings, label: "Settings", path: "/settings" },
