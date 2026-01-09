@@ -12,10 +12,9 @@ interface SummaryItemProps {
   days: number;
   label: string;
   sublabel: string;
-  link?: string;
 }
 
-function SummaryItem({ icon, bgColor, days, label, sublabel, link }: SummaryItemProps) {
+function SummaryItem({ icon, bgColor, days, label, sublabel }: SummaryItemProps) {
   return (
     <div className={`flex items-center gap-3 p-4 rounded-xl ${bgColor}`}>
       <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white">
@@ -25,11 +24,7 @@ function SummaryItem({ icon, bgColor, days, label, sublabel, link }: SummaryItem
         <p className="font-semibold">
           <span className="text-xl">{days}</span> {label}
         </p>
-        {link ? (
-          <a href="#" className="text-sm opacity-80 hover:underline">{sublabel}</a>
-        ) : (
-          <p className="text-sm opacity-80">{sublabel}</p>
-        )}
+        <p className="text-sm opacity-80">{sublabel}</p>
       </div>
     </div>
   );
@@ -125,7 +120,6 @@ export function TimeOffSummaryCard() {
           days={remainingHolidays}
           label="Public Holidays"
           sublabel={`${publicHolidays?.length || 0} total in ${currentYear}`}
-          link="#"
         />
         
         <p className="text-sm text-muted-foreground pt-2">
