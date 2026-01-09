@@ -1,68 +1,21 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Database } from "@/integrations/supabase/types";
 import { startOfDay, endOfDay } from "date-fns";
 import { queryKeys } from "@/lib/queryKeys";
+import type {
+  CalendarEvent,
+  CreateEventInput,
+  UpdateEventInput,
+  TodayMeeting,
+  EventType,
+  EventPlatform,
+  EventColor,
+  EventRecurrence,
+} from "@/types/calendar";
 
-export type EventType = Database["public"]["Enums"]["event_type"];
-export type EventPlatform = Database["public"]["Enums"]["event_platform"];
-export type EventColor = Database["public"]["Enums"]["event_color"];
-export type EventRecurrence = Database["public"]["Enums"]["event_recurrence"];
-
-export interface CalendarEvent {
-  id: string;
-  title: string;
-  description: string | null;
-  start_time: string;
-  end_time: string;
-  type: EventType;
-  color: EventColor;
-  organizer_id: string | null;
-  platform: EventPlatform | null;
-  location: string | null;
-  is_all_day: boolean | null;
-  recurrence: EventRecurrence | null;
-  created_at: string;
-  updated_at: string;
-  organizer?: {
-    id: string;
-    first_name: string;
-    last_name: string;
-    avatar_url: string | null;
-    position?: { title: string } | null;
-  } | null;
-  participants?: {
-    id: string;
-    employee_id: string;
-    status: string;
-    employee: {
-      id: string;
-      first_name: string;
-      last_name: string;
-      avatar_url: string | null;
-      department?: { name: string } | null;
-    };
-  }[];
-}
-
-export interface CreateEventInput {
-  title: string;
-  description?: string;
-  start_time: string;
-  end_time: string;
-  type?: EventType;
-  color?: EventColor;
-  organizer_id?: string;
-  platform?: EventPlatform;
-  location?: string;
-  is_all_day?: boolean;
-  recurrence?: EventRecurrence;
-  participant_ids?: string[];
-}
-
-export interface UpdateEventInput extends Partial<CreateEventInput> {
-  id: string;
-}
+// Re-export types for backward compatibility
+export type { CalendarEvent, CreateEventInput, UpdateEventInput, TodayMeeting };
+export type { EventType, EventPlatform, EventColor, EventRecurrence };
 
 export function useCalendarEvents(startDate?: Date, endDate?: Date) {
   return useQuery({
@@ -157,7 +110,6 @@ export function useCreateCalendarEvent() {
     mutationFn: async (input: CreateEventInput) => {
       const { participant_ids, ...eventData } = input;
 
-      // Create the event
       const { data: event, error: eventError } = await supabase
         .from("calendar_events")
         .insert(eventData)
@@ -166,7 +118,6 @@ export function useCreateCalendarEvent() {
 
       if (eventError) throw eventError;
 
-      // Add participants if provided
       if (participant_ids && participant_ids.length > 0) {
         const participantRecords = participant_ids.map((employeeId) => ({
           event_id: event.id,
@@ -196,7 +147,6 @@ export function useUpdateCalendarEvent() {
     mutationFn: async (input: UpdateEventInput) => {
       const { id, participant_ids, ...eventData } = input;
 
-      // Update the event
       const { data: event, error: eventError } = await supabase
         .from("calendar_events")
         .update(eventData)
@@ -206,15 +156,12 @@ export function useUpdateCalendarEvent() {
 
       if (eventError) throw eventError;
 
-      // Update participants if provided
       if (participant_ids !== undefined) {
-        // Remove existing participants
         await supabase
           .from("event_participants")
           .delete()
           .eq("event_id", id);
 
-        // Add new participants
         if (participant_ids.length > 0) {
           const participantRecords = participant_ids.map((employeeId) => ({
             event_id: id,
@@ -257,7 +204,7 @@ export function useDeleteCalendarEvent() {
   });
 }
 
-// Helper functions to transform database types to UI-friendly formats
+// Helper functions
 export function getOrganizerFromEvent(event: CalendarEvent) {
   if (!event.organizer) return undefined;
   return {
@@ -290,17 +237,6 @@ export function getEventsForDate(events: CalendarEvent[], date: Date) {
   });
 }
 
-// Optimized hook for dashboard - fetches only today's meetings with minimal data
-export interface TodayMeeting {
-  id: string;
-  title: string;
-  start_time: string;
-  end_time: string;
-  type: EventType;
-  platform: EventPlatform | null;
-  location: string | null;
-}
-
 export function useTodayMeetings() {
   const today = new Date();
 
@@ -318,6 +254,6 @@ export function useTodayMeetings() {
       if (error) throw error;
       return data as TodayMeeting[];
     },
-    staleTime: 1000 * 60 * 2, // 2 minutes
+    staleTime: 1000 * 60 * 2,
   });
 }

@@ -2,34 +2,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { queryKeys } from '@/lib/queryKeys';
+import type { LeaveBalance, LeaveBalanceSummary } from '@/types/leave';
 
-export interface LeaveBalance {
-  id: string;
-  employee_id: string;
-  leave_type_id: string;
-  year: number;
-  total_days: number;
-  used_days: number;
-  pending_days: number;
-  created_at: string;
-  updated_at: string;
-  leave_type?: {
-    id: string;
-    name: string;
-    color: string | null;
-    is_paid: boolean;
-  };
-}
-
-export interface LeaveBalanceSummary {
-  leaveTypeId: string;
-  leaveTypeName: string;
-  color: string;
-  total: number;
-  used: number;
-  pending: number;
-  remaining: number;
-}
+// Re-export types for backward compatibility
+export type { LeaveBalance, LeaveBalanceSummary };
 
 export function useLeaveBalances(employeeId?: string, year?: number) {
   const currentYear = year || new Date().getFullYear();
@@ -69,7 +45,6 @@ export function useMyLeaveBalances(year?: number) {
   return useQuery({
     queryKey: [...queryKeys.leave.balances.all, 'my', currentYear],
     queryFn: async () => {
-      // First get the current user's employee_id
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 

@@ -2,22 +2,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { queryKeys } from "@/lib/queryKeys";
+import type { SmartTag, SmartTagInsert, SmartTagUpdate } from "@/types/organization";
 
-export interface SmartTag {
-  id: string;
-  tag: string;
-  field: string;
-  source: string;
-  category: string;
-  description: string;
-  is_system: boolean;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-export type SmartTagInsert = Omit<SmartTag, "id" | "created_at" | "updated_at">;
-export type SmartTagUpdate = Partial<SmartTagInsert>;
+// Re-export types for backward compatibility
+export type { SmartTag, SmartTagInsert, SmartTagUpdate };
 
 export function useSmartTags() {
   return useQuery({

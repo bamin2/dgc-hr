@@ -14,6 +14,7 @@ export * from './loans';
 
 // Payroll types
 export * from './payroll';
+export * from './payroll-run';
 
 // Benefits types
 export * from './benefits';
@@ -26,3 +27,21 @@ export * from './onboarding';
 
 // Dashboard types
 export * from './dashboard';
+
+// Calendar types
+export * from './calendar';
+
+// Audit types
+export * from './audit';
+
+// Attendance types
+export * from './attendance';
+
+// Organization types (positions, departments, smart tags)
+export * from './organization';
+
+// Approval types
+export * from './approvals';
+
+// Payslip types
+export * from './payslip';

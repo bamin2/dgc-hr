@@ -3,41 +3,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { queryKeys } from '@/lib/queryKeys';
+import type { AttendanceRecord, AttendanceStatus, AttendanceRecordFilters } from '@/types/attendance';
 
-export type AttendanceStatus = 'present' | 'absent' | 'late' | 'on_leave' | 'half_day' | 'remote';
+// Re-export types for backward compatibility
+export type { AttendanceRecord, AttendanceStatus };
 
-export interface AttendanceRecord {
-  id: string;
-  employee_id: string;
-  date: string;
-  check_in: string | null;
-  check_out: string | null;
-  status: AttendanceStatus;
-  work_hours: number;
-  notes: string | null;
-  created_at: string;
-  updated_at: string;
-  employee?: {
-    id: string;
-    first_name: string;
-    last_name: string;
-    email: string;
-    avatar_url: string | null;
-    department?: {
-      id: string;
-      name: string;
-    } | null;
-  };
-}
-
-interface UseAttendanceRecordsOptions {
-  startDate?: Date;
-  endDate?: Date;
-  employeeId?: string;
-  status?: AttendanceStatus;
-}
-
-export function useAttendanceRecords(options: UseAttendanceRecordsOptions = {}) {
+export function useAttendanceRecords(options: AttendanceRecordFilters = {}) {
   const { startDate, endDate, employeeId, status } = options;
 
   return useQuery({
@@ -134,7 +105,6 @@ export function useAttendanceSummary(date?: Date) {
         }
       });
 
-      // Calculate absent as total employees minus those with records
       const recordedCount = data?.length || 0;
       summary.absent = Math.max(0, (totalEmployees || 0) - recordedCount);
 

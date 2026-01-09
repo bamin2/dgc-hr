@@ -1,66 +1,16 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getCountryCodeByName } from "@/data/countries";
+import type {
+  PayrollRunEmployee,
+  AllowanceTemplate,
+  DeductionTemplate,
+  EmployeeAllowanceRow,
+  EmployeeDeductionRow,
+} from "@/types/payroll-run";
 
-export interface PayrollRunEmployee {
-  id: string;
-  employeeId: string;
-  employeeName: string;
-  employeeCode: string | null;
-  department: string | null;
-  position: string | null;
-  baseSalary: number;
-  housingAllowance: number;
-  transportationAllowance: number;
-  otherAllowances: { name: string; amount: number }[];
-  gosiDeduction: number;
-  otherDeductions: { name: string; amount: number }[];
-  grossPay: number;
-  totalDeductions: number;
-  netPay: number;
-}
-
-interface AllowanceTemplate {
-  id: string;
-  name: string;
-  amount: number;
-  amount_type: string;
-  percentage_of: string | null;
-  is_taxable: boolean | null;
-}
-
-interface DeductionTemplate {
-  id: string;
-  name: string;
-  amount: number;
-  amount_type: string;
-  percentage_of: string | null;
-}
-
-interface EmployeeAllowanceRow {
-  id: string;
-  employee_id: string;
-  allowance_template_id: string | null;
-  custom_name: string | null;
-  custom_amount: number | null;
-  percentage: number | null;
-  allowance_template: AllowanceTemplate | null;
-}
-
-interface EmployeeDeductionRow {
-  id: string;
-  employee_id: string;
-  deduction_template_id: string | null;
-  custom_name: string | null;
-  custom_amount: number | null;
-  deduction_template: DeductionTemplate | null;
-}
-
-interface GosiNationalityRates {
-  saudi?: number;
-  non_saudi?: number;
-  [key: string]: number | undefined;
-}
+// Re-export types for backward compatibility
+export type { PayrollRunEmployee };
 
 export function usePayrollRunEmployees(runId: string | null) {
   const queryClient = useQueryClient();
@@ -103,7 +53,6 @@ export function usePayrollRunEmployees(runId: string | null) {
       throw new Error("Payroll run ID and employee IDs are required");
     }
 
-    // Fetch employee data with work location for GOSI settings
     const { data: employees, error: empError } = await supabase
       .from("employees")
       .select(
@@ -130,7 +79,6 @@ export function usePayrollRunEmployees(runId: string | null) {
       throw new Error("No employees found for the selected IDs");
     }
 
-    // Fetch all allowances for selected employees
     const { data: allAllowances, error: allowError } = await supabase
       .from("employee_allowances")
       .select(
@@ -150,7 +98,6 @@ export function usePayrollRunEmployees(runId: string | null) {
       throw allowError;
     }
 
-    // Fetch all deductions for selected employees
     const { data: allDeductions, error: deductError } = await supabase
       .from("employee_deductions")
       .select(
@@ -170,7 +117,6 @@ export function usePayrollRunEmployees(runId: string | null) {
       throw deductError;
     }
 
-    // Create snapshots with full calculations
     const snapshots = (employees || []).map((emp) => {
       const baseSalary = emp.salary || 0;
       const empAllowances = (allAllowances || []).filter(
@@ -180,7 +126,6 @@ export function usePayrollRunEmployees(runId: string | null) {
         d => d.employee_id === emp.id
       ) as EmployeeDeductionRow[];
 
-      // Calculate allowances
       let housingAllowance = 0;
       let transportationAllowance = 0;
       const otherAllowances: { name: string; amount: number }[] = [];
@@ -200,7 +145,6 @@ export function usePayrollRunEmployees(runId: string | null) {
           }
         }
 
-        // Check if it's housing or transportation
         const lowerName = name.toLowerCase();
         if (lowerName.includes("housing")) {
           housingAllowance += amount;
@@ -211,7 +155,6 @@ export function usePayrollRunEmployees(runId: string | null) {
         }
       });
 
-      // Calculate GOSI deduction
       let gosiDeduction = 0;
       const workLocation = emp.work_location as { 
         id: string; 
@@ -221,7 +164,6 @@ export function usePayrollRunEmployees(runId: string | null) {
       } | null;
       
       if (emp.is_subject_to_gosi && workLocation?.gosi_enabled) {
-        // Determine GOSI base based on location's calculation method
         let gosiBase: number;
         if (workLocation.gosi_base_calculation === 'basic_plus_housing') {
           gosiBase = baseSalary + housingAllowance;
@@ -230,7 +172,6 @@ export function usePayrollRunEmployees(runId: string | null) {
         }
         
         const rates = workLocation.gosi_nationality_rates || [];
-        // Try to match nationality code, fallback to raw nationality value
         const nationalityCode = getCountryCodeByName(emp.nationality || "");
         const matchingRate = rates.find(r => 
           r.nationality === nationalityCode || r.nationality === emp.nationality
@@ -243,7 +184,6 @@ export function usePayrollRunEmployees(runId: string | null) {
         }
       }
 
-      // Calculate other deductions
       const otherDeductions: { name: string; amount: number }[] = [];
       empDeductions.forEach((deduction) => {
         let amount = 0;
@@ -263,7 +203,6 @@ export function usePayrollRunEmployees(runId: string | null) {
         otherDeductions.push({ name, amount });
       });
 
-      // Calculate totals
       const otherAllowancesTotal = otherAllowances.reduce((sum, a) => sum + a.amount, 0);
       const grossPay = baseSalary + housingAllowance + transportationAllowance + otherAllowancesTotal;
       
