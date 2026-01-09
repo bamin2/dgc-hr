@@ -1,316 +1,130 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import React, { createContext, useContext, useCallback, useMemo, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { 
-  AppRole, 
-  CurrentUser, 
-  mockCurrentUser, 
-  UserRole 
-} from '@/data/roles';
-
-export interface ImpersonatedEmployee {
-  id: string;
-  name: string;
-  avatar?: string;
-  department?: string;
-  position?: string;
-  isManager?: boolean;
-  teamMemberIds?: string[];
-}
-
-interface RoleContextType {
-  currentUser: CurrentUser;
-  userRoles: UserRole[];
-  hasRole: (role: AppRole) => boolean;
-  canAccessManagement: boolean;
-  canAccessCompany: boolean;
-  canManageRoles: boolean;
-  canEditEmployees: boolean;
-  isManager: boolean;
-  teamMemberIds: string[];
-  isTeamMember: (employeeId: string) => boolean;
-  canApproveLeaveFor: (employeeId: string) => boolean;
-  getEmployeeRole: (employeeId: string) => AppRole;
-  updateEmployeeRole: (employeeId: string, newRole: AppRole) => Promise<{ error?: string }>;
-  setCurrentUserRole: (role: AppRole) => void;
-  // Impersonation
-  isImpersonating: boolean;
-  actualRole: AppRole;
-  canImpersonate: boolean;
-  impersonatedEmployee: ImpersonatedEmployee | null;
-  effectiveEmployeeId: string | null;
-  effectiveTeamMemberIds: string[];
-  startImpersonation: (employee: ImpersonatedEmployee) => void;
-  stopImpersonation: () => void;
-}
-
-const managementRoles: AppRole[] = ['hr', 'manager', 'admin'];
-
-// Role priority for determining the highest role when user has multiple
-const rolePriority: Record<AppRole, number> = {
-  employee: 1,
-  manager: 2,
-  hr: 3,
-  admin: 4,
-};
+import { AppRole, mockCurrentUser, UserRole } from '@/data/roles';
+import {
+  RoleContextType,
+  ImpersonatedEmployee,
+  useCurrentUserRole,
+  useAllUserRoles,
+  useTeamMembers,
+  useImpersonation,
+  useRolePermissions,
+  useRoleManagement,
+} from './role';
 
 const RoleContext = createContext<RoleContextType | undefined>(undefined);
 
 export function RoleProvider({ children }: { children: React.ReactNode }) {
   const { user, profile } = useAuth();
-  const [currentUser, setCurrentUser] = useState<CurrentUser>(mockCurrentUser);
-  const [userRoles, setUserRoles] = useState<UserRole[]>([]);
-  const [teamMemberIds, setTeamMemberIds] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
+
+  // Core data hooks
+  const { currentUser, setCurrentUser, isLoading: userLoading } = useCurrentUserRole(user, profile);
+  const { userRoles, isLoading: rolesLoading } = useAllUserRoles(user);
+  const { teamMemberIds, isLoading: teamLoading } = useTeamMembers(profile?.employee_id);
+
+  // Local state for userRoles updates (needed for updateEmployeeRole)
+  const [localUserRoles, setLocalUserRoles] = useState<UserRole[]>([]);
   
-  // Impersonation state
-  const [isImpersonating, setIsImpersonating] = useState(false);
-  const [actualRole, setActualRole] = useState<AppRole>('employee');
-  const [impersonatedEmployee, setImpersonatedEmployee] = useState<ImpersonatedEmployee | null>(null);
+  // Merge fetched roles with local updates
+  const mergedUserRoles = useMemo(() => {
+    if (localUserRoles.length === 0) return userRoles;
+    
+    // Local updates take precedence
+    const localUserIds = new Set(localUserRoles.map(r => r.userId));
+    const filtered = userRoles.filter(r => !localUserIds.has(r.userId));
+    return [...filtered, ...localUserRoles];
+  }, [userRoles, localUserRoles]);
 
-  // Fetch current user's role from the database
-  useEffect(() => {
-    const fetchUserRole = async () => {
-      if (!user) {
-        setCurrentUser(mockCurrentUser);
-        setLoading(false);
-        return;
-      }
+  // Impersonation
+  const impersonation = useImpersonation(
+    currentUser,
+    setCurrentUser,
+    profile?.employee_id,
+    teamMemberIds
+  );
 
-      try {
-        // Fetch all user roles and determine the highest priority one
-        const { data: rolesData, error: roleError } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id);
+  // Permissions (based on effective role from impersonation)
+  const permissions = useRolePermissions(
+    impersonation.effectiveRole,
+    impersonation.actualRole,
+    impersonation.isImpersonating,
+    impersonation.impersonatedEmployee,
+    impersonation.isImpersonating 
+      ? impersonation.effectiveTeamMemberIds 
+      : teamMemberIds
+  );
 
-        let role: AppRole = 'employee';
-        if (!roleError && rolesData && rolesData.length > 0) {
-          role = rolesData.reduce((highest, current) => {
-            return rolePriority[current.role as AppRole] > rolePriority[highest]
-              ? (current.role as AppRole)
-              : highest;
-          }, 'employee' as AppRole);
-        }
+  // Role management (CRUD operations)
+  const roleManagement = useRoleManagement(mergedUserRoles, setLocalUserRoles);
 
-        // Update current user with profile and role info
-        setCurrentUser({
-          id: user.id,
-          name: profile 
-            ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || user.email || 'User'
-            : user.email || 'User',
-          email: user.email || '',
-          role,
-          avatar: profile?.avatar_url || '',
-        });
-      } catch (error) {
-        console.error('Error fetching user role:', error);
-      }
-
-      setLoading(false);
-    };
-
-    fetchUserRole();
-  }, [user, profile]);
-
-  // Fetch all user roles and team members in parallel
-  useEffect(() => {
-    const fetchRolesAndTeam = async () => {
-      if (!user) return;
-
-      // Fetch user_roles and profiles separately, then merge
-      const [rolesResult, profilesResult, teamResult] = await Promise.all([
-        supabase.from('user_roles').select('id, user_id, role'),
-        supabase.from('profiles').select('id, employee_id'),
-        profile?.employee_id 
-          ? supabase.from('employees').select('id').eq('manager_id', profile.employee_id)
-          : Promise.resolve({ data: [], error: null }),
-      ]);
-
-      // Process user roles with employee_id mapping
-      if (!rolesResult.error && rolesResult.data) {
-        const profilesMap = new Map<string, string>();
-        if (!profilesResult.error && profilesResult.data) {
-          profilesResult.data.forEach(p => {
-            if (p.employee_id) {
-              profilesMap.set(p.id, p.employee_id);
-            }
-          });
-        }
-
-        setUserRoles(rolesResult.data.map(r => ({
-          id: r.id,
-          userId: profilesMap.get(r.user_id) || r.user_id,
-          role: r.role,
-        })));
-      }
-
-      // Process team members
-      if (!teamResult.error && teamResult.data) {
-        setTeamMemberIds(teamResult.data.map(e => e.id));
-      } else {
-        setTeamMemberIds([]);
-      }
-    };
-
-    fetchRolesAndTeam();
-  }, [user, profile?.employee_id]);
-
-  const hasRole = useCallback((role: AppRole) => {
-    return currentUser.role === role;
-  }, [currentUser.role]);
-
-  // Update actualRole when user role changes (but not during impersonation)
-  useEffect(() => {
-    if (!isImpersonating && currentUser.role) {
-      setActualRole(currentUser.role);
-    }
-  }, [currentUser.role, isImpersonating]);
-
-  // Use effective role for permissions (respects impersonation)
-  const effectiveRole = isImpersonating ? 'employee' : currentUser.role;
-  const canAccessManagement = managementRoles.includes(effectiveRole);
-  const canAccessCompany = managementRoles.includes(effectiveRole);
-  const canManageRoles = effectiveRole === 'hr' || effectiveRole === 'admin';
-  const canEditEmployees = effectiveRole === 'hr' || effectiveRole === 'admin';
-  const isManager = effectiveRole === 'manager' || (isImpersonating && (impersonatedEmployee?.isManager ?? false));
-  
-  // Impersonation toggle visibility based on actual role (not effective role)
-  const canImpersonate = actualRole === 'hr' || actualRole === 'admin';
-
-  // Effective employee ID for data fetching
-  const effectiveEmployeeId = isImpersonating 
-    ? impersonatedEmployee?.id ?? null 
-    : profile?.employee_id ?? null;
-
-  // Effective team member IDs (impersonated employee's team or actual user's team)
-  const effectiveTeamMemberIds = isImpersonating 
-    ? impersonatedEmployee?.teamMemberIds ?? [] 
-    : teamMemberIds;
-
-  // Check if an employee is a team member (for managers)
-  const isTeamMember = useCallback((employeeId: string) => {
-    return teamMemberIds.includes(employeeId);
-  }, [teamMemberIds]);
-
-  // Check if current user can approve leave for a specific employee
-  const canApproveLeaveFor = useCallback((employeeId: string) => {
-    // HR and Admin can approve any leave
-    if (canEditEmployees) return true;
-    // Manager can approve their team members' leave
-    if (isManager && teamMemberIds.includes(employeeId)) return true;
-    return false;
-  }, [canEditEmployees, isManager, teamMemberIds]);
-
-  const startImpersonation = useCallback(async (employee: ImpersonatedEmployee) => {
-    if (!isImpersonating) {
-      setActualRole(currentUser.role);
-      
-      // Fetch the employee's team members if they're a manager
-      const { data: teamData } = await supabase
-        .from('employees')
-        .select('id')
-        .eq('manager_id', employee.id);
-      
-      const employeeTeamIds = teamData?.map(e => e.id) || [];
-      const isEmployeeManager = employeeTeamIds.length > 0;
-      
-      setImpersonatedEmployee({
-        ...employee,
-        isManager: isEmployeeManager,
-        teamMemberIds: employeeTeamIds,
-      });
-      
-      setIsImpersonating(true);
-      setCurrentUser(prev => ({ ...prev, role: isEmployeeManager ? 'manager' : 'employee' }));
-    }
-  }, [currentUser.role, isImpersonating]);
-
-  const stopImpersonation = useCallback(() => {
-    setIsImpersonating(false);
-    setImpersonatedEmployee(null);
-    setCurrentUser(prev => ({ ...prev, role: actualRole }));
-  }, [actualRole]);
-
-  const getEmployeeRole = useCallback((employeeId: string): AppRole => {
-    const userRole = userRoles.find(ur => ur.userId === employeeId);
-    return userRole?.role || 'employee';
-  }, [userRoles]);
-
-  const updateEmployeeRole = useCallback(async (employeeId: string, newRole: AppRole): Promise<{ error?: string }> => {
-    // First, find the user_id associated with this employee
-    const { data: profileData, error: profileError } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('employee_id', employeeId)
-      .single();
-
-    if (profileError || !profileData) {
-      console.error('No user account linked to this employee:', profileError);
-      return { error: 'No user account linked to this employee. Create a login first.' };
-    }
-
-    const userId = profileData.id;
-
-    // Delete existing roles for this user first, then insert the new one
-    await supabase
-      .from('user_roles')
-      .delete()
-      .eq('user_id', userId);
-
-    const { error } = await supabase
-      .from('user_roles')
-      .insert({
-        user_id: userId,
-        role: newRole,
-      });
-
-    if (error) {
-      console.error('Failed to update role:', error);
-      return { error: 'Failed to update role in database.' };
-    }
-
-    // Update local state with employeeId
-    setUserRoles(prev => {
-      const filtered = prev.filter(ur => ur.userId !== employeeId);
-      return [...filtered, { id: `role-${employeeId}`, userId: employeeId, role: newRole }];
-    });
-
-    return {};
-  }, []);
+  // Simple role check
+  const hasRole = useCallback(
+    (role: AppRole) => currentUser.role === role,
+    [currentUser.role]
+  );
 
   // For demo purposes - allows switching the current user's role
-  const setCurrentUserRole = useCallback((role: AppRole) => {
-    setCurrentUser(prev => ({ ...prev, role }));
-  }, []);
+  const setCurrentUserRole = useCallback(
+    (role: AppRole) => setCurrentUser(prev => ({ ...prev, role })),
+    [setCurrentUser]
+  );
+
+  // Combined loading state
+  const isLoading = userLoading || rolesLoading || teamLoading;
+
+  // Memoized context value to prevent unnecessary re-renders
+  const contextValue = useMemo<RoleContextType>(
+    () => ({
+      // User info
+      currentUser,
+      userRoles: mergedUserRoles,
+      hasRole,
+      setCurrentUserRole,
+      
+      // Role management
+      getEmployeeRole: roleManagement.getEmployeeRole,
+      updateEmployeeRole: roleManagement.updateEmployeeRole,
+      
+      // Permissions
+      canAccessManagement: permissions.canAccessManagement,
+      canAccessCompany: permissions.canAccessCompany,
+      canManageRoles: permissions.canManageRoles,
+      canEditEmployees: permissions.canEditEmployees,
+      isManager: permissions.isManager,
+      canImpersonate: permissions.canImpersonate,
+      isTeamMember: permissions.isTeamMember,
+      canApproveLeaveFor: permissions.canApproveLeaveFor,
+      
+      // Team
+      teamMemberIds,
+      
+      // Impersonation
+      isImpersonating: impersonation.isImpersonating,
+      actualRole: impersonation.actualRole,
+      impersonatedEmployee: impersonation.impersonatedEmployee,
+      effectiveEmployeeId: impersonation.effectiveEmployeeId,
+      effectiveTeamMemberIds: impersonation.effectiveTeamMemberIds,
+      startImpersonation: impersonation.startImpersonation,
+      stopImpersonation: impersonation.stopImpersonation,
+      
+      // Loading
+      isLoading,
+    }),
+    [
+      currentUser,
+      mergedUserRoles,
+      hasRole,
+      setCurrentUserRole,
+      roleManagement,
+      permissions,
+      teamMemberIds,
+      impersonation,
+      isLoading,
+    ]
+  );
 
   return (
-    <RoleContext.Provider
-      value={{
-        currentUser,
-        userRoles,
-        hasRole,
-        canAccessManagement,
-        canAccessCompany,
-        canManageRoles,
-        canEditEmployees,
-        isManager,
-        teamMemberIds,
-        isTeamMember,
-        canApproveLeaveFor,
-        getEmployeeRole,
-        updateEmployeeRole,
-        setCurrentUserRole,
-        isImpersonating,
-        actualRole,
-        canImpersonate,
-        impersonatedEmployee,
-        effectiveEmployeeId,
-        effectiveTeamMemberIds,
-        startImpersonation,
-        stopImpersonation,
-      }}
-    >
+    <RoleContext.Provider value={contextValue}>
       {children}
     </RoleContext.Provider>
   );
@@ -323,3 +137,6 @@ export function useRole() {
   }
   return context;
 }
+
+// Re-export types for consumers
+export type { ImpersonatedEmployee, RoleContextType };
