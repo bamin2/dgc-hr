@@ -13,3 +13,9 @@ export { MeetingCards } from "./MeetingCards";
 export { Announcements } from "./Announcements";
 export { AttendanceOverview } from "./AttendanceOverview";
 export { ImpersonationBanner } from "./ImpersonationBanner";
+export { DashboardRenderer } from "./DashboardRenderer";
+
+// Section exports
+export * from "./personal";
+export * from "./team";
+export * from "./admin";
