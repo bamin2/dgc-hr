@@ -15,7 +15,7 @@ export function PersonalQuickActions() {
     {
       label: 'Request Time Off',
       icon: CalendarPlus,
-      onClick: () => navigate('/leave?action=new'),
+      onClick: () => navigate('/attendance/leave/request'),
       variant: 'default' as const,
     },
     {
