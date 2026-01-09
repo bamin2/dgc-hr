@@ -1,89 +1,22 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Database, Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+import { TablesUpdate } from "@/integrations/supabase/types";
+import { queryKeys } from "@/lib/queryKeys";
+import { 
+  fetchEmployeesBase, 
+  fetchEmployeeBase, 
+  EMPLOYEE_SELECT_QUERY,
+  mapDbToTeamMember,
+  TeamMember,
+  WorkerType,
+  EmploymentType,
+  PayFrequency,
+  TeamMemberStatus,
+} from "./employee";
 
-// Types from database enums
-export type WorkerType = Database["public"]["Enums"]["worker_type"];
-export type EmploymentType = Database["public"]["Enums"]["employment_type"];
-export type PayFrequency = Database["public"]["Enums"]["pay_frequency"];
-export type TeamMemberStatus = 'active' | 'draft' | 'absent' | 'onboarding' | 'offboarding' | 'dismissed';
-
-// UI-compatible TeamMember interface
-export interface TeamMember {
-  id: string;
-  firstName: string;
-  lastName: string;
-  preferredName?: string;
-  email: string;
-  avatar?: string;
-  workerType: WorkerType;
-  country?: string;
-  startDate: string;
-  department: string;
-  departmentId?: string;
-  jobTitle: string;
-  positionId?: string;
-  employmentType: EmploymentType;
-  status: TeamMemberStatus;
-  managerId?: string;
-  managerName?: string;
-  workLocation?: string;
-  salary?: number;
-  payFrequency: PayFrequency;
-  taxExemptionStatus?: string;
-  sendOfferLetter?: boolean;
-  offerLetterTemplate?: string;
-}
-
-// Database employee with relations
-type DbTeamMember = Tables<"employees"> & {
-  department?: { id: string; name: string } | null;
-  position?: { id: string; title: string } | null;
-  manager?: { id: string; first_name: string; last_name: string } | { id: string; first_name: string; last_name: string }[] | null;
-};
-
-// Map employee status to team member status
-function mapEmployeeStatusToTeamStatus(status: string): TeamMemberStatus {
-  switch (status) {
-    case 'active': return 'active';
-    case 'on_leave': return 'absent';
-    case 'on_boarding': return 'onboarding';
-    case 'terminated': return 'dismissed';
-    case 'probation': return 'active';
-    default: return 'active';
-  }
-}
-
-// Map database record to UI format
-export function mapDbToTeamMember(db: DbTeamMember): TeamMember {
-  const manager = Array.isArray(db.manager) ? db.manager[0] : db.manager;
-  
-  return {
-    id: db.id,
-    firstName: db.first_name,
-    lastName: db.last_name,
-    preferredName: db.preferred_name || undefined,
-    email: db.email,
-    avatar: db.avatar_url || undefined,
-    workerType: (db.worker_type as WorkerType) || 'employee',
-    country: db.country || undefined,
-    startDate: db.join_date || new Date().toISOString().split("T")[0],
-    department: db.department?.name || "Unknown",
-    departmentId: db.department_id || undefined,
-    jobTitle: db.position?.title || "Unknown",
-    positionId: db.position_id || undefined,
-    employmentType: (db.employment_type as EmploymentType) || 'full_time',
-    status: mapEmployeeStatusToTeamStatus(db.status),
-    managerId: db.manager_id || undefined,
-    managerName: manager ? `${manager.first_name} ${manager.last_name}` : undefined,
-    workLocation: db.work_location || db.location || undefined,
-    salary: db.salary ? Number(db.salary) : undefined,
-    payFrequency: (db.pay_frequency as PayFrequency) || 'month',
-    taxExemptionStatus: db.tax_exemption_status || undefined,
-    sendOfferLetter: db.send_offer_letter || false,
-    offerLetterTemplate: db.offer_letter_template || undefined,
-  };
-}
+// Re-export types for backwards compatibility
+export type { TeamMember, WorkerType, EmploymentType, PayFrequency, TeamMemberStatus };
+export { mapDbToTeamMember };
 
 // Static data exports (replaces team.ts)
 export const departments = [
@@ -136,57 +69,26 @@ export const offerTemplates = [
   { id: 'internship', name: 'Internship Offer' },
 ];
 
-// Fetch functions
+// Fetch functions using shared core
 async function fetchTeamMembers(): Promise<TeamMember[]> {
-  const { data, error } = await supabase
-    .from("employees")
-    .select(`
-      *,
-      department:departments!employees_department_id_fkey(id, name),
-      position:positions!employees_position_id_fkey(id, title),
-      manager:employees!manager_id(id, first_name, last_name)
-    `)
-    .order("first_name");
-
-  if (error) {
-    console.error("Error fetching team members:", error);
-    throw error;
-  }
-
-  return (data as DbTeamMember[]).map(mapDbToTeamMember);
+  return fetchEmployeesBase(mapDbToTeamMember, EMPLOYEE_SELECT_QUERY);
 }
 
 async function fetchTeamMember(id: string): Promise<TeamMember | null> {
-  const { data, error } = await supabase
-    .from("employees")
-    .select(`
-      *,
-      department:departments!employees_department_id_fkey(id, name),
-      position:positions!employees_position_id_fkey(id, title),
-      manager:employees!manager_id(id, first_name, last_name)
-    `)
-    .eq("id", id)
-    .maybeSingle();
-
-  if (error) {
-    console.error("Error fetching team member:", error);
-    throw error;
-  }
-
-  return data ? mapDbToTeamMember(data as DbTeamMember) : null;
+  return fetchEmployeeBase(id, mapDbToTeamMember, EMPLOYEE_SELECT_QUERY);
 }
 
 // Hooks
 export function useTeamMembers() {
   return useQuery({
-    queryKey: ["team-members"],
+    queryKey: queryKeys.teamMembers.all,
     queryFn: fetchTeamMembers,
   });
 }
 
 export function useTeamMember(id: string | undefined) {
   return useQuery({
-    queryKey: ["team-member", id],
+    queryKey: queryKeys.teamMembers.detail(id!),
     queryFn: () => fetchTeamMember(id!),
     enabled: !!id,
   });
@@ -244,8 +146,8 @@ export function useCreateTeamMember() {
       return result;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["team-members"] });
-      queryClient.invalidateQueries({ queryKey: ["employees"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.teamMembers.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.employees.all });
     },
   });
 }
@@ -266,10 +168,10 @@ export function useUpdateTeamMember() {
       return result;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["team-members"] });
-      queryClient.invalidateQueries({ queryKey: ["team-member", variables.id] });
-      queryClient.invalidateQueries({ queryKey: ["employees"] });
-      queryClient.invalidateQueries({ queryKey: ["employee", variables.id] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.teamMembers.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.teamMembers.detail(variables.id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.employees.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.employees.detail(variables.id) });
     },
   });
 }
@@ -287,10 +189,10 @@ export function useDeleteTeamMember() {
       if (error) throw error;
     },
     onSuccess: (_, id) => {
-      queryClient.invalidateQueries({ queryKey: ["team-members"] });
-      queryClient.invalidateQueries({ queryKey: ["team-member", id] });
-      queryClient.invalidateQueries({ queryKey: ["employees"] });
-      queryClient.invalidateQueries({ queryKey: ["employee", id] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.teamMembers.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.teamMembers.detail(id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.employees.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.employees.detail(id) });
     },
   });
 }
