@@ -1,8 +1,21 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useRole } from '@/contexts/RoleContext';
 import { queryKeys } from '@/lib/queryKeys';
+import {
+  calculateNextPayrollDate,
+  getTodayString,
+  getCurrentYear,
+  calculateOutstandingBalance,
+} from '@/lib/dashboard';
+import {
+  fetchCompanySettings,
+  fetchEmployeeWithLocation,
+  fetchEmployeeLeaveBalances,
+  fetchEmployeeLeaveRequests,
+  fetchActiveLoans,
+  fetchUserProfile,
+} from '@/lib/dashboard';
 
 export interface PersonalDashboardData {
   employeeId: string | null;
@@ -42,31 +55,6 @@ export interface PersonalDashboardData {
   };
 }
 
-function calculateNextPayrollDate(payrollDayOfMonth: number): string {
-  const today = new Date();
-  const currentDay = today.getDate();
-  const currentMonth = today.getMonth();
-  const currentYear = today.getFullYear();
-
-  let nextPayrollDate: Date;
-  
-  if (currentDay < payrollDayOfMonth) {
-    // Payroll is still this month
-    nextPayrollDate = new Date(currentYear, currentMonth, payrollDayOfMonth);
-  } else {
-    // Payroll is next month
-    nextPayrollDate = new Date(currentYear, currentMonth + 1, payrollDayOfMonth);
-  }
-
-  // Handle months with fewer days than payrollDayOfMonth
-  const lastDayOfMonth = new Date(nextPayrollDate.getFullYear(), nextPayrollDate.getMonth() + 1, 0).getDate();
-  if (payrollDayOfMonth > lastDayOfMonth) {
-    nextPayrollDate.setDate(lastDayOfMonth);
-  }
-
-  return nextPayrollDate.toISOString().split('T')[0];
-}
-
 export function usePersonalDashboard() {
   const { user } = useAuth();
   const { isImpersonating, effectiveEmployeeId } = useRole();
@@ -78,12 +66,7 @@ export function usePersonalDashboard() {
       let employeeId = effectiveEmployeeId;
 
       if (!employeeId && user?.id && !isImpersonating) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('employee_id')
-          .eq('id', user.id)
-          .single();
-
+        const { data: profile } = await fetchUserProfile(user.id);
         employeeId = profile?.employee_id ?? null;
       }
 
@@ -99,10 +82,10 @@ export function usePersonalDashboard() {
         };
       }
 
-      const currentYear = new Date().getFullYear();
-      const today = new Date().toISOString().split('T')[0];
+      const currentYear = getCurrentYear();
+      const today = getTodayString();
 
-      // Fetch all data in parallel
+      // Fetch all data in parallel using shared queries
       const [
         employeeRes,
         leaveBalancesRes,
@@ -110,56 +93,17 @@ export function usePersonalDashboard() {
         loansRes,
         companySettingsRes,
       ] = await Promise.all([
-        // Employee with work location for currency
-        supabase
-          .from('employees')
-          .select('work_location:work_locations(currency)')
-          .eq('id', employeeId)
-          .single(),
-        
-        // Leave balances - filter by visible_to_employees
-        supabase
-          .from('leave_balances')
-          .select(`
-            *,
-            leave_type:leave_types!inner (id, name, color, visible_to_employees)
-          `)
-          .eq('employee_id', employeeId)
-          .eq('year', currentYear)
-          .eq('leave_type.visible_to_employees', true),
-        
-        // Leave requests for summary and upcoming - include reason
-        supabase
-          .from('leave_requests')
-          .select(`
-            id, status, start_date, end_date, days_count, reason,
-            leave_type:leave_types (name)
-          `)
-          .eq('employee_id', employeeId)
-          .gte('start_date', `${currentYear}-01-01`),
-        
-        // Active loans
-        supabase
-          .from('loans')
-          .select(`
-            id, principal_amount, status,
-            loan_installments (due_date, amount, status)
-          `)
-          .eq('employee_id', employeeId)
-          .in('status', ['active', 'approved']),
-        
-        // Company settings for payroll day
-        supabase
-          .from('company_settings')
-          .select('payroll_day_of_month')
-          .limit(1)
-          .single(),
+        fetchEmployeeWithLocation(employeeId),
+        fetchEmployeeLeaveBalances(employeeId, currentYear),
+        fetchEmployeeLeaveRequests(employeeId, currentYear),
+        fetchActiveLoans(employeeId),
+        fetchCompanySettings(),
       ]);
 
       // Get employee currency
       const loanCurrency = (employeeRes.data?.work_location as any)?.currency || 'SAR';
 
-      // Process leave balances (already filtered by visible_to_employees in query)
+      // Process leave balances
       const leaveBalances = (leaveBalancesRes.data || []).map((b: any) => ({
         leaveTypeId: b.leave_type_id,
         leaveTypeName: b.leave_type?.name || 'Unknown',
@@ -180,7 +124,7 @@ export function usePersonalDashboard() {
         rejected: requests.filter((r: any) => r.status === 'rejected').length,
       };
 
-      // Process upcoming time off (approved & future) - include reason
+      // Process upcoming time off (approved & future)
       const upcomingTimeOff = requests
         .filter((r: any) => r.status === 'approved' && r.start_date >= today)
         .map((r: any) => ({
@@ -200,21 +144,16 @@ export function usePersonalDashboard() {
           .filter((i: any) => i.status === 'due')
           .sort((a: any, b: any) => a.due_date.localeCompare(b.due_date));
         
-        const outstandingBalance = dueInstallments.reduce(
-          (sum: number, i: any) => sum + Number(i.amount),
-          0
-        );
-
         return {
           id: loan.id,
           principalAmount: loan.principal_amount,
-          outstandingBalance,
+          outstandingBalance: calculateOutstandingBalance(loan.loan_installments || []),
           nextInstallmentDate: dueInstallments[0]?.due_date || null,
           nextInstallmentAmount: dueInstallments[0]?.amount || null,
         };
       });
 
-      // Calculate next payroll based on company settings
+      // Calculate next payroll
       const payrollDayOfMonth = companySettingsRes.data?.payroll_day_of_month || 25;
       const nextPayrollDate = calculateNextPayrollDate(payrollDayOfMonth);
 
@@ -227,11 +166,11 @@ export function usePersonalDashboard() {
         loanCurrency,
         nextPayroll: {
           date: nextPayrollDate,
-          lastNetSalary: null, // Would need to query payroll_run_employees
+          lastNetSalary: null,
         },
       };
     },
     enabled: !!effectiveEmployeeId || !!user?.id,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5,
   });
 }

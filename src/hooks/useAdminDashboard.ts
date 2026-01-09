@@ -1,6 +1,26 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { queryKeys } from '@/lib/queryKeys';
+import {
+  calculateNextPayrollDate,
+  getTodayString,
+  getFirstDayOfCurrentMonth,
+  getFirstDayOfLastMonth,
+  getLastDayOfLastMonth,
+  formatEmployeeName,
+  calculatePercentChange,
+  calculateOutstandingBalance,
+} from '@/lib/dashboard';
+import {
+  fetchAllEmployees,
+  fetchLastPayrollRun,
+  fetchPendingLeaveRequests,
+  fetchPendingLoanRequests,
+  fetchActiveLoans,
+  fetchUpcomingTimeOff,
+  fetchLeaveRequestsByDateRange,
+  fetchCompanySettings,
+  fetchHQCurrency,
+} from '@/lib/dashboard';
 
 export interface AdminDashboardData {
   orgStats: {
@@ -36,42 +56,16 @@ export interface AdminDashboardData {
   };
 }
 
-function calculateNextPayrollDate(payrollDayOfMonth: number): string {
-  const today = new Date();
-  const currentDay = today.getDate();
-  const currentMonth = today.getMonth();
-  const currentYear = today.getFullYear();
-
-  let nextPayrollDate: Date;
-  
-  if (currentDay < payrollDayOfMonth) {
-    nextPayrollDate = new Date(currentYear, currentMonth, payrollDayOfMonth);
-  } else {
-    nextPayrollDate = new Date(currentYear, currentMonth + 1, payrollDayOfMonth);
-  }
-
-  const lastDayOfMonth = new Date(nextPayrollDate.getFullYear(), nextPayrollDate.getMonth() + 1, 0).getDate();
-  if (payrollDayOfMonth > lastDayOfMonth) {
-    nextPayrollDate.setDate(lastDayOfMonth);
-  }
-
-  return nextPayrollDate.toISOString().split('T')[0];
-}
-
 export function useAdminDashboard() {
   return useQuery({
     queryKey: queryKeys.dashboard.admin,
     queryFn: async (): Promise<AdminDashboardData> => {
-      const today = new Date();
-      const firstDayThisMonth = new Date(today.getFullYear(), today.getMonth(), 1)
-        .toISOString().split('T')[0];
-      const firstDayLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1)
-        .toISOString().split('T')[0];
-      const lastDayLastMonth = new Date(today.getFullYear(), today.getMonth(), 0)
-        .toISOString().split('T')[0];
-      const todayStr = today.toISOString().split('T')[0];
+      const todayStr = getTodayString();
+      const firstDayThisMonth = getFirstDayOfCurrentMonth();
+      const firstDayLastMonth = getFirstDayOfLastMonth();
+      const lastDayLastMonth = getLastDayOfLastMonth();
 
-      // Fetch all data in parallel
+      // Fetch all data in parallel using shared queries
       const [
         employeesRes,
         payrollRes,
@@ -84,81 +78,16 @@ export function useAdminDashboard() {
         companySettingsRes,
         hqLocationRes,
       ] = await Promise.all([
-        // Employee stats
-        supabase
-          .from('employees')
-          .select('id, status'),
-        
-        // Last payroll run
-        supabase
-          .from('payroll_runs')
-          .select('processed_date, total_amount, pay_period_end')
-          .eq('status', 'completed')
-          .order('processed_date', { ascending: false })
-          .limit(1),
-        
-        // Pending leave requests
-        supabase
-          .from('leave_requests')
-          .select('id')
-          .eq('status', 'pending'),
-        
-        // Pending loan requests
-        supabase
-          .from('loans')
-          .select('id')
-          .eq('status', 'requested'),
-        
-        // Active loans for exposure
-        supabase
-          .from('loans')
-          .select(`
-            id,
-            loan_installments (amount, status)
-          `)
-          .eq('status', 'active'),
-        
-        // Upcoming time off (org-wide) - use FK hint to avoid ambiguity
-        supabase
-          .from('leave_requests')
-          .select(`
-            id, start_date, end_date, days_count,
-            employee:employees!leave_requests_employee_id_fkey (id, first_name, last_name)
-          `)
-          .eq('status', 'approved')
-          .gte('start_date', todayStr)
-          .order('start_date', { ascending: true })
-          .limit(10),
-        
-        // This month leaves
-        supabase
-          .from('leave_requests')
-          .select('id')
-          .eq('status', 'approved')
-          .gte('start_date', firstDayThisMonth),
-        
-        // Last month leaves
-        supabase
-          .from('leave_requests')
-          .select('id')
-          .eq('status', 'approved')
-          .gte('start_date', firstDayLastMonth)
-          .lte('start_date', lastDayLastMonth),
-        
-        // Company settings for payroll day
-        supabase
-          .from('company_settings')
-          .select('payroll_day_of_month')
-          .limit(1)
-          .single(),
-        
-        // HQ location for currency
-        supabase
-          .from('work_locations')
-          .select('currency')
-          .eq('is_hq', true)
-          .limit(1)
-          .single(),
+        fetchAllEmployees(),
+        fetchLastPayrollRun(),
+        fetchPendingLeaveRequests(),
+        fetchPendingLoanRequests(),
+        fetchActiveLoans(),
+        fetchUpcomingTimeOff(todayStr, 10),
+        fetchLeaveRequestsByDateRange(firstDayThisMonth),
+        fetchLeaveRequestsByDateRange(firstDayLastMonth, lastDayLastMonth),
+        fetchCompanySettings(),
+        fetchHQCurrency(),
       ]);
 
       // Process employee stats
@@ -169,7 +98,7 @@ export function useAdminDashboard() {
         onLeaveEmployees: employees.filter((e: any) => e.status === 'on_leave').length,
       };
 
-      // Process payroll status using company settings
+      // Process payroll status
       const lastPayroll = payrollRes.data?.[0];
       const payrollDayOfMonth = companySettingsRes.data?.payroll_day_of_month || 25;
       const nextPayrollDate = calculateNextPayrollDate(payrollDayOfMonth);
@@ -190,12 +119,7 @@ export function useAdminDashboard() {
       const loans = loansRes.data || [];
       let totalOutstanding = 0;
       loans.forEach((loan: any) => {
-        const dueInstallments = (loan.loan_installments || [])
-          .filter((i: any) => i.status === 'due');
-        totalOutstanding += dueInstallments.reduce(
-          (sum: number, i: any) => sum + Number(i.amount),
-          0
-        );
+        totalOutstanding += calculateOutstandingBalance(loan.loan_installments || []);
       });
 
       const loanExposure = {
@@ -209,7 +133,7 @@ export function useAdminDashboard() {
       // Process upcoming time off
       const upcomingTimeOff = (upcomingTimeOffRes.data || []).map((r: any) => ({
         employeeId: r.employee?.id,
-        employeeName: `${r.employee?.first_name || ''} ${r.employee?.last_name || ''}`.trim(),
+        employeeName: formatEmployeeName(r.employee?.first_name, r.employee?.last_name),
         startDate: r.start_date,
         endDate: r.end_date,
         daysCount: r.days_count,
@@ -218,14 +142,11 @@ export function useAdminDashboard() {
       // Process leave trends
       const thisMonthCount = thisMonthLeaveRes.data?.length || 0;
       const lastMonthCount = lastMonthLeaveRes.data?.length || 0;
-      const percentChange = lastMonthCount > 0
-        ? Math.round(((thisMonthCount - lastMonthCount) / lastMonthCount) * 100)
-        : 0;
 
       const leaveTrends = {
         thisMonth: thisMonthCount,
         lastMonth: lastMonthCount,
-        percentChange,
+        percentChange: calculatePercentChange(thisMonthCount, lastMonthCount),
       };
 
       return {
