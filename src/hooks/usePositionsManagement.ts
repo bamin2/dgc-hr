@@ -1,24 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { queryKeys } from '@/lib/queryKeys';
+import type { Position, PositionInput } from '@/types/organization';
 
-export interface Position {
-  id: string;
-  title: string;
-  department_id: string | null;
-  department_name: string | null;
-  level: number | null;
-  job_description: string | null;
-  created_at: string;
-  employeeCount: number;
-}
-
-export interface PositionInput {
-  title: string;
-  department_id?: string | null;
-  level?: number | null;
-  job_description?: string | null;
-}
+// Re-export types for backward compatibility
+export type { Position, PositionInput };
 
 async function fetchPositionsWithCounts(): Promise<Position[]> {
   const { data: positions, error: posError } = await supabase
@@ -31,7 +17,6 @@ async function fetchPositionsWithCounts(): Promise<Position[]> {
 
   if (posError) throw posError;
 
-  // Get employee counts per position
   const { data: employees, error: empError } = await supabase
     .from('employees')
     .select('position_id');
@@ -122,7 +107,6 @@ export function useDeletePosition() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      // Check if any employees are assigned to this position
       const { data: employees, error: checkError } = await supabase
         .from('employees')
         .select('id')
