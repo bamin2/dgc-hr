@@ -1,73 +1,40 @@
-import { useState, useMemo, useEffect } from "react";
-import { Users, Building2, Loader2, Upload, History, Archive, UserPlus } from "lucide-react";
+import { useState, useCallback } from "react";
+import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard";
-import { Button } from "@/components/ui/button";
 import {
-  EmployeeFilters,
-  EmployeeTable,
-  EmployeeForm,
-  TablePagination,
+  EmployeesPageHeader,
+  EmployeesTabs,
+  EmployeeDirectoryTab,
+  EmployeeDialogs,
   OrgChart,
-  EmployeeExportButton,
-  EmployeeImportDialog,
-  ImportHistoryDialog,
   FormerEmployeesTable,
-  ColumnCustomizer,
 } from "@/components/employees";
-import { OnboardingDialog, OffboardingDialog } from "@/components/team";
-import {
-  useEmployees,
-  useUpdateEmployee,
-  useDeleteEmployee,
-  Employee,
-} from "@/hooks/useEmployees";
+import type { EmployeesTabType } from "@/components/employees/EmployeesTabs";
+import { useEmployees, Employee } from "@/hooks/useEmployees";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
-import { toast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
 import { useRole } from "@/contexts/RoleContext";
-import { filterActiveEmployees } from "@/utils/orgHierarchy";
+import { useEmployeeFilters } from "@/hooks/useEmployeeFilters";
+import { usePagination } from "@/hooks/usePagination";
+import { useEmployeeActions } from "@/hooks/useEmployeeActions";
+import { TeamMember } from "@/hooks/employee";
 import { EmployeeTableColumnId } from "@/data/settings";
-
-type TabType = 'directory' | 'org-chart' | 'former-employees';
 
 export default function Employees() {
   const navigate = useNavigate();
   const { canEditEmployees } = useRole();
-  
-  // Build tabs dynamically based on user role
-  const tabs = useMemo(() => {
-    const baseTabs: { id: TabType; label: string; icon: React.ElementType }[] = [
-      { id: 'directory', label: 'People Directory', icon: Users },
-      { id: 'org-chart', label: 'ORG Chart', icon: Building2 },
-    ];
-    
-    // Only show Former Employees tab to HR/Admin users
-    if (canEditEmployees) {
-      baseTabs.push({ id: 'former-employees', label: 'Former Employees', icon: Archive });
-    }
-    
-    return baseTabs;
-  }, [canEditEmployees]);
-  
+
   // Fetch employees from Supabase
   const { data: employees = [], isLoading, error } = useEmployees();
-  const updateEmployee = useUpdateEmployee();
-  const deleteEmployee = useDeleteEmployee();
   const { preferences, updatePreferences, isSaving: isSavingPreferences } = useUserPreferences();
-  
-  const [activeTab, setActiveTab] = useState<TabType>('directory');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [departmentFilter, setDepartmentFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [workLocationFilter, setWorkLocationFilter] = useState('all');
+
+  // Tab state
+  const [activeTab, setActiveTab] = useState<EmployeesTabType>("directory");
+
+  // Selection state
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
-  
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const [entriesPerPage, setEntriesPerPage] = useState(8);
-  
-  // Form modal state
+
+  // Dialog states
   const [formOpen, setFormOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [importOpen, setImportOpen] = useState(false);
@@ -75,189 +42,121 @@ export default function Employees() {
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [offboardingOpen, setOffboardingOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Employee | null>(null);
-  // Reset to page 1 when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, departmentFilter, statusFilter, workLocationFilter]);
 
-  // Active employees only (filter out resigned/terminated)
-  const activeEmployees = useMemo(() => 
-    filterActiveEmployees(employees),
-    [employees]
+  // Custom hooks for filters and pagination
+  const {
+    searchQuery,
+    departmentFilter,
+    statusFilter,
+    workLocationFilter,
+    setSearchQuery,
+    setDepartmentFilter,
+    setStatusFilter,
+    setWorkLocationFilter,
+    activeEmployees,
+    filteredEmployees,
+  } = useEmployeeFilters(employees);
+
+  const pagination = usePagination(filteredEmployees, {
+    initialEntriesPerPage: 8,
+  });
+
+  // Reset pagination when filters change
+  const handleSearchChange = useCallback(
+    (query: string) => {
+      setSearchQuery(query);
+      pagination.resetToFirstPage();
+    },
+    [setSearchQuery, pagination]
   );
 
-  // Filter employees for directory (only active employees)
-  const filteredEmployees = useMemo(() => {
-    let result = [...activeEmployees];
+  const handleDepartmentChange = useCallback(
+    (dept: string) => {
+      setDepartmentFilter(dept);
+      pagination.resetToFirstPage();
+    },
+    [setDepartmentFilter, pagination]
+  );
 
-    // Search filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(emp => 
-        `${emp.firstName} ${emp.lastName}`.toLowerCase().includes(query) ||
-        emp.email.toLowerCase().includes(query) ||
-        emp.employeeId.toLowerCase().includes(query)
-      );
-    }
+  const handleStatusChange = useCallback(
+    (status: string) => {
+      setStatusFilter(status);
+      pagination.resetToFirstPage();
+    },
+    [setStatusFilter, pagination]
+  );
 
-    // Department filter
-    if (departmentFilter !== 'all') {
-      result = result.filter(emp => emp.department === departmentFilter);
-    }
+  const handleWorkLocationChange = useCallback(
+    (location: string) => {
+      setWorkLocationFilter(location);
+      pagination.resetToFirstPage();
+    },
+    [setWorkLocationFilter, pagination]
+  );
 
-    // Status filter
-    if (statusFilter !== 'all') {
-      result = result.filter(emp => emp.status === statusFilter);
-    }
+  // Employee actions
+  const {
+    handleView,
+    handleDelete,
+    handleSave,
+    handleReassign,
+    handleBulkReassign,
+  } = useEmployeeActions((deletedId) => {
+    setSelectedEmployees((prev) => prev.filter((id) => id !== deletedId));
+  });
 
-    // Work location filter
-    if (workLocationFilter !== 'all') {
-      result = result.filter(emp => emp.workLocationId === workLocationFilter);
-    }
-
-    return result;
-  }, [activeEmployees, searchQuery, departmentFilter, statusFilter, workLocationFilter]);
-
-
-  // Paginate employees
-  const totalPages = Math.ceil(filteredEmployees.length / entriesPerPage);
-  const paginatedEmployees = useMemo(() => {
-    const startIndex = (currentPage - 1) * entriesPerPage;
-    return filteredEmployees.slice(startIndex, startIndex + entriesPerPage);
-  }, [filteredEmployees, currentPage, entriesPerPage]);
-
-  const handleView = (employee: Employee) => {
-    navigate(`/employees/${employee.id}`);
-  };
-
-  const handleEdit = (employee: Employee) => {
+  const handleEdit = useCallback((employee: Employee) => {
     setEditingEmployee(employee);
     setFormOpen(true);
-  };
+  }, []);
 
-  const handleDelete = async (employee: Employee) => {
-    try {
-      await deleteEmployee.mutateAsync(employee.id);
-      setSelectedEmployees(prev => prev.filter(id => id !== employee.id));
-      toast({
-        title: "Employee deleted",
-        description: `${employee.firstName} ${employee.lastName} has been removed.`,
-      });
-    } catch (err) {
-      toast({
-        title: "Error",
-        description: "Failed to delete employee. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
+  const handleFormSave = useCallback(
+    async (data: Partial<Employee>) => {
+      if (!editingEmployee) return;
+      await handleSave(editingEmployee, data);
+    },
+    [editingEmployee, handleSave]
+  );
 
+  // Convert Employee to TeamMember for dialogs
+  const convertToTeamMember = (employee: Employee): TeamMember => ({
+    id: employee.id,
+    firstName: employee.firstName,
+    lastName: employee.lastName,
+    email: employee.email,
+    avatar: employee.avatar,
+    workerType: "employee",
+    startDate: employee.joinDate || new Date().toISOString(),
+    department: employee.department || "",
+    departmentId: employee.departmentId,
+    jobTitle: employee.position || "",
+    positionId: employee.positionId,
+    employmentType: "full_time",
+    status: "active",
+    managerId: employee.managerId,
+    workLocation: employee.workLocationId,
+    salary: employee.salary,
+    payFrequency: "month",
+  });
 
-  const handleSave = async (data: Partial<Employee>) => {
-    if (!editingEmployee) return;
-    
-    try {
-      await updateEmployee.mutateAsync({
-        id: editingEmployee.id,
-        first_name: data.firstName,
-        last_name: data.lastName,
-        email: data.email,
-        phone: data.phone,
-        department_id: data.departmentId || null,
-        position_id: data.positionId || null,
-        status: data.status as any,
-        date_of_birth: data.dateOfBirth || null,
-        gender: data.gender as any || null,
-        address: data.address || null,
-        nationality: data.nationality || null,
-        avatar_url: data.avatar || null,
+  const handleColumnsChange = useCallback(
+    (columns: EmployeeTableColumnId[]) => {
+      updatePreferences({
+        display: { ...preferences.display, employeeTableColumns: columns },
       });
-      toast({
-        title: "Employee updated",
-        description: `${data.firstName} ${data.lastName}'s information has been updated.`,
-      });
-    } catch (err) {
-      toast({
-        title: "Error",
-        description: "Failed to update employee. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleReassign = async (employeeId: string, newManagerId: string) => {
-    const employee = employees.find((e) => e.id === employeeId);
-    const newManager = employees.find((e) => e.id === newManagerId);
-
-    if (!employee || !newManager) return;
-
-    try {
-      await updateEmployee.mutateAsync({
-        id: employeeId,
-        manager_id: newManagerId,
-      });
-      
-      toast({
-        title: "Manager reassigned",
-        description: `${employee.firstName} ${employee.lastName} now reports to ${newManager.firstName} ${newManager.lastName}.`,
-      });
-    } catch (err) {
-      toast({
-        title: "Error",
-        description: "Failed to reassign manager. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleBulkReassign = async (assignments: { employeeId: string; managerId: string }[]) => {
-    try {
-      await Promise.all(
-        assignments.map(({ employeeId, managerId }) => 
-          updateEmployee.mutateAsync({
-            id: employeeId,
-            manager_id: managerId,
-          })
-        )
-      );
-      toast({
-        title: "Managers assigned",
-        description: `Updated ${assignments.length} employee(s).`,
-      });
-    } catch (err) {
-      toast({
-        title: "Error",
-        description: "Failed to assign managers. Please try again.",
-        variant: "destructive",
-      });
-      throw err;
-    }
-  };
+    },
+    [updatePreferences, preferences.display]
+  );
 
   return (
     <DashboardLayout>
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <h1 className="text-xl sm:text-2xl font-semibold text-foreground">Employee Management</h1>
-        
-        {canEditEmployees && (
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={() => setHistoryOpen(true)} className="gap-2">
-              <History className="h-4 w-4" />
-              <span className="hidden sm:inline">Import History</span>
-            </Button>
-            <Button variant="outline" onClick={() => setImportOpen(true)} className="gap-2">
-              <Upload className="h-4 w-4" />
-              <span className="hidden sm:inline">Import</span>
-            </Button>
-            <EmployeeExportButton employees={filteredEmployees} />
-            <Button onClick={() => navigate("/team/add")} className="gap-2">
-              <UserPlus className="h-4 w-4" />
-              <span className="hidden sm:inline">Add Team Member</span>
-            </Button>
-          </div>
-        )}
-      </div>
+      <EmployeesPageHeader
+        canEdit={canEditEmployees}
+        employees={filteredEmployees}
+        onOpenHistory={() => setHistoryOpen(true)}
+        onOpenImport={() => setImportOpen(true)}
+      />
 
       {/* Loading State */}
       {isLoading && (
@@ -269,105 +168,59 @@ export default function Employees() {
       {/* Error State */}
       {error && (
         <div className="text-center py-12">
-          <p className="text-destructive">Failed to load employees. Please try again.</p>
+          <p className="text-destructive">
+            Failed to load employees. Please try again.
+          </p>
         </div>
       )}
 
       {!isLoading && !error && (
         <>
           {/* Tabs */}
-          <div className="border-b mb-6 overflow-x-auto">
-            <div className="flex gap-4 sm:gap-6 min-w-max">
-              {tabs.map((tab) => {
-                const Icon = tab.icon;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={cn(
-                      "flex items-center gap-2 pb-3 text-sm font-medium border-b-2 transition-colors",
-                      activeTab === tab.id
-                        ? "border-primary text-primary"
-                        : "border-transparent text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {tab.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          <EmployeesTabs
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            canViewFormerEmployees={canEditEmployees}
+          />
 
-          {activeTab === 'directory' && (
-            <>
-              {/* Filters */}
-              <div className="mb-6 flex items-start justify-between gap-4">
-                <EmployeeFilters
-                  searchQuery={searchQuery}
-                  onSearchChange={setSearchQuery}
-                  departmentFilter={departmentFilter}
-                  onDepartmentChange={setDepartmentFilter}
-                  statusFilter={statusFilter}
-                  onStatusChange={setStatusFilter}
-                  workLocationFilter={workLocationFilter}
-                  onWorkLocationChange={setWorkLocationFilter}
-                />
-                <ColumnCustomizer
-                  visibleColumns={preferences.display.employeeTableColumns}
-                  onColumnsChange={(columns: EmployeeTableColumnId[]) => {
-                    updatePreferences({ display: { ...preferences.display, employeeTableColumns: columns } });
-                  }}
-                  isSaving={isSavingPreferences}
-                />
-              </div>
-
-              {/* Employee List */}
-              {filteredEmployees.length === 0 ? (
-                <div className="text-center py-12">
-                  <Users className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-foreground mb-1">No employees found</h3>
-                  <p className="text-muted-foreground">
-                    Try adjusting your search or filter criteria
-                  </p>
-                </div>
-              ) : (
-                <>
-                  <EmployeeTable
-                    employees={paginatedEmployees}
-                    selectedEmployees={selectedEmployees}
-                    visibleColumns={preferences.display.employeeTableColumns}
-                    onSelectionChange={setSelectedEmployees}
-                    onView={handleView}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                    onStartOnboarding={(employee) => {
-                      setSelectedMember(employee);
-                      setOnboardingOpen(true);
-                    }}
-                    onStartOffboarding={(employee) => {
-                      setSelectedMember(employee);
-                      setOffboardingOpen(true);
-                    }}
-                    canEdit={canEditEmployees}
-                  />
-                  <TablePagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    totalItems={filteredEmployees.length}
-                    entriesPerPage={entriesPerPage}
-                    onPageChange={setCurrentPage}
-                    onEntriesPerPageChange={(entries) => {
-                      setEntriesPerPage(entries);
-                      setCurrentPage(1);
-                    }}
-                  />
-                </>
-              )}
-            </>
+          {activeTab === "directory" && (
+            <EmployeeDirectoryTab
+              searchQuery={searchQuery}
+              onSearchChange={handleSearchChange}
+              departmentFilter={departmentFilter}
+              onDepartmentChange={handleDepartmentChange}
+              statusFilter={statusFilter}
+              onStatusChange={handleStatusChange}
+              workLocationFilter={workLocationFilter}
+              onWorkLocationChange={handleWorkLocationChange}
+              visibleColumns={preferences.display.employeeTableColumns}
+              onColumnsChange={handleColumnsChange}
+              isSavingColumns={isSavingPreferences}
+              paginatedEmployees={pagination.paginatedItems}
+              filteredEmployeesCount={filteredEmployees.length}
+              selectedEmployees={selectedEmployees}
+              onSelectionChange={setSelectedEmployees}
+              currentPage={pagination.currentPage}
+              totalPages={pagination.totalPages}
+              entriesPerPage={pagination.entriesPerPage}
+              onPageChange={pagination.setCurrentPage}
+              onEntriesPerPageChange={pagination.setEntriesPerPage}
+              onView={handleView}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onStartOnboarding={(employee) => {
+                setSelectedMember(employee);
+                setOnboardingOpen(true);
+              }}
+              onStartOffboarding={(employee) => {
+                setSelectedMember(employee);
+                setOffboardingOpen(true);
+              }}
+              canEdit={canEditEmployees}
+            />
           )}
 
-          {activeTab === 'org-chart' && (
+          {activeTab === "org-chart" && (
             <div className="overflow-hidden">
               <OrgChart
                 employees={activeEmployees}
@@ -375,100 +228,45 @@ export default function Employees() {
                   navigate(`/employees/${orgEmployee.id}`);
                 }}
                 onEdit={(orgEmployee) => {
-                  // Find the full employee record by ID
-                  const employee = activeEmployees.find(e => e.id === orgEmployee.id);
+                  const employee = activeEmployees.find(
+                    (e) => e.id === orgEmployee.id
+                  );
                   if (employee) {
                     setEditingEmployee(employee);
                     setFormOpen(true);
                   }
                 }}
-                onReassign={handleReassign}
+                onReassign={(employeeId, newManagerId) =>
+                  handleReassign(employeeId, newManagerId, employees)
+                }
                 onBulkReassign={handleBulkReassign}
               />
             </div>
           )}
 
-          {activeTab === 'former-employees' && (
-            <FormerEmployeesTable />
-          )}
+          {activeTab === "former-employees" && <FormerEmployeesTable />}
         </>
       )}
 
-      {/* Employee Form Modal */}
-      <EmployeeForm
-        open={formOpen}
-        onOpenChange={setFormOpen}
-        employee={editingEmployee}
-        onSave={handleSave}
+      {/* All Dialogs */}
+      <EmployeeDialogs
+        formOpen={formOpen}
+        onFormOpenChange={setFormOpen}
+        editingEmployee={editingEmployee}
+        onSave={handleFormSave}
+        importOpen={importOpen}
+        onImportOpenChange={setImportOpen}
+        historyOpen={historyOpen}
+        onHistoryOpenChange={setHistoryOpen}
+        onboardingOpen={onboardingOpen}
+        onOnboardingOpenChange={setOnboardingOpen}
+        onboardingMember={selectedMember ? convertToTeamMember(selectedMember) : null}
+        onOnboardingComplete={() => setOnboardingOpen(false)}
+        offboardingOpen={offboardingOpen}
+        onOffboardingOpenChange={setOffboardingOpen}
+        offboardingMember={selectedMember ? convertToTeamMember(selectedMember) : null}
+        onOffboardingComplete={() => setOffboardingOpen(false)}
       />
-
-      {/* Employee Import Dialog */}
-      <EmployeeImportDialog
-        open={importOpen}
-        onOpenChange={setImportOpen}
-      />
-
-      {/* Import History Dialog */}
-      <ImportHistoryDialog
-        open={historyOpen}
-        onOpenChange={setHistoryOpen}
-      />
-
-      {/* Onboarding Dialog */}
-      {selectedMember && (
-        <OnboardingDialog
-          open={onboardingOpen}
-          onOpenChange={setOnboardingOpen}
-          member={{
-            id: selectedMember.id,
-            firstName: selectedMember.firstName,
-            lastName: selectedMember.lastName,
-            email: selectedMember.email,
-            avatar: selectedMember.avatar,
-            workerType: "employee",
-            startDate: selectedMember.joinDate || new Date().toISOString(),
-            department: selectedMember.department || "",
-            departmentId: selectedMember.departmentId,
-            jobTitle: selectedMember.position || "",
-            positionId: selectedMember.positionId,
-            employmentType: "full_time",
-            status: "active",
-            managerId: selectedMember.managerId,
-            workLocation: selectedMember.workLocationId,
-            salary: selectedMember.salary,
-            payFrequency: "month",
-          }}
-          onComplete={() => setOnboardingOpen(false)}
-        />
-      )}
-
-      {/* Offboarding Dialog */}
-      {selectedMember && (
-        <OffboardingDialog
-          open={offboardingOpen}
-          onOpenChange={setOffboardingOpen}
-          member={{
-            id: selectedMember.id,
-            firstName: selectedMember.firstName,
-            lastName: selectedMember.lastName,
-            email: selectedMember.email,
-            avatar: selectedMember.avatar,
-            workerType: "employee",
-            startDate: selectedMember.joinDate || new Date().toISOString(),
-            department: selectedMember.department || "",
-            departmentId: selectedMember.departmentId,
-            jobTitle: selectedMember.position || "",
-            positionId: selectedMember.positionId,
-            employmentType: "full_time",
-            status: "active",
-            managerId: selectedMember.managerId,
-            workLocation: selectedMember.workLocationId,
-            salary: selectedMember.salary,
-            payFrequency: "month",
-          }}
-          onComplete={() => setOffboardingOpen(false)}
-        />
-      )}
     </DashboardLayout>
   );
 }
