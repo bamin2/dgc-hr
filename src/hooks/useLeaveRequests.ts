@@ -177,6 +177,12 @@ export function useCreateLeaveRequest() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['leave-requests'] });
       queryClient.invalidateQueries({ queryKey: ['leave-balances'] });
+      
+      // Invalidate notifications after a short delay to allow the edge function to complete
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['notifications'] });
+        queryClient.invalidateQueries({ queryKey: ['notifications-unread-count'] });
+      }, 1500);
     },
     onError: (error) => {
       toast.error(`Failed to submit leave request: ${error.message}`);
