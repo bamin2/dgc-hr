@@ -33,4 +33,8 @@ export { EmployeeImportDialog } from "./EmployeeImportDialog";
 export { ImportHistoryDialog } from "./ImportHistoryDialog";
 export { BulkAssignManagersDialog } from "./BulkAssignManagersDialog";
 export { FormerEmployeesTable } from "./FormerEmployeesTable";
+export { EmployeeTimeOffTab } from "./EmployeeTimeOffTab";
+export { EmployeeActivityTab } from "./EmployeeActivityTab";
+export { AdminAddLeaveDialog } from "./AdminAddLeaveDialog";
+export { BalanceAdjustmentDialog } from "./BalanceAdjustmentDialog";
 export * from "./wizard";
