@@ -3,3 +3,4 @@ export { EmailTemplateCard } from "./EmailTemplateCard";
 export { EmailTemplateEditor } from "./EmailTemplateEditor";
 export { EmailTemplatePreview } from "./EmailTemplatePreview";
 export { RichTextEditor } from "./RichTextEditor";
+export { EmailTemplateVersionHistory } from "./EmailTemplateVersionHistory";
