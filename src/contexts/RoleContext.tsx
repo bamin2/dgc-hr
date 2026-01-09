@@ -8,6 +8,16 @@ import {
   UserRole 
 } from '@/data/roles';
 
+export interface ImpersonatedEmployee {
+  id: string;
+  name: string;
+  avatar?: string;
+  department?: string;
+  position?: string;
+  isManager?: boolean;
+  teamMemberIds?: string[];
+}
+
 interface RoleContextType {
   currentUser: CurrentUser;
   userRoles: UserRole[];
@@ -22,12 +32,15 @@ interface RoleContextType {
   canApproveLeaveFor: (employeeId: string) => boolean;
   getEmployeeRole: (employeeId: string) => AppRole;
   updateEmployeeRole: (employeeId: string, newRole: AppRole) => Promise<{ error?: string }>;
-  setCurrentUserRole: (role: AppRole) => void; // For demo purposes
+  setCurrentUserRole: (role: AppRole) => void;
   // Impersonation
   isImpersonating: boolean;
   actualRole: AppRole;
   canImpersonate: boolean;
-  startImpersonation: () => void;
+  impersonatedEmployee: ImpersonatedEmployee | null;
+  effectiveEmployeeId: string | null;
+  effectiveTeamMemberIds: string[];
+  startImpersonation: (employee: ImpersonatedEmployee) => void;
   stopImpersonation: () => void;
 }
 
@@ -53,6 +66,7 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
   // Impersonation state
   const [isImpersonating, setIsImpersonating] = useState(false);
   const [actualRole, setActualRole] = useState<AppRole>('employee');
+  const [impersonatedEmployee, setImpersonatedEmployee] = useState<ImpersonatedEmployee | null>(null);
 
   // Fetch current user's role from the database
   useEffect(() => {
@@ -164,10 +178,20 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
   const canAccessCompany = managementRoles.includes(effectiveRole);
   const canManageRoles = effectiveRole === 'hr' || effectiveRole === 'admin';
   const canEditEmployees = effectiveRole === 'hr' || effectiveRole === 'admin';
-  const isManager = effectiveRole === 'manager';
+  const isManager = effectiveRole === 'manager' || (isImpersonating && (impersonatedEmployee?.isManager ?? false));
   
   // Impersonation toggle visibility based on actual role (not effective role)
   const canImpersonate = actualRole === 'hr' || actualRole === 'admin';
+
+  // Effective employee ID for data fetching
+  const effectiveEmployeeId = isImpersonating 
+    ? impersonatedEmployee?.id ?? null 
+    : profile?.employee_id ?? null;
+
+  // Effective team member IDs (impersonated employee's team or actual user's team)
+  const effectiveTeamMemberIds = isImpersonating 
+    ? impersonatedEmployee?.teamMemberIds ?? [] 
+    : teamMemberIds;
 
   // Check if an employee is a team member (for managers)
   const isTeamMember = useCallback((employeeId: string) => {
@@ -183,41 +207,55 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
     return false;
   }, [canEditEmployees, isManager, teamMemberIds]);
 
-  const startImpersonation = useCallback(() => {
+  const startImpersonation = useCallback(async (employee: ImpersonatedEmployee) => {
     if (!isImpersonating) {
       setActualRole(currentUser.role);
+      
+      // Fetch the employee's team members if they're a manager
+      const { data: teamData } = await supabase
+        .from('employees')
+        .select('id')
+        .eq('manager_id', employee.id);
+      
+      const employeeTeamIds = teamData?.map(e => e.id) || [];
+      const isEmployeeManager = employeeTeamIds.length > 0;
+      
+      setImpersonatedEmployee({
+        ...employee,
+        isManager: isEmployeeManager,
+        teamMemberIds: employeeTeamIds,
+      });
+      
       setIsImpersonating(true);
-      setCurrentUser(prev => ({ ...prev, role: 'employee' }));
+      setCurrentUser(prev => ({ ...prev, role: isEmployeeManager ? 'manager' : 'employee' }));
     }
   }, [currentUser.role, isImpersonating]);
 
   const stopImpersonation = useCallback(() => {
     setIsImpersonating(false);
+    setImpersonatedEmployee(null);
     setCurrentUser(prev => ({ ...prev, role: actualRole }));
   }, [actualRole]);
 
   const getEmployeeRole = useCallback((employeeId: string): AppRole => {
-    // userRoles now contains the correct user IDs after the update
-    // We need to find by matching - but since we store userId, we check all roles
-    // This is a sync function, so we rely on the local state
     const userRole = userRoles.find(ur => ur.userId === employeeId);
     return userRole?.role || 'employee';
   }, [userRoles]);
 
   const updateEmployeeRole = useCallback(async (employeeId: string, newRole: AppRole): Promise<{ error?: string }> => {
     // First, find the user_id associated with this employee
-    const { data: profile, error: profileError } = await supabase
+    const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('id')
       .eq('employee_id', employeeId)
       .single();
 
-    if (profileError || !profile) {
+    if (profileError || !profileData) {
       console.error('No user account linked to this employee:', profileError);
       return { error: 'No user account linked to this employee. Create a login first.' };
     }
 
-    const userId = profile.id;
+    const userId = profileData.id;
 
     // Delete existing roles for this user first, then insert the new one
     await supabase
@@ -237,7 +275,7 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
       return { error: 'Failed to update role in database.' };
     }
 
-    // Update local state with employeeId (since userRoles are keyed by employee_id, not auth user_id)
+    // Update local state with employeeId
     setUserRoles(prev => {
       const filtered = prev.filter(ur => ur.userId !== employeeId);
       return [...filtered, { id: `role-${employeeId}`, userId: employeeId, role: newRole }];
@@ -271,6 +309,9 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
         isImpersonating,
         actualRole,
         canImpersonate,
+        impersonatedEmployee,
+        effectiveEmployeeId,
+        effectiveTeamMemberIds,
         startImpersonation,
         stopImpersonation,
       }}

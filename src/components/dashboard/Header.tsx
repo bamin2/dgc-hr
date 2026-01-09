@@ -10,19 +10,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Switch } from "@/components/ui/switch";
 import { NotificationBell } from "@/components/notifications";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
 import { RoleBadge } from "@/components/employees";
 import { MobileNav } from "./MobileNav";
 import { GlobalSearch } from "./GlobalSearch";
+import { ImpersonationEmployeeSelector } from "./ImpersonationEmployeeSelector";
 
 export function Header() {
   const navigate = useNavigate();
   const { signOut, profile } = useAuth();
-  const { currentUser, canImpersonate, isImpersonating, startImpersonation, stopImpersonation } = useRole();
+  const { currentUser, canImpersonate, isImpersonating, impersonatedEmployee, startImpersonation, stopImpersonation } = useRole();
   const [searchOpen, setSearchOpen] = useState(false);
+  const [impersonationSelectorOpen, setImpersonationSelectorOpen] = useState(false);
 
   // Keyboard shortcut: ⌘K / Ctrl+K
   useEffect(() => {
@@ -123,32 +124,17 @@ export function Header() {
               {canImpersonate && (
                 <>
                   <DropdownMenuSeparator />
-                  <div 
-                    className="flex items-center justify-between px-2 py-1.5 cursor-pointer hover:bg-accent rounded-sm"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (isImpersonating) {
-                        stopImpersonation();
-                      } else {
-                        startImpersonation();
-                      }
-                    }}
-                  >
-                    <div className="flex items-center gap-2">
-                      <Eye className="w-4 h-4" />
-                      <span className="text-sm">View as Employee</span>
-                    </div>
-                    <Switch 
-                      checked={isImpersonating} 
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          startImpersonation();
-                        } else {
-                          stopImpersonation();
-                        }
-                      }}
-                    />
-                  </div>
+                  {isImpersonating ? (
+                    <DropdownMenuItem onClick={stopImpersonation}>
+                      <Eye className="w-4 h-4 mr-2" />
+                      <span>Exit Impersonation</span>
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem onClick={() => setImpersonationSelectorOpen(true)}>
+                      <Eye className="w-4 h-4 mr-2" />
+                      <span>View as Employee</span>
+                    </DropdownMenuItem>
+                  )}
                 </>
               )}
               <DropdownMenuSeparator />
@@ -163,6 +149,13 @@ export function Header() {
           </DropdownMenu>
         </div>
       </div>
+
+      {/* Impersonation Employee Selector Dialog */}
+      <ImpersonationEmployeeSelector
+        open={impersonationSelectorOpen}
+        onOpenChange={setImpersonationSelectorOpen}
+        onSelectEmployee={startImpersonation}
+      />
     </header>
   );
 }

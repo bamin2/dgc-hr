@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useRole } from '@/contexts/RoleContext';
 
 export interface PersonalDashboardData {
   employeeId: string | null;
@@ -67,30 +68,23 @@ function calculateNextPayrollDate(payrollDayOfMonth: number): string {
 
 export function usePersonalDashboard() {
   const { user } = useAuth();
+  const { isImpersonating, effectiveEmployeeId } = useRole();
 
   return useQuery({
-    queryKey: ['personal-dashboard', user?.id],
+    queryKey: ['personal-dashboard', effectiveEmployeeId, isImpersonating],
     queryFn: async (): Promise<PersonalDashboardData> => {
-      if (!user?.id) {
-        return {
-          employeeId: null,
-          leaveBalances: [],
-          requestsSummary: { pending: 0, approved: 0, rejected: 0 },
-          upcomingTimeOff: [],
-          activeLoans: [],
-          loanCurrency: 'SAR',
-          nextPayroll: { date: null, lastNetSalary: null },
-        };
+      // Use effectiveEmployeeId directly if impersonating, otherwise look up from profile
+      let employeeId = effectiveEmployeeId;
+
+      if (!employeeId && user?.id && !isImpersonating) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('employee_id')
+          .eq('id', user.id)
+          .single();
+
+        employeeId = profile?.employee_id ?? null;
       }
-
-      // Get employee with work location currency
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('employee_id')
-        .eq('id', user.id)
-        .single();
-
-      const employeeId = profile?.employee_id;
 
       if (!employeeId) {
         return {
@@ -236,7 +230,7 @@ export function usePersonalDashboard() {
         },
       };
     },
-    enabled: !!user?.id,
+    enabled: !!effectiveEmployeeId || !!user?.id,
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 }
