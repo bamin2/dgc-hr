@@ -20,8 +20,6 @@ import Payroll from "./pages/Payroll";
 import PayrollRun from "./pages/PayrollRun";
 import Payslip from "./pages/Payslip";
 
-import LeaveRequest from "./pages/LeaveRequest";
-import LeaveDetail from "./pages/LeaveDetail";
 import Benefits from "./pages/Benefits";
 import BenefitDetail from "./pages/BenefitDetail";
 import BenefitEnrollment from "./pages/BenefitEnrollment";
@@ -68,8 +66,6 @@ const App = () => (
                 <Route path="/benefits/enroll" element={<ProtectedRoute><BenefitEnrollment /></ProtectedRoute>} />
                 <Route path="/benefits/claims/new" element={<ProtectedRoute><ClaimSubmission /></ProtectedRoute>} />
                 <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
-                <Route path="/attendance/leave/request" element={<ProtectedRoute><LeaveRequest /></ProtectedRoute>} />
-                <Route path="/attendance/leave/:id" element={<ProtectedRoute><LeaveDetail /></ProtectedRoute>} />
                 
                 {/* Protected routes - HR & Admin */}
                 <Route path="/employees" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><Employees /></ProtectedRoute>} />
