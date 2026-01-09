@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Save, Eye, Code, Variable, Loader2 } from "lucide-react";
+import { Save, Eye, Code, Variable, Loader2, FileText } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -12,10 +12,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { Toggle } from "@/components/ui/toggle";
 import { EmailTemplate, useEmailTemplates, templateVariables } from "@/hooks/useEmailTemplates";
 import { EmailTemplatePreview } from "./EmailTemplatePreview";
+import { RichTextEditor } from "./RichTextEditor";
 
 interface EmailTemplateEditorProps {
   template: EmailTemplate;
@@ -29,6 +30,7 @@ export function EmailTemplateEditor({ template, open, onClose }: EmailTemplateEd
   const [bodyContent, setBodyContent] = useState(template.body_content);
   const [isActive, setIsActive] = useState(template.is_active);
   const [activeTab, setActiveTab] = useState<"edit" | "preview">("edit");
+  const [editorMode, setEditorMode] = useState<"visual" | "html">("visual");
 
   // Reset form when template changes
   useEffect(() => {
@@ -132,14 +134,44 @@ export function EmailTemplateEditor({ template, open, onClose }: EmailTemplateEd
                   </div>
 
                   <div className="space-y-2 flex-1">
-                    <Label htmlFor="body">Email Body (HTML)</Label>
-                    <Textarea
-                      id="body"
-                      value={bodyContent}
-                      onChange={(e) => setBodyContent(e.target.value)}
-                      placeholder="Enter HTML content..."
-                      className="font-mono text-sm min-h-[400px] resize-none"
-                    />
+                    <div className="flex items-center justify-between">
+                      <Label>Email Body</Label>
+                      <div className="flex items-center gap-1 p-1 bg-muted rounded-md">
+                        <Toggle
+                          size="sm"
+                          pressed={editorMode === "visual"}
+                          onPressedChange={() => setEditorMode("visual")}
+                          className="h-7 px-2 text-xs data-[state=on]:bg-background"
+                        >
+                          <FileText className="h-3.5 w-3.5 mr-1" />
+                          Visual
+                        </Toggle>
+                        <Toggle
+                          size="sm"
+                          pressed={editorMode === "html"}
+                          onPressedChange={() => setEditorMode("html")}
+                          className="h-7 px-2 text-xs data-[state=on]:bg-background"
+                        >
+                          <Code className="h-3.5 w-3.5 mr-1" />
+                          HTML
+                        </Toggle>
+                      </div>
+                    </div>
+                    
+                    {editorMode === "visual" ? (
+                      <RichTextEditor
+                        content={bodyContent}
+                        onChange={setBodyContent}
+                      />
+                    ) : (
+                      <Textarea
+                        id="body"
+                        value={bodyContent}
+                        onChange={(e) => setBodyContent(e.target.value)}
+                        placeholder="Enter HTML content..."
+                        className="font-mono text-sm min-h-[400px] resize-none"
+                      />
+                    )}
                     <p className="text-xs text-muted-foreground">
                       This is the main content area of the email. Header and footer are added automatically.
                     </p>
