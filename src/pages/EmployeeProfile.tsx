@@ -32,7 +32,7 @@ import { Badge } from "@/components/ui/badge";
 import { StatusBadge, EmployeeForm, RoleBadge, RoleSelectorWithDescription, CreateLoginDialog, ResetPasswordDialog, SalaryHistoryCard, BankDetailsDialog } from "@/components/employees";
 import { useEmployee, useUpdateEmployee, useEmployees, Employee } from "@/hooks/useEmployees";
 import { useWorkLocations } from "@/hooks/useWorkLocations";
-import { getCountryByName } from "@/data/countries";
+import { getCountryByName, getCountryCodeByName } from "@/data/countries";
 import { AppRole, roleDescriptions } from "@/data/roles";
 import { useRole } from "@/contexts/RoleContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -119,12 +119,22 @@ export default function EmployeeProfile() {
 
     // Auto-add GOSI deduction if employee is subject to GOSI
     if (employee?.isSubjectToGosi && employee?.gosiRegisteredSalary) {
-      const gosiAmount = (employee.gosiRegisteredSalary * 8) / 100;
-      deductionItems.push({
-        id: 'gosi-auto',
-        name: 'GOSI (8%)',
-        amount: gosiAmount,
-      });
+      const employeeWorkLocation = workLocations?.find(loc => loc.id === employee.workLocationId);
+      
+      if (employeeWorkLocation?.gosi_enabled) {
+        const rates = (employeeWorkLocation.gosi_nationality_rates || []) as Array<{nationality: string; percentage: number}>;
+        const nationalityCode = getCountryCodeByName(employee.nationality || '');
+        const matchingRate = rates.find(r => r.nationality === nationalityCode);
+        
+        if (matchingRate) {
+          const gosiAmount = (employee.gosiRegisteredSalary * matchingRate.percentage) / 100;
+          deductionItems.push({
+            id: 'gosi-auto',
+            name: `GOSI (${matchingRate.percentage}%)`,
+            amount: gosiAmount,
+          });
+        }
+      }
     }
 
     const totalAllowances = allowanceItems.reduce((sum, a) => sum + a.amount, 0);
@@ -132,7 +142,7 @@ export default function EmployeeProfile() {
     const totalMonthlySalary = baseSalary + totalAllowances - totalDeductions;
 
     return { baseSalary, allowanceItems, deductionItems, totalAllowances, totalDeductions, totalMonthlySalary };
-  }, [employee?.salary, employee?.isSubjectToGosi, employee?.gosiRegisteredSalary, allowances, deductions]);
+  }, [employee?.salary, employee?.isSubjectToGosi, employee?.gosiRegisteredSalary, employee?.workLocationId, employee?.nationality, workLocations, allowances, deductions]);
   
   // Check if viewing own profile
   const isOwnProfile = profile?.employee_id === id;
