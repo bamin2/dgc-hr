@@ -259,8 +259,8 @@ export function EmailTemplateEditor({ template, open, onClose }: EmailTemplateEd
                 </div>
 
                 {/* Right: Smart Tags Reference */}
-                <div className="border rounded-lg bg-muted/20 h-full flex flex-col">
-                  <div className="p-4 border-b">
+                <div className="border rounded-lg bg-muted/20 h-full flex flex-col overflow-hidden">
+                  <div className="p-4 border-b shrink-0">
                     <div className="flex items-center gap-2 mb-1">
                       <Tag className="h-4 w-4 text-primary" />
                       <h4 className="font-medium text-sm">Smart Tags</h4>
@@ -269,8 +269,8 @@ export function EmailTemplateEditor({ template, open, onClose }: EmailTemplateEd
                       Click to insert into the email body
                     </p>
                   </div>
-                  <ScrollArea className="flex-1 p-4">
-                    <div className="space-y-4">
+                  <ScrollArea className="flex-1 min-h-0">
+                    <div className="p-4 space-y-4">
                       {Object.entries(groupedTags).map(([category, tags]) => (
                         <div key={category}>
                           <h5 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
