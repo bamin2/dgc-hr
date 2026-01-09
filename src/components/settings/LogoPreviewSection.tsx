@@ -1,6 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Building2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Building2, CheckCircle2 } from "lucide-react";
 
 interface LogoPreviewSectionProps {
   sidebarLogoUrl: string;
@@ -14,7 +15,6 @@ export const LogoPreviewSection = ({
   sidebarLogoUrl,
   documentLogoUrl,
   companyName,
-  displayType,
 }: LogoPreviewSectionProps) => {
   const initials = companyName
     ? companyName.split(' ').map(word => word[0]).join('').substring(0, 2).toUpperCase()
@@ -29,91 +29,174 @@ export const LogoPreviewSection = ({
         <CardDescription>See how your logos will appear in different contexts</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Sidebar Preview */}
-          <div className="rounded-lg border bg-sidebar p-4">
-            <p className="text-xs font-medium text-sidebar-foreground/70 uppercase tracking-wider mb-3">
-              Sidebar Preview
-            </p>
-            <div className="rounded-lg bg-sidebar-accent/50 p-3 space-y-3">
-              {/* Logo and company name */}
-              <div className="flex items-center gap-2.5">
-                {displayType === 'logo' && sidebarLogoUrl ? (
-                  <Avatar className="h-8 w-8 rounded-md">
-                    <AvatarImage src={sidebarLogoUrl} className="object-contain" />
-                    <AvatarFallback className="rounded-md bg-sidebar-primary text-sidebar-primary-foreground text-xs">
-                      {initials}
-                    </AvatarFallback>
-                  </Avatar>
-                ) : (
-                  <div className="h-8 w-8 rounded-md bg-sidebar-primary flex items-center justify-center">
-                    <Building2 className="h-4 w-4 text-sidebar-primary-foreground" />
-                  </div>
-                )}
-                <span className="font-semibold text-sm text-sidebar-foreground truncate">
-                  {companyName || 'Company Name'}
-                </span>
-              </div>
-              {/* Mock menu items */}
-              <div className="space-y-1">
-                <div className="h-7 bg-sidebar-accent rounded-md flex items-center px-2.5 text-xs text-sidebar-foreground/80">
-                  Dashboard
-                </div>
-                <div className="h-7 bg-transparent rounded-md flex items-center px-2.5 text-xs text-sidebar-foreground/60">
-                  My Profile
-                </div>
-                <div className="h-7 bg-transparent rounded-md flex items-center px-2.5 text-xs text-sidebar-foreground/60">
-                  Directory
-                </div>
-              </div>
-            </div>
-            <p className="text-xs text-sidebar-foreground/50 mt-3">
-              Shows in the navigation sidebar
-            </p>
-          </div>
+        <Tabs defaultValue="sidebar" className="w-full">
+          <TabsList className="grid w-full grid-cols-3 mb-4">
+            <TabsTrigger value="sidebar">Sidebar</TabsTrigger>
+            <TabsTrigger value="document">Document</TabsTrigger>
+            <TabsTrigger value="email">Email</TabsTrigger>
+          </TabsList>
 
-          {/* Document Preview */}
-          <div className="rounded-lg border bg-muted/30 p-4">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
-              Document Preview
-            </p>
-            <div className="rounded-lg bg-background border shadow-sm p-4">
-              {/* Document header */}
-              <div className="flex items-start gap-3 border-b pb-3 mb-3">
-                {effectiveDocumentLogo ? (
-                  <img 
-                    src={effectiveDocumentLogo} 
-                    alt="Document Logo"
-                    className="h-10 w-auto max-w-[120px] object-contain"
-                  />
-                ) : (
-                  <div className="h-10 w-10 rounded bg-muted flex items-center justify-center">
-                    <Building2 className="h-5 w-5 text-muted-foreground" />
+          {/* Sidebar Preview Tab */}
+          <TabsContent value="sidebar">
+            <div className="rounded-lg border bg-sidebar p-4">
+              <p className="text-xs font-medium text-sidebar-foreground/70 uppercase tracking-wider mb-3">
+                Sidebar Preview
+              </p>
+              <div className="rounded-lg bg-sidebar-accent/50 p-3 space-y-3">
+                {/* Logo and company name */}
+                <div className="flex items-center gap-2.5">
+                  {sidebarLogoUrl ? (
+                    <Avatar className="h-8 w-8 rounded-md">
+                      <AvatarImage src={sidebarLogoUrl} className="object-contain" />
+                      <AvatarFallback className="rounded-md bg-sidebar-primary text-sidebar-primary-foreground text-xs">
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
+                  ) : (
+                    <div className="h-8 w-8 rounded-md bg-sidebar-primary flex items-center justify-center">
+                      <Building2 className="h-4 w-4 text-sidebar-primary-foreground" />
+                    </div>
+                  )}
+                  <span className="font-semibold text-sm text-sidebar-foreground truncate">
+                    {companyName || 'Company Name'}
+                  </span>
+                </div>
+                {/* Mock menu items */}
+                <div className="space-y-1">
+                  <div className="h-7 bg-sidebar-accent rounded-md flex items-center px-2.5 text-xs text-sidebar-foreground/80">
+                    Dashboard
                   </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm truncate">{companyName || 'Company Name'}</p>
-                  <p className="text-xs text-muted-foreground">123 Business Street</p>
+                  <div className="h-7 bg-transparent rounded-md flex items-center px-2.5 text-xs text-sidebar-foreground/60">
+                    My Profile
+                  </div>
+                  <div className="h-7 bg-transparent rounded-md flex items-center px-2.5 text-xs text-sidebar-foreground/60">
+                    Directory
+                  </div>
                 </div>
               </div>
-              {/* Mock document content */}
-              <div className="space-y-2">
-                <div className="h-3 bg-muted rounded w-2/5"></div>
-                <div className="h-2 bg-muted/60 rounded w-full"></div>
-                <div className="h-2 bg-muted/60 rounded w-4/5"></div>
-                <div className="h-2 bg-muted/60 rounded w-full"></div>
-              </div>
+              <p className="text-xs text-sidebar-foreground/50 mt-3">
+                Shows in the navigation sidebar
+              </p>
             </div>
-            <p className="text-xs text-muted-foreground mt-3">
-              Used in generated documents and emails
-            </p>
-          </div>
-        </div>
+          </TabsContent>
+
+          {/* Document Preview Tab */}
+          <TabsContent value="document">
+            <div className="rounded-lg border bg-muted/30 p-4">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
+                Document Preview
+              </p>
+              <div className="rounded-lg bg-background border shadow-sm p-4">
+                {/* Document header */}
+                <div className="flex items-start gap-3 border-b pb-3 mb-3">
+                  {effectiveDocumentLogo ? (
+                    <img 
+                      src={effectiveDocumentLogo} 
+                      alt="Document Logo"
+                      className="h-10 w-auto max-w-[120px] object-contain"
+                    />
+                  ) : (
+                    <div className="h-10 w-10 rounded bg-muted flex items-center justify-center">
+                      <Building2 className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm truncate">{companyName || 'Company Name'}</p>
+                    <p className="text-xs text-muted-foreground">123 Business Street</p>
+                  </div>
+                </div>
+                {/* Mock document content */}
+                <div className="space-y-2">
+                  <div className="h-3 bg-muted rounded w-2/5"></div>
+                  <div className="h-2 bg-muted/60 rounded w-full"></div>
+                  <div className="h-2 bg-muted/60 rounded w-4/5"></div>
+                  <div className="h-2 bg-muted/60 rounded w-full"></div>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground mt-3">
+                Used in generated documents and emails
+              </p>
+            </div>
+          </TabsContent>
+
+          {/* Email Preview Tab */}
+          <TabsContent value="email">
+            <div className="rounded-lg border bg-[#f4f4f5] p-4">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
+                Email Preview
+              </p>
+              <div className="max-w-[380px] mx-auto rounded-xl overflow-hidden shadow-sm border">
+                {/* Email header with gradient */}
+                <div 
+                  className="p-4"
+                  style={{ background: 'linear-gradient(135deg, #804EEC 0%, #6B3FD4 100%)' }}
+                >
+                  <div className="flex items-center gap-3">
+                    {effectiveDocumentLogo ? (
+                      <img 
+                        src={effectiveDocumentLogo} 
+                        alt="Email Logo"
+                        className="h-8 w-auto max-w-[80px] object-contain brightness-0 invert"
+                      />
+                    ) : (
+                      <div className="h-8 w-8 rounded bg-white/20 flex items-center justify-center">
+                        <Building2 className="h-4 w-4 text-white" />
+                      </div>
+                    )}
+                    <span className="text-white font-semibold text-sm">
+                      {companyName || 'Company Name'}
+                    </span>
+                  </div>
+                </div>
+                
+                {/* Email body */}
+                <div className="bg-white p-4 space-y-3">
+                  {/* Success header */}
+                  <div className="flex items-center gap-2 text-green-600">
+                    <CheckCircle2 className="h-5 w-5" />
+                    <span className="font-semibold text-sm">Leave Request Approved</span>
+                  </div>
+                  
+                  {/* Sample email text */}
+                  <p className="text-xs text-gray-600">
+                    Hi Employee, great news! Your leave request has been approved by your manager.
+                  </p>
+                  
+                  {/* Mock data table */}
+                  <div className="rounded-lg border text-xs overflow-hidden">
+                    <div className="flex border-b">
+                      <div className="w-1/2 p-2 bg-gray-50 font-medium text-gray-700">Leave Type</div>
+                      <div className="w-1/2 p-2 text-gray-600">Annual Leave</div>
+                    </div>
+                    <div className="flex border-b">
+                      <div className="w-1/2 p-2 bg-gray-50 font-medium text-gray-700">Start Date</div>
+                      <div className="w-1/2 p-2 text-gray-600">Jan 15, 2026</div>
+                    </div>
+                    <div className="flex">
+                      <div className="w-1/2 p-2 bg-gray-50 font-medium text-gray-700">End Date</div>
+                      <div className="w-1/2 p-2 text-gray-600">Jan 17, 2026</div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Email footer */}
+                <div className="bg-[#f9fafb] p-3 border-t">
+                  <p className="text-[10px] text-gray-500 text-center">
+                    {companyName || 'Company Name'} • contact@company.com
+                  </p>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground mt-3 text-center">
+                How your logo appears in email notifications
+              </p>
+            </div>
+          </TabsContent>
+        </Tabs>
 
         {/* Fallback notice */}
         {!documentLogoUrl && sidebarLogoUrl && (
           <p className="text-xs text-muted-foreground mt-3 text-center italic">
-            Document preview is using the sidebar logo. Upload a document logo for a different appearance.
+            Document and email previews are using the sidebar logo. Upload a document logo for a different appearance.
           </p>
         )}
       </CardContent>
