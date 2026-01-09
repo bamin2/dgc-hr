@@ -219,7 +219,32 @@ export const queryKeys = {
   // Notifications queries
   notifications: {
     all: ['notifications'] as const,
+    byUser: (userId: string) => ['notifications', userId] as const,
     unread: ['notifications', 'unread'] as const,
+    unreadCount: (userId: string) => ['notifications-unread-count', userId] as const,
+  },
+  
+  // Approval workflows
+  approvalWorkflows: {
+    all: ['approval-workflows'] as const,
+    byType: (requestType: string) => ['approval-workflow', requestType] as const,
+  },
+  
+  // Users for approvals
+  users: {
+    hr: ['hr-users'] as const,
+    all: ['all-users-for-approvals'] as const,
+  },
+  
+  // Public holidays
+  publicHolidays: {
+    byYear: (year: number) => ['public-holidays', year] as const,
+  },
+  
+  // Organizations
+  organizations: {
+    departments: ['departments-management'] as const,
+    positions: ['positions-management'] as const,
   },
 } as const;
 

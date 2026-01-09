@@ -67,7 +67,7 @@ export function useMyLeaveBalances(year?: number) {
   const currentYear = year || new Date().getFullYear();
 
   return useQuery({
-    queryKey: ['my-leave-balances', currentYear],
+    queryKey: [...queryKeys.leave.balances.all, 'my', currentYear],
     queryFn: async () => {
       // First get the current user's employee_id
       const { data: { user } } = await supabase.auth.getUser();

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { addDays, differenceInDays, format, getDay, parseISO } from 'date-fns';
+import { queryKeys } from '@/lib/queryKeys';
 
 export interface PublicHoliday {
   id: string;
@@ -260,7 +261,7 @@ export function usePublicHolidays(year?: number) {
   const currentYear = year || new Date().getFullYear();
   
   return useQuery({
-    queryKey: ['public-holidays', currentYear],
+    queryKey: queryKeys.publicHolidays.byYear(currentYear),
     queryFn: async () => {
       const { data, error } = await supabase
         .from('public_holidays')
@@ -297,7 +298,7 @@ export function useCreatePublicHoliday() {
       return data;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['public-holidays', data.year] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.publicHolidays.byYear(data.year) });
       toast.success('Public holiday added');
     },
     onError: (error: Error) => {
@@ -323,7 +324,7 @@ export function useUpdatePublicHoliday() {
       return data;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['public-holidays', data.year] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.publicHolidays.byYear(data.year) });
       toast.success('Public holiday updated');
     },
     onError: (error: Error) => {
@@ -347,7 +348,7 @@ export function useDeletePublicHoliday() {
       return { year };
     },
     onSuccess: ({ year }) => {
-      queryClient.invalidateQueries({ queryKey: ['public-holidays', year] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.publicHolidays.byYear(year) });
       toast.success('Public holiday deleted');
     },
     onError: (error: Error) => {
@@ -432,7 +433,7 @@ export function useSyncPublicHolidaysToLeave() {
       return { created: newRequests.length };
     },
     onSuccess: ({ created }) => {
-      queryClient.invalidateQueries({ queryKey: ['leave-requests'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.leave.requests.all });
       if (created > 0) {
         toast.success(`Synced ${created} holiday entries to employees`);
       } else {
@@ -469,7 +470,7 @@ export function useBulkCreatePublicHolidays() {
       return { count: data.length, year: holidays[0].year };
     },
     onSuccess: ({ count, year }) => {
-      queryClient.invalidateQueries({ queryKey: ['public-holidays', year] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.publicHolidays.byYear(year) });
       toast.success(`Added ${count} public holiday${count !== 1 ? 's' : ''}`);
     },
     onError: (error: Error) => {
@@ -493,7 +494,7 @@ export function useBulkDeletePublicHolidays() {
       return { count: ids.length, year };
     },
     onSuccess: ({ count, year }) => {
-      queryClient.invalidateQueries({ queryKey: ['public-holidays', year] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.publicHolidays.byYear(year) });
       toast.success(`Deleted ${count} public holiday${count !== 1 ? 's' : ''}`);
     },
     onError: (error: Error) => {

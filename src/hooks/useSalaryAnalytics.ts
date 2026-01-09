@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { queryKeys } from '@/lib/queryKeys';
 
 export interface SalaryStats {
   totalPayroll: number;
@@ -224,7 +225,7 @@ async function fetchSalaryAnalytics(): Promise<Omit<SalaryAnalytics, 'isLoading'
 
 export function useSalaryAnalytics() {
   const { data, isLoading, error } = useQuery({
-    queryKey: ['salary-analytics'],
+    queryKey: queryKeys.analytics.salary,
     queryFn: fetchSalaryAnalytics,
   });
 

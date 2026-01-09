@@ -2,11 +2,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ApprovalWorkflow, ApprovalWorkflowStep, RequestType } from "@/types/approvals";
 import { toast } from "sonner";
+import { queryKeys } from "@/lib/queryKeys";
 
 // Fetch all approval workflows
 export function useApprovalWorkflows() {
   return useQuery({
-    queryKey: ["approval-workflows"],
+    queryKey: queryKeys.approvalWorkflows.all,
     queryFn: async (): Promise<ApprovalWorkflow[]> => {
       const { data, error } = await supabase
         .from("approval_workflows")
@@ -27,7 +28,7 @@ export function useApprovalWorkflows() {
 // Fetch a specific workflow by request type
 export function useApprovalWorkflow(requestType: RequestType) {
   return useQuery({
-    queryKey: ["approval-workflow", requestType],
+    queryKey: queryKeys.approvalWorkflows.byType(requestType),
     queryFn: async (): Promise<ApprovalWorkflow | null> => {
       const { data, error } = await supabase
         .from("approval_workflows")
@@ -87,8 +88,8 @@ export function useUpdateApprovalWorkflow() {
       return data;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["approval-workflows"] });
-      queryClient.invalidateQueries({ queryKey: ["approval-workflow", variables.requestType] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.approvalWorkflows.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.approvalWorkflows.byType(variables.requestType) });
       toast.success("Workflow updated successfully");
     },
     onError: (error) => {
@@ -101,7 +102,7 @@ export function useUpdateApprovalWorkflow() {
 // Get HR users for approver selection
 export function useHRUsers() {
   return useQuery({
-    queryKey: ["hr-users"],
+    queryKey: queryKeys.users.hr,
     queryFn: async () => {
       // Get users with HR or Admin roles
       const { data: roleData, error: roleError } = await supabase
@@ -130,7 +131,7 @@ export function useHRUsers() {
 // Get all users for specific user selection
 export function useAllUsers() {
   return useQuery({
-    queryKey: ["all-users-for-approvals"],
+    queryKey: queryKeys.users.all,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")

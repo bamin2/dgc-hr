@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import type { EntityType, ActionType } from "./useAuditLogs";
+import { queryKeys } from "@/lib/queryKeys";
 
 export interface AuditLogParams {
   entityType: EntityType;
@@ -46,7 +47,7 @@ export function useAuditLog() {
     }
 
     // Invalidate audit logs cache
-    queryClient.invalidateQueries({ queryKey: ['audit-logs'] });
+    queryClient.invalidateQueries({ queryKey: queryKeys.audit.logs });
   };
 
   return { logAction };

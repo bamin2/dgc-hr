@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Json } from "@/integrations/supabase/types";
+import { queryKeys } from "@/lib/queryKeys";
 
 export type SalaryChangeType = 'initial' | 'adjustment' | 'promotion' | 'annual_review' | 'correction' | 'bulk_update' | 'allowance_change' | 'deduction_change' | 'compensation_update';
 
@@ -77,7 +78,7 @@ async function fetchSalaryHistory(employeeId: string): Promise<SalaryHistoryReco
 
 export function useSalaryHistory(employeeId: string | undefined) {
   return useQuery({
-    queryKey: ['salary-history', employeeId],
+    queryKey: queryKeys.compensation.salaryHistory(employeeId || ''),
     queryFn: () => fetchSalaryHistory(employeeId!),
     enabled: !!employeeId,
   });
@@ -125,7 +126,7 @@ export function useAddSalaryHistory() {
       return mapDbToSalaryHistory(data as unknown as DbSalaryHistory);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['salary-history', variables.employeeId] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.compensation.salaryHistory(variables.employeeId) });
     },
   });
 }
@@ -161,7 +162,7 @@ export function useBulkAddSalaryHistory() {
       return (data || []).map((d: any) => mapDbToSalaryHistory(d as DbSalaryHistory));
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['salary-history'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.audit.salaryHistory('') });
     },
   });
 }

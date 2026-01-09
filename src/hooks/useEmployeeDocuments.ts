@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { queryKeys } from "@/lib/queryKeys";
 
 export interface DocumentType {
   id: string;
@@ -75,7 +76,7 @@ interface UpdateDocumentInput {
 // Fetch document types
 export function useDocumentTypes() {
   return useQuery({
-    queryKey: ["document-types"],
+    queryKey: queryKeys.documents.types,
     queryFn: async (): Promise<DocumentType[]> => {
       const { data, error } = await supabase
         .from("document_types")
@@ -99,7 +100,7 @@ export function useDocumentTypes() {
 // Fetch employee documents with notifications
 export function useEmployeeDocuments(employeeId: string | undefined) {
   return useQuery({
-    queryKey: ["employee-documents", employeeId],
+    queryKey: queryKeys.documents.byEmployee(employeeId || ''),
     queryFn: async (): Promise<EmployeeDocument[]> => {
       if (!employeeId) return [];
 
@@ -220,7 +221,7 @@ export function useUploadDocument() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ["employee-documents", variables.employeeId],
+        queryKey: queryKeys.documents.byEmployee(variables.employeeId),
       });
     },
   });
@@ -282,7 +283,7 @@ export function useUpdateDocument() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({
-        queryKey: ["employee-documents", data.employee_id],
+        queryKey: queryKeys.documents.byEmployee(data.employee_id),
       });
     },
   });
@@ -323,7 +324,7 @@ export function useDeleteDocument() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({
-        queryKey: ["employee-documents", data.employeeId],
+        queryKey: queryKeys.documents.byEmployee(data.employeeId),
       });
     },
   });

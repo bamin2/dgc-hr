@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { queryKeys } from '@/lib/queryKeys';
 
 export type EnrollmentStatus = 'active' | 'pending' | 'cancelled' | 'expired';
 
@@ -53,7 +54,7 @@ export function useBenefitEnrollments(filters?: {
   planId?: string;
 }) {
   return useQuery({
-    queryKey: ['benefit-enrollments', filters],
+    queryKey: [...queryKeys.benefits.enrollments.all, filters],
     queryFn: async () => {
       let query = supabase
         .from('benefit_enrollments')
@@ -112,7 +113,7 @@ export function useBenefitEnrollments(filters?: {
 
 export function useBenefitEnrollment(enrollmentId: string | undefined) {
   return useQuery({
-    queryKey: ['benefit-enrollment', enrollmentId],
+    queryKey: [...queryKeys.benefits.enrollments.all, enrollmentId],
     queryFn: async () => {
       if (!enrollmentId) return null;
 
@@ -220,8 +221,8 @@ export function useCreateBenefitEnrollment() {
       return enrollmentData;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['benefit-enrollments'] });
-      queryClient.invalidateQueries({ queryKey: ['benefit-plans'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.benefits.enrollments.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.benefits.plans.all });
     },
   });
 }
@@ -249,8 +250,8 @@ export function useUpdateBenefitEnrollment() {
       return data;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['benefit-enrollments'] });
-      queryClient.invalidateQueries({ queryKey: ['benefit-enrollment', variables.id] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.benefits.enrollments.all });
+      queryClient.invalidateQueries({ queryKey: [...queryKeys.benefits.enrollments.all, variables.id] });
     },
   });
 }
@@ -271,8 +272,8 @@ export function useCancelBenefitEnrollment() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['benefit-enrollments'] });
-      queryClient.invalidateQueries({ queryKey: ['benefit-plans'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.benefits.enrollments.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.benefits.plans.all });
     },
   });
 }
