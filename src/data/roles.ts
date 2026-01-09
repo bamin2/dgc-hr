@@ -44,7 +44,7 @@ export interface CurrentUser {
 }
 
 export const mockCurrentUser: CurrentUser = {
-  id: 'user-9',
+  id: '00000000-0000-0000-0000-000000000009', // Valid UUID format for database compatibility
   name: 'Jennifer Taylor',
   email: 'jennifer.taylor@franfer.com',
   role: 'hr', // Can be changed to test different roles: 'employee', 'manager', 'hr', 'admin'
