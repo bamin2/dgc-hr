@@ -35,6 +35,7 @@ import Documents from "./pages/Documents";
 import Directory from "./pages/Directory";
 import Loans from "./pages/Loans";
 import Approvals from "./pages/Approvals";
+import MyProfile from "./pages/MyProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -66,6 +67,7 @@ const App = () => (
                 <Route path="/benefits/enroll" element={<ProtectedRoute><BenefitEnrollment /></ProtectedRoute>} />
                 <Route path="/benefits/claims/new" element={<ProtectedRoute><ClaimSubmission /></ProtectedRoute>} />
                 <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+                <Route path="/my-profile" element={<ProtectedRoute><MyProfile /></ProtectedRoute>} />
                 
                 {/* Protected routes - HR & Admin */}
                 <Route path="/employees" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><Employees /></ProtectedRoute>} />

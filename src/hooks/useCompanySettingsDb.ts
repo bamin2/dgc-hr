@@ -31,6 +31,8 @@ interface DbCompanySettings {
   weekend_days: number[] | null;
   payroll_day_of_month: number | null;
   dashboard_card_visibility: Json | null;
+  employee_can_view_compensation: boolean | null;
+  show_compensation_line_items: boolean | null;
   created_at: string;
   updated_at: string;
 }
@@ -69,6 +71,8 @@ function transformFromDb(row: DbCompanySettings): CompanySettings {
     dashboardCardVisibility: row.dashboard_card_visibility 
       ? (row.dashboard_card_visibility as unknown as DashboardCardVisibility)
       : defaultDashboardCardVisibility,
+    employeeCanViewCompensation: row.employee_can_view_compensation ?? true,
+    showCompensationLineItems: row.show_compensation_line_items ?? false,
   };
 }
 
@@ -111,6 +115,14 @@ function transformToDb(settings: Partial<CompanySettings>): Record<string, unkno
 
   if (settings.payrollDayOfMonth !== undefined) {
     db.payroll_day_of_month = settings.payrollDayOfMonth;
+  }
+
+  if (settings.employeeCanViewCompensation !== undefined) {
+    db.employee_can_view_compensation = settings.employeeCanViewCompensation;
+  }
+
+  if (settings.showCompensationLineItems !== undefined) {
+    db.show_compensation_line_items = settings.showCompensationLineItems;
   }
   
   return db;

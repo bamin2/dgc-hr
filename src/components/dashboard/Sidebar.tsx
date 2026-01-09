@@ -21,6 +21,7 @@ import {
   BookUser,
   HandCoins,
   CheckSquare,
+  UserCircle,
   icons,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -69,6 +70,7 @@ export function Sidebar() {
   // MAIN - Visible to all employees (with dynamic badge)
   const mainMenuItems = useMemo(() => [
     { icon: LayoutDashboard, label: "Dashboard", path: "/" },
+    { icon: UserCircle, label: "My Profile", path: "/my-profile" },
     { icon: BookUser, label: "Directory", path: "/directory" },
     { icon: Calendar, label: "Calendar", path: "/calendar" },
     { icon: Briefcase, label: "Projects", path: "/projects" },

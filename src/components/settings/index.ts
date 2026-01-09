@@ -12,3 +12,4 @@ export { SessionCard } from './SessionCard';
 export { SecuritySettings } from './SecuritySettings';
 export { AuditLogCard } from './AuditLogCard';
 export { DashboardSettingsTab } from './DashboardSettingsTab';
+export { SelfServiceSettings } from './SelfServiceSettings';

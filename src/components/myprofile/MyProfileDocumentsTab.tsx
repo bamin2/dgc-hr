@@ -9,7 +9,8 @@ import {
   FileIcon,
   Inbox
 } from 'lucide-react';
-import { useEmployeeDocuments, useGetDocumentUrl } from '@/hooks/useEmployeeDocuments';
+import { useMyDocuments } from '@/hooks/useMyDocuments';
+import { useGetDocumentUrl } from '@/hooks/useEmployeeDocuments';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -18,11 +19,9 @@ interface MyProfileDocumentsTabProps {
 }
 
 export function MyProfileDocumentsTab({ employeeId }: MyProfileDocumentsTabProps) {
-  const { data: documents, isLoading } = useEmployeeDocuments(employeeId);
+  const { data: documents, isLoading } = useMyDocuments(employeeId);
   const getDocumentUrl = useGetDocumentUrl();
 
-  // Filter to only show documents visible to employee
-  // Note: This filter is applied client-side for now, but the RLS policy will also enforce it
   const visibleDocuments = documents || [];
 
   const handleView = async (fileUrl: string) => {
@@ -76,7 +75,7 @@ export function MyProfileDocumentsTab({ employeeId }: MyProfileDocumentsTabProps
 
   // Group documents by type
   const documentsByType = visibleDocuments.reduce((acc, doc) => {
-    const type = doc.documentTypeName;
+    const type = (doc.document_type as { name: string })?.name || 'Other';
     if (!acc[type]) {
       acc[type] = [];
     }
@@ -106,18 +105,18 @@ export function MyProfileDocumentsTab({ employeeId }: MyProfileDocumentsTabProps
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium truncate">
-                      {doc.documentName}
+                      {doc.document_name}
                     </p>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Calendar className="h-3 w-3" />
                       <span>
-                        {format(new Date(doc.createdAt), 'MMM d, yyyy')}
+                        {doc.created_at ? format(new Date(doc.created_at), 'MMM d, yyyy') : 'N/A'}
                       </span>
-                      {doc.fileSize && (
+                      {doc.file_size && (
                         <>
                           <span>•</span>
                           <span>
-                            {(doc.fileSize / 1024).toFixed(1)} KB
+                            {(doc.file_size / 1024).toFixed(1)} KB
                           </span>
                         </>
                       )}
@@ -129,7 +128,7 @@ export function MyProfileDocumentsTab({ employeeId }: MyProfileDocumentsTabProps
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8"
-                    onClick={() => handleView(doc.fileUrl)}
+                    onClick={() => handleView(doc.file_url)}
                   >
                     <Eye className="h-4 w-4" />
                   </Button>
@@ -137,7 +136,7 @@ export function MyProfileDocumentsTab({ employeeId }: MyProfileDocumentsTabProps
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8"
-                    onClick={() => handleDownload(doc.fileUrl, doc.fileName)}
+                    onClick={() => handleDownload(doc.file_url, doc.file_name)}
                   >
                     <Download className="h-4 w-4" />
                   </Button>
