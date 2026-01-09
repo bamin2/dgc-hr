@@ -39,7 +39,7 @@ import { getCountryByName, getCountryCodeByName } from "@/data/countries";
 import { AppRole, roleDescriptions } from "@/data/roles";
 import { useRole } from "@/contexts/RoleContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { format } from "date-fns";
+import { formatLongDate } from "@/lib/dateUtils";
 import { toast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -383,7 +383,7 @@ export default function EmployeeProfile() {
                 <InfoRow label="Full Name" value={employee.fullName} />
                 <InfoRow 
                   label="Date of Birth" 
-                  value={employee.dateOfBirth ? format(new Date(employee.dateOfBirth), 'MMMM d, yyyy') : 'Not specified'} 
+                  value={employee.dateOfBirth ? formatLongDate(employee.dateOfBirth) : 'Not specified'} 
                 />
                 <InfoRow label="Gender" value={employee.gender || 'Not specified'} />
                 <InfoRow label="Nationality" value={employee.nationality || 'Not specified'} />
@@ -448,7 +448,7 @@ export default function EmployeeProfile() {
                 <InfoRow label="Position" value={employee.position} />
                 <InfoRow 
                   label="Join Date" 
-                  value={employee.joinDate ? format(new Date(employee.joinDate), 'MMMM d, yyyy') : 'Not specified'} 
+                  value={employee.joinDate ? formatLongDate(employee.joinDate) : 'Not specified'} 
                 />
                 <InfoRow label="Work Location" value={employee.workLocationName || 'Not specified'} />
               </CardContent>

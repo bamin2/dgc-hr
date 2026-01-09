@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { format } from "date-fns";
+import { formatShortDate, formatDisplayDate } from "@/lib/dateUtils";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -239,9 +239,9 @@ function LeaveRequestCard({ request, onApprove, onReject }: LeaveRequestCardProp
           <div className="flex items-center gap-2 text-muted-foreground">
             <Calendar className="h-4 w-4" />
             <span>
-              {format(new Date(request.start_date), "MMM dd")}
+              {formatShortDate(request.start_date)}
               {request.start_date !== request.end_date && (
-                <> - {format(new Date(request.end_date), "MMM dd, yyyy")}</>
+                <> - {formatDisplayDate(request.end_date)}</>
               )}
             </span>
           </div>

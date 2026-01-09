@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { format } from "date-fns";
+import { formatDisplayDate } from "@/lib/dateUtils";
 import { Banknote, Calendar, CreditCard, TrendingDown, ChevronDown, ChevronRight, CheckCircle2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -141,7 +141,7 @@ export function EmployeeLoansTab({ employeeId }: EmployeeLoansTabProps) {
               <>
                 <div className="text-2xl font-bold">{formatCurrency(nextPayment.amount)}</div>
                 <p className="text-xs text-muted-foreground">
-                  {format(new Date(nextPayment.date), 'MMM d, yyyy')}
+                  {formatDisplayDate(nextPayment.date)}
                 </p>
               </>
             ) : (
@@ -182,7 +182,7 @@ export function EmployeeLoansTab({ employeeId }: EmployeeLoansTabProps) {
                               Loan - {formatCurrency(loan.principal_amount)}
                             </CardTitle>
                             <p className="text-sm text-muted-foreground mt-1">
-                              Started {format(new Date(loan.start_date), 'MMM d, yyyy')} • {formatCurrency(loan.installment_amount || 0)}/mo
+                              Started {formatDisplayDate(loan.start_date)} • {formatCurrency(loan.installment_amount || 0)}/mo
                             </p>
                           </div>
                         </div>
@@ -226,7 +226,7 @@ export function EmployeeLoansTab({ employeeId }: EmployeeLoansTabProps) {
                       Loan - {formatCurrency(loan.principal_amount)}
                     </CardTitle>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Started {format(new Date(loan.start_date), 'MMM d, yyyy')}
+                      Started {formatDisplayDate(loan.start_date)}
                     </p>
                   </div>
                   <LoanStatusBadge status={loan.status} />
@@ -262,8 +262,8 @@ export function EmployeeLoansTab({ employeeId }: EmployeeLoansTabProps) {
                         </p>
                         <span className="text-sm text-muted-foreground">
                           {installment.paid_at
-                            ? format(new Date(installment.paid_at), 'MMM d, yyyy')
-                            : format(new Date(installment.due_date), 'MMM d, yyyy')}
+                            ? formatDisplayDate(installment.paid_at)
+                            : formatDisplayDate(installment.due_date)}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 mt-1">

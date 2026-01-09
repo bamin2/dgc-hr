@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { format } from "date-fns";
+import { formatDisplayDate, formatDateTime } from "@/lib/dateUtils";
 import { History, RotateCcw, CheckCircle, XCircle } from "lucide-react";
 import {
   Dialog,
@@ -93,7 +93,7 @@ export function ImportHistoryDialog({ open, onOpenChange }: ImportHistoryDialogP
                         )}
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        {format(new Date(imp.imported_at), "MMM d, yyyy 'at' h:mm a")}
+                        {formatDateTime(imp.imported_at)}
                       </div>
                       <div className="text-sm">
                         <span className="text-green-600 font-medium">
@@ -110,7 +110,7 @@ export function ImportHistoryDialog({ open, onOpenChange }: ImportHistoryDialogP
                       </div>
                       {imp.status === "rolled_back" && imp.rolled_back_at && (
                         <div className="text-xs text-muted-foreground">
-                          Rolled back on {format(new Date(imp.rolled_back_at), "MMM d, yyyy")}
+                          Rolled back on {formatDisplayDate(imp.rolled_back_at)}
                         </div>
                       )}
                     </div>

@@ -3,7 +3,7 @@ import { Phone, MapPin, AlertTriangle, User, Globe } from 'lucide-react';
 import { Employee, useUpdateEmployee } from '@/hooks/useEmployees';
 import { EditableField } from './EditableField';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
+import { formatLongDate } from "@/lib/dateUtils";
 
 interface MyProfilePersonalTabProps {
   employee: Employee;
@@ -37,7 +37,7 @@ export function MyProfilePersonalTab({ employee }: MyProfilePersonalTabProps) {
   };
 
   const dateOfBirth = employee.dateOfBirth 
-    ? format(new Date(employee.dateOfBirth), 'MMMM d, yyyy')
+    ? formatLongDate(employee.dateOfBirth)
     : '';
 
   return (

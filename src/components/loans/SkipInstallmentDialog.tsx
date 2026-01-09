@@ -15,7 +15,7 @@ import { useSkipInstallment } from "@/hooks/useLoanEvents";
 import { useCompanySettings } from "@/contexts/CompanySettingsContext";
 import { LoanInstallment } from "@/hooks/useLoans";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { formatDisplayDate } from "@/lib/dateUtils";
 
 interface SkipInstallmentDialogProps {
   installment: LoanInstallment | null;
@@ -73,7 +73,7 @@ export function SkipInstallmentDialog({
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Due Date:</span>
-              <span>{format(new Date(installment.due_date), "MMM d, yyyy")}</span>
+              <span>{formatDisplayDate(installment.due_date)}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Amount:</span>

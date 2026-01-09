@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { format } from "date-fns";
+import { formatDisplayDate } from "@/lib/dateUtils";
 import { CheckCircle, XCircle, Banknote, User, FileText, Trash2, CreditCard, RefreshCw, History } from "lucide-react";
 import {
   Sheet,
@@ -193,7 +193,7 @@ export function LoanDetailSheet({ loanId, open, onOpenChange }: LoanDetailSheetP
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Start Date</p>
-                    <p className="font-medium">{format(new Date(loan.start_date), "MMM d, yyyy")}</p>
+                    <p className="font-medium">{formatDisplayDate(loan.start_date)}</p>
                   </div>
                 </div>
 
@@ -209,7 +209,7 @@ export function LoanDetailSheet({ loanId, open, onOpenChange }: LoanDetailSheetP
                   {loan.disbursed_at && (
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Disbursed</span>
-                      <span>{format(new Date(loan.disbursed_at), "MMM d, yyyy")}</span>
+                      <span>{formatDisplayDate(loan.disbursed_at)}</span>
                     </div>
                   )}
                 </div>

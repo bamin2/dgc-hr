@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { formatDisplayDate, formatTime } from "@/lib/dateUtils";
 import {
   User,
   Calendar,
@@ -124,10 +124,10 @@ export function AuditTable({
                   {/* Timestamp */}
                   <TableCell className="text-sm">
                     <div className="font-medium">
-                      {format(new Date(log.created_at), "MMM d, yyyy")}
+                      {formatDisplayDate(log.created_at)}
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      {format(new Date(log.created_at), "h:mm a")}
+                      {formatTime(log.created_at)}
                     </div>
                   </TableCell>
 

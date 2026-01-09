@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Wallet, Calendar, CheckCircle } from 'lucide-react';
-import { format } from 'date-fns';
+import { formatDisplayDate, formatShortDate } from "@/lib/dateUtils";
 
 interface PayrollStatus {
   lastRunDate: string | null;
@@ -54,7 +54,7 @@ export function PayrollStatusCard({ status, isLoading, currency = 'SAR' }: Payro
             </div>
             <div className="text-right">
               <p className="text-sm font-medium">
-                {format(new Date(status.lastRunDate), 'MMM d, yyyy')}
+                {formatDisplayDate(status.lastRunDate)}
               </p>
               {status.lastRunAmount && (
                 <p className="text-xs text-muted-foreground">
@@ -72,7 +72,7 @@ export function PayrollStatusCard({ status, isLoading, currency = 'SAR' }: Payro
               <span className="text-sm font-medium">Next Payroll</span>
             </div>
             <Badge variant="secondary">
-              {format(new Date(status.nextPayrollDate), 'MMM d')}
+              {formatShortDate(status.nextPayrollDate)}
             </Badge>
           </div>
         )}

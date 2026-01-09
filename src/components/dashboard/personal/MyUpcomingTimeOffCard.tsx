@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Palmtree, Calendar } from 'lucide-react';
-import { format } from 'date-fns';
+import { formatShortDate } from '@/lib/dateUtils';
 
 interface TimeOffData {
   id: string;
@@ -55,9 +55,9 @@ export function MyUpcomingTimeOffCard({ timeOff, isLoading }: MyUpcomingTimeOffC
               >
                 <div className="min-w-0 flex-1">
                   <p className="font-medium text-sm">
-                    {format(new Date(item.startDate), 'MMM d')}
+                    {formatShortDate(item.startDate)}
                     {item.startDate !== item.endDate && (
-                      <> - {format(new Date(item.endDate), 'MMM d')}</>
+                      <> - {formatShortDate(item.endDate)}</>
                     )}
                   </p>
                   <p className="text-xs text-muted-foreground truncate">

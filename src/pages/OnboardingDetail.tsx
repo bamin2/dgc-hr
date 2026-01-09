@@ -32,7 +32,7 @@ import {
   Shield,
   Loader2,
 } from "lucide-react";
-import { format } from "date-fns";
+import { formatDisplayDate } from "@/lib/dateUtils";
 
 export default function OnboardingDetail() {
   const { id } = useParams<{ id: string }>();
@@ -68,11 +68,7 @@ export default function OnboardingDetail() {
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "-";
-    try {
-      return format(new Date(dateString), "MMM dd, yyyy");
-    } catch {
-      return dateString;
-    }
+    return formatDisplayDate(dateString) || dateString;
   };
 
   if (isLoading) {
@@ -147,7 +143,7 @@ export default function OnboardingDetail() {
     dueDate: task.due_date || "",
     assignedTo: task.assigned_to,
     status: task.status,
-    completedAt: task.completed_at ? format(new Date(task.completed_at), "MMM dd, yyyy") : null,
+    completedAt: task.completed_at ? formatDisplayDate(task.completed_at) : null,
     completedBy: task.completed_by || null,
     required: task.is_required ?? true,
     order: task.task_order ?? 1,

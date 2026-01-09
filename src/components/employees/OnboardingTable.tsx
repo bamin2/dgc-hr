@@ -20,7 +20,7 @@ import {
 import { OnboardingStatusBadge } from "./OnboardingStatusBadge";
 import { OnboardingProgress } from "./OnboardingProgress";
 import { OnboardingRecord, OnboardingTask, calculateOnboardingProgress } from "@/hooks/useOnboarding";
-import { format } from "date-fns";
+import { formatDisplayDate } from "@/lib/dateUtils";
 
 interface OnboardingTableProps {
   records: OnboardingRecord[];
@@ -61,11 +61,7 @@ export function OnboardingTable({
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "-";
-    try {
-      return format(new Date(dateString), "MMM dd, yyyy");
-    } catch {
-      return dateString;
-    }
+    return formatDisplayDate(dateString) || dateString;
   };
 
   return (

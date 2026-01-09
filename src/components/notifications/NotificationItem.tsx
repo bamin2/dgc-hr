@@ -1,4 +1,5 @@
 import { formatDistanceToNow } from "date-fns";
+import { formatDisplayDate, formatTime } from "@/lib/dateUtils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { NotificationTypeBadge } from "./NotificationTypeBadge";

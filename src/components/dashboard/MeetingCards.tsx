@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useTodayMeetings } from "@/hooks/useCalendarEvents";
-import { format } from "date-fns";
+import { formatTime } from "@/lib/dateUtils";
 
 export function MeetingCards() {
   const { data: meetings = [], isLoading } = useTodayMeetings();
@@ -89,7 +89,7 @@ export function MeetingCards() {
                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Clock className="w-3 h-3" />
-                        {format(new Date(meeting.start_time), 'h:mm a')} - {format(new Date(meeting.end_time), 'h:mm a')}
+                        {formatTime(meeting.start_time)} - {formatTime(meeting.end_time)}
                       </span>
                       {isVideoMeeting ? (
                         <span className="flex items-center gap-1">
