@@ -545,18 +545,10 @@ export default function EmployeeProfile() {
             {hasFullAccess && (
               <>
                 <TabsContent value="documents">
-                  <Card>
-                    <CardContent className="py-12 text-center">
-                      <FileText className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium mb-1">No documents uploaded</h3>
-                      <p className="text-muted-foreground mb-4">
-                        Upload contracts, certificates, and other important documents
-                      </p>
-                      {canEditEmployees && (
-                        <Button variant="outline">Upload Document</Button>
-                      )}
-                    </CardContent>
-                  </Card>
+                  <EmployeeDocumentsTab 
+                    employeeId={employee.id} 
+                    canEdit={canEditEmployees}
+                  />
                 </TabsContent>
 
                 <TabsContent value="timeoff">
