@@ -620,6 +620,7 @@ export type Database = {
           dashboard_icon_name: string | null
           date_format: string | null
           email: string | null
+          employee_can_view_compensation: boolean | null
           id: string
           industry: string | null
           legal_name: string | null
@@ -628,6 +629,7 @@ export type Database = {
           payroll_day_of_month: number | null
           phone: string | null
           primary_color: string | null
+          show_compensation_line_items: boolean | null
           tax_id: string | null
           timezone: string | null
           updated_at: string | null
@@ -649,6 +651,7 @@ export type Database = {
           dashboard_icon_name?: string | null
           date_format?: string | null
           email?: string | null
+          employee_can_view_compensation?: boolean | null
           id?: string
           industry?: string | null
           legal_name?: string | null
@@ -657,6 +660,7 @@ export type Database = {
           payroll_day_of_month?: number | null
           phone?: string | null
           primary_color?: string | null
+          show_compensation_line_items?: boolean | null
           tax_id?: string | null
           timezone?: string | null
           updated_at?: string | null
@@ -678,6 +682,7 @@ export type Database = {
           dashboard_icon_name?: string | null
           date_format?: string | null
           email?: string | null
+          employee_can_view_compensation?: boolean | null
           id?: string
           industry?: string | null
           legal_name?: string | null
@@ -686,6 +691,7 @@ export type Database = {
           payroll_day_of_month?: number | null
           phone?: string | null
           primary_color?: string | null
+          show_compensation_line_items?: boolean | null
           tax_id?: string | null
           timezone?: string | null
           updated_at?: string | null
@@ -1083,6 +1089,7 @@ export type Database = {
           notes: string | null
           updated_at: string | null
           uploaded_by: string | null
+          visible_to_employee: boolean | null
         }
         Insert: {
           created_at?: string | null
@@ -1100,6 +1107,7 @@ export type Database = {
           notes?: string | null
           updated_at?: string | null
           uploaded_by?: string | null
+          visible_to_employee?: boolean | null
         }
         Update: {
           created_at?: string | null
@@ -1117,6 +1125,7 @@ export type Database = {
           notes?: string | null
           updated_at?: string | null
           uploaded_by?: string | null
+          visible_to_employee?: boolean | null
         }
         Relationships: [
           {
