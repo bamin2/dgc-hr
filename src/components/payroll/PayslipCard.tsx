@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { formatDisplayDate } from "@/lib/dateUtils";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -21,7 +21,7 @@ export function PayslipCard({ payslip }: PayslipCardProps) {
 
   const formatDate = (dateString: string) => {
     if (!dateString) return "N/A";
-    return format(new Date(dateString), "d MMM yyyy");
+    return formatDisplayDate(dateString);
   };
 
   const getInitials = (name: string) => {

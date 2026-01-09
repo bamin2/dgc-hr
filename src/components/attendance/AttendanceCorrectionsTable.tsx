@@ -13,7 +13,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { CorrectionStatusBadge } from './CorrectionStatusBadge';
 import { ReviewCorrectionDialog } from './ReviewCorrectionDialog';
 import type { AttendanceCorrection, CorrectionStatus } from '@/hooks/useAttendanceCorrections';
-import { format } from 'date-fns';
+import { formatDisplayDate } from '@/lib/dateUtils';
 import { Eye, ArrowRight } from 'lucide-react';
 import { useRole } from '@/contexts/RoleContext';
 import { useAuth } from '@/hooks/useAuth';
@@ -92,7 +92,7 @@ export function AttendanceCorrectionsTable({
                     </div>
                   </TableCell>
                   <TableCell className="text-sm">
-                    {format(new Date(correction.date), 'MMM d, yyyy')}
+                    {formatDisplayDate(correction.date)}
                   </TableCell>
                   <TableCell className="font-mono text-sm text-muted-foreground">
                     {correction.original_check_in || '--:--'} - {correction.original_check_out || '--:--'}
@@ -108,7 +108,7 @@ export function AttendanceCorrectionsTable({
                     <CorrectionStatusBadge status={correction.status} />
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
-                    {format(new Date(correction.created_at), 'MMM d, yyyy')}
+                    {formatDisplayDate(correction.created_at)}
                   </TableCell>
                   <TableCell className="text-right">
                     {canReview(correction) ? (

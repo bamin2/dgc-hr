@@ -1,7 +1,7 @@
 import { CheckCircle, Clock, Loader2, FileEdit, FileCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PayrollRun } from "@/data/payroll";
-import { format } from "date-fns";
+import { formatMonthYear } from "@/lib/dateUtils";
 
 interface RecentPayrollRunsProps {
   runs: PayrollRun[];
@@ -56,7 +56,7 @@ export function RecentPayrollRuns({ runs, currency = "USD" }: RecentPayrollRunsP
                 </div>
                 <div>
                   <p className="text-sm font-medium text-foreground">
-                    {format(new Date(run.payPeriod.startDate), 'MMM yyyy')}
+                    {formatMonthYear(run.payPeriod.startDate)}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {run.employeeCount} employees

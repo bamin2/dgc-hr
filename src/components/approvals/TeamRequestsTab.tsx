@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { formatShortDate } from "@/lib/dateUtils";
 import { useTeamRequests } from "@/hooks/useApprovalSteps";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -85,9 +85,9 @@ export function TeamRequestsTab() {
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
                   <span>
-                    {format(new Date(request.start_date), "MMM dd")}
+                    {formatShortDate(request.start_date)}
                     {request.start_date !== request.end_date && (
-                      <> - {format(new Date(request.end_date), "MMM dd")}</>
+                      <> - {formatShortDate(request.end_date)}</>
                     )}
                   </span>
                 </div>

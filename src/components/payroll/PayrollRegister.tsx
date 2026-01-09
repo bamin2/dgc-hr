@@ -1,5 +1,5 @@
 import { ArrowLeft, Download, FileText } from "lucide-react";
-import { format } from "date-fns";
+import { formatMonthYear } from "@/lib/dateUtils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -86,7 +86,7 @@ export function PayrollRegister({
     }
   );
 
-  const periodLabel = format(new Date(run.payPeriodStart), "MMMM yyyy");
+  const periodLabel = formatMonthYear(run.payPeriodStart);
 
   return (
     <div className="space-y-6">
