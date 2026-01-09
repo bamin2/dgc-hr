@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { format, differenceInDays } from "date-fns";
+import DOMPurify from "dompurify";
 import { CalendarIcon, Eye, Download, Loader2, FileText, ChevronDown } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -328,6 +329,11 @@ export function TeamOfferStep({
     });
   }, [selectedTemplate, basicData, roleData, compensationData, data, position, department, workLocation, manager, companySettings, totalAllowances, totalNetPay]);
 
+  // Sanitize the preview content to prevent XSS
+  const sanitizedPreviewContent = useMemo(() => {
+    return DOMPurify.sanitize(previewContent);
+  }, [previewContent]);
+
   return (
     <div className="space-y-6">
       <div>
@@ -465,7 +471,7 @@ export function TeamOfferStep({
                   <div 
                     ref={previewRef}
                     className="p-6 prose prose-sm max-w-none dark:prose-invert bg-white text-black"
-                    dangerouslySetInnerHTML={{ __html: previewContent }}
+                    dangerouslySetInnerHTML={{ __html: sanitizedPreviewContent }}
                   />
                 </ScrollArea>
               </div>

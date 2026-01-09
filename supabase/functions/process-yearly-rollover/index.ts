@@ -33,11 +33,73 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Verify the token and get the caller
+    const token = authHeader.replace("Bearer ", "");
+    const {
+      data: { user: caller },
+      error: authError,
+    } = await supabase.auth.getUser(token);
+
+    if (authError || !caller) {
+      return new Response(
+        JSON.stringify({ error: "Invalid or expired token" }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Check if caller has HR or Admin role
+    const { data: roleData, error: roleError } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", caller.id)
+      .in("role", ["hr", "admin"])
+      .limit(1)
+      .maybeSingle();
+
+    if (roleError) {
+      return new Response(
+        JSON.stringify({ error: "Failed to verify permissions" }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    if (!roleData) {
+      return new Response(
+        JSON.stringify({ error: "Forbidden: HR or Admin role required" }),
+        {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
     // Parse request body
     const { fromYear } = await req.json();
+
+    // Validate input
+    if (
+      typeof fromYear !== "number" ||
+      fromYear < 2000 ||
+      fromYear > 2100
+    ) {
+      return new Response(
+        JSON.stringify({ error: "Invalid fromYear parameter" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
     const toYear = fromYear + 1;
 
-    console.log(`Processing rollover from ${fromYear} to ${toYear}`);
+    console.log(`Processing rollover from ${fromYear} to ${toYear} by user ${caller.id}`);
 
     const result: RolloverResult = {
       balancesCreated: 0,
