@@ -19,6 +19,7 @@ import {
   Shield,
   KeyRound,
   RotateCcw,
+  Banknote,
 } from "lucide-react";
 import { useEmployeeAllowances } from "@/hooks/useEmployeeAllowances";
 import { useEmployeeDeductions } from "@/hooks/useEmployeeDeductions";
@@ -31,6 +32,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { StatusBadge, EmployeeForm, RoleBadge, RoleSelectorWithDescription, CreateLoginDialog, ResetPasswordDialog, SalaryHistoryCard, BankDetailsDialog } from "@/components/employees";
 import { EmployeeDocumentsTab } from "@/components/employees/documents";
+import { EmployeeLoansTab } from "@/components/employees/EmployeeLoansTab";
 import { useEmployee, useUpdateEmployee, useEmployees, Employee } from "@/hooks/useEmployees";
 import { useWorkLocations } from "@/hooks/useWorkLocations";
 import { getCountryByName, getCountryCodeByName } from "@/data/countries";
@@ -342,6 +344,10 @@ export default function EmployeeProfile() {
                 <FileText className="h-4 w-4" />
                 Documents
               </TabsTrigger>
+              <TabsTrigger value="loans" className="gap-2">
+                <Banknote className="h-4 w-4" />
+                Loans
+              </TabsTrigger>
               <TabsTrigger value="timeoff" className="gap-2">
                 <Clock className="h-4 w-4" />
                 Time Off
@@ -521,6 +527,12 @@ export default function EmployeeProfile() {
         {hasFullAccess && (
           <TabsContent value="documents" className="space-y-6">
             <EmployeeDocumentsTab employeeId={employee.id} canEdit={canEditEmployees} />
+          </TabsContent>
+        )}
+
+        {hasFullAccess && (
+          <TabsContent value="loans" className="space-y-6">
+            <EmployeeLoansTab employeeId={employee.id} />
           </TabsContent>
         )}
 
