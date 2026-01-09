@@ -2872,7 +2872,11 @@ export type Database = {
           effective_date: string
           employee_id: string
           id: string
+          new_allowances: Json | null
+          new_deductions: Json | null
           new_salary: number
+          previous_allowances: Json | null
+          previous_deductions: Json | null
           previous_salary: number | null
           reason: string | null
         }
@@ -2883,7 +2887,11 @@ export type Database = {
           effective_date?: string
           employee_id: string
           id?: string
+          new_allowances?: Json | null
+          new_deductions?: Json | null
           new_salary: number
+          previous_allowances?: Json | null
+          previous_deductions?: Json | null
           previous_salary?: number | null
           reason?: string | null
         }
@@ -2894,7 +2902,11 @@ export type Database = {
           effective_date?: string
           employee_id?: string
           id?: string
+          new_allowances?: Json | null
+          new_deductions?: Json | null
           new_salary?: number
+          previous_allowances?: Json | null
+          previous_deductions?: Json | null
           previous_salary?: number | null
           reason?: string | null
         }
@@ -3376,6 +3388,9 @@ export type Database = {
         | "annual_review"
         | "correction"
         | "bulk_update"
+        | "allowance_change"
+        | "deduction_change"
+        | "compensation_update"
       task_assignee: "employee" | "hr" | "manager" | "it"
       task_category:
         | "documentation"
@@ -3592,6 +3607,9 @@ export const Constants = {
         "annual_review",
         "correction",
         "bulk_update",
+        "allowance_change",
+        "deduction_change",
+        "compensation_update",
       ],
       task_assignee: ["employee", "hr", "manager", "it"],
       task_category: [

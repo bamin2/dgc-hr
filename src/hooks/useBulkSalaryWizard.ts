@@ -435,7 +435,25 @@ export function useBulkSalaryWizard() {
           .update(updateData)
           .eq('id', impact.employee.id);
 
-        // Create salary history record
+        // Get per-employee allowances and deductions for snapshots
+        const beforeAllowances = data.perEmployeeAllowances[impact.employee.id] || [];
+        const afterAllowances = data.perEmployeeAllowances[impact.employee.id] || [];
+        const beforeDeductions = data.perEmployeeDeductions[impact.employee.id] || [];
+        const afterDeductions = data.perEmployeeDeductions[impact.employee.id] || [];
+        
+        // Create compensation snapshots
+        const previousAllowanceSnapshot = beforeAllowances
+          .filter(a => a.isExisting)
+          .map(a => ({ name: a.customName || 'Allowance', amount: a.originalAmount ?? a.amount, templateId: a.templateId }));
+        const newAllowanceSnapshot = afterAllowances
+          .map(a => ({ name: a.customName || 'Allowance', amount: a.amount, templateId: a.templateId }));
+        const previousDeductionSnapshot = beforeDeductions
+          .filter(d => d.isExisting)
+          .map(d => ({ name: d.customName || 'Deduction', amount: d.originalAmount ?? d.amount, templateId: d.templateId }));
+        const newDeductionSnapshot = afterDeductions
+          .map(d => ({ name: d.customName || 'Deduction', amount: d.amount, templateId: d.templateId }));
+
+        // Create salary history record with allowance/deduction snapshots
         await supabase.from('salary_history').insert({
           employee_id: impact.employee.id,
           previous_salary: impact.beforeBasicSalary,
@@ -444,6 +462,10 @@ export function useBulkSalaryWizard() {
           reason: data.reason,
           effective_date: effectiveDate,
           changed_by: userData.user.id,
+          previous_allowances: previousAllowanceSnapshot.length > 0 ? previousAllowanceSnapshot as any : null,
+          new_allowances: newAllowanceSnapshot.length > 0 ? newAllowanceSnapshot as any : null,
+          previous_deductions: previousDeductionSnapshot.length > 0 ? previousDeductionSnapshot as any : null,
+          new_deductions: newDeductionSnapshot.length > 0 ? newDeductionSnapshot as any : null,
         });
 
         // Get per-employee allowances and deductions
