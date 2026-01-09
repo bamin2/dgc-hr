@@ -7,6 +7,7 @@ interface MenuItem {
   label: string;
   path: string;
   badge?: number;
+  comingSoon?: boolean;
 }
 
 interface SidebarSectionProps {
@@ -27,9 +28,35 @@ export function SidebarSection({ label, items, collapsed }: SidebarSectionProps)
       )}
       <ul className="space-y-1">
         {items.map((item) => {
-          const isActive = item.path === "/" 
+          const isActive = !item.comingSoon && (item.path === "/" 
             ? location.pathname === "/" 
-            : location.pathname.startsWith(item.path);
+            : location.pathname.startsWith(item.path));
+
+          // Coming Soon items - non-clickable
+          if (item.comingSoon) {
+            return (
+              <li key={item.path}>
+                <div
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2.5 rounded-lg",
+                    "text-sidebar-foreground/40 cursor-not-allowed",
+                    collapsed && "justify-center px-0"
+                  )}
+                >
+                  <item.icon className="w-5 h-5 shrink-0" />
+                  {!collapsed && (
+                    <>
+                      <span className="font-medium text-sm">{item.label}</span>
+                      <span className="ml-auto text-[10px] font-medium bg-sidebar-accent text-sidebar-foreground/60 px-1.5 py-0.5 rounded">
+                        Soon
+                      </span>
+                    </>
+                  )}
+                </div>
+              </li>
+            );
+          }
+
           return (
             <li key={item.path}>
               <NavLink
