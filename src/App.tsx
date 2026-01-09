@@ -36,6 +36,7 @@ import Directory from "./pages/Directory";
 import Loans from "./pages/Loans";
 import Approvals from "./pages/Approvals";
 import MyProfile from "./pages/MyProfile";
+import AuditTrail from "./pages/AuditTrail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -87,6 +88,7 @@ const App = () => (
                 
                 {/* Protected routes - Admin only */}
                 <Route path="/documents" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><Documents /></ProtectedRoute>} />
+                <Route path="/audit-trail" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><AuditTrail /></ProtectedRoute>} />
                 <Route path="/settings" element={<ProtectedRoute requiredRoles={['admin']}><Settings /></ProtectedRoute>} />
                 
                 {/* Catch-all */}
