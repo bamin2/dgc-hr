@@ -54,7 +54,7 @@ serve(async (req: Request): Promise<Response> => {
       .single();
 
     const companyName = companySettings?.name || "Company";
-    const fromEmail = `${companyName} <${companySettings?.email || "onboarding@resend.dev"}>`;
+    const fromEmail = `${companyName} <noreply@updates.dgcholding.com>`;
 
     let emailSent = false;
     let emailResult: ResendResponse = {};
