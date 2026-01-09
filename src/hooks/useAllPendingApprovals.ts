@@ -61,12 +61,22 @@ export function useAdminApproveLeaveRequest() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      // Get the employee ID for the current user
+      const { data: employee, error: employeeError } = await supabase
+        .from("employees")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (employeeError) throw employeeError;
+      if (!employee) throw new Error("No employee record found for current user");
+
       // Update all pending/queued steps to approved
       const { error: stepsError } = await supabase
         .from("request_approval_steps")
         .update({
           status: "approved",
-          acted_by: user.id,
+          acted_by: employee.id,
           acted_at: new Date().toISOString(),
           comment: comment || "Approved by HR/Admin override",
         })
@@ -81,7 +91,7 @@ export function useAdminApproveLeaveRequest() {
         .from("leave_requests")
         .update({
           status: "approved",
-          reviewed_by: user.id,
+          reviewed_by: employee.id,
           reviewed_at: new Date().toISOString(),
         })
         .eq("id", requestId);
@@ -114,12 +124,22 @@ export function useAdminRejectLeaveRequest() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      // Get the employee ID for the current user
+      const { data: employee, error: employeeError } = await supabase
+        .from("employees")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (employeeError) throw employeeError;
+      if (!employee) throw new Error("No employee record found for current user");
+
       // Update all pending steps to rejected, queued steps to cancelled
       const { error: rejectError } = await supabase
         .from("request_approval_steps")
         .update({
           status: "rejected",
-          acted_by: user.id,
+          acted_by: employee.id,
           acted_at: new Date().toISOString(),
           comment: reason,
         })
@@ -145,7 +165,7 @@ export function useAdminRejectLeaveRequest() {
         .from("leave_requests")
         .update({
           status: "rejected",
-          reviewed_by: user.id,
+          reviewed_by: employee.id,
           reviewed_at: new Date().toISOString(),
           rejection_reason: reason,
         })
