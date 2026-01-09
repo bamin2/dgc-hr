@@ -1029,6 +1029,42 @@ export type Database = {
           },
         ]
       }
+      email_templates: {
+        Row: {
+          body_content: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          subject: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          body_content: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          subject: string
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          body_content?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          subject?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       employee_allowances: {
         Row: {
           allowance_template_id: string | null
