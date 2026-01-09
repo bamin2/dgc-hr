@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Sidebar, Header } from '@/components/dashboard';
+import { DashboardLayout } from '@/components/dashboard';
 
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -32,28 +32,22 @@ import { DashboardCardVisibility, defaultDashboardCardVisibility } from '@/data/
 import { toast } from 'sonner';
 
 const SettingsPageSkeleton = () => (
-  <div className="flex min-h-screen bg-background">
-    <Sidebar />
-    <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-      <Header />
-      <main className="flex-1 p-6 overflow-y-auto">
-        <div className="max-w-6xl mx-auto space-y-6">
-          <div className="flex items-center gap-3">
-            <Skeleton className="h-11 w-11 rounded-lg" />
-            <div className="space-y-2">
-              <Skeleton className="h-7 w-32" />
-              <Skeleton className="h-4 w-48" />
-            </div>
-          </div>
-          <Skeleton className="h-12 w-full" />
-          <div className="space-y-4">
-            <Skeleton className="h-64 w-full" />
-            <Skeleton className="h-48 w-full" />
-          </div>
+  <DashboardLayout>
+    <div className="max-w-6xl mx-auto space-y-6">
+      <div className="flex items-center gap-3">
+        <Skeleton className="h-11 w-11 rounded-lg" />
+        <div className="space-y-2">
+          <Skeleton className="h-7 w-32" />
+          <Skeleton className="h-4 w-48" />
         </div>
-      </main>
+      </div>
+      <Skeleton className="h-12 w-full" />
+      <div className="space-y-4">
+        <Skeleton className="h-64 w-full" />
+        <Skeleton className="h-48 w-full" />
+      </div>
     </div>
-  </div>
+  </DashboardLayout>
 );
 
 const SettingsPage = () => {
@@ -240,130 +234,124 @@ const SettingsPage = () => {
   }
 
   return (
-    <div className="flex h-screen w-full bg-background overflow-hidden">
-      <Sidebar />
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Header />
-        <main className="flex-1 p-4 sm:p-6 overflow-y-auto overflow-x-hidden">
-          <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 sm:p-2.5 rounded-lg bg-primary/10">
-                  <Settings className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-                </div>
-                <div>
-                  <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">Settings</h1>
-                  <p className="text-sm text-muted-foreground">
-                    Manage your workspace and preferences
-                  </p>
-                </div>
-              </div>
-              <Button onClick={handleSave} disabled={isSaving} className="w-full sm:w-auto">
-                {isSaving ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Save className="h-4 w-4 mr-2" />
-                )}
-                {isSaving ? 'Saving...' : 'Save Changes'}
-              </Button>
+    <DashboardLayout>
+      <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 sm:p-2.5 rounded-lg bg-primary/10">
+              <Settings className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
             </div>
-
-            {/* Two-column layout: Sidebar + Content */}
-            <div className="flex flex-col md:flex-row gap-6">
-              {/* Settings Sidebar Navigation */}
-              <aside className="w-full md:w-56 lg:w-64 shrink-0">
-                <div className="bg-card border rounded-lg p-2">
-                  {/* Mobile: Dropdown selector */}
-                  <div className="md:hidden">
-                    <select
-                      value={activeTab}
-                      onChange={(e) => setActiveTab(e.target.value)}
-                      className="w-full px-3 py-2 bg-background border rounded-md text-sm"
-                    >
-                      {adminTabs.length > 0 && (
-                        <optgroup label="Admin Settings">
-                          {adminTabs.map(tab => (
-                            <option key={tab.value} value={tab.value}>{tab.label}</option>
-                          ))}
-                        </optgroup>
-                      )}
-                      <optgroup label="Personal Settings">
-                        {personalTabs.map(tab => (
-                          <option key={tab.value} value={tab.value}>{tab.label}</option>
-                        ))}
-                      </optgroup>
-                    </select>
-                  </div>
-
-                  {/* Desktop: Vertical navigation */}
-                  <nav className="hidden md:block space-y-4">
-                    {adminTabs.length > 0 && (
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground px-3 py-2 uppercase tracking-wider">
-                          Admin Settings
-                        </p>
-                        <div className="space-y-1">
-                          {adminTabs.map(tab => {
-                            const Icon = tab.icon;
-                            const isActive = activeTab === tab.value;
-                            return (
-                              <button
-                                key={tab.value}
-                                onClick={() => setActiveTab(tab.value)}
-                                className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
-                                  isActive 
-                                    ? 'bg-primary/10 text-primary font-medium' 
-                                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                                }`}
-                              >
-                                <Icon className="h-4 w-4 shrink-0" />
-                                <span>{tab.label}</span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground px-3 py-2 uppercase tracking-wider">
-                        Personal Settings
-                      </p>
-                      <div className="space-y-1">
-                        {personalTabs.map(tab => {
-                          const Icon = tab.icon;
-                          const isActive = activeTab === tab.value;
-                          return (
-                            <button
-                              key={tab.value}
-                              onClick={() => setActiveTab(tab.value)}
-                              className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
-                                isActive 
-                                  ? 'bg-primary/10 text-primary font-medium' 
-                                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                              }`}
-                            >
-                              <Icon className="h-4 w-4 shrink-0" />
-                              <span>{tab.label}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </nav>
-                </div>
-              </aside>
-
-              {/* Content Area */}
-              <div className="flex-1 min-w-0">
-                {renderTabContent()}
-              </div>
+            <div>
+              <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">Settings</h1>
+              <p className="text-sm text-muted-foreground">
+                Manage your workspace and preferences
+              </p>
             </div>
           </div>
-        </main>
+          <Button onClick={handleSave} disabled={isSaving} className="w-full sm:w-auto">
+            {isSaving ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4 mr-2" />
+            )}
+            {isSaving ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </div>
+
+        {/* Two-column layout: Sidebar + Content */}
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Settings Sidebar Navigation */}
+          <aside className="w-full md:w-56 lg:w-64 shrink-0">
+            <div className="bg-card border rounded-lg p-2">
+              {/* Mobile: Dropdown selector */}
+              <div className="md:hidden">
+                <select
+                  value={activeTab}
+                  onChange={(e) => setActiveTab(e.target.value)}
+                  className="w-full px-3 py-2 bg-background border rounded-md text-sm"
+                >
+                  {adminTabs.length > 0 && (
+                    <optgroup label="Admin Settings">
+                      {adminTabs.map(tab => (
+                        <option key={tab.value} value={tab.value}>{tab.label}</option>
+                      ))}
+                    </optgroup>
+                  )}
+                  <optgroup label="Personal Settings">
+                    {personalTabs.map(tab => (
+                      <option key={tab.value} value={tab.value}>{tab.label}</option>
+                    ))}
+                  </optgroup>
+                </select>
+              </div>
+
+              {/* Desktop: Vertical navigation */}
+              <nav className="hidden md:block space-y-4">
+                {adminTabs.length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground px-3 py-2 uppercase tracking-wider">
+                      Admin Settings
+                    </p>
+                    <div className="space-y-1">
+                      {adminTabs.map(tab => {
+                        const Icon = tab.icon;
+                        const isActive = activeTab === tab.value;
+                        return (
+                          <button
+                            key={tab.value}
+                            onClick={() => setActiveTab(tab.value)}
+                            className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
+                              isActive 
+                                ? 'bg-primary/10 text-primary font-medium' 
+                                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                            }`}
+                          >
+                            <Icon className="h-4 w-4 shrink-0" />
+                            <span>{tab.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground px-3 py-2 uppercase tracking-wider">
+                    Personal Settings
+                  </p>
+                  <div className="space-y-1">
+                    {personalTabs.map(tab => {
+                      const Icon = tab.icon;
+                      const isActive = activeTab === tab.value;
+                      return (
+                        <button
+                          key={tab.value}
+                          onClick={() => setActiveTab(tab.value)}
+                          className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
+                            isActive 
+                              ? 'bg-primary/10 text-primary font-medium' 
+                              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                          }`}
+                        >
+                          <Icon className="h-4 w-4 shrink-0" />
+                          <span>{tab.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </nav>
+            </div>
+          </aside>
+
+          {/* Content Area */}
+          <div className="flex-1 min-w-0">
+            {renderTabContent()}
+          </div>
+        </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 

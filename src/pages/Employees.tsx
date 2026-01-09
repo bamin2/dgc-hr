@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { Users, Building2, Loader2, Upload, History, Archive, UserPlus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Sidebar, Header } from "@/components/dashboard";
+import { DashboardLayout } from "@/components/dashboard";
 import { Button } from "@/components/ui/button";
 import {
   EmployeeFilters,
@@ -235,75 +235,69 @@ export default function Employees() {
   };
 
   return (
-    <div className="flex h-screen w-full bg-background overflow-hidden">
-      <Sidebar />
-      
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Header />
+    <DashboardLayout>
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <h1 className="text-xl sm:text-2xl font-semibold text-foreground">Employee Management</h1>
         
-        <main className="flex-1 p-4 sm:p-6 overflow-y-auto overflow-x-hidden">
-          {/* Page Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-            <h1 className="text-xl sm:text-2xl font-semibold text-foreground">Employee Management</h1>
-            
-            {canEditEmployees && (
-              <div className="flex flex-wrap gap-2">
-                <Button variant="outline" onClick={() => setHistoryOpen(true)} className="gap-2">
-                  <History className="h-4 w-4" />
-                  <span className="hidden sm:inline">Import History</span>
-                </Button>
-                <Button variant="outline" onClick={() => setImportOpen(true)} className="gap-2">
-                  <Upload className="h-4 w-4" />
-                  <span className="hidden sm:inline">Import</span>
-                </Button>
-                <EmployeeExportButton employees={filteredEmployees} />
-                <Button onClick={() => navigate("/team/add")} className="gap-2">
-                  <UserPlus className="h-4 w-4" />
-                  <span className="hidden sm:inline">Add Team Member</span>
-                </Button>
-              </div>
-            )}
+        {canEditEmployees && (
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={() => setHistoryOpen(true)} className="gap-2">
+              <History className="h-4 w-4" />
+              <span className="hidden sm:inline">Import History</span>
+            </Button>
+            <Button variant="outline" onClick={() => setImportOpen(true)} className="gap-2">
+              <Upload className="h-4 w-4" />
+              <span className="hidden sm:inline">Import</span>
+            </Button>
+            <EmployeeExportButton employees={filteredEmployees} />
+            <Button onClick={() => navigate("/team/add")} className="gap-2">
+              <UserPlus className="h-4 w-4" />
+              <span className="hidden sm:inline">Add Team Member</span>
+            </Button>
           </div>
+        )}
+      </div>
 
-          {/* Loading State */}
-          {isLoading && (
-            <div className="flex items-center justify-center h-96">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      {/* Loading State */}
+      {isLoading && (
+        <div className="flex items-center justify-center h-96">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && (
+        <div className="text-center py-12">
+          <p className="text-destructive">Failed to load employees. Please try again.</p>
+        </div>
+      )}
+
+      {!isLoading && !error && (
+        <>
+          {/* Tabs */}
+          <div className="border-b mb-6 overflow-x-auto">
+            <div className="flex gap-4 sm:gap-6 min-w-max">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={cn(
+                      "flex items-center gap-2 pb-3 text-sm font-medium border-b-2 transition-colors",
+                      activeTab === tab.id
+                        ? "border-primary text-primary"
+                        : "border-transparent text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {tab.label}
+                  </button>
+                );
+              })}
             </div>
-          )}
-
-          {/* Error State */}
-          {error && (
-            <div className="text-center py-12">
-              <p className="text-destructive">Failed to load employees. Please try again.</p>
-            </div>
-          )}
-
-          {!isLoading && !error && (
-            <>
-              {/* Tabs */}
-              <div className="border-b mb-6 overflow-x-auto">
-                <div className="flex gap-4 sm:gap-6 min-w-max">
-                  {tabs.map((tab) => {
-                    const Icon = tab.icon;
-                    return (
-                      <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={cn(
-                          "flex items-center gap-2 pb-3 text-sm font-medium border-b-2 transition-colors",
-                          activeTab === tab.id
-                            ? "border-primary text-primary"
-                            : "border-transparent text-muted-foreground hover:text-foreground"
-                        )}
-                      >
-                        <Icon className="h-4 w-4" />
-                        {tab.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+          </div>
 
           {activeTab === 'directory' && (
             <>
@@ -373,34 +367,32 @@ export default function Employees() {
             </>
           )}
 
-              {activeTab === 'org-chart' && (
-                <div className="overflow-hidden">
-                  <OrgChart
-                    employees={activeEmployees}
-                    onView={(orgEmployee) => {
-                      navigate(`/employees/${orgEmployee.id}`);
-                    }}
-                    onEdit={(orgEmployee) => {
-                      // Find the full employee record by ID
-                      const employee = activeEmployees.find(e => e.id === orgEmployee.id);
-                      if (employee) {
-                        setEditingEmployee(employee);
-                        setFormOpen(true);
-                      }
-                    }}
-                    onReassign={handleReassign}
-                    onBulkReassign={handleBulkReassign}
-                  />
-                </div>
-              )}
-
-              {activeTab === 'former-employees' && (
-                <FormerEmployeesTable />
-              )}
-            </>
+          {activeTab === 'org-chart' && (
+            <div className="overflow-hidden">
+              <OrgChart
+                employees={activeEmployees}
+                onView={(orgEmployee) => {
+                  navigate(`/employees/${orgEmployee.id}`);
+                }}
+                onEdit={(orgEmployee) => {
+                  // Find the full employee record by ID
+                  const employee = activeEmployees.find(e => e.id === orgEmployee.id);
+                  if (employee) {
+                    setEditingEmployee(employee);
+                    setFormOpen(true);
+                  }
+                }}
+                onReassign={handleReassign}
+                onBulkReassign={handleBulkReassign}
+              />
+            </div>
           )}
-        </main>
-      </div>
+
+          {activeTab === 'former-employees' && (
+            <FormerEmployeesTable />
+          )}
+        </>
+      )}
 
       {/* Employee Form Modal */}
       <EmployeeForm
@@ -477,6 +469,6 @@ export default function Employees() {
           onComplete={() => setOffboardingOpen(false)}
         />
       )}
-    </div>
+    </DashboardLayout>
   );
 }

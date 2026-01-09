@@ -1,6 +1,5 @@
 import { useState, useMemo } from "react";
-import { Sidebar } from "@/components/dashboard/Sidebar";
-import { Header } from "@/components/dashboard/Header";
+import { DashboardLayout } from "@/components/dashboard";
 import {
   ProjectsHeader,
   ProjectsToolbar,
@@ -153,74 +152,67 @@ export default function Projects() {
 
   if (isLoading) {
     return (
-    <div className="flex min-h-screen bg-background">
-      <Sidebar />
-      <div className="flex-1 flex items-center justify-center min-w-0 overflow-hidden">
+      <DashboardLayout>
+        <div className="flex-1 flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="flex h-screen w-full bg-background overflow-hidden">
-      <Sidebar />
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Header />
-        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6">
-          <div className="max-w-[1600px] mx-auto space-y-4 sm:space-y-6">
-            {/* Header */}
-            <ProjectsHeader />
+    <DashboardLayout>
+      <div className="max-w-[1600px] mx-auto space-y-4 sm:space-y-6">
+        {/* Header */}
+        <ProjectsHeader />
 
-            {/* View Tabs */}
-            <ProjectViewTabs viewMode={viewMode} onViewModeChange={setViewMode} />
+        {/* View Tabs */}
+        <ProjectViewTabs viewMode={viewMode} onViewModeChange={setViewMode} />
 
-            {/* Toolbar */}
-            <ProjectFilters
-              open={filtersOpen}
-              onOpenChange={setFiltersOpen}
-              filters={filters}
-              onFiltersChange={setFilters}
-            >
-              <div>
-                <ProjectsToolbar
-                  searchQuery={searchQuery}
-                  onSearchChange={setSearchQuery}
-                  onFilterClick={() => setFiltersOpen(true)}
-                />
-              </div>
-            </ProjectFilters>
-
-            {/* View Content */}
-            <div className="mt-6">
-              {viewMode === 'board' && (
-                <BoardView
-                  projects={filteredProjects}
-                  onAddProject={handleAddProject}
-                  onProjectClick={handleProjectClick}
-                  onProjectMove={handleProjectMove}
-                />
-              )}
-              {viewMode === 'list' && (
-                <ListView
-                  projects={filteredProjects}
-                  onAddProject={handleAddProject}
-                  onProjectClick={handleProjectClick}
-                />
-              )}
-              {viewMode === 'timeline' && (
-                <TimelineView
-                  projects={filteredProjects}
-                  currentDate={timelineDate}
-                  granularity={timelineGranularity}
-                  onDateChange={setTimelineDate}
-                  onGranularityChange={setTimelineGranularity}
-                  onProjectClick={handleProjectClick}
-                />
-              )}
-            </div>
+        {/* Toolbar */}
+        <ProjectFilters
+          open={filtersOpen}
+          onOpenChange={setFiltersOpen}
+          filters={filters}
+          onFiltersChange={setFilters}
+        >
+          <div>
+            <ProjectsToolbar
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              onFilterClick={() => setFiltersOpen(true)}
+            />
           </div>
-        </main>
+        </ProjectFilters>
+
+        {/* View Content */}
+        <div className="mt-6">
+          {viewMode === 'board' && (
+            <BoardView
+              projects={filteredProjects}
+              onAddProject={handleAddProject}
+              onProjectClick={handleProjectClick}
+              onProjectMove={handleProjectMove}
+            />
+          )}
+          {viewMode === 'list' && (
+            <ListView
+              projects={filteredProjects}
+              onAddProject={handleAddProject}
+              onProjectClick={handleProjectClick}
+            />
+          )}
+          {viewMode === 'timeline' && (
+            <TimelineView
+              projects={filteredProjects}
+              currentDate={timelineDate}
+              granularity={timelineGranularity}
+              onDateChange={setTimelineDate}
+              onGranularityChange={setTimelineGranularity}
+              onProjectClick={handleProjectClick}
+            />
+          )}
+        </div>
       </div>
 
       {/* Dialogs and Sheets */}
@@ -236,6 +228,6 @@ export default function Projects() {
         onAddComment={handleAddComment}
         onDelete={handleDeleteProject}
       />
-    </div>
+    </DashboardLayout>
   );
 }
