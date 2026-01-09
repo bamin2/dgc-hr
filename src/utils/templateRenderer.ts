@@ -20,7 +20,9 @@ interface EmployeeData {
   join_date?: string;
   salary?: number;
   basic_salary?: number;
+  gross_salary?: number;
   total_allowances?: number;
+  net_deductions?: number;
   net_salary?: number;
   contract_period?: string;
   probation_period?: string;
@@ -178,7 +180,9 @@ export function renderTemplate(
     result = replaceTag(result, "Start Date", employee.join_date ? format(new Date(employee.join_date), "MMMM d, yyyy") : "");
     result = replaceTag(result, "Salary", employee.salary?.toLocaleString() || "");
     result = replaceTag(result, "Basic Salary", employee.basic_salary?.toLocaleString() || employee.salary?.toLocaleString() || "");
+    result = replaceTag(result, "Gross Salary", employee.gross_salary?.toLocaleString() || "");
     result = replaceTag(result, "Total Allowances", employee.total_allowances?.toLocaleString() || "0");
+    result = replaceTag(result, "Net Deductions", employee.net_deductions?.toLocaleString() || "0");
     result = replaceTag(result, "Net Salary", employee.net_salary?.toLocaleString() || "");
     result = replaceTag(result, "Contract Period", employee.contract_period || "One Year");
     result = replaceTag(result, "Probation Period", employee.probation_period || "3 months");
