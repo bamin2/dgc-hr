@@ -75,14 +75,13 @@ serve(async (req: Request): Promise<Response> => {
     let emailResult: ResendResponse = {};
 
     if (type.startsWith("leave_request_") && leaveRequestId) {
-      // Fetch leave request details
+      // Fetch leave request details (separate queries to avoid self-join issue)
       const { data: leaveRequest, error: fetchError } = await supabase
         .from("leave_requests")
         .select(`
           *,
           employee:employees!leave_requests_employee_id_fkey (
-            id, first_name, last_name, email, manager_id,
-            manager:employees!employees_manager_id_fkey (id, first_name, last_name, email, user_id)
+            id, first_name, last_name, email, manager_id
           ),
           leave_type:leave_types (id, name),
           reviewer:employees!leave_requests_reviewed_by_fkey (id, first_name, last_name)
@@ -94,13 +93,23 @@ serve(async (req: Request): Promise<Response> => {
         throw new Error(`Leave request not found: ${fetchError?.message}`);
       }
 
+      // Fetch manager separately if employee has one
+      let manager: { id: string; first_name: string; last_name: string; email: string; user_id: string } | null = null;
+      if (leaveRequest.employee.manager_id) {
+        const { data: managerData } = await supabase
+          .from("employees")
+          .select("id, first_name, last_name, email, user_id")
+          .eq("id", leaveRequest.employee.manager_id)
+          .single();
+        manager = managerData;
+      }
+
       const employeeName = `${leaveRequest.employee.first_name} ${leaveRequest.employee.last_name}`;
       const employeeEmail = leaveRequest.employee.email;
       const leaveTypeName = leaveRequest.leave_type?.name || "Leave";
 
       if (type === "leave_request_submitted") {
         // Notify manager if exists
-        const manager = leaveRequest.employee.manager;
         if (manager?.email) {
           // Check manager's notification preferences
           const { data: prefs } = await supabase
