@@ -158,7 +158,7 @@ export function MobileNav() {
           <div className="flex items-center gap-3">
             {displayType === 'icon' && DashboardIcon ? (
               <div className="w-10 h-10 rounded-xl bg-sidebar-primary flex items-center justify-center">
-                <DashboardIcon className="w-6 h-6 text-sidebar-primary-foreground" />
+                <DashboardIcon className={cn("w-6 h-6 text-sidebar-primary-foreground", iconName === "SlashFlipped" && "scale-x-[-1]")} />
               </div>
             ) : (
               <Avatar className="w-10 h-10 rounded-xl">
