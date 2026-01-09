@@ -30,7 +30,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { StatusBadge, EmployeeForm, RoleBadge, RoleSelectorWithDescription, CreateLoginDialog, ResetPasswordDialog, SalaryHistoryCard, BankDetailsDialog } from "@/components/employees";
+import { StatusBadge, EmployeeForm, RoleBadge, RoleSelectorWithDescription, CreateLoginDialog, ResetPasswordDialog, SalaryHistoryCard, BankDetailsDialog, EmployeeTimeOffTab, EmployeeActivityTab } from "@/components/employees";
 import { EmployeeDocumentsTab } from "@/components/employees/documents";
 import { EmployeeLoansTab } from "@/components/employees/EmployeeLoansTab";
 import { useEmployee, useUpdateEmployee, useEmployees, Employee } from "@/hooks/useEmployees";
@@ -538,25 +538,13 @@ export default function EmployeeProfile() {
 
         {hasFullAccess && (
           <TabsContent value="timeoff" className="space-y-6">
-            <Card>
-              <CardContent className="p-12 text-center">
-                <Clock className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-                <h3 className="text-lg font-medium mb-2">Time Off History</h3>
-                <p className="text-muted-foreground">Coming soon...</p>
-              </CardContent>
-            </Card>
+            <EmployeeTimeOffTab employeeId={employee.id} />
           </TabsContent>
         )}
 
         {hasFullAccess && (
           <TabsContent value="activity" className="space-y-6">
-            <Card>
-              <CardContent className="p-12 text-center">
-                <Activity className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-                <h3 className="text-lg font-medium mb-2">Activity Log</h3>
-                <p className="text-muted-foreground">Coming soon...</p>
-              </CardContent>
-            </Card>
+            <EmployeeActivityTab employeeId={employee.id} />
           </TabsContent>
         )}
 
