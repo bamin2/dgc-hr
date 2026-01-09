@@ -46,7 +46,10 @@ export function MyProfileTimeOffTab({ employeeId }: MyProfileTimeOffTabProps) {
     );
   }
 
-  const recentRequests = requests?.slice(0, 10) || [];
+  // Filter out public holidays - they should only show on the calendar
+  const recentRequests = (requests || [])
+    .filter(request => request.leave_type?.name !== 'Public Holiday')
+    .slice(0, 10);
 
   return (
     <div className="space-y-6">
