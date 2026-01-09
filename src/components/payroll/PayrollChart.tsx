@@ -14,6 +14,7 @@ interface DepartmentData {
 
 interface PayrollChartProps {
   data: DepartmentData[];
+  currency?: string;
 }
 
 const chartConfig = {
@@ -23,7 +24,24 @@ const chartConfig = {
   },
 };
 
-export function PayrollChart({ data }: PayrollChartProps) {
+export function PayrollChart({ data, currency = "USD" }: PayrollChartProps) {
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency,
+      notation: "compact",
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
+
+  const formatTooltipCurrency = (value: number) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
   const formattedData = data.map((item) => ({
     name: item.department,
     total: item.total,
@@ -38,7 +56,7 @@ export function PayrollChart({ data }: PayrollChartProps) {
       <CardContent>
         <ChartContainer config={chartConfig} className="h-[250px] w-full">
           <BarChart data={formattedData} layout="vertical" margin={{ left: 0, right: 20 }}>
-            <XAxis type="number" tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`} />
+            <XAxis type="number" tickFormatter={formatCurrency} />
             <YAxis 
               dataKey="name" 
               type="category" 
@@ -50,7 +68,7 @@ export function PayrollChart({ data }: PayrollChartProps) {
             <ChartTooltip
               content={
                 <ChartTooltipContent
-                  formatter={(value) => [`$${Number(value).toLocaleString()}`, "Total"]}
+                  formatter={(value) => [formatTooltipCurrency(Number(value)), "Total"]}
                 />
               }
             />

@@ -4,9 +4,27 @@ import type { PayrollReportData } from '@/hooks/useReportAnalytics';
 
 interface PayrollChartProps {
   data: PayrollReportData[];
+  currency?: string;
 }
 
-export const PayrollChart = ({ data }: PayrollChartProps) => {
+export const PayrollChart = ({ data, currency = "USD" }: PayrollChartProps) => {
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency,
+      notation: "compact",
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
+
+  const formatTooltipCurrency = (value: number) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
   return (
     <Card className="border-border/50">
       <CardHeader className="pb-2">
@@ -28,10 +46,10 @@ export const PayrollChart = ({ data }: PayrollChartProps) => {
                 tick={{ fontSize: 12 }}
                 tickLine={false}
                 axisLine={false}
-                tickFormatter={(value) => `$${(value / 1000).toFixed(0)}K`}
+                tickFormatter={formatCurrency}
               />
               <Tooltip 
-                formatter={(value: number) => [`$${value.toLocaleString()}`, '']}
+                formatter={(value: number) => [formatTooltipCurrency(value), '']}
                 contentStyle={{ 
                   background: 'hsl(var(--card))', 
                   border: '1px solid hsl(var(--border))',

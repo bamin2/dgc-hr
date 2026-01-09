@@ -152,13 +152,13 @@ export function PayrollDashboard({ onRunPayroll }: PayrollDashboardProps) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Table takes 2/3 */}
         <div className="lg:col-span-2">
-          <PayrollTable records={filteredRecords} />
+          <PayrollTable records={filteredRecords} currency={currency} />
         </div>
 
         {/* Sidebar widgets take 1/3 */}
         <div className="space-y-6">
-          <PayrollChart data={departmentData} />
-          <RecentPayrollRuns runs={payrollRuns.slice(0, 5)} />
+          <PayrollChart data={departmentData} currency={currency} />
+          <RecentPayrollRuns runs={payrollRuns.slice(0, 5)} currency={currency} />
         </div>
       </div>
     </div>

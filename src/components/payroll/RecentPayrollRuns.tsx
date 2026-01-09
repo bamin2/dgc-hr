@@ -5,6 +5,7 @@ import { format } from "date-fns";
 
 interface RecentPayrollRunsProps {
   runs: PayrollRun[];
+  currency?: string;
 }
 
 type RunStatus = 'completed' | 'processing' | 'scheduled' | 'draft' | 'finalized' | 'payslips_issued';
@@ -27,7 +28,16 @@ const statusColors: Record<RunStatus, string> = {
   payslips_issued: "text-success",
 };
 
-export function RecentPayrollRuns({ runs }: RecentPayrollRunsProps) {
+export function RecentPayrollRuns({ runs, currency = "USD" }: RecentPayrollRunsProps) {
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
   return (
     <Card className="border-0 shadow-sm">
       <CardHeader className="pb-3">
@@ -55,7 +65,7 @@ export function RecentPayrollRuns({ runs }: RecentPayrollRunsProps) {
               </div>
               <div className="text-right">
                 <p className="text-sm font-semibold text-foreground">
-                  ${run.totalAmount.toLocaleString()}
+                  {formatCurrency(run.totalAmount)}
                 </p>
                 <p className="text-xs text-muted-foreground capitalize">
                   {status.replace('_', ' ')}
