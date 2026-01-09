@@ -166,12 +166,17 @@ export function useCreateLeaveRequest() {
         .single();
 
       if (error) throw error;
+      
+      // Send email notification (fire and forget)
+      supabase.functions.invoke('send-email', {
+        body: { type: 'leave_request_submitted', leaveRequestId: data.id }
+      }).catch(console.error);
+      
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['leave-requests'] });
       queryClient.invalidateQueries({ queryKey: ['leave-balances'] });
-      // Toast is handled by approval engine now
     },
     onError: (error) => {
       toast.error(`Failed to submit leave request: ${error.message}`);
@@ -196,6 +201,12 @@ export function useApproveLeaveRequest() {
         .single();
 
       if (error) throw error;
+      
+      // Send email notification
+      supabase.functions.invoke('send-email', {
+        body: { type: 'leave_request_approved', leaveRequestId: id }
+      }).catch(console.error);
+      
       return data;
     },
     onSuccess: () => {
@@ -235,6 +246,12 @@ export function useRejectLeaveRequest() {
         .single();
 
       if (error) throw error;
+      
+      // Send email notification
+      supabase.functions.invoke('send-email', {
+        body: { type: 'leave_request_rejected', leaveRequestId: id }
+      }).catch(console.error);
+      
       return data;
     },
     onSuccess: () => {
