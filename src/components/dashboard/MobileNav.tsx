@@ -128,10 +128,15 @@ export function MobileNav() {
 
   const companyDisplayName = settings.name.split(" ")[0];
 
-  const hasLogo =
-    settings.branding.logoUrl &&
-    settings.branding.logoUrl !== "/placeholder.svg" &&
-    settings.branding.logoUrl !== "";
+  // Determine what to display in sidebar based on settings
+  const displayType = settings.branding.dashboardDisplayType || 'logo';
+  const displayUrl = displayType === 'icon' 
+    ? settings.branding.dashboardIconUrl 
+    : settings.branding.logoUrl;
+  
+  const hasDisplayImage = displayUrl && 
+    displayUrl !== "/placeholder.svg" && 
+    displayUrl !== "";
 
   const handleClose = () => setOpen(false);
 
@@ -152,9 +157,9 @@ export function MobileNav() {
         <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
           <div className="flex items-center gap-3">
             <Avatar className="w-10 h-10 rounded-xl">
-              {hasLogo ? (
+              {hasDisplayImage ? (
                 <AvatarImage
-                  src={settings.branding.logoUrl}
+                  src={displayUrl}
                   alt={settings.name}
                   className="object-cover"
                 />

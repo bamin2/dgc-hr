@@ -208,6 +208,7 @@ export const CompanyProfileForm = ({ settings, onChange }: CompanyProfileFormPro
         <div className="space-y-6">
           <div className="space-y-2">
             <Label>Company Logo</Label>
+            <p className="text-xs text-muted-foreground">Used for emails, documents, and templates</p>
             <LogoUpload
               value={settings.branding.logoUrl}
               onChange={(v) => updateBranding('logoUrl', v)}
@@ -216,7 +217,48 @@ export const CompanyProfileForm = ({ settings, onChange }: CompanyProfileFormPro
               size="lg"
             />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+          <div className="space-y-3 pt-2 border-t">
+            <div>
+              <Label>Dashboard Display</Label>
+              <p className="text-xs text-muted-foreground">What to show in the sidebar header</p>
+            </div>
+            <div className="flex gap-4">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="display-logo"
+                  checked={settings.branding.dashboardDisplayType === 'logo'}
+                  onCheckedChange={() => updateBranding('dashboardDisplayType', 'logo')}
+                />
+                <Label htmlFor="display-logo" className="text-sm font-normal cursor-pointer">
+                  Use Company Logo
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="display-icon"
+                  checked={settings.branding.dashboardDisplayType === 'icon'}
+                  onCheckedChange={() => updateBranding('dashboardDisplayType', 'icon')}
+                />
+                <Label htmlFor="display-icon" className="text-sm font-normal cursor-pointer">
+                  Use Icon/Symbol
+                </Label>
+              </div>
+            </div>
+            {settings.branding.dashboardDisplayType === 'icon' && (
+              <div className="pt-2">
+                <LogoUpload
+                  value={settings.branding.dashboardIconUrl}
+                  onChange={(v) => updateBranding('dashboardIconUrl', v)}
+                  label="Upload Icon"
+                  fallback={settings.name.slice(0, 1).toUpperCase()}
+                  size="lg"
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t">
             <div className="space-y-2">
               <Label htmlFor="primaryColor">Brand Color</Label>
               <div className="flex gap-2">

@@ -92,10 +92,15 @@ export function Sidebar() {
   // Get display name (first word of company name)
   const companyDisplayName = settings.name.split(' ')[0];
 
-  // Check if logo is valid (not empty or placeholder)
-  const hasLogo = settings.branding.logoUrl && 
-    settings.branding.logoUrl !== '/placeholder.svg' && 
-    settings.branding.logoUrl !== '';
+  // Determine what to display in sidebar based on settings
+  const displayType = settings.branding.dashboardDisplayType || 'logo';
+  const displayUrl = displayType === 'icon' 
+    ? settings.branding.dashboardIconUrl 
+    : settings.branding.logoUrl;
+  
+  const hasDisplayImage = displayUrl && 
+    displayUrl !== '/placeholder.svg' && 
+    displayUrl !== '';
 
   return (
     <aside
@@ -108,8 +113,8 @@ export function Sidebar() {
       <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
         <div className={cn("flex items-center gap-3", collapsed && "justify-center w-full")}>
           <Avatar className="w-10 h-10 rounded-xl">
-            {hasLogo ? (
-              <AvatarImage src={settings.branding.logoUrl} alt={settings.name} className="object-cover" />
+            {hasDisplayImage ? (
+              <AvatarImage src={displayUrl} alt={settings.name} className="object-cover" />
             ) : null}
             <AvatarFallback className="rounded-xl bg-sidebar-primary text-sidebar-primary-foreground font-bold text-lg">
               {companyInitials.charAt(0) || 'F'}
