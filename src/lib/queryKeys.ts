@@ -9,6 +9,7 @@ export const queryKeys = {
     detail: (id: string) => ['employees', id] as const,
     byDepartment: (deptId: string) => ['employees', 'department', deptId] as const,
     byManager: (managerId: string) => ['employees', 'manager', managerId] as const,
+    former: ['former-employees'] as const,
   },
   
   // Team member queries (alias for employees with different UI mapping)
@@ -42,6 +43,7 @@ export const queryKeys = {
     balances: {
       all: ['leave-balances'] as const,
       byEmployee: (employeeId: string) => ['leave-balances', employeeId] as const,
+      adjustments: ['leave-balance-adjustments'] as const,
     },
   },
   
@@ -51,6 +53,8 @@ export const queryKeys = {
       all: ['payroll-runs'] as const,
       detail: (id: string) => ['payroll-runs', id] as const,
       byLocation: (locationId: string) => ['payroll-runs', 'location', locationId] as const,
+      employees: (runId: string) => ['payroll-run-employees', runId] as const,
+      adjustments: (runId: string) => ['payroll-run-adjustments', runId] as const,
     },
     dashboard: ['payroll-dashboard'] as const,
     dashboardRuns: ['payroll-dashboard-runs'] as const,
@@ -67,14 +71,18 @@ export const queryKeys = {
   // Loan queries
   loans: {
     all: ['loans'] as const,
-    detail: (id: string) => ['loans', id] as const,
+    detail: (id: string) => ['loan', id] as const,
     byEmployee: (employeeId: string) => ['loans', 'employee', employeeId] as const,
-    installments: (loanId: string) => ['loans', loanId, 'installments'] as const,
+    my: (userId: string) => ['my-loans', userId] as const,
+    installments: (loanId: string) => ['loan-installments', loanId] as const,
+    installmentsDue: ['loan-installments-due'] as const,
+    withFilters: (filters?: { status?: string; employeeId?: string }) => ['loans', filters] as const,
   },
   
   // Document queries
   documents: {
     templates: ['document-templates'] as const,
+    templateDetail: (id: string) => ['document-templates', id] as const,
     types: ['document-types'] as const,
     byEmployee: (employeeId: string) => ['employee-documents', employeeId] as const,
   },
@@ -85,18 +93,28 @@ export const queryKeys = {
       all: ['attendance-records'] as const,
       byEmployee: (employeeId: string) => ['attendance-records', employeeId] as const,
       byDate: (date: string) => ['attendance-records', 'date', date] as const,
+      withFilters: (filters: Record<string, unknown>) => ['attendance-records', filters] as const,
     },
-    corrections: ['attendance-corrections'] as const,
+    summary: (date: string) => ['attendance-summary', date] as const,
+    corrections: {
+      all: ['attendance-corrections'] as const,
+      withFilters: (filters: Record<string, unknown>) => ['attendance-corrections', filters] as const,
+    },
   },
   
   // Benefits queries
   benefits: {
-    plans: ['benefit-plans'] as const,
+    plans: {
+      all: ['benefit-plans'] as const,
+      byStatus: (status: string) => ['benefit-plans', status] as const,
+      detail: (id: string) => ['benefit-plan', id] as const,
+    },
     enrollments: {
       all: ['benefit-enrollments'] as const,
       byEmployee: (employeeId: string) => ['benefit-enrollments', employeeId] as const,
     },
     claims: ['benefit-claims'] as const,
+    metrics: ['benefits-metrics'] as const,
   },
   
   // Company/Settings queries
@@ -106,15 +124,33 @@ export const queryKeys = {
     banks: ['banks'] as const,
   },
   
+  // Templates queries
+  templates: {
+    allowance: {
+      all: ['allowance-templates'] as const,
+      active: ['allowance-templates', 'active'] as const,
+      byLocation: (locationId: string) => ['allowance-templates', 'location', locationId] as const,
+      activeByLocation: (locationId: string) => ['allowance-templates', 'active', 'location', locationId] as const,
+    },
+    deduction: {
+      all: ['deduction-templates'] as const,
+      active: ['deduction-templates', 'active'] as const,
+      byLocation: (locationId: string) => ['deduction-templates', 'location', locationId] as const,
+      activeByLocation: (locationId: string) => ['deduction-templates', 'active', 'location', locationId] as const,
+    },
+  },
+  
   // Onboarding/Offboarding queries
   workflows: {
     onboarding: {
-      all: ['onboarding-workflows'] as const,
-      templates: ['onboarding-templates'] as const,
+      all: ['onboarding-records'] as const,
+      templates: ['onboarding-workflows'] as const,
+      detail: (id: string) => ['onboarding-record', id] as const,
       byEmployee: (employeeId: string) => ['onboarding', employeeId] as const,
     },
     offboarding: {
       all: ['offboarding-records'] as const,
+      detail: (id: string) => ['offboarding-record', id] as const,
       byEmployee: (employeeId: string) => ['offboarding', employeeId] as const,
     },
   },
@@ -130,6 +166,32 @@ export const queryKeys = {
     logs: ['audit-logs'] as const,
     byEntity: (entityType: string, entityId: string) => ['audit-logs', entityType, entityId] as const,
     salaryHistory: (employeeId: string) => ['salary-history', employeeId] as const,
+  },
+  
+  // Reports queries
+  reports: {
+    dashboardStats: ['report-dashboard-stats'] as const,
+    attendance: ['report-attendance-data'] as const,
+    payroll: ['report-payroll-data'] as const,
+    department: ['report-department-stats'] as const,
+    leave: ['report-leave-data'] as const,
+  },
+  
+  // Analytics queries
+  analytics: {
+    salary: ['salary-analytics'] as const,
+  },
+  
+  // Smart tags queries
+  smartTags: {
+    all: ['smart-tags'] as const,
+    active: ['smart-tags', 'active'] as const,
+  },
+  
+  // Notifications queries
+  notifications: {
+    all: ['notifications'] as const,
+    unread: ['notifications', 'unread'] as const,
   },
 } as const;
 

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
 import { addDays, format } from "date-fns";
+import { queryKeys } from "@/lib/queryKeys";
 
 // Types
 export type OnboardingStatus = Database["public"]["Enums"]["onboarding_status"];
@@ -78,7 +79,7 @@ export interface OnboardingTask {
 // Fetch workflow templates
 export function useOnboardingWorkflows() {
   return useQuery({
-    queryKey: ["onboarding-workflows"],
+    queryKey: queryKeys.workflows.onboarding.templates,
     queryFn: async () => {
       const { data: workflows, error: workflowsError } = await supabase
         .from("onboarding_workflows")
@@ -110,7 +111,7 @@ export function useOnboardingWorkflows() {
 // Fetch onboarding records
 export function useOnboardingRecords() {
   return useQuery({
-    queryKey: ["onboarding-records"],
+    queryKey: queryKeys.workflows.onboarding.all,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("onboarding_records")
@@ -137,7 +138,7 @@ export function useOnboardingRecords() {
 // Fetch single onboarding record with tasks
 export function useOnboardingRecord(id: string | undefined) {
   return useQuery({
-    queryKey: ["onboarding-record", id],
+    queryKey: queryKeys.workflows.onboarding.detail(id || ''),
     queryFn: async () => {
       if (!id) return null;
 
@@ -247,7 +248,7 @@ export function useCreateOnboarding() {
       return record;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["onboarding-records"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workflows.onboarding.all });
     },
   });
 }
@@ -281,8 +282,8 @@ export function useUpdateOnboardingTask() {
       return data;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["onboarding-record", data.onboarding_record_id] });
-      queryClient.invalidateQueries({ queryKey: ["onboarding-records"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workflows.onboarding.detail(data.onboarding_record_id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workflows.onboarding.all });
     },
   });
 }
@@ -316,7 +317,7 @@ export function useUpdateOnboardingRecord() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["onboarding-records"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workflows.onboarding.all });
     },
   });
 }
@@ -335,7 +336,7 @@ export function useDeleteOnboarding() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["onboarding-records"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workflows.onboarding.all });
     },
   });
 }

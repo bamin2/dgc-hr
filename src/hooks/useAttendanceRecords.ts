@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
+import { queryKeys } from '@/lib/queryKeys';
 
 export type AttendanceStatus = 'present' | 'absent' | 'late' | 'on_leave' | 'half_day' | 'remote';
 
@@ -40,7 +41,7 @@ export function useAttendanceRecords(options: UseAttendanceRecordsOptions = {}) 
   const { startDate, endDate, employeeId, status } = options;
 
   return useQuery({
-    queryKey: ['attendance-records', { startDate, endDate, employeeId, status }],
+    queryKey: queryKeys.attendance.records.withFilters({ startDate, endDate, employeeId, status }),
     queryFn: async () => {
       let query = supabase
         .from('attendance_records')
@@ -101,7 +102,7 @@ export function useAttendanceSummary(date?: Date) {
   const targetDate = date || new Date();
 
   return useQuery({
-    queryKey: ['attendance-summary', format(targetDate, 'yyyy-MM-dd')],
+    queryKey: queryKeys.attendance.summary(format(targetDate, 'yyyy-MM-dd')),
     queryFn: async () => {
       const dateStr = format(targetDate, 'yyyy-MM-dd');
       
@@ -157,7 +158,7 @@ export function useCreateAttendanceRecord() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['attendance-records'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.attendance.records.all });
       queryClient.invalidateQueries({ queryKey: ['attendance-summary'] });
       toast.success('Attendance recorded successfully');
     },
@@ -183,7 +184,7 @@ export function useUpdateAttendanceRecord() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['attendance-records'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.attendance.records.all });
       queryClient.invalidateQueries({ queryKey: ['attendance-summary'] });
       toast.success('Attendance updated successfully');
     },
@@ -206,7 +207,7 @@ export function useDeleteAttendanceRecord() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['attendance-records'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.attendance.records.all });
       queryClient.invalidateQueries({ queryKey: ['attendance-summary'] });
       toast.success('Attendance record deleted');
     },

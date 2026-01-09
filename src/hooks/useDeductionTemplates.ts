@@ -1,10 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { DeductionTemplate } from '@/data/payrollTemplates';
+import { queryKeys } from '@/lib/queryKeys';
 
 export function useDeductionTemplates() {
   return useQuery({
-    queryKey: ['deduction-templates'],
+    queryKey: queryKeys.templates.deduction.all,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('deduction_templates')
@@ -19,7 +20,7 @@ export function useDeductionTemplates() {
 
 export function useDeductionTemplatesByLocation(workLocationId: string) {
   return useQuery({
-    queryKey: ['deduction-templates', 'location', workLocationId],
+    queryKey: queryKeys.templates.deduction.byLocation(workLocationId),
     queryFn: async () => {
       const { data, error } = await supabase
         .from('deduction_templates')
@@ -36,7 +37,7 @@ export function useDeductionTemplatesByLocation(workLocationId: string) {
 
 export function useActiveDeductionTemplates() {
   return useQuery({
-    queryKey: ['deduction-templates', 'active'],
+    queryKey: queryKeys.templates.deduction.active,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('deduction_templates')
@@ -52,7 +53,7 @@ export function useActiveDeductionTemplates() {
 
 export function useActiveDeductionTemplatesByLocation(workLocationId: string | null) {
   return useQuery({
-    queryKey: ['deduction-templates', 'active', 'location', workLocationId],
+    queryKey: queryKeys.templates.deduction.activeByLocation(workLocationId || ''),
     queryFn: async () => {
       const { data, error } = await supabase
         .from('deduction_templates')
@@ -83,7 +84,7 @@ export function useCreateDeductionTemplate() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['deduction-templates'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.templates.deduction.all });
     },
   });
 }
@@ -104,7 +105,7 @@ export function useUpdateDeductionTemplate() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['deduction-templates'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.templates.deduction.all });
     },
   });
 }
@@ -122,7 +123,7 @@ export function useDeleteDeductionTemplate() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['deduction-templates'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.templates.deduction.all });
     },
   });
 }

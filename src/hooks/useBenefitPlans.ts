@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { queryKeys } from '@/lib/queryKeys';
 
 export type BenefitType = 'health' | 'dental' | 'vision' | 'life' | 'disability' | 'retirement' | 'wellness' | 'other';
 export type BenefitStatus = 'active' | 'inactive' | 'pending';
@@ -31,7 +32,7 @@ export interface BenefitPlan {
 
 export function useBenefitPlans(status?: BenefitStatus) {
   return useQuery({
-    queryKey: ['benefit-plans', status],
+    queryKey: status ? queryKeys.benefits.plans.byStatus(status) : queryKeys.benefits.plans.all,
     queryFn: async () => {
       let query = supabase
         .from('benefit_plans')
@@ -55,7 +56,7 @@ export function useBenefitPlans(status?: BenefitStatus) {
 
 export function useBenefitPlan(planId: string | undefined) {
   return useQuery({
-    queryKey: ['benefit-plan', planId],
+    queryKey: queryKeys.benefits.plans.detail(planId || ''),
     queryFn: async () => {
       if (!planId) return null;
 
@@ -128,7 +129,7 @@ export function useCreateBenefitPlan() {
       return planData;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['benefit-plans'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.benefits.plans.all });
     },
   });
 }
@@ -152,8 +153,8 @@ export function useUpdateBenefitPlan() {
       return data;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['benefit-plans'] });
-      queryClient.invalidateQueries({ queryKey: ['benefit-plan', variables.id] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.benefits.plans.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.benefits.plans.detail(variables.id) });
     },
   });
 }
@@ -171,7 +172,7 @@ export function useDeleteBenefitPlan() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['benefit-plans'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.benefits.plans.all });
     },
   });
 }
