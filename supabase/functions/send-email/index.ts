@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { processTemplate, formatDate, formatShortDate, type TemplateData } from "../_shared/templateProcessor.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
@@ -31,9 +32,15 @@ interface CompanyData {
   phone?: string;
   website?: string;
   logo_url?: string;
-  document_logo_url?: string; // Preferred logo for documents/emails
+  document_logo_url?: string;
   address_city?: string;
   address_country?: string;
+}
+
+interface EmailTemplate {
+  subject: string;
+  body_content: string;
+  is_active: boolean;
 }
 
 async function sendEmail(to: string[], subject: string, html: string, from: string): Promise<ResendResponse> {
@@ -71,6 +78,18 @@ serve(async (req: Request): Promise<Response> => {
     const company: CompanyData = companySettings || { name: "Company" };
     const companyName = company.name || "Company";
     const fromEmail = `${companyName} <noreply@updates.dgcholding.com>`;
+    const companyAddress = company.address_city && company.address_country 
+      ? `${company.address_city}, ${company.address_country}` 
+      : undefined;
+
+    // Fetch email template from database
+    const { data: emailTemplate } = await supabase
+      .from("email_templates")
+      .select("subject, body_content, is_active")
+      .eq("type", type)
+      .single();
+
+    const useCustomTemplate = emailTemplate?.is_active && emailTemplate?.body_content;
 
     let emailSent = false;
     let emailResult: ResendResponse = {};
@@ -97,6 +116,39 @@ serve(async (req: Request): Promise<Response> => {
       const employeeName = `${leaveRequest.employee.first_name} ${leaveRequest.employee.last_name}`;
       const employeeEmail = leaveRequest.employee.email;
       const leaveTypeName = leaveRequest.leave_type?.name || "Leave";
+      const reviewerName = leaveRequest.reviewer
+        ? `${leaveRequest.reviewer.first_name} ${leaveRequest.reviewer.last_name}`
+        : undefined;
+
+      // Build template data for smart tag processing
+      const templateData: TemplateData = {
+        employee: {
+          first_name: leaveRequest.employee.first_name,
+          last_name: leaveRequest.employee.last_name,
+          full_name: employeeName,
+          email: employeeEmail,
+        },
+        company: {
+          name: companyName,
+          email: company.email,
+          phone: company.phone,
+          website: company.website,
+          full_address: companyAddress,
+        },
+        leave: {
+          type: leaveTypeName,
+          start_date: leaveRequest.start_date,
+          end_date: leaveRequest.end_date,
+          days_count: leaveRequest.days_count,
+          reason: leaveRequest.reason,
+          rejection_reason: leaveRequest.rejection_reason,
+          reviewer_name: reviewerName,
+        },
+        system: {
+          current_date: new Date().toISOString(),
+          current_year: new Date().getFullYear().toString(),
+        },
+      };
 
       // Get requester's user_id for notifications
       const { data: requesterProfile } = await supabase
@@ -106,7 +158,7 @@ serve(async (req: Request): Promise<Response> => {
         .single();
 
       if (type === "leave_request_submitted") {
-        // Find the pending approval step from the approval workflow (configured in Settings)
+        // Find the pending approval step from the approval workflow
         const { data: pendingStep, error: stepError } = await supabase
           .from("request_approval_steps")
           .select(`
@@ -182,31 +234,48 @@ serve(async (req: Request): Promise<Response> => {
                 const approveUrl = `${functionUrl}?token=${approveToken}&action=approve`;
                 const rejectUrl = `${functionUrl}?token=${rejectToken}&action=reject`;
 
-                const html = generateLeaveSubmittedHtml({
-                  companyName,
-                  companyLogo: company.document_logo_url || company.logo_url,
-                  companyPhone: company.phone,
-                  companyWebsite: company.website,
-                  companyEmail: company.email,
-                  companyAddress: company.address_city && company.address_country 
-                    ? `${company.address_city}, ${company.address_country}` 
-                    : undefined,
-                  employeeName,
-                  leaveType: leaveTypeName,
-                  startDate: leaveRequest.start_date,
-                  endDate: leaveRequest.end_date,
-                  daysCount: leaveRequest.days_count,
-                  reason: leaveRequest.reason,
-                  approveUrl,
-                  rejectUrl,
-                });
+                let subject: string;
+                let html: string;
 
-                const result = await sendEmail(
-                  [approver.email],
-                  `Leave Request: ${employeeName} - ${leaveTypeName}`,
-                  html,
-                  fromEmail
-                );
+                if (useCustomTemplate) {
+                  // Use custom template from database
+                  subject = processTemplate(emailTemplate!.subject, templateData);
+                  const processedBody = processTemplate(emailTemplate!.body_content, templateData);
+                  
+                  // Wrap with action buttons for approval emails
+                  html = wrapInEmailTemplateWithActions({
+                    companyName,
+                    companyLogo: company.document_logo_url || company.logo_url,
+                    companyPhone: company.phone,
+                    companyWebsite: company.website,
+                    companyEmail: company.email,
+                    companyAddress,
+                    bodyContent: processedBody,
+                    approveUrl,
+                    rejectUrl,
+                  });
+                } else {
+                  // Fallback to hardcoded template
+                  subject = `Leave Request: ${employeeName} - ${leaveTypeName}`;
+                  html = generateLeaveSubmittedHtml({
+                    companyName,
+                    companyLogo: company.document_logo_url || company.logo_url,
+                    companyPhone: company.phone,
+                    companyWebsite: company.website,
+                    companyEmail: company.email,
+                    companyAddress,
+                    employeeName,
+                    leaveType: leaveTypeName,
+                    startDate: leaveRequest.start_date,
+                    endDate: leaveRequest.end_date,
+                    daysCount: leaveRequest.days_count,
+                    reason: leaveRequest.reason,
+                    approveUrl,
+                    rejectUrl,
+                  });
+                }
+
+                const result = await sendEmail([approver.email], subject, html, fromEmail);
 
                 emailResult = result;
                 emailSent = true;
@@ -217,11 +286,11 @@ serve(async (req: Request): Promise<Response> => {
                   recipient_user_id: pendingStep.approver_user_id,
                   employee_id: approver.id,
                   email_type: type,
-                  subject: `Leave Request: ${employeeName} - ${leaveTypeName}`,
+                  subject,
                   status: result.error ? "failed" : "sent",
                   resend_id: result.id,
                   error_message: result.error?.message,
-                  metadata: { leave_request_id: leaveRequestId },
+                  metadata: { leave_request_id: leaveRequestId, used_custom_template: useCustomTemplate },
                   sent_at: new Date().toISOString(),
                 });
               }
@@ -264,37 +333,55 @@ serve(async (req: Request): Promise<Response> => {
             .single();
 
           if (prefs?.email_leave_approvals !== false) {
-            const reviewerName = leaveRequest.reviewer
-              ? `${leaveRequest.reviewer.first_name} ${leaveRequest.reviewer.last_name}`
-              : undefined;
+            let subject: string;
+            let html: string;
 
-            const emailData = {
-              companyName,
-              companyLogo: company.document_logo_url || company.logo_url,
-              companyPhone: company.phone,
-              companyWebsite: company.website,
-              companyEmail: company.email,
-              companyAddress: company.address_city && company.address_country 
-                ? `${company.address_city}, ${company.address_country}` 
-                : undefined,
-              employeeName,
-              leaveType: leaveTypeName,
-              startDate: leaveRequest.start_date,
-              endDate: leaveRequest.end_date,
-              daysCount: leaveRequest.days_count,
-              reviewerName,
-              rejectionReason: leaveRequest.rejection_reason,
-            };
+            if (useCustomTemplate) {
+              // Use custom template from database
+              subject = processTemplate(emailTemplate!.subject, templateData);
+              const processedBody = processTemplate(emailTemplate!.body_content, templateData);
+              
+              // Determine gradient colors based on type
+              const gradientColors = type === "leave_request_approved" 
+                ? { from: "#22c55e", to: "#16a34a" }
+                : { from: "#ef4444", to: "#dc2626" };
+              
+              html = wrapInEmailTemplate({
+                companyName,
+                companyLogo: company.document_logo_url || company.logo_url,
+                companyPhone: company.phone,
+                companyWebsite: company.website,
+                companyEmail: company.email,
+                companyAddress,
+                bodyContent: processedBody,
+                gradientColors,
+              });
+            } else {
+              // Fallback to hardcoded template
+              const emailData = {
+                companyName,
+                companyLogo: company.document_logo_url || company.logo_url,
+                companyPhone: company.phone,
+                companyWebsite: company.website,
+                companyEmail: company.email,
+                companyAddress,
+                employeeName,
+                leaveType: leaveTypeName,
+                startDate: leaveRequest.start_date,
+                endDate: leaveRequest.end_date,
+                daysCount: leaveRequest.days_count,
+                reviewerName,
+                rejectionReason: leaveRequest.rejection_reason,
+              };
 
-            const html =
-              type === "leave_request_approved"
+              html = type === "leave_request_approved"
                 ? generateLeaveApprovedHtml(emailData)
                 : generateLeaveRejectedHtml(emailData);
 
-            const subject =
-              type === "leave_request_approved"
+              subject = type === "leave_request_approved"
                 ? `Leave Request Approved - ${leaveTypeName}`
                 : `Leave Request Rejected - ${leaveTypeName}`;
+            }
 
             const result = await sendEmail([employeeEmail], subject, html, fromEmail);
 
@@ -311,7 +398,7 @@ serve(async (req: Request): Promise<Response> => {
               status: result.error ? "failed" : "sent",
               resend_id: result.id,
               error_message: result.error?.message,
-              metadata: { leave_request_id: leaveRequestId },
+              metadata: { leave_request_id: leaveRequestId, used_custom_template: useCustomTemplate },
               sent_at: new Date().toISOString(),
             });
           }
@@ -354,17 +441,91 @@ serve(async (req: Request): Promise<Response> => {
   }
 });
 
-// Inline email templates with branding
-function formatDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric", year: "numeric" });
+// Email wrapper functions
+interface EmailWrapperData {
+  companyName: string;
+  companyLogo?: string;
+  companyPhone?: string;
+  companyWebsite?: string;
+  companyEmail?: string;
+  companyAddress?: string;
+  bodyContent: string;
+  gradientColors?: { from: string; to: string };
 }
 
-function formatShortDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+interface EmailWrapperWithActionsData extends EmailWrapperData {
+  approveUrl?: string;
+  rejectUrl?: string;
 }
 
+function wrapInEmailTemplate(data: EmailWrapperData): string {
+  const gradientColors = data.gradientColors || { from: BRAND_PRIMARY, to: BRAND_PRIMARY_DARK };
+  
+  return `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background-color:#f4f4f5;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;padding:20px;">
+    ${generateEmailHeader(data, gradientColors)}
+    <tr>
+      <td style="background-color:#ffffff;padding:30px;">
+        ${data.bodyContent}
+      </td>
+    </tr>
+    ${generateEmailFooter(data)}
+  </table>
+</body>
+</html>`;
+}
+
+function wrapInEmailTemplateWithActions(data: EmailWrapperWithActionsData): string {
+  const actionButtonsHtml = data.approveUrl && data.rejectUrl ? `
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:25px 0;">
+          <tr>
+            <td style="text-align:center;">
+              <table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 auto;">
+                <tr>
+                  <td style="padding-right:10px;">
+                    <a href="${data.approveUrl}" style="display:inline-block;background:#22c55e;color:white;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;">✓ Approve</a>
+                  </td>
+                  <td style="padding-left:10px;">
+                    <a href="${data.rejectUrl}" style="display:inline-block;background:#ef4444;color:white;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;">✗ Reject</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="text-align:center;padding-top:12px;">
+              <p style="color:#a1a1aa;margin:0;font-size:11px;">Or review in the app for more options</p>
+            </td>
+          </tr>
+        </table>` : "";
+
+  return `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background-color:#f4f4f5;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;padding:20px;">
+    ${generateEmailHeader(data, { from: BRAND_PRIMARY, to: BRAND_PRIMARY_DARK })}
+    <tr>
+      <td style="background-color:#ffffff;padding:30px;">
+        <div style="text-align:center;margin-bottom:20px;">
+          <span style="display:inline-block;background:linear-gradient(135deg,${BRAND_PRIMARY} 0%,${BRAND_PRIMARY_DARK} 100%);color:#ffffff;font-size:11px;font-weight:600;padding:6px 14px;border-radius:20px;text-transform:uppercase;letter-spacing:0.5px;">Action Required</span>
+        </div>
+        ${data.bodyContent}
+        ${actionButtonsHtml}
+      </td>
+    </tr>
+    ${generateEmailFooter(data)}
+  </table>
+</body>
+</html>`;
+}
+
+// Hardcoded template generators (fallbacks)
 interface LeaveEmailData {
   companyName: string;
   companyLogo?: string;
@@ -384,7 +545,7 @@ interface LeaveEmailData {
   rejectUrl?: string;
 }
 
-function generateEmailHeader(data: LeaveEmailData, gradientColors: { from: string; to: string } = { from: BRAND_PRIMARY, to: BRAND_PRIMARY_DARK }): string {
+function generateEmailHeader(data: { companyName: string; companyLogo?: string }, gradientColors: { from: string; to: string } = { from: BRAND_PRIMARY, to: BRAND_PRIMARY_DARK }): string {
   const logoSection = data.companyLogo 
     ? `<img src="${data.companyLogo}" alt="${data.companyName}" style="max-height:45px;max-width:150px;margin-right:15px;vertical-align:middle;" />`
     : `<div style="display:inline-block;width:45px;height:45px;background:rgba(255,255,255,0.2);border-radius:8px;margin-right:15px;vertical-align:middle;text-align:center;line-height:45px;font-size:20px;font-weight:bold;color:white;">${data.companyName.charAt(0)}</div>`;
@@ -404,7 +565,7 @@ function generateEmailHeader(data: LeaveEmailData, gradientColors: { from: strin
     </tr>`;
 }
 
-function generateEmailFooter(data: LeaveEmailData): string {
+function generateEmailFooter(data: { companyName: string; companyPhone?: string; companyWebsite?: string; companyEmail?: string; companyAddress?: string }): string {
   const phone = data.companyPhone || "+973 17000342";
   const website = data.companyWebsite || "www.dgcholding.com";
   const email = data.companyEmail || "info@dgcholding.com";
@@ -439,7 +600,6 @@ function generateEmailFooter(data: LeaveEmailData): string {
 }
 
 function generateLeaveSubmittedHtml(data: LeaveEmailData): string {
-  // Generate action buttons HTML if URLs are provided
   const actionButtonsHtml = data.approveUrl && data.rejectUrl ? `
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:25px 0;">
           <tr>
