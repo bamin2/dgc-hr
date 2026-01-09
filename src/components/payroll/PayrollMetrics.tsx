@@ -6,6 +6,7 @@ interface PayrollMetricsProps {
   employeesPaid: number;
   pendingPayments: number;
   averageSalary: number;
+  currency?: string;
 }
 
 export function PayrollMetrics({
@@ -13,11 +14,20 @@ export function PayrollMetrics({
   employeesPaid,
   pendingPayments,
   averageSalary,
+  currency = "USD",
 }: PayrollMetricsProps) {
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
   const metrics = [
     {
       title: "Total Payroll",
-      value: `$${totalPayroll.toLocaleString()}`,
+      value: formatCurrency(totalPayroll),
       subtitle: "This month",
       icon: DollarSign,
       iconBg: "bg-primary/10",
@@ -41,7 +51,7 @@ export function PayrollMetrics({
     },
     {
       title: "Average Salary",
-      value: `$${averageSalary.toLocaleString()}`,
+      value: formatCurrency(averageSalary),
       subtitle: "Per employee/month",
       icon: TrendingUp,
       iconBg: "bg-info/10",

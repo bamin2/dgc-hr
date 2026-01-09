@@ -29,6 +29,7 @@ export function PayrollDashboard({ onRunPayroll }: PayrollDashboardProps) {
     metrics, 
     departmentData, 
     payrollRuns,
+    currency,
     isLoading 
   } = usePayrollDashboardData(monthFilter);
 
@@ -134,6 +135,7 @@ export function PayrollDashboard({ onRunPayroll }: PayrollDashboardProps) {
         employeesPaid={metrics.employeesPaid}
         pendingPayments={metrics.pendingPayments}
         averageSalary={metrics.averageSalary}
+        currency={currency}
       />
 
       {/* Filters */}

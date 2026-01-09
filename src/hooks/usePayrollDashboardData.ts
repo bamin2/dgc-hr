@@ -10,6 +10,7 @@ export interface DashboardPayrollRecord {
     department: string;
     position: string;
     avatar?: string;
+    workLocationId?: string;
   };
   payPeriod: { startDate: string; endDate: string };
   baseSalary: number;
@@ -44,6 +45,24 @@ export interface PayrollRunData {
 }
 
 export function usePayrollDashboardData(monthFilter: string = "all") {
+  // Fetch HQ location for currency and filtering
+  const hqQuery = useQuery({
+    queryKey: ["hq-location"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("work_locations")
+        .select("id, currency")
+        .eq("is_hq", true)
+        .single();
+
+      if (error && error.code !== "PGRST116") throw error;
+      return data;
+    },
+  });
+
+  const hqLocationId = hqQuery.data?.id;
+  const currency = hqQuery.data?.currency || "USD";
+
   // Fetch all payroll runs
   const runsQuery = useQuery({
     queryKey: ["payroll-dashboard-runs"],
@@ -115,14 +134,14 @@ export function usePayrollDashboardData(monthFilter: string = "all") {
 
       if (error) throw error;
 
-      // Fetch employee avatars
+      // Fetch employee details including work_location_id
       const employeeIds = (data || []).map(r => r.employee_id);
       const { data: employees } = await supabase
         .from("employees")
-        .select("id, avatar_url")
+        .select("id, avatar_url, work_location_id")
         .in("id", employeeIds);
 
-      const avatarMap = new Map(employees?.map(e => [e.id, e.avatar_url]) || []);
+      const employeeMap = new Map(employees?.map(e => [e.id, { avatar: e.avatar_url, workLocationId: e.work_location_id }]) || []);
 
       // Map database records to dashboard format
       return (data || []).map((record): DashboardPayrollRecord => {
@@ -146,6 +165,7 @@ export function usePayrollDashboardData(monthFilter: string = "all") {
           recordStatus = 'processing';
         }
 
+        const empData = employeeMap.get(record.employee_id);
         return {
           id: record.id,
           employeeId: record.employee_id,
@@ -154,7 +174,8 @@ export function usePayrollDashboardData(monthFilter: string = "all") {
             lastName,
             department: record.department || "Unassigned",
             position: record.position || "Unknown",
-            avatar: avatarMap.get(record.employee_id) || undefined,
+            avatar: empData?.avatar || undefined,
+            workLocationId: empData?.workLocationId || undefined,
           },
           payPeriod: {
             startDate: runData?.pay_period_start || "",
@@ -177,8 +198,12 @@ export function usePayrollDashboardData(monthFilter: string = "all") {
     enabled: !!latestRunId,
   });
 
-  // Calculate metrics from records
-  const records = recordsQuery.data || [];
+  // Calculate metrics from HQ records only
+  const allRecords = recordsQuery.data || [];
+  const records = hqLocationId 
+    ? allRecords.filter(r => r.employee.workLocationId === hqLocationId)
+    : allRecords;
+  
   const metrics: PayrollMetricsData = {
     totalPayroll: records.reduce((sum, r) => sum + r.netPay, 0),
     employeesPaid: records.filter(r => r.status === 'paid').length,
@@ -211,7 +236,8 @@ export function usePayrollDashboardData(monthFilter: string = "all") {
     metrics,
     departmentData,
     payrollRuns: filteredRuns,
-    isLoading: runsQuery.isLoading || recordsQuery.isLoading,
-    error: runsQuery.error || recordsQuery.error,
+    currency,
+    isLoading: runsQuery.isLoading || recordsQuery.isLoading || hqQuery.isLoading,
+    error: runsQuery.error || recordsQuery.error || hqQuery.error,
   };
 }
