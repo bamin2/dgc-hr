@@ -28,13 +28,13 @@ const MyProfileSkeleton = () => (
 const MyProfilePage = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const { data: employee, isLoading, error } = useMyEmployee();
-  const { settings } = useCompanySettings();
+  const { settings, isLoading: settingsLoading } = useCompanySettings();
 
   // Get compensation visibility settings
-  const canViewCompensation = settings.employeeCanViewCompensation ?? true;
-  const showLineItems = settings.showCompensationLineItems ?? false;
+  const canViewCompensation = settings?.employeeCanViewCompensation ?? true;
+  const showLineItems = settings?.showCompensationLineItems ?? false;
 
-  if (isLoading) {
+  if (isLoading || settingsLoading) {
     return <MyProfileSkeleton />;
   }
 
