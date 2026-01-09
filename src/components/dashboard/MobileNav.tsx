@@ -191,7 +191,7 @@ export function MobileNav() {
                   <AvatarImage
                     src={settings.branding.logoUrl}
                     alt={settings.name}
-                    className="object-cover"
+                    className="object-contain p-1"
                   />
                 ) : null}
                 <AvatarFallback className="rounded-xl bg-sidebar-primary text-sidebar-primary-foreground font-bold text-lg">
