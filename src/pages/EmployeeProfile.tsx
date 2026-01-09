@@ -241,7 +241,7 @@ export default function EmployeeProfile() {
       await updateEmployeeRole(id, newRole);
       toast({
         title: "Role updated",
-        description: `Employee role has been changed to ${roleDescriptions[newRole]?.label || newRole}.`,
+        description: `Employee role has been changed to ${roleDescriptions[newRole] || newRole}.`,
       });
     } catch (error) {
       toast({
@@ -520,7 +520,7 @@ export default function EmployeeProfile() {
 
         {hasFullAccess && (
           <TabsContent value="documents" className="space-y-6">
-            <EmployeeDocumentsTab employeeId={employee.id} />
+            <EmployeeDocumentsTab employeeId={employee.id} canEdit={canEditEmployees} />
           </TabsContent>
         )}
 
@@ -565,14 +565,14 @@ export default function EmployeeProfile() {
                 <CardContent>
                   {canManageRoles ? (
                     <RoleSelectorWithDescription
-                      currentRole={employeeRole}
-                      onRoleChange={handleRoleChange}
+                      value={employeeRole}
+                      onValueChange={handleRoleChange}
                     />
                   ) : (
                     <div className="flex items-center gap-3">
                       <RoleBadge role={employeeRole} />
                       <span className="text-sm text-muted-foreground">
-                        {roleDescriptions[employeeRole]?.description || 'No description available'}
+                        {roleDescriptions[employeeRole] || 'No description available'}
                       </span>
                     </div>
                   )}
@@ -591,7 +591,7 @@ export default function EmployeeProfile() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {employee.userId ? (
+                  {employee.id ? (
                     <>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <div className="w-2 h-2 rounded-full bg-green-500" />
@@ -639,7 +639,6 @@ export default function EmployeeProfile() {
         onOpenChange={setFormOpen}
         employee={employee}
         onSave={handleSave}
-        allEmployees={allEmployees}
       />
       
       <CreateLoginDialog
