@@ -46,6 +46,7 @@ export interface EmployeeDeduction {
   employee_id: string;
   deduction_template_id: string;
   custom_amount: number | null;
+  custom_name: string | null;
   effective_date: string;
   end_date: string | null;
   created_at: string;

@@ -15,7 +15,11 @@ import { Employee } from '@/hooks/useEmployees';
 import { useEmployeeAllowances } from '@/hooks/useEmployeeAllowances';
 import { useEmployeeDeductions } from '@/hooks/useEmployeeDeductions';
 import { useCompanySettings } from '@/contexts/CompanySettingsContext';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { getCountryCodeByName } from '@/data/countries';
+import { GosiNationalityRate } from '@/hooks/useWorkLocations';
 
 interface MyProfileCompensationTabProps {
   employee: Employee;
@@ -28,6 +32,12 @@ interface CompensationItemProps {
   amount: number;
   currency: string;
   type: 'allowance' | 'deduction';
+}
+
+interface CalculatedItem {
+  id: string;
+  name: string;
+  amount: number;
 }
 
 function CompensationItem({ name, amount, currency }: CompensationItemProps) {
@@ -78,24 +88,101 @@ export function MyProfileCompensationTab({
   const { data: allowances, isLoading: loadingAllowances } = useEmployeeAllowances(employee.id);
   const { data: deductions, isLoading: loadingDeductions } = useEmployeeDeductions(employee.id);
 
+  // Fetch work location for GOSI rates
+  const { data: workLocation, isLoading: loadingWorkLocation } = useQuery({
+    queryKey: ['work-location', employee.workLocationId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('work_locations')
+        .select('id, name, gosi_enabled, gosi_nationality_rates')
+        .eq('id', employee.workLocationId!)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!employee.workLocationId && !!employee.isSubjectToGosi,
+  });
+
   const currency = settings?.branding?.currency || 'USD';
   const baseSalary = employee.salary || 0;
 
-  // Calculate totals
-  const totalAllowances = allowances?.reduce((sum, a) => {
-    const amount = a.custom_amount || a.allowance_template?.amount || 0;
-    return sum + amount;
-  }, 0) || 0;
+  // Calculate allowances with proper percentage handling
+  const { totalAllowances, allowanceItems } = useMemo(() => {
+    if (!allowances) return { totalAllowances: 0, allowanceItems: [] as CalculatedItem[] };
+    
+    let total = 0;
+    const items: CalculatedItem[] = allowances.map(a => {
+      let amount = 0;
+      const name = a.custom_name || a.allowance_template?.name || 'Allowance';
+      
+      if (a.custom_amount) {
+        amount = a.custom_amount;
+      } else if (a.allowance_template) {
+        const template = a.allowance_template;
+        if (template.amount_type === 'percentage' && template.percentage_of === 'base_salary') {
+          amount = (baseSalary * template.amount) / 100;
+        } else {
+          amount = template.amount || 0;
+        }
+      }
+      
+      total += amount;
+      return { id: a.id, name, amount };
+    });
+    
+    return { totalAllowances: total, allowanceItems: items };
+  }, [allowances, baseSalary]);
 
-  const totalDeductions = deductions?.reduce((sum, d) => {
-    const amount = d.custom_amount || d.deduction_template?.amount || 0;
-    return sum + amount;
-  }, 0) || 0;
+  // Calculate deductions with proper percentage handling
+  const { totalDeductions, deductionItems } = useMemo(() => {
+    if (!deductions) return { totalDeductions: 0, deductionItems: [] as CalculatedItem[] };
+    
+    let total = 0;
+    const items: CalculatedItem[] = deductions.map(d => {
+      let amount = 0;
+      const name = d.custom_name || d.deduction_template?.name || 'Deduction';
+      
+      if (d.custom_amount) {
+        amount = d.custom_amount;
+      } else if (d.deduction_template) {
+        const template = d.deduction_template;
+        if (template.amount_type === 'percentage' && template.percentage_of === 'base_salary') {
+          amount = (baseSalary * template.amount) / 100;
+        } else {
+          amount = template.amount || 0;
+        }
+      }
+      
+      total += amount;
+      return { id: d.id, name, amount };
+    });
+    
+    return { totalDeductions: total, deductionItems: items };
+  }, [deductions, baseSalary]);
 
-  // Include GOSI if applicable
-  const gosiDeduction = employee.isSubjectToGosi && employee.gosiRegisteredSalary 
-    ? employee.gosiRegisteredSalary * 0.1 // 10% GOSI
-    : 0;
+  // Calculate GOSI deduction with location-specific nationality rates
+  const gosiDeduction = useMemo(() => {
+    if (!employee.isSubjectToGosi) return 0;
+    
+    // Check if work location has GOSI enabled
+    const gosiEnabled = workLocation?.gosi_enabled;
+    if (!gosiEnabled) return 0;
+    
+    // Get GOSI base (registered salary or fall back to base salary)
+    const gosiBase = employee.gosiRegisteredSalary || baseSalary;
+    if (!gosiBase) return 0;
+    
+    // Get nationality-specific rate from work location settings
+    const rates = (workLocation?.gosi_nationality_rates as unknown as GosiNationalityRate[]) || [];
+    const nationalityCode = getCountryCodeByName(employee.nationality || '');
+    const matchingRate = rates.find(r => r.nationality === nationalityCode);
+    
+    if (matchingRate) {
+      return (gosiBase * matchingRate.percentage) / 100;
+    }
+    
+    return 0;
+  }, [employee.isSubjectToGosi, employee.gosiRegisteredSalary, employee.nationality, baseSalary, workLocation]);
 
   const grossPay = baseSalary + totalAllowances;
   const netPay = grossPay - totalDeductions - gosiDeduction;
@@ -116,7 +203,7 @@ export function MyProfileCompensationTab({
     );
   }
 
-  const isLoading = loadingAllowances || loadingDeductions;
+  const isLoading = loadingAllowances || loadingDeductions || loadingWorkLocation;
 
   if (isLoading) {
     return (
@@ -162,13 +249,13 @@ export function MyProfileCompensationTab({
                 + {currency} {totalAllowances.toLocaleString()}
               </span>
             </div>
-            {showLineItems && allowances && allowances.length > 0 && (
+            {showLineItems && allowanceItems.length > 0 && (
               <div className="p-3 bg-background">
-                {allowances.map((allowance) => (
+                {allowanceItems.map((item) => (
                   <CompensationItem
-                    key={allowance.id}
-                    name={allowance.custom_name || allowance.allowance_template?.name || 'Allowance'}
-                    amount={allowance.custom_amount || allowance.allowance_template?.amount || 0}
+                    key={item.id}
+                    name={item.name}
+                    amount={item.amount}
                     currency={currency}
                     type="allowance"
                   />
@@ -192,11 +279,11 @@ export function MyProfileCompensationTab({
             </div>
             {showLineItems && (
               <div className="p-3 bg-background">
-                {deductions?.map((deduction: any) => (
+                {deductionItems.map((item) => (
                   <CompensationItem
-                    key={deduction.id}
-                    name={deduction.custom_name || deduction.deduction_template?.name || 'Deduction'}
-                    amount={deduction.custom_amount || deduction.deduction_template?.amount || 0}
+                    key={item.id}
+                    name={item.name}
+                    amount={item.amount}
                     currency={currency}
                     type="deduction"
                   />
