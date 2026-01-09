@@ -20,6 +20,7 @@ export interface AdminDashboardData {
     totalOutstanding: number;
     activeLoansCount: number;
   };
+  hqCurrency: string;
   upcomingTimeOff: {
     employeeId: string;
     employeeName: string;
@@ -32,6 +33,28 @@ export interface AdminDashboardData {
     lastMonth: number;
     percentChange: number;
   };
+}
+
+function calculateNextPayrollDate(payrollDayOfMonth: number): string {
+  const today = new Date();
+  const currentDay = today.getDate();
+  const currentMonth = today.getMonth();
+  const currentYear = today.getFullYear();
+
+  let nextPayrollDate: Date;
+  
+  if (currentDay < payrollDayOfMonth) {
+    nextPayrollDate = new Date(currentYear, currentMonth, payrollDayOfMonth);
+  } else {
+    nextPayrollDate = new Date(currentYear, currentMonth + 1, payrollDayOfMonth);
+  }
+
+  const lastDayOfMonth = new Date(nextPayrollDate.getFullYear(), nextPayrollDate.getMonth() + 1, 0).getDate();
+  if (payrollDayOfMonth > lastDayOfMonth) {
+    nextPayrollDate.setDate(lastDayOfMonth);
+  }
+
+  return nextPayrollDate.toISOString().split('T')[0];
 }
 
 export function useAdminDashboard() {
@@ -57,6 +80,8 @@ export function useAdminDashboard() {
         upcomingTimeOffRes,
         thisMonthLeaveRes,
         lastMonthLeaveRes,
+        companySettingsRes,
+        hqLocationRes,
       ] = await Promise.all([
         // Employee stats
         supabase
@@ -118,6 +143,21 @@ export function useAdminDashboard() {
           .eq('status', 'approved')
           .gte('start_date', firstDayLastMonth)
           .lte('start_date', lastDayLastMonth),
+        
+        // Company settings for payroll day
+        supabase
+          .from('company_settings')
+          .select('payroll_day_of_month')
+          .limit(1)
+          .single(),
+        
+        // HQ location for currency
+        supabase
+          .from('work_locations')
+          .select('currency')
+          .eq('is_hq', true)
+          .limit(1)
+          .single(),
       ]);
 
       // Process employee stats
@@ -128,15 +168,10 @@ export function useAdminDashboard() {
         onLeaveEmployees: employees.filter((e: any) => e.status === 'on_leave').length,
       };
 
-      // Process payroll status
+      // Process payroll status using company settings
       const lastPayroll = payrollRes.data?.[0];
-      let nextPayrollDate: string | null = null;
-      if (lastPayroll?.pay_period_end) {
-        const lastEnd = new Date(lastPayroll.pay_period_end);
-        const nextEnd = new Date(lastEnd);
-        nextEnd.setMonth(nextEnd.getMonth() + 1);
-        nextPayrollDate = nextEnd.toISOString().split('T')[0];
-      }
+      const payrollDayOfMonth = companySettingsRes.data?.payroll_day_of_month || 25;
+      const nextPayrollDate = calculateNextPayrollDate(payrollDayOfMonth);
 
       const payrollStatus = {
         lastRunDate: lastPayroll?.processed_date || null,
@@ -167,6 +202,9 @@ export function useAdminDashboard() {
         activeLoansCount: loans.length,
       };
 
+      // Get HQ currency
+      const hqCurrency = hqLocationRes.data?.currency || 'BHD';
+
       // Process upcoming time off
       const upcomingTimeOff = (upcomingTimeOffRes.data || []).map((r: any) => ({
         employeeId: r.employee?.id,
@@ -194,6 +232,7 @@ export function useAdminDashboard() {
         payrollStatus,
         pendingApprovals,
         loanExposure,
+        hqCurrency,
         upcomingTimeOff,
         leaveTrends,
       };

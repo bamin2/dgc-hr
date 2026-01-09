@@ -274,10 +274,10 @@ export const CompanyProfileForm = ({ settings, onChange }: CompanyProfileFormPro
 
       <SettingsCard 
         title="Work Schedule" 
-        description="Configure your company's work week"
+        description="Configure your company's work week and payroll schedule"
         icon={Calendar}
       >
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div className="space-y-2">
             <Label>Weekend Days</Label>
             <p className="text-xs text-muted-foreground mb-3">
@@ -299,6 +299,30 @@ export const CompanyProfileForm = ({ settings, onChange }: CompanyProfileFormPro
                   </Label>
                 </div>
               ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="payrollDay">Payroll Day of Month</Label>
+              <p className="text-xs text-muted-foreground">
+                The day each month when payroll is processed (1-31)
+              </p>
+              <Select 
+                value={String(settings.payrollDayOfMonth || 25)} 
+                onValueChange={(v) => onChange({ ...settings, payrollDayOfMonth: parseInt(v, 10) })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select day" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
+                    <SelectItem key={day} value={String(day)}>
+                      {day}{day === 1 ? 'st' : day === 2 ? 'nd' : day === 3 ? 'rd' : 'th'}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>

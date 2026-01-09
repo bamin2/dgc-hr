@@ -37,7 +37,8 @@ export function PersonalSection() {
 
         <MyLoansCard 
           loans={data?.activeLoans || []} 
-          isLoading={isLoading} 
+          isLoading={isLoading}
+          currency={data?.loanCurrency}
         />
 
         <MyUpcomingTimeOffCard 

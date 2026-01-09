@@ -56,11 +56,11 @@ export function AdminQuickActions() {
                 key={action.label}
                 variant={action.variant}
                 size="sm"
-                className="justify-start gap-2"
+                className="justify-start gap-2 text-xs"
                 onClick={action.onClick}
               >
-                <Icon className="h-4 w-4" />
-                {action.label}
+                <Icon className="h-4 w-4 flex-shrink-0" />
+                <span className="truncate">{action.label}</span>
               </Button>
             );
           })}
