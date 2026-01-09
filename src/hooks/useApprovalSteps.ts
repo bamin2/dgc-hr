@@ -182,6 +182,7 @@ export function useApproveStep() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pending-approvals"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-approvals-count"] });
       queryClient.invalidateQueries({ queryKey: ["request-approval-steps"] });
       queryClient.invalidateQueries({ queryKey: ["leave-requests"] });
       toast.success("Request approved");
@@ -250,6 +251,7 @@ export function useRejectStep() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pending-approvals"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-approvals-count"] });
       queryClient.invalidateQueries({ queryKey: ["request-approval-steps"] });
       queryClient.invalidateQueries({ queryKey: ["leave-requests"] });
       toast.success("Request rejected");
