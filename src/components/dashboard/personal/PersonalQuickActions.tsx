@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
@@ -7,15 +8,17 @@ import {
   Zap
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { RequestTimeOffDialog } from '@/components/timeoff/RequestTimeOffDialog';
 
 export function PersonalQuickActions() {
   const navigate = useNavigate();
+  const [isTimeOffDialogOpen, setIsTimeOffDialogOpen] = useState(false);
 
   const actions = [
     {
       label: 'Request Time Off',
       icon: CalendarPlus,
-      onClick: () => navigate('/attendance/leave/request'),
+      onClick: () => setIsTimeOffDialogOpen(true),
       variant: 'default' as const,
     },
     {
@@ -58,6 +61,11 @@ export function PersonalQuickActions() {
           })}
         </div>
       </CardContent>
+      
+      <RequestTimeOffDialog 
+        open={isTimeOffDialogOpen} 
+        onOpenChange={setIsTimeOffDialogOpen} 
+      />
     </Card>
   );
 }

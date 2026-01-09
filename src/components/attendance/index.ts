@@ -6,7 +6,6 @@ export { AttendanceTable } from './AttendanceTable';
 export { LeaveBalanceCard } from './LeaveBalanceCard';
 export { LeaveRequestsTable } from './LeaveRequestsTable';
 export { AttendanceCalendar } from './AttendanceCalendar';
-export { LeaveRequestForm } from './LeaveRequestForm';
 export { CorrectionStatusBadge } from './CorrectionStatusBadge';
 export { AttendanceCorrectionDialog } from './AttendanceCorrectionDialog';
 export { ReviewCorrectionDialog } from './ReviewCorrectionDialog';
