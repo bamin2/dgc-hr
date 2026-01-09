@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ApprovalWorkflowStep, RequestType } from "@/types/approvals";
 import { toast } from "sonner";
+import { queryKeys } from "@/lib/queryKeys";
 
 interface InitiateApprovalParams {
   requestId: string;
@@ -161,10 +162,10 @@ export function useInitiateApproval() {
       return { autoApproved: false };
     },
     onSuccess: (result) => {
-      queryClient.invalidateQueries({ queryKey: ["leave-requests"] });
-      queryClient.invalidateQueries({ queryKey: ["pending-approvals"] });
-      queryClient.invalidateQueries({ queryKey: ["pending-approvals-count"] });
-      queryClient.invalidateQueries({ queryKey: ["my-requests"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.leave.requests.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.approvals.pending });
+      queryClient.invalidateQueries({ queryKey: queryKeys.approvals.pendingCount });
+      queryClient.invalidateQueries({ queryKey: queryKeys.approvals.myRequests });
       
       if (result.autoApproved) {
         toast.success("Request auto-approved (no approval workflow configured)");

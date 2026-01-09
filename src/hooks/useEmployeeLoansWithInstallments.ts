@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { queryKeys } from "@/lib/queryKeys";
 import type { LoanInstallment } from "./useLoans";
 
 export interface LoanWithInstallmentsData {
@@ -16,7 +17,7 @@ export interface LoanWithInstallmentsData {
 
 export function useEmployeeLoansWithInstallments(employeeId: string | undefined) {
   return useQuery({
-    queryKey: ['employee-loans-with-installments', employeeId],
+    queryKey: queryKeys.loans.withInstallments(employeeId || ''),
     queryFn: async (): Promise<LoanWithInstallmentsData[]> => {
       if (!employeeId) return [];
 

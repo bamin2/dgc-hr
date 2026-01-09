@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-
+import { queryKeys } from "@/lib/queryKeys";
 export interface PayrollRunAdjustment {
   id: string;
   employeeId: string;
@@ -14,7 +14,7 @@ export function usePayrollRunAdjustments(runId: string | null) {
   const queryClient = useQueryClient();
 
   const query = useQuery({
-    queryKey: ["payroll-run-adjustments", runId],
+    queryKey: queryKeys.payroll.runs.adjustments(runId || ''),
     queryFn: async () => {
       if (!runId) return [];
 
@@ -53,7 +53,9 @@ export function usePayrollRunAdjustments(runId: string | null) {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["payroll-run-adjustments", runId] });
+      if (runId) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.payroll.runs.adjustments(runId) });
+      }
     },
   });
 
@@ -67,7 +69,9 @@ export function usePayrollRunAdjustments(runId: string | null) {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["payroll-run-adjustments", runId] });
+      if (runId) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.payroll.runs.adjustments(runId) });
+      }
     },
   });
 

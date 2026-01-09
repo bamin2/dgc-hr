@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
 import { startOfDay, endOfDay } from "date-fns";
+import { queryKeys } from "@/lib/queryKeys";
 
 export type EventType = Database["public"]["Enums"]["event_type"];
 export type EventPlatform = Database["public"]["Enums"]["event_platform"];
@@ -65,7 +66,7 @@ export interface UpdateEventInput extends Partial<CreateEventInput> {
 
 export function useCalendarEvents(startDate?: Date, endDate?: Date) {
   return useQuery({
-    queryKey: ["calendar-events", startDate?.toISOString(), endDate?.toISOString()],
+    queryKey: queryKeys.calendar.byDateRange(startDate?.toISOString() || '', endDate?.toISOString() || ''),
     staleTime: 1000 * 60 * 2, // 2 minutes
     queryFn: async () => {
       let query = supabase
@@ -183,7 +184,7 @@ export function useCreateCalendarEvent() {
       return event;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["calendar-events"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.calendar.events });
     },
   });
 }
@@ -232,7 +233,7 @@ export function useUpdateCalendarEvent() {
       return event;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["calendar-events"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.calendar.events });
       queryClient.invalidateQueries({ queryKey: ["calendar-event", variables.id] });
     },
   });
@@ -251,7 +252,7 @@ export function useDeleteCalendarEvent() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["calendar-events"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.calendar.events });
     },
   });
 }
