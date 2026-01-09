@@ -44,6 +44,9 @@ export interface Employee {
     relationship: string;
     phone: string;
   };
+  bankName?: string;
+  bankAccountNumber?: string;
+  iban?: string;
 }
 
 // Map database record to UI format
@@ -94,6 +97,9 @@ export function mapDbEmployeeToEmployee(db: DbEmployee): Employee {
             phone: db.emergency_contact_phone,
           }
         : undefined,
+    bankName: (db as any).bank_name || undefined,
+    bankAccountNumber: (db as any).bank_account_number || undefined,
+    iban: (db as any).iban || undefined,
   };
 }
 
