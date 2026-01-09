@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FileDown, Loader2, CheckCircle, Download } from "lucide-react";
+import { FileDown, Loader2, CheckCircle, Download, Mail } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -10,6 +10,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { PayrollRunEmployee } from "@/hooks/usePayrollRunEmployees";
 import { PayrollRunAdjustment } from "@/hooks/usePayrollRunAdjustments";
 import { useIssuePayslips } from "@/hooks/usePayrollRunsV2";
@@ -41,6 +43,8 @@ export function IssuePayslipsDialog({
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
+  const [sendByEmail, setSendByEmail] = useState(true);
+  const [emailsSent, setEmailsSent] = useState(false);
 
   const { settings } = useCompanySettings();
   const issuePayslips = useIssuePayslips();
@@ -73,13 +77,16 @@ export function IssuePayslipsDialog({
         setProgress(((i + 1) / employees.length) * 100);
       }
 
-      // Mark run as payslips issued
-      await issuePayslips.mutateAsync(runId);
+      // Mark run as payslips issued and optionally send emails
+      await issuePayslips.mutateAsync({ runId, sendEmails: sendByEmail });
+      setEmailsSent(sendByEmail);
 
       setIsComplete(true);
       toast({
         title: "Payslips Issued",
-        description: `Successfully generated ${employees.length} payslips.`,
+        description: sendByEmail 
+          ? `Successfully generated ${employees.length} payslips and sent by email.`
+          : `Successfully generated ${employees.length} payslips.`,
       });
     } catch (error) {
       console.error("Error generating payslips:", error);
@@ -118,8 +125,8 @@ export function IssuePayslipsDialog({
 
         <div className="py-4">
           {!isGenerating && !isComplete && (
-            <div className="text-center space-y-4">
-              <div className="p-4 bg-muted/50 rounded-lg">
+            <div className="space-y-4">
+              <div className="text-center p-4 bg-muted/50 rounded-lg">
                 <p className="text-2xl font-bold text-foreground">
                   {employees.length}
                 </p>
@@ -127,7 +134,20 @@ export function IssuePayslipsDialog({
                   Payslips will be generated
                 </p>
               </div>
-              <p className="text-sm text-muted-foreground">
+              
+              <div className="flex items-center space-x-2 p-3 border rounded-lg">
+                <Checkbox 
+                  id="sendByEmail" 
+                  checked={sendByEmail} 
+                  onCheckedChange={(checked) => setSendByEmail(checked === true)}
+                />
+                <Label htmlFor="sendByEmail" className="flex items-center gap-2 cursor-pointer">
+                  <Mail className="h-4 w-4 text-muted-foreground" />
+                  <span>Send payslips to employees by email</span>
+                </Label>
+              </div>
+
+              <p className="text-sm text-muted-foreground text-center">
                 Each payslip will be downloaded as a separate PDF file. Make
                 sure your browser allows multiple downloads.
               </p>
@@ -160,6 +180,7 @@ export function IssuePayslipsDialog({
                 </p>
                 <p className="text-sm text-muted-foreground">
                   {employees.length} payslips have been downloaded.
+                  {emailsSent && " Emails are being sent to employees."}
                 </p>
               </div>
             </div>
