@@ -49,8 +49,8 @@ export function LeaveRequestsReport() {
       description="All leave requests with approval workflow status and outcomes"
       filters={filters}
       onFilterChange={setFilters}
-      data={data as unknown as Record<string, unknown>[]}
-      columns={columns as ReportColumn<Record<string, unknown>>[]}
+      data={data}
+      columns={columns}
       isLoading={isLoading}
       onRefresh={() => refetch()}
       exportFormats={['excel', 'csv']}

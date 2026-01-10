@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ReportViewer } from '../ReportViewer';
 import { ReportFilters, ReportColumn, PayrollRunSummary } from '@/types/reports';
 import { usePayrollRunSummary } from '@/hooks/reports';
-import { useCompanySettings } from '@/hooks/useCompanySettings';
+import { useCompanySettings } from '@/contexts/CompanySettingsContext';
 import {
   Table,
   TableBody,
@@ -31,7 +31,7 @@ const columns: ReportColumn<PayrollRunSummary>[] = [
 export function PayrollRunSummaryReport() {
   const [filters, setFilters] = useState<ReportFilters>({});
   const { data = [], isLoading, refetch } = usePayrollRunSummary(filters);
-  const { settings } = useCompanySettings();
+  const { settings, formatCurrency } = useCompanySettings();
 
   const totals = data.reduce(
     (acc, run) => ({
@@ -42,14 +42,6 @@ export function PayrollRunSummaryReport() {
     }),
     { employees: 0, gross: 0, net: 0, gosi: 0 }
   );
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-SA', {
-      style: 'currency',
-      currency: settings?.currency || 'SAR',
-      minimumFractionDigits: 2,
-    }).format(value);
-  };
 
   const summaryCards = (
     <>
@@ -114,8 +106,8 @@ export function PayrollRunSummaryReport() {
       description="Summary of payroll runs with totals for gross, deductions, net pay, and GOSI contributions"
       filters={filters}
       onFilterChange={setFilters}
-      data={data as unknown as Record<string, unknown>[]}
-      columns={columns as ReportColumn<Record<string, unknown>>[]}
+      data={data}
+      columns={columns}
       isLoading={isLoading}
       onRefresh={() => refetch()}
       summaryCards={summaryCards}

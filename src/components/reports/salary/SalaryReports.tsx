@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ReportViewer } from '../ReportViewer';
 import { ReportFilters, ReportColumn, SalaryDistributionRecord, SalaryChangeRecord } from '@/types/reports';
-import { useSalaryDistributionReport, useSalaryChangeHistoryReport } from '@/hooks/reports';
-import { useCompanySettings } from '@/hooks/useCompanySettings';
+import { useSalaryDistribution, useSalaryChangeHistory } from '@/hooks/reports';
+import { useCompanySettings } from '@/contexts/CompanySettingsContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Table,
@@ -40,16 +39,8 @@ const changeColumns: ReportColumn<SalaryChangeRecord>[] = [
 
 export function SalaryDistributionReport() {
   const [filters, setFilters] = useState<ReportFilters>({});
-  const { data = [], isLoading, refetch } = useSalaryDistributionReport(filters);
-  const { settings } = useCompanySettings();
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-SA', {
-      style: 'currency',
-      currency: settings?.currency || 'SAR',
-      minimumFractionDigits: 0,
-    }).format(value);
-  };
+  const { data = [], isLoading, refetch } = useSalaryDistribution(filters);
+  const { settings, formatCurrency } = useCompanySettings();
 
   return (
     <ReportViewer
@@ -57,8 +48,8 @@ export function SalaryDistributionReport() {
       description="Salary statistics including average, median, and ranges grouped by department and location"
       filters={filters}
       onFilterChange={setFilters}
-      data={data as unknown as Record<string, unknown>[]}
-      columns={distributionColumns as ReportColumn<Record<string, unknown>>[]}
+      data={data}
+      columns={distributionColumns}
       isLoading={isLoading}
       onRefresh={() => refetch()}
       exportFormats={['excel', 'csv']}
@@ -104,16 +95,8 @@ export function SalaryDistributionReport() {
 
 export function SalaryChangeHistoryReport() {
   const [filters, setFilters] = useState<ReportFilters>({});
-  const { data = [], isLoading, refetch } = useSalaryChangeHistoryReport(filters);
-  const { settings } = useCompanySettings();
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-SA', {
-      style: 'currency',
-      currency: settings?.currency || 'SAR',
-      minimumFractionDigits: 0,
-    }).format(value);
-  };
+  const { data = [], isLoading, refetch } = useSalaryChangeHistory(filters);
+  const { settings, formatCurrency } = useCompanySettings();
 
   return (
     <ReportViewer
@@ -121,8 +104,8 @@ export function SalaryChangeHistoryReport() {
       description="Historical record of all salary changes with before/after values and change reasons"
       filters={filters}
       onFilterChange={setFilters}
-      data={data as unknown as Record<string, unknown>[]}
-      columns={changeColumns as ReportColumn<Record<string, unknown>>[]}
+      data={data}
+      columns={changeColumns}
       isLoading={isLoading}
       onRefresh={() => refetch()}
       exportFormats={['excel', 'csv']}

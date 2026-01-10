@@ -118,8 +118,8 @@ export function EmployeeMasterReport() {
       description="Complete employee directory with department, position, location, and employment details"
       filters={filters}
       onFilterChange={setFilters}
-      data={data as unknown as Record<string, unknown>[]}
-      columns={columns as ReportColumn<Record<string, unknown>>[]}
+      data={data}
+      columns={columns}
       isLoading={isLoading}
       onRefresh={() => refetch()}
       summaryCards={summaryCards}

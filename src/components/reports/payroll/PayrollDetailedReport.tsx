@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ReportViewer } from '../ReportViewer';
 import { ReportFilters, ReportColumn, PayrollDetailedRecord } from '@/types/reports';
 import { usePayrollDetailed } from '@/hooks/reports';
-import { useCompanySettings } from '@/hooks/useCompanySettings';
+import { useCompanySettings } from '@/contexts/CompanySettingsContext';
 import {
   Table,
   TableBody,
@@ -30,15 +30,7 @@ const columns: ReportColumn<PayrollDetailedRecord>[] = [
 export function PayrollDetailedReport() {
   const [filters, setFilters] = useState<ReportFilters>({});
   const { data = [], isLoading, refetch } = usePayrollDetailed(filters);
-  const { settings } = useCompanySettings();
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-SA', {
-      style: 'currency',
-      currency: settings?.currency || 'SAR',
-      minimumFractionDigits: 2,
-    }).format(value);
-  };
+  const { settings, formatCurrency } = useCompanySettings();
 
   return (
     <ReportViewer
@@ -46,8 +38,8 @@ export function PayrollDetailedReport() {
       description="Per-employee breakdown of salary components, allowances, deductions, and net pay"
       filters={filters}
       onFilterChange={setFilters}
-      data={data as unknown as Record<string, unknown>[]}
-      columns={columns as ReportColumn<Record<string, unknown>>[]}
+      data={data}
+      columns={columns}
       isLoading={isLoading}
       onRefresh={() => refetch()}
       exportFormats={['excel', 'csv']}

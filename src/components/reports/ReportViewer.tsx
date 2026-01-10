@@ -11,13 +11,15 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-interface ReportViewerProps<T extends Record<string, unknown>> {
+interface ReportViewerProps {
   title: string;
   description?: string;
   filters: ReportFilters;
   onFilterChange: (filters: ReportFilters) => void;
-  data: T[];
-  columns: ReportColumn<T>[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: any[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  columns: ReportColumn<any>[];
   isLoading: boolean;
   onRefresh?: () => void;
   summaryCards?: React.ReactNode;
@@ -28,7 +30,7 @@ interface ReportViewerProps<T extends Record<string, unknown>> {
   children?: React.ReactNode;
 }
 
-export function ReportViewer<T extends Record<string, unknown>>({
+export function ReportViewer({
   title,
   description,
   filters,
@@ -43,7 +45,7 @@ export function ReportViewer<T extends Record<string, unknown>>({
   companyName,
   locationName,
   children,
-}: ReportViewerProps<T>) {
+}: ReportViewerProps) {
   const handleExport = (format: ExportFormat) => {
     const filename = generateReportFilename(title, format === 'pdf' ? 'pdf' : format === 'excel' ? 'xlsx' : 'csv');
     
@@ -115,7 +117,7 @@ export function ReportViewer<T extends Record<string, unknown>>({
       </div>
 
       {/* Filters */}
-      <ReportFiltersBar filters={filters} onFilterChange={onFilterChange} />
+      <ReportFiltersBar filters={filters} onFiltersChange={onFilterChange} />
 
       {/* Summary Cards */}
       {summaryCards && (
