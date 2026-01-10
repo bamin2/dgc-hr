@@ -43,6 +43,21 @@ interface EmailTemplate {
   is_active: boolean;
 }
 
+/**
+ * Check if the template contains a complete HTML structure
+ * (has its own html/body tags or complete table layout)
+ */
+function isCompleteHtmlTemplate(html: string): boolean {
+  const lowerHtml = html.toLowerCase();
+  return (
+    lowerHtml.includes('<!doctype') ||
+    lowerHtml.includes('<html') ||
+    lowerHtml.includes('<body') ||
+    // Also detect if it starts with a table-based email layout
+    (lowerHtml.includes('<table') && lowerHtml.includes('width="100%"'))
+  );
+}
+
 async function sendEmail(to: string[], subject: string, html: string, from: string): Promise<ResendResponse> {
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -242,18 +257,23 @@ serve(async (req: Request): Promise<Response> => {
                   subject = processTemplate(emailTemplate!.subject, templateData);
                   const processedBody = processTemplate(emailTemplate!.body_content, templateData);
                   
-                  // Wrap with action buttons for approval emails
-                  html = wrapInEmailTemplateWithActions({
-                    companyName,
-                    companyLogo: company.document_logo_url || company.logo_url,
-                    companyPhone: company.phone,
-                    companyWebsite: company.website,
-                    companyEmail: company.email,
-                    companyAddress,
-                    bodyContent: processedBody,
-                    approveUrl,
-                    rejectUrl,
-                  });
+                  // Check if template is a complete HTML document - if so, use as-is
+                  if (isCompleteHtmlTemplate(processedBody)) {
+                    html = processedBody;
+                  } else {
+                    // Wrap with action buttons for approval emails
+                    html = wrapInEmailTemplateWithActions({
+                      companyName,
+                      companyLogo: company.document_logo_url || company.logo_url,
+                      companyPhone: company.phone,
+                      companyWebsite: company.website,
+                      companyEmail: company.email,
+                      companyAddress,
+                      bodyContent: processedBody,
+                      approveUrl,
+                      rejectUrl,
+                    });
+                  }
                 } else {
                   // Fallback to hardcoded template
                   subject = `Leave Request: ${employeeName} - ${leaveTypeName}`;
@@ -341,21 +361,26 @@ serve(async (req: Request): Promise<Response> => {
               subject = processTemplate(emailTemplate!.subject, templateData);
               const processedBody = processTemplate(emailTemplate!.body_content, templateData);
               
-              // Determine gradient colors based on type
-              const gradientColors = type === "leave_request_approved" 
-                ? { from: "#22c55e", to: "#16a34a" }
-                : { from: "#ef4444", to: "#dc2626" };
-              
-              html = wrapInEmailTemplate({
-                companyName,
-                companyLogo: company.document_logo_url || company.logo_url,
-                companyPhone: company.phone,
-                companyWebsite: company.website,
-                companyEmail: company.email,
-                companyAddress,
-                bodyContent: processedBody,
-                gradientColors,
-              });
+              // Check if template is a complete HTML document - if so, use as-is
+              if (isCompleteHtmlTemplate(processedBody)) {
+                html = processedBody;
+              } else {
+                // Determine gradient colors based on type
+                const gradientColors = type === "leave_request_approved" 
+                  ? { from: "#22c55e", to: "#16a34a" }
+                  : { from: "#ef4444", to: "#dc2626" };
+                
+                html = wrapInEmailTemplate({
+                  companyName,
+                  companyLogo: company.document_logo_url || company.logo_url,
+                  companyPhone: company.phone,
+                  companyWebsite: company.website,
+                  companyEmail: company.email,
+                  companyAddress,
+                  bodyContent: processedBody,
+                  gradientColors,
+                });
+              }
             } else {
               // Fallback to hardcoded template
               const emailData = {
