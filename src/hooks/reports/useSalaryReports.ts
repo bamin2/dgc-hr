@@ -141,7 +141,9 @@ async function fetchSalaryChangeHistory(filters: ReportFilters): Promise<SalaryC
         first_name,
         last_name,
         employee_code,
-        departments!department_id (name)
+        salary_currency_code,
+        departments!department_id (name),
+        work_locations!work_location_id (currency)
       )
     `)
     .order('effective_date', { ascending: false });
@@ -167,17 +169,32 @@ async function fetchSalaryChangeHistory(filters: ReportFilters): Promise<SalaryC
   
   const profileMap = new Map((profiles || []).map(p => [p.id, `${p.first_name || ''} ${p.last_name || ''}`.trim()]));
   
-  return records.map((r: SalaryHistoryRecord) => {
+  return records.map((r) => {
     const prevSalary = r.previous_salary || 0;
     const newSalary = r.new_salary || 0;
     const changeAmount = newSalary - prevSalary;
     const changePercentage = prevSalary > 0 ? (changeAmount / prevSalary) * 100 : 0;
     
+    // Get currency from employee
+    const emp = r.employees as {
+      first_name: string;
+      last_name: string;
+      employee_code: string | null;
+      salary_currency_code: string | null;
+      departments: { name: string } | null;
+      work_locations: { currency: string } | null;
+    } | null;
+    
+    const currencyCode = emp?.salary_currency_code || 
+      emp?.work_locations?.currency || 
+      'BHD';
+    
     return {
       employeeId: r.employee_id,
-      employeeCode: r.employees?.employee_code || '',
-      employeeName: r.employees ? `${r.employees.first_name} ${r.employees.last_name}` : 'Unknown',
-      department: r.employees?.departments?.name || 'Unassigned',
+      employeeCode: emp?.employee_code || '',
+      employeeName: emp ? `${emp.first_name} ${emp.last_name}` : 'Unknown',
+      department: emp?.departments?.name || 'Unassigned',
+      currencyCode,
       effectiveDate: r.effective_date,
       previousSalary: prevSalary,
       newSalary: newSalary,

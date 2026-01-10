@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { ReportViewer } from '../ReportViewer';
 import { ReportFilters, ReportColumn, PayrollRunSummary } from '@/types/reports';
 import { usePayrollRunSummary } from '@/hooks/reports';
 import { useCompanySettings } from '@/contexts/CompanySettingsContext';
+import { formatCurrencyWithCode } from '@/lib/salaryUtils';
+import { Badge } from '@/components/ui/badge';
 import {
   Table,
   TableBody,
@@ -13,12 +15,13 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { format } from 'date-fns';
-import { DollarSign, Users, TrendingUp, Wallet } from 'lucide-react';
+import { DollarSign, Users, TrendingUp, Wallet, AlertTriangle } from 'lucide-react';
 
 const columns: ReportColumn<PayrollRunSummary>[] = [
   { key: 'payPeriodStart', header: 'Pay Period Start', format: 'date' },
   { key: 'payPeriodEnd', header: 'Pay Period End', format: 'date' },
   { key: 'status', header: 'Status' },
+  { key: 'currencyCode', header: 'Currency' },
   { key: 'employeeCount', header: 'Employees', format: 'number', align: 'right' },
   { key: 'totalGross', header: 'Gross Pay', format: 'currency', align: 'right' },
   { key: 'totalDeductions', header: 'Deductions', format: 'currency', align: 'right' },
@@ -31,7 +34,19 @@ const columns: ReportColumn<PayrollRunSummary>[] = [
 export function PayrollRunSummaryReport() {
   const [filters, setFilters] = useState<ReportFilters>({});
   const { data = [], isLoading, refetch } = usePayrollRunSummary(filters);
-  const { settings, formatCurrency } = useCompanySettings();
+  const { settings } = useCompanySettings();
+
+  // Check if there are mixed currencies in totals
+  const hasMixedCurrencies = useMemo(() => {
+    const currencies = new Set(data.map(r => r.currencyCode));
+    return currencies.size > 1;
+  }, [data]);
+
+  // Get single currency for display if all same
+  const singleCurrency = useMemo(() => {
+    if (hasMixedCurrencies) return null;
+    return data.length > 0 ? data[0].currencyCode : 'BHD';
+  }, [data, hasMixedCurrencies]);
 
   const totals = data.reduce(
     (acc, run) => ({
@@ -42,6 +57,17 @@ export function PayrollRunSummaryReport() {
     }),
     { employees: 0, gross: 0, net: 0, gosi: 0 }
   );
+
+  const formatAmount = (amount: number, currencyCode: string) => {
+    return formatCurrencyWithCode(amount, currencyCode);
+  };
+
+  const formatTotalAmount = (amount: number) => {
+    if (hasMixedCurrencies) {
+      return `${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (Mixed)`;
+    }
+    return formatCurrencyWithCode(amount, singleCurrency || 'BHD');
+  };
 
   const summaryCards = (
     <>
@@ -66,7 +92,13 @@ export function PayrollRunSummaryReport() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Total Gross</p>
-              <p className="text-2xl font-bold">{formatCurrency(totals.gross)}</p>
+              <p className="text-2xl font-bold">{formatTotalAmount(totals.gross)}</p>
+              {hasMixedCurrencies && (
+                <Badge variant="outline" className="text-xs mt-1">
+                  <AlertTriangle className="h-3 w-3 mr-1" />
+                  Mixed Currencies
+                </Badge>
+              )}
             </div>
           </div>
         </CardContent>
@@ -79,7 +111,7 @@ export function PayrollRunSummaryReport() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Total Net Pay</p>
-              <p className="text-2xl font-bold">{formatCurrency(totals.net)}</p>
+              <p className="text-2xl font-bold">{formatTotalAmount(totals.net)}</p>
             </div>
           </div>
         </CardContent>
@@ -92,7 +124,7 @@ export function PayrollRunSummaryReport() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Total GOSI</p>
-              <p className="text-2xl font-bold">{formatCurrency(totals.gosi)}</p>
+              <p className="text-2xl font-bold">{formatTotalAmount(totals.gosi)}</p>
             </div>
           </div>
         </CardContent>
@@ -131,13 +163,20 @@ export function PayrollRunSummaryReport() {
                 <TableCell>{format(new Date(row.payPeriodStart), 'MMM d, yyyy')}</TableCell>
                 <TableCell>{format(new Date(row.payPeriodEnd), 'MMM d, yyyy')}</TableCell>
                 <TableCell className="capitalize">{row.status.replace('_', ' ')}</TableCell>
+                <TableCell>
+                  {row.hasMixedCurrencies ? (
+                    <Badge variant="outline" className="text-xs">Mixed</Badge>
+                  ) : (
+                    row.currencyCode
+                  )}
+                </TableCell>
                 <TableCell className="text-right">{row.employeeCount}</TableCell>
-                <TableCell className="text-right">{formatCurrency(row.totalGross)}</TableCell>
-                <TableCell className="text-right">{formatCurrency(row.totalDeductions)}</TableCell>
-                <TableCell className="text-right">{formatCurrency(row.totalNetPay)}</TableCell>
-                <TableCell className="text-right">{formatCurrency(row.employeeGosiTotal)}</TableCell>
-                <TableCell className="text-right">{formatCurrency(row.employerGosiTotal)}</TableCell>
-                <TableCell className="text-right">{formatCurrency(row.loanDeductionsTotal)}</TableCell>
+                <TableCell className="text-right">{formatAmount(row.totalGross, row.currencyCode)}</TableCell>
+                <TableCell className="text-right">{formatAmount(row.totalDeductions, row.currencyCode)}</TableCell>
+                <TableCell className="text-right">{formatAmount(row.totalNetPay, row.currencyCode)}</TableCell>
+                <TableCell className="text-right">{formatAmount(row.employeeGosiTotal, row.currencyCode)}</TableCell>
+                <TableCell className="text-right">{formatAmount(row.employerGosiTotal, row.currencyCode)}</TableCell>
+                <TableCell className="text-right">{formatAmount(row.loanDeductionsTotal, row.currencyCode)}</TableCell>
               </TableRow>
             ))}
             {data.length === 0 && !isLoading && (

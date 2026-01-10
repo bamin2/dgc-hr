@@ -11,11 +11,11 @@ async function fetchLoanSummary(filters: ReportFilters): Promise<LoanSummaryReco
   
   if (error) throw error;
   
-  // Fetch employee info
+  // Fetch employee info with currency
   const empIds = [...new Set((loans || []).map(l => l.employee_id))];
   const { data: employees } = await supabase
     .from('employees')
-    .select('id, first_name, last_name, employee_code, departments!department_id(name)')
+    .select('id, first_name, last_name, employee_code, salary_currency_code, departments!department_id(name), work_locations!work_location_id(currency)')
     .in('id', empIds);
   
   const empMap = new Map((employees || []).map(e => [e.id, e]));
@@ -58,12 +58,18 @@ async function fetchLoanSummary(filters: ReportFilters): Promise<LoanSummaryReco
     const expectedEndDate = addMonths(new Date(l.start_date), durationMonths);
     const emp = empMap.get(l.employee_id);
     
+    // Get currency from employee
+    const currencyCode = emp?.salary_currency_code || 
+      (emp?.work_locations as { currency: string } | null)?.currency || 
+      'BHD';
+    
     return {
       loanId: l.id,
       employeeId: l.employee_id,
       employeeCode: emp?.employee_code || '',
       employeeName: emp ? `${emp.first_name} ${emp.last_name}` : 'Unknown',
       department: (emp?.departments as { name: string } | null)?.name || 'Unassigned',
+      currencyCode,
       originalAmount: l.principal_amount,
       outstandingBalance: instData.remaining,
       installmentAmount: l.installment_amount || 0,
@@ -93,11 +99,11 @@ async function fetchLoanInstallments(filters: ReportFilters): Promise<LoanInstal
   
   const loanMap = new Map((loans || []).map(l => [l.id, l]));
   
-  // Fetch employees
+  // Fetch employees with currency
   const empIds = [...new Set((loans || []).map(l => l.employee_id))];
   const { data: employees } = await supabase
     .from('employees')
-    .select('id, first_name, last_name')
+    .select('id, first_name, last_name, salary_currency_code, work_locations!work_location_id(currency)')
     .in('id', empIds);
   
   const empMap = new Map((employees || []).map(e => [e.id, e]));
@@ -123,11 +129,17 @@ async function fetchLoanInstallments(filters: ReportFilters): Promise<LoanInstal
       paymentMethod = r.paid_in_payroll_run_id ? 'payroll' : 'manual';
     }
     
+    // Get currency from employee
+    const currencyCode = emp?.salary_currency_code || 
+      (emp?.work_locations as { currency: string } | null)?.currency || 
+      'BHD';
+    
     return {
       installmentId: r.id,
       loanId: r.loan_id,
       employeeId: loan?.employee_id || '',
       employeeName: emp ? `${emp.first_name} ${emp.last_name}` : 'Unknown',
+      currencyCode,
       dueDate: r.due_date,
       dueMonth: format(new Date(r.due_date), 'MMM yyyy'),
       amount: r.amount,
