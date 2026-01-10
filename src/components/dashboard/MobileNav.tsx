@@ -29,6 +29,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useRole } from "@/contexts/RoleContext";
 import { useCompanySettings } from "@/contexts/CompanySettingsContext";
 import { RoleBadge } from "@/components/employees/RoleBadge";
+import dgcLogoLight from "@/assets/dgc-logo-light.svg";
 
 // MAIN - Visible to all employees
 const mainMenuItems = [
@@ -72,11 +73,11 @@ function NavItem({ icon: Icon, label, path, isActive, onClick, comingSoon }: Nav
   if (comingSoon) {
     return (
       <div
-        className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground/50 cursor-not-allowed"
+        className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-foreground/40 cursor-not-allowed"
       >
         <Icon className="w-5 h-5" />
         <span className="font-medium">{label}</span>
-        <span className="ml-auto text-[10px] font-medium bg-muted text-muted-foreground px-1.5 py-0.5 rounded">
+        <span className="ml-auto text-[10px] font-medium bg-sidebar-accent text-sidebar-muted px-1.5 py-0.5 rounded">
           Soon
         </span>
       </div>
@@ -90,12 +91,12 @@ function NavItem({ icon: Icon, label, path, isActive, onClick, comingSoon }: Nav
       className={cn(
         "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors",
         isActive
-          ? "bg-primary text-primary-foreground"
-          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+          ? "bg-sidebar-accent text-sidebar-primary border-l-2 border-sidebar-primary"
+          : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
       )}
     >
-      <Icon className="w-5 h-5" />
-      <span className="font-medium">{label}</span>
+      <Icon className={cn("w-5 h-5", isActive && "text-sidebar-primary")} />
+      <span className={cn("font-medium", isActive && "text-sidebar-foreground")}>{label}</span>
     </Link>
   );
 }
@@ -115,7 +116,7 @@ interface NavSectionProps {
 function NavSection({ label, items, currentPath, onItemClick }: NavSectionProps) {
   return (
     <div className="space-y-1">
-      <p className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+      <p className="px-3 text-xs font-semibold text-sidebar-muted uppercase tracking-wider mb-2">
         {label}
       </p>
       {items.map((item) => (
@@ -145,24 +146,6 @@ export function MobileNav() {
     .join("")
     .toUpperCase();
 
-  const companyInitials = settings.name
-    .split(" ")
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-
-  const companyDisplayName = settings.name.split(" ")[0];
-
-  // Determine what to display in sidebar based on settings
-  const displayType = settings.branding.dashboardDisplayType || 'logo';
-  const iconName = settings.branding.dashboardIconName;
-  const DashboardIcon = displayType === 'icon' && iconName ? icons[iconName as keyof typeof icons] : null;
-  
-  const hasLogoImage = settings.branding.logoUrl && 
-    settings.branding.logoUrl !== "/placeholder.svg" && 
-    settings.branding.logoUrl !== "";
-
   const handleClose = () => setOpen(false);
 
   return (
@@ -178,28 +161,17 @@ export function MobileNav() {
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="w-72 p-0 bg-sidebar text-sidebar-foreground flex flex-col overflow-hidden">
-        {/* Logo Section */}
+        {/* Logo Section - DGC Branding */}
         <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
-          <div className="flex items-center gap-3">
-            {displayType === 'icon' && DashboardIcon ? (
-              <div className="w-10 h-10 rounded-xl bg-sidebar-primary flex items-center justify-center">
-                <DashboardIcon className={cn("w-6 h-6 text-sidebar-primary-foreground", iconName === "SlashFlipped" && "scale-x-[-1]")} />
-              </div>
-            ) : (
-              <Avatar className="w-10 h-10 rounded-xl">
-                {hasLogoImage ? (
-                  <AvatarImage
-                    src={settings.branding.logoUrl}
-                    alt={settings.name}
-                    className="object-contain p-1"
-                  />
-                ) : null}
-                <AvatarFallback className="rounded-xl bg-sidebar-primary text-sidebar-primary-foreground font-bold text-lg">
-                  {companyInitials.charAt(0) || "F"}
-                </AvatarFallback>
-              </Avatar>
-            )}
-            <span className="text-xl font-bold tracking-tight">{companyDisplayName}</span>
+          <div className="flex flex-col">
+            <img 
+              src={dgcLogoLight} 
+              alt="DGC Logo" 
+              className="h-8 w-auto"
+            />
+            <span className="text-xs font-semibold tracking-widest text-sidebar-muted mt-1">
+              CORE
+            </span>
           </div>
           <Button
             variant="ghost"
