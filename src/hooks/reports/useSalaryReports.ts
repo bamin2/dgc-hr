@@ -36,7 +36,7 @@ function calculateMedian(values: number[]): number {
 }
 
 async function fetchSalaryDistribution(filters: ReportFilters): Promise<SalaryDistributionRecord[]> {
-  console.log('Fetching salary distribution with filters:', filters);
+  
   
   const { data: employees, error } = await supabase
     .from('employees')
@@ -50,12 +50,7 @@ async function fetchSalaryDistribution(filters: ReportFilters): Promise<SalaryDi
     `)
     .eq('status', 'active');
   
-  console.log('Salary distribution query result:', { count: employees?.length, error });
-  
-  if (error) {
-    console.error('Salary distribution error:', error);
-    throw error;
-  }
+  if (error) throw error;
   
   // Group by department
   const deptMap = new Map<string, { dept: string; location: string; salaries: number[] }>();
@@ -111,7 +106,7 @@ async function fetchSalaryDistribution(filters: ReportFilters): Promise<SalaryDi
 }
 
 async function fetchSalaryChangeHistory(filters: ReportFilters): Promise<SalaryChangeRecord[]> {
-  console.log('Fetching salary change history with filters:', filters);
+  
   
   const { data, error } = await supabase
     .from('salary_history')
@@ -128,17 +123,12 @@ async function fetchSalaryChangeHistory(filters: ReportFilters): Promise<SalaryC
         first_name,
         last_name,
         employee_code,
-        departments (name)
+        departments!department_id (name)
       )
     `)
     .order('effective_date', { ascending: false });
   
-  console.log('Salary change history query result:', { count: data?.length, error });
-  
-  if (error) {
-    console.error('Salary change history error:', error);
-    throw error;
-  }
+  if (error) throw error;
   
   let records = data || [];
   
