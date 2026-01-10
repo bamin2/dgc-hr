@@ -30,6 +30,7 @@ interface DbCompanySettings {
   timezone: string | null;
   date_format: string | null;
   currency: string | null;
+  reporting_currency: string | null;
   weekend_days: number[] | null;
   payroll_day_of_month: number | null;
   dashboard_card_visibility: Json | null;
@@ -69,6 +70,7 @@ function transformFromDb(row: DbCompanySettings): CompanySettings {
       dateFormat: row.date_format || 'MM/DD/YYYY',
       currency: row.currency || 'USD',
       weekendDays: row.weekend_days || [5, 6],
+      reportingCurrency: row.reporting_currency || 'BHD',
     },
     payrollDayOfMonth: row.payroll_day_of_month || 25,
     dashboardCardVisibility: row.dashboard_card_visibility 
@@ -111,6 +113,7 @@ function transformToDb(settings: Partial<CompanySettings>): Record<string, unkno
     if (settings.branding.dateFormat !== undefined) db.date_format = settings.branding.dateFormat;
     if (settings.branding.currency !== undefined) db.currency = settings.branding.currency;
     if (settings.branding.weekendDays !== undefined) db.weekend_days = settings.branding.weekendDays;
+    if (settings.branding.reportingCurrency !== undefined) db.reporting_currency = settings.branding.reportingCurrency;
   }
 
   if (settings.dashboardCardVisibility !== undefined) {
