@@ -34,6 +34,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { useCompanySettings } from "@/contexts/CompanySettingsContext";
 import { RoleBadge } from "@/components/employees/RoleBadge";
 import { usePendingApprovalsCount } from "@/hooks/usePendingApprovalsCount";
+import dgcLogoLight from "@/assets/dgc-logo-light.svg";
 
 // MANAGEMENT - HR & Manager roles only
 const managementMenuItems = [
@@ -86,26 +87,6 @@ export function Sidebar() {
     .join('')
     .toUpperCase();
 
-  // Get company initials for logo fallback
-  const companyInitials = settings.name
-    .split(' ')
-    .map(n => n[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
-
-  // Get display name (first word of company name)
-  const companyDisplayName = settings.name.split(' ')[0];
-
-  // Determine what to display in sidebar based on settings
-  const displayType = settings.branding.dashboardDisplayType || 'logo';
-  const iconName = settings.branding.dashboardIconName;
-  const DashboardIcon = displayType === 'icon' && iconName ? icons[iconName as keyof typeof icons] : null;
-  
-  const hasLogoImage = settings.branding.logoUrl && 
-    settings.branding.logoUrl !== '/placeholder.svg' && 
-    settings.branding.logoUrl !== '';
-
   return (
     <aside
       className={cn(
@@ -113,25 +94,24 @@ export function Sidebar() {
         collapsed ? "w-20" : "w-64"
       )}
     >
-      {/* Logo Section */}
+      {/* Logo Section - DGC Branding */}
       <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
         <div className={cn("flex items-center gap-3", collapsed && "justify-center w-full")}>
-          {displayType === 'icon' && DashboardIcon ? (
+          {collapsed ? (
             <div className="w-10 h-10 rounded-xl bg-sidebar-primary flex items-center justify-center">
-              <DashboardIcon className={cn("w-6 h-6 text-sidebar-primary-foreground", iconName === "SlashFlipped" && "scale-x-[-1]")} />
+              <span className="text-sidebar-primary-foreground font-bold text-lg">D</span>
             </div>
           ) : (
-            <Avatar className="w-10 h-10 rounded-xl">
-              {hasLogoImage ? (
-                <AvatarImage src={settings.branding.logoUrl} alt={settings.name} className="object-contain p-1" />
-              ) : null}
-              <AvatarFallback className="rounded-xl bg-sidebar-primary text-sidebar-primary-foreground font-bold text-lg">
-                {companyInitials.charAt(0) || 'F'}
-              </AvatarFallback>
-            </Avatar>
-          )}
-          {!collapsed && (
-            <span className="text-xl font-bold tracking-tight">{companyDisplayName}</span>
+            <div className="flex flex-col">
+              <img 
+                src={dgcLogoLight} 
+                alt="DGC Logo" 
+                className="h-8 w-auto"
+              />
+              <span className="text-xs font-semibold tracking-widest text-sidebar-muted mt-1">
+                CORE
+              </span>
+            </div>
           )}
         </div>
       </div>

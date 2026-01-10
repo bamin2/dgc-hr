@@ -54,7 +54,7 @@ export function Header() {
     .slice(0, 2);
 
   return (
-    <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b border-border">
+    <header className="sticky top-0 z-40 bg-background border-b border-border">
       <div className="flex items-center justify-between h-14 sm:h-16 px-4 sm:px-6">
         {/* Left side - Mobile nav trigger + Greeting */}
         <div className="flex items-center gap-3">
@@ -63,7 +63,7 @@ export function Header() {
             <MobileNav />
           </div>
           <div>
-            <h1 className="text-lg sm:text-xl font-bold text-foreground">
+            <h1 className="text-lg sm:text-xl font-semibold text-foreground">
               Hello, {displayName.split(' ')[0]}! 👋
             </h1>
             <p className="hidden sm:block text-sm text-muted-foreground">
@@ -77,11 +77,11 @@ export function Header() {
           {/* Search */}
           <button
             onClick={() => setSearchOpen(true)}
-            className="hidden md:flex items-center gap-2 w-64 px-3 py-2 text-sm text-muted-foreground bg-secondary/50 rounded-md hover:bg-secondary transition-colors"
+            className="hidden md:flex items-center gap-2 w-64 px-3 py-2 text-sm text-muted-foreground bg-muted/50 rounded-md hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50"
           >
             <Search className="w-4 h-4" />
             <span className="flex-1 text-left">Search anything...</span>
-            <kbd className="pointer-events-none hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+            <kbd className="pointer-events-none hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-background px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
               <span className="text-xs">⌘</span>K
             </kbd>
           </button>
@@ -95,9 +95,9 @@ export function Header() {
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
-                className="flex items-center gap-2 hover:bg-secondary px-2 sm:px-4"
+                className="flex items-center gap-2 hover:bg-muted px-2 sm:px-4"
               >
-                <Avatar className="w-8 h-8">
+                <Avatar className="w-8 h-8 ring-2 ring-primary/20">
                   <AvatarImage src={profile?.avatar_url || currentUser.avatar} />
                   <AvatarFallback className="bg-primary text-primary-foreground">
                     {initials}
