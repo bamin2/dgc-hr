@@ -39,8 +39,11 @@ const changeColumns: ReportColumn<SalaryChangeRecord>[] = [
 
 export function SalaryDistributionReport() {
   const [filters, setFilters] = useState<ReportFilters>({});
-  const { data = [], isLoading, refetch } = useSalaryDistribution(filters);
+  const { data = [], isLoading, error, refetch } = useSalaryDistribution(filters);
   const { settings, formatCurrency } = useCompanySettings();
+
+  // Debug logging
+  console.log('SalaryDistributionReport:', { dataLength: data.length, isLoading, error });
 
   return (
     <ReportViewer
@@ -55,6 +58,12 @@ export function SalaryDistributionReport() {
       exportFormats={['excel', 'csv']}
       companyName={settings?.name}
     >
+      {error && (
+        <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 mb-4">
+          <p className="text-destructive font-medium">Error loading salary distribution:</p>
+          <p className="text-destructive/80 text-sm">{(error as Error).message}</p>
+        </div>
+      )}
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
@@ -95,8 +104,11 @@ export function SalaryDistributionReport() {
 
 export function SalaryChangeHistoryReport() {
   const [filters, setFilters] = useState<ReportFilters>({});
-  const { data = [], isLoading, refetch } = useSalaryChangeHistory(filters);
+  const { data = [], isLoading, error, refetch } = useSalaryChangeHistory(filters);
   const { settings, formatCurrency } = useCompanySettings();
+
+  // Debug logging
+  console.log('SalaryChangeHistoryReport:', { dataLength: data.length, isLoading, error });
 
   return (
     <ReportViewer
@@ -111,6 +123,12 @@ export function SalaryChangeHistoryReport() {
       exportFormats={['excel', 'csv']}
       companyName={settings?.name}
     >
+      {error && (
+        <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 mb-4">
+          <p className="text-destructive font-medium">Error loading salary change history:</p>
+          <p className="text-destructive/80 text-sm">{(error as Error).message}</p>
+        </div>
+      )}
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
