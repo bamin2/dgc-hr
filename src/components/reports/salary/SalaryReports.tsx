@@ -47,55 +47,63 @@ export function SalaryDistributionReport() {
   const { data = [], isLoading, error, refetch } = useSalaryDistribution(filters);
   const { settings } = useCompanySettings();
   
-  const reportingCurrency = settings?.reporting_currency || 'BHD';
+  const reportingCurrency = settings?.branding?.reportingCurrency || 'BHD';
   
-  // Get unique currencies from data
+  // Get unique currencies from data (excluding reporting currency)
   const currencies = useMemo(() => {
     const uniqueCurrencies = [...new Set(data.map(r => r.currencyCode))];
-    return uniqueCurrencies.filter(c => c !== reportingCurrency);
+    return uniqueCurrencies.filter(c => c && c !== reportingCurrency);
   }, [data, reportingCurrency]);
   
   // Fetch FX rates for all currencies
-  const { data: fxRates = [] } = useFxRatesForCurrencies(currencies);
+  const { data: fxRatesMap } = useFxRatesForCurrencies(currencies);
   
   // Check for missing rates
   const missingRates = useMemo(() => {
-    return getMissingRateCurrencies(currencies, fxRates);
-  }, [currencies, fxRates]);
+    if (!fxRatesMap) return currencies;
+    return getMissingRateCurrencies(currencies, fxRatesMap);
+  }, [currencies, fxRatesMap]);
   
-  // Get the FX rate info for display
+  // Get the FX rate info for display (pick the first non-BHD currency rate)
   const fxRateInfo = useMemo(() => {
-    if (fxRates.length === 0) return null;
-    const latestRate = fxRates[0];
+    if (!fxRatesMap || currencies.length === 0) return null;
+    const firstCurrency = currencies[0];
+    const rateInfo = fxRatesMap.get(firstCurrency);
+    if (!rateInfo) return null;
     return {
-      rate: latestRate?.rate,
-      effectiveDate: latestRate?.effective_date,
-      baseCurrency: reportingCurrency,
+      currency: firstCurrency,
+      rate: rateInfo.rate,
+      effectiveDate: rateInfo.effectiveDate,
     };
-  }, [fxRates, reportingCurrency]);
+  }, [fxRatesMap, currencies]);
   
   // Convert data to reporting currency if needed
   const displayData = useMemo(() => {
-    if (viewMode === 'local') return data;
+    if (viewMode === 'local' || !fxRatesMap) return data;
     
     // In reporting mode, convert all values to reporting currency
     return data.map(row => {
       if (row.currencyCode === reportingCurrency) return row;
       
-      const rate = fxRates.find(r => r.quote_currency_code === row.currencyCode);
-      if (!rate) return row; // Can't convert without rate
+      const conversion = convertToBaseCurrency(row.totalGrossPay, row.currencyCode, fxRatesMap);
+      if (!conversion) return row; // Can't convert without rate
+      
+      const minConv = convertToBaseCurrency(row.minGrossPay, row.currencyCode, fxRatesMap);
+      const maxConv = convertToBaseCurrency(row.maxGrossPay, row.currencyCode, fxRatesMap);
+      const avgConv = convertToBaseCurrency(row.avgGrossPay, row.currencyCode, fxRatesMap);
+      const medianConv = convertToBaseCurrency(row.medianGrossPay, row.currencyCode, fxRatesMap);
       
       return {
         ...row,
-        minGrossPay: convertToBaseCurrency(row.minGrossPay, rate.rate),
-        maxGrossPay: convertToBaseCurrency(row.maxGrossPay, rate.rate),
-        avgGrossPay: convertToBaseCurrency(row.avgGrossPay, rate.rate),
-        medianGrossPay: convertToBaseCurrency(row.medianGrossPay, rate.rate),
-        totalGrossPay: convertToBaseCurrency(row.totalGrossPay, rate.rate),
+        minGrossPay: minConv?.convertedAmount ?? row.minGrossPay,
+        maxGrossPay: maxConv?.convertedAmount ?? row.maxGrossPay,
+        avgGrossPay: avgConv?.convertedAmount ?? row.avgGrossPay,
+        medianGrossPay: medianConv?.convertedAmount ?? row.medianGrossPay,
+        totalGrossPay: conversion.convertedAmount,
         currencyCode: reportingCurrency,
       };
     });
-  }, [data, viewMode, fxRates, reportingCurrency]);
+  }, [data, viewMode, fxRatesMap, reportingCurrency]);
 
   // Format currency based on view mode
   const formatAmount = (amount: number, currencyCode: string) => {
@@ -121,7 +129,7 @@ export function SalaryDistributionReport() {
           onModeChange={setViewMode}
           reportingCurrency={reportingCurrency}
           fxRateInfo={fxRateInfo}
-          missingRates={missingRates}
+          missingRateCurrencies={missingRates}
         />
       </div>
       
