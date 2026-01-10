@@ -38,14 +38,16 @@ export function useTeamDashboard(teamMemberIds: string[]) {
         fetchUpcomingTimeOff(today, 10, teamMemberIds),
       ]);
 
-      const upcomingTimeOff = (upcomingRes.data || []).map((r: any) => ({
-        employeeId: r.employee?.id,
-        employeeName: formatEmployeeName(r.employee?.first_name, r.employee?.last_name),
-        startDate: r.start_date,
-        endDate: r.end_date,
-        leaveTypeName: r.leave_type?.name || 'Leave',
-        daysCount: r.days_count,
-      }));
+      const upcomingTimeOff = (upcomingRes.data || [])
+        .filter((r: any) => r.leave_type?.name !== 'Public Holiday')
+        .map((r: any) => ({
+          employeeId: r.employee?.id,
+          employeeName: formatEmployeeName(r.employee?.first_name, r.employee?.last_name),
+          startDate: r.start_date,
+          endDate: r.end_date,
+          leaveTypeName: r.leave_type?.name || 'Leave',
+          daysCount: r.days_count,
+        }));
 
       return {
         teamMemberCount: teamMemberIds.length,
