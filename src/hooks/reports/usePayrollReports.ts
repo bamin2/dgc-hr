@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { ReportFilters, PayrollRunSummary, PayrollDetailedRecord, PayslipRegisterRecord } from '@/types/reports';
 import { format } from 'date-fns';
-import { Json } from '@/integrations/supabase/types';
+import type { Json } from '@/integrations/supabase/types';
 
 async function fetchPayrollRunSummary(filters: ReportFilters): Promise<PayrollRunSummary[]> {
   const { data: runs, error: runsError } = await supabase
@@ -85,14 +85,14 @@ async function fetchPayrollDetailed(filters: ReportFilters): Promise<PayrollDeta
     loanByEmployee.set(a.employee_id, current + Math.abs(a.amount || 0));
   });
   
-  return (data || []).map(e => {
-    const otherAllowances = e.other_allowances as Json;
-    const otherDeductions = e.other_deductions as Json;
+  return (data || []).map((e): PayrollDetailedRecord => {
+    const otherAllowances = e.other_allowances;
+    const otherDeductions = e.other_deductions;
     const otherAllowancesTotal = typeof otherAllowances === 'object' && otherAllowances !== null && !Array.isArray(otherAllowances)
-      ? Object.values(otherAllowances).reduce((sum: number, v) => sum + (typeof v === 'number' ? v : 0), 0)
+      ? Object.values(otherAllowances as Record<string, number>).reduce((sum, v) => sum + (typeof v === 'number' ? v : 0), 0)
       : 0;
     const otherDeductionsTotal = typeof otherDeductions === 'object' && otherDeductions !== null && !Array.isArray(otherDeductions)
-      ? Object.values(otherDeductions).reduce((sum: number, v) => sum + (typeof v === 'number' ? v : 0), 0)
+      ? Object.values(otherDeductions as Record<string, number>).reduce((sum, v) => sum + (typeof v === 'number' ? v : 0), 0)
       : 0;
     
     return {
