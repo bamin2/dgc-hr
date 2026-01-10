@@ -61,8 +61,8 @@ export function PayrollSnapshotCards({ data, isLoading, onNavigate }: PayrollSna
           value={gosi.display}
           subtitle="Employer contributions"
           icon={DollarSign}
-          iconBg="bg-blue-100 dark:bg-blue-900/30"
-          iconColor="text-blue-600 dark:text-blue-400"
+          iconBg="bg-teal-100 dark:bg-teal-900/30"
+          iconColor="text-teal-600 dark:text-teal-400"
           onClick={() => onNavigate('gosi-contribution')}
           tooltip={gosi.tooltip || "Total employer GOSI contribution for the selected period"}
           isLoading={isLoading}
@@ -73,8 +73,8 @@ export function PayrollSnapshotCards({ data, isLoading, onNavigate }: PayrollSna
           value={data.employeesPaid}
           subtitle="In finalized runs"
           icon={Users}
-          iconBg="bg-purple-100 dark:bg-purple-900/30"
-          iconColor="text-purple-600 dark:text-purple-400"
+          iconBg="bg-stone-100 dark:bg-stone-900/30"
+          iconColor="text-stone-600 dark:text-stone-400"
           onClick={() => onNavigate('payroll-detailed')}
           isLoading={isLoading}
         />

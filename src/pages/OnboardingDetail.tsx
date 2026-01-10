@@ -301,7 +301,7 @@ export default function OnboardingDetail() {
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 rounded-full bg-blue-500 mt-1.5" />
+                  <div className="w-2 h-2 rounded-full bg-teal-500 mt-1.5" />
                   <div>
                     <p className="text-sm font-medium">Scheduled Completion</p>
                     <p className="text-sm text-muted-foreground">

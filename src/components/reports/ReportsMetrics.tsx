@@ -14,8 +14,8 @@ export const ReportsMetrics = ({ stats }: ReportsMetricsProps) => {
       value: stats.totalEmployees.toString(),
       subtitle: `${stats.activeEmployees} active`,
       icon: Users,
-      iconBg: 'bg-blue-100 dark:bg-blue-900/30',
-      iconColor: 'text-blue-600 dark:text-blue-400'
+      iconBg: 'bg-teal-100 dark:bg-teal-900/30',
+      iconColor: 'text-teal-600 dark:text-teal-400'
     },
     {
       title: 'Attendance Rate',
@@ -30,8 +30,8 @@ export const ReportsMetrics = ({ stats }: ReportsMetricsProps) => {
       value: `$${stats.averageSalary.toLocaleString()}`,
       subtitle: 'Per employee',
       icon: DollarSign,
-      iconBg: 'bg-purple-100 dark:bg-purple-900/30',
-      iconColor: 'text-purple-600 dark:text-purple-400'
+      iconBg: 'bg-[#C6A45E]/20 dark:bg-[#C6A45E]/10',
+      iconColor: 'text-[#8B7035] dark:text-[#C6A45E]'
     },
     {
       title: 'Pending Leaves',

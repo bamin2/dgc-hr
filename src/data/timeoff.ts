@@ -45,11 +45,11 @@ export const timeOffTypeLabels: Record<TimeOffType, string> = {
 };
 
 export const timeOffTypeColors: Record<TimeOffType, { bg: string; text: string }> = {
-  paid_time_off: { bg: "bg-purple-100", text: "text-purple-800" },
+  paid_time_off: { bg: "bg-[#C6A45E]/20", text: "text-[#8B7035]" },
   sick_leave: { bg: "bg-slate-200", text: "text-slate-800" },
-  public_holiday: { bg: "bg-blue-100", text: "text-blue-800" },
+  public_holiday: { bg: "bg-teal-100", text: "text-teal-800" },
   unpaid_leave: { bg: "bg-amber-100", text: "text-amber-800" },
-  maternity_leave: { bg: "bg-pink-100", text: "text-pink-800" },
+  maternity_leave: { bg: "bg-rose-100", text: "text-rose-800" },
   paternity_leave: { bg: "bg-teal-100", text: "text-teal-800" },
 };
 

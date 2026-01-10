@@ -21,8 +21,8 @@ const eventConfig: Record<
   { icon: React.ElementType; label: string; color: string }
 > = {
   disburse: { icon: Banknote, label: "Disbursed", color: "text-green-600" },
-  top_up: { icon: Plus, label: "Top-up", color: "text-blue-600" },
-  restructure: { icon: RefreshCw, label: "Restructured", color: "text-purple-600" },
+  top_up: { icon: Plus, label: "Top-up", color: "text-teal-600" },
+  restructure: { icon: RefreshCw, label: "Restructured", color: "text-amber-600" },
   skip_installment: { icon: SkipForward, label: "Installment Skipped", color: "text-amber-600" },
   manual_payment: { icon: CreditCard, label: "Manual Payment", color: "text-emerald-600" },
   note: { icon: FileText, label: "Note", color: "text-muted-foreground" },

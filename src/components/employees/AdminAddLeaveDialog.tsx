@@ -170,7 +170,7 @@ export function AdminAddLeaveDialog({ open, onOpenChange, employeeId }: AdminAdd
                           <div className="flex items-center gap-2">
                             <div
                               className="w-2 h-2 rounded-full"
-                              style={{ backgroundColor: type.color || '#3b82f6' }}
+                              style={{ backgroundColor: type.color || '#14b8a6' }}
                             />
                             {type.name}
                           </div>

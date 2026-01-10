@@ -17,12 +17,12 @@ const typeConfig: Record<BenefitType, { label: string; icon: typeof Heart; class
   dental: {
     label: 'Dental',
     icon: Smile,
-    className: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+    className: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400'
   },
   vision: {
     label: 'Vision',
     icon: Eye,
-    className: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
+    className: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
   },
   retirement: {
     label: 'Retirement',
@@ -42,7 +42,7 @@ const typeConfig: Record<BenefitType, { label: string; icon: typeof Heart; class
   wellness: {
     label: 'Wellness',
     icon: Sparkles,
-    className: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400'
+    className: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400'
   },
   other: {
     label: 'Other',

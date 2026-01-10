@@ -95,7 +95,7 @@ export function TimeOffSummaryCard() {
         />
         <SummaryItem
           icon={<Clock className="w-5 h-5" />}
-          bgColor="bg-blue-500"
+          bgColor="bg-teal-500"
           days={totalPending}
           label="days pending approval"
           sublabel="Awaiting manager approval"

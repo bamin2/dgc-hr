@@ -65,7 +65,7 @@ export function EmployeeActivityTab({ employeeId }: EmployeeActivityTabProps) {
         status: req.status,
         timestamp: req.created_at || req.start_date,
         icon: <Calendar className="h-4 w-4" />,
-        iconBgClass: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400',
+        iconBgClass: 'bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400',
       });
     });
 
@@ -93,7 +93,7 @@ export function EmployeeActivityTab({ employeeId }: EmployeeActivityTabProps) {
         description: doc.documentName,
         timestamp: doc.createdAt || new Date().toISOString(),
         icon: <FileText className="h-4 w-4" />,
-        iconBgClass: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400',
+        iconBgClass: 'bg-stone-100 dark:bg-stone-900/30 text-stone-600 dark:text-stone-400',
       });
     });
 

@@ -75,14 +75,14 @@ interface LeaveTypeFormDialogProps {
 }
 
 const colorOptions = [
-  { value: '#3b82f6', label: 'Blue' },
+  { value: '#14b8a6', label: 'Teal' },
   { value: '#10b981', label: 'Green' },
   { value: '#f59e0b', label: 'Amber' },
   { value: '#ef4444', label: 'Red' },
-  { value: '#8b5cf6', label: 'Purple' },
-  { value: '#ec4899', label: 'Pink' },
-  { value: '#6366f1', label: 'Indigo' },
-  { value: '#14b8a6', label: 'Teal' },
+  { value: '#C6A45E', label: 'Gold' },
+  { value: '#6B8E7B', label: 'Sage' },
+  { value: '#F87171', label: 'Coral' },
+  { value: '#78716C', label: 'Stone' },
 ];
 
 export function LeaveTypeFormDialog({
@@ -101,7 +101,7 @@ export function LeaveTypeFormDialog({
     defaultValues: {
       name: leaveType?.name || "",
       description: leaveType?.description || "",
-      color: leaveType?.color || "#3b82f6",
+      color: leaveType?.color || "#14b8a6",
       max_days_per_year: leaveType?.max_days_per_year || null,
       is_paid: leaveType?.is_paid ?? true,
       requires_approval: leaveType?.requires_approval ?? true,

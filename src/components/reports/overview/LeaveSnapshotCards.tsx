@@ -41,8 +41,8 @@ export function LeaveSnapshotCards({ data, isLoading, onNavigate }: LeaveSnapsho
           value={data.daysTakenMTD}
           subtitle="Month to date"
           icon={CalendarDays}
-          iconBg="bg-violet-100 dark:bg-violet-900/30"
-          iconColor="text-violet-600 dark:text-violet-400"
+          iconBg="bg-teal-100 dark:bg-teal-900/30"
+          iconColor="text-teal-600 dark:text-teal-400"
           onClick={() => onNavigate('leave-balance')}
           isLoading={isLoading}
         />

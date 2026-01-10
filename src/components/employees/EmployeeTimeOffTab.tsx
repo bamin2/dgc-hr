@@ -173,7 +173,7 @@ export function EmployeeTimeOffTab({ employeeId }: EmployeeTimeOffTabProps) {
                       <div className="flex items-center gap-2">
                         <div 
                           className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: balance.leave_type?.color || '#3b82f6' }}
+                          style={{ backgroundColor: balance.leave_type?.color || '#14b8a6' }}
                         />
                         <span className="font-medium text-sm">
                           {balance.leave_type?.name || 'Leave'}
@@ -250,7 +250,7 @@ export function EmployeeTimeOffTab({ employeeId }: EmployeeTimeOffTabProps) {
                       <div className="flex items-center gap-2">
                         <div 
                           className="w-2 h-2 rounded-full"
-                          style={{ backgroundColor: request.leave_type?.color || '#3b82f6' }}
+                          style={{ backgroundColor: request.leave_type?.color || '#14b8a6' }}
                         />
                         <span className="text-sm font-medium">
                           {request.leave_type?.name || 'Leave'}
