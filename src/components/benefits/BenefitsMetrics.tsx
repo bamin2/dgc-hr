@@ -17,8 +17,8 @@ export const BenefitsMetrics = ({ metrics }: BenefitsMetricsProps) => {
       value: metrics.totalPlans.toString(),
       subtitle: 'Active benefit plans',
       icon: Heart,
-      iconBg: 'bg-purple-100 dark:bg-purple-900/30',
-      iconColor: 'text-purple-600 dark:text-purple-400'
+      iconBg: 'bg-teal-100 dark:bg-teal-900/30',
+      iconColor: 'text-teal-600 dark:text-teal-400'
     },
     {
       title: 'Active Enrollments',
@@ -41,8 +41,8 @@ export const BenefitsMetrics = ({ metrics }: BenefitsMetricsProps) => {
       value: formatCurrency(metrics.monthlyBenefitsCost),
       subtitle: 'Total contributions',
       icon: DollarSign,
-      iconBg: 'bg-blue-100 dark:bg-blue-900/30',
-      iconColor: 'text-blue-600 dark:text-blue-400'
+      iconBg: 'bg-stone-100 dark:bg-stone-900/30',
+      iconColor: 'text-stone-600 dark:text-stone-400'
     }
   ];
 

@@ -17,7 +17,7 @@ interface ListSectionProps {
 }
 
 const statusIcons: Record<ProjectStatus, React.ReactNode> = {
-  in_progress: <Loader2 className="h-4 w-4 text-blue-500" />,
+  in_progress: <Loader2 className="h-4 w-4 text-teal-600" />,
   todo: <Circle className="h-4 w-4 text-muted-foreground" />,
   need_review: <AlertCircle className="h-4 w-4 text-yellow-500" />,
   done: <CheckCircle className="h-4 w-4 text-green-500" />,

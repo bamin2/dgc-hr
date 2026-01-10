@@ -9,7 +9,7 @@ const categoryConfig: Record<string, { label: string; icon: React.ReactNode; cla
   offer_letter: {
     label: "Offer Letter",
     icon: <FileText className="h-3 w-3" />,
-    className: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+    className: "bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400",
   },
   salary_certificate: {
     label: "Salary Certificate",
@@ -19,7 +19,7 @@ const categoryConfig: Record<string, { label: string; icon: React.ReactNode; cla
   experience_certificate: {
     label: "Experience Certificate",
     icon: <Briefcase className="h-3 w-3" />,
-    className: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
+    className: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
   },
   contract: {
     label: "Contract",

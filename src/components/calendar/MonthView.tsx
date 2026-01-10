@@ -19,14 +19,15 @@ interface MonthViewProps {
 }
 
 const eventColorMap: Record<string, string> = {
-  blue: "bg-blue-500",
+  blue: "bg-teal-600",
   green: "bg-green-500",
   red: "bg-red-500",
   yellow: "bg-yellow-500",
-  purple: "bg-purple-500",
+  purple: "bg-[#C6A45E]",
   orange: "bg-orange-500",
   pink: "bg-pink-500",
-  teal: "bg-teal-500",
+  mint: "bg-teal-400",
+  coral: "bg-rose-400",
 };
 
 export function MonthView({
@@ -107,7 +108,7 @@ export function MonthView({
                   <div
                     key={event.id}
                     className={`text-xs px-1.5 py-0.5 rounded truncate text-white cursor-pointer hover:opacity-80 ${
-                      eventColorMap[event.color] || "bg-blue-500"
+                      eventColorMap[event.color] || "bg-teal-600"
                     }`}
                     onClick={(e) => {
                       e.stopPropagation();

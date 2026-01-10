@@ -40,7 +40,7 @@ export const LeaveChart = ({ data }: LeaveChartProps) => {
                 }}
               />
               <Legend />
-              <Bar dataKey="taken" name="Taken" fill="#3B82F6" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="taken" name="Taken" fill="#4A6B5D" radius={[0, 4, 4, 0]} />
               <Bar dataKey="remaining" name="Remaining" fill="#22C55E" radius={[0, 4, 4, 0]} />
               <Bar dataKey="pending" name="Pending" fill="#F97316" radius={[0, 4, 4, 0]} />
             </BarChart>

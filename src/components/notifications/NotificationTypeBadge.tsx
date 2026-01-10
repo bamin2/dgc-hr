@@ -11,8 +11,8 @@ interface NotificationTypeBadgeProps {
 const typeConfig = {
   leave_request: {
     icon: Calendar,
-    bgColor: "bg-blue-100 dark:bg-blue-900/30",
-    iconColor: "text-blue-600 dark:text-blue-400"
+    bgColor: "bg-teal-100 dark:bg-teal-900/30",
+    iconColor: "text-teal-600 dark:text-teal-400"
   },
   approval: {
     icon: CheckCircle,
@@ -26,8 +26,8 @@ const typeConfig = {
   },
   employee: {
     icon: UserPlus,
-    bgColor: "bg-purple-100 dark:bg-purple-900/30",
-    iconColor: "text-purple-600 dark:text-purple-400"
+    bgColor: "bg-stone-100 dark:bg-stone-900/30",
+    iconColor: "text-stone-600 dark:text-stone-400"
   },
   system: {
     icon: Settings,

@@ -30,8 +30,8 @@ interface TaskCustomizeStepProps {
 }
 
 const categoryConfig: Record<TaskCategory, { label: string; icon: React.ComponentType<{ className?: string }>; color: string }> = {
-  documentation: { label: "Documentation", icon: FileText, color: "text-blue-600" },
-  training: { label: "Training", icon: GraduationCap, color: "text-purple-600" },
+  documentation: { label: "Documentation", icon: FileText, color: "text-teal-600" },
+  training: { label: "Training", icon: GraduationCap, color: "text-amber-600" },
   setup: { label: "Setup", icon: Settings, color: "text-orange-600" },
   introduction: { label: "Introduction", icon: Users, color: "text-green-600" },
   compliance: { label: "Compliance", icon: Shield, color: "text-red-600" },

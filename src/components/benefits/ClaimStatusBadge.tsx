@@ -13,7 +13,7 @@ const statusConfig: Record<ClaimStatus, { label: string; className: string }> = 
   },
   processing: {
     label: 'Processing',
-    className: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+    className: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400'
   },
   approved: {
     label: 'Approved',

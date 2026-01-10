@@ -20,11 +20,11 @@ const statusConfig = {
   },
   on_leave: {
     label: 'On Leave',
-    className: 'bg-blue-100 text-blue-700 border-blue-200',
+    className: 'bg-teal-100 text-teal-700 border-teal-200',
   },
   half_day: {
     label: 'Half Day',
-    className: 'bg-purple-100 text-purple-700 border-purple-200',
+    className: 'bg-amber-100 text-amber-700 border-amber-200',
   },
   remote: {
     label: 'Remote',

@@ -12,7 +12,7 @@ const typeConfig: Record<ReportType, { label: string; icon: typeof Calendar; cla
   attendance: {
     label: 'Attendance',
     icon: Calendar,
-    className: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+    className: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400'
   },
   payroll: {
     label: 'Payroll',
@@ -22,7 +22,7 @@ const typeConfig: Record<ReportType, { label: string; icon: typeof Calendar; cla
   benefits: {
     label: 'Benefits',
     icon: Gift,
-    className: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
+    className: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
   },
   employees: {
     label: 'Employees',
