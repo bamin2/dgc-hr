@@ -179,7 +179,8 @@ export const companySettings: CompanySettings = {
     timezone: 'America/Los_Angeles',
     dateFormat: 'MM/DD/YYYY',
     currency: 'USD',
-    weekendDays: [5, 6] // Friday-Saturday
+    weekendDays: [5, 6], // Friday-Saturday
+    reportingCurrency: 'BHD',
   },
   payrollDayOfMonth: 25,
   employeeCanViewCompensation: true,
