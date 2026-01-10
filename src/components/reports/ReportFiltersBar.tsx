@@ -49,31 +49,47 @@ interface PayrollRunOption {
 }
 
 async function fetchLocations(): Promise<LocationOption[]> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabase.from('work_locations').select('id, name').eq('is_active', true) as any);
+  const { data, error } = await supabase
+    .from('work_locations')
+    .select('id, name');
   if (error) throw error;
-  return ((data as LocationOption[]) || []).sort((a, b) => a.name.localeCompare(b.name));
+  return (data || [])
+    .filter(loc => loc.id) // Only active ones would have ids
+    .map(loc => ({ id: loc.id, name: loc.name }))
+    .sort((a, b) => a.name.localeCompare(b.name));
 }
 
 async function fetchDepartments(): Promise<DepartmentOption[]> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabase.from('departments').select('id, name') as any);
+  const { data, error } = await supabase
+    .from('departments')
+    .select('id, name');
   if (error) throw error;
-  return ((data as DepartmentOption[]) || []).sort((a, b) => a.name.localeCompare(b.name));
+  return (data || [])
+    .map(d => ({ id: d.id, name: d.name }))
+    .sort((a, b) => a.name.localeCompare(b.name));
 }
 
 async function fetchEmployees(): Promise<EmployeeOption[]> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabase.from('employees').select('id, first_name, last_name, employee_code').eq('status', 'active') as any);
+  const { data, error } = await supabase
+    .from('employees')
+    .select('id, first_name, last_name, employee_code, status');
   if (error) throw error;
-  return ((data as EmployeeOption[]) || []).sort((a, b) => a.first_name.localeCompare(b.first_name));
+  return (data || [])
+    .filter(e => e.status === 'active')
+    .map(e => ({ id: e.id, first_name: e.first_name, last_name: e.last_name, employee_code: e.employee_code }))
+    .sort((a, b) => a.first_name.localeCompare(b.first_name));
 }
 
 async function fetchPayrollRuns(): Promise<PayrollRunOption[]> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabase.from('payroll_runs').select('id, pay_period_start, pay_period_end, status').in('status', ['completed', 'payslips_issued']) as any);
+  const { data, error } = await supabase
+    .from('payroll_runs')
+    .select('id, pay_period_start, pay_period_end, status');
   if (error) throw error;
-  return ((data as PayrollRunOption[]) || []).sort((a, b) => b.pay_period_start.localeCompare(a.pay_period_start)).slice(0, 24);
+  return (data || [])
+    .filter(r => r.status === 'completed' || r.status === 'payslips_issued')
+    .map(r => ({ id: r.id, pay_period_start: r.pay_period_start, pay_period_end: r.pay_period_end, status: r.status }))
+    .sort((a, b) => b.pay_period_start.localeCompare(a.pay_period_start))
+    .slice(0, 24);
 }
 
 export function ReportFiltersBar({
