@@ -26,7 +26,7 @@ const columns: ReportColumn<LeaveBalanceRecord>[] = [
 
 export function LeaveBalanceReport() {
   const [filters, setFilters] = useState<ReportFilters>({ year: new Date().getFullYear() });
-  const { data = [], isLoading, refetch } = useLeaveBalanceReport(filters);
+  const { data = [], isLoading, error, refetch } = useLeaveBalanceReport(filters);
 
   const totals = data.reduce(
     (acc, row) => ({
@@ -108,6 +108,12 @@ export function LeaveBalanceReport() {
       summaryCards={summaryCards}
       exportFormats={['excel', 'csv']}
     >
+      {error && (
+        <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 mb-4">
+          <p className="text-destructive font-medium">Error loading leave balances:</p>
+          <p className="text-destructive/80 text-sm">{error.message}</p>
+        </div>
+      )}
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
