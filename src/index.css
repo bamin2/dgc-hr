@@ -2,10 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Franfer HR Dashboard Design System */
+/* DGC Core - Internal HR System Design System */
 
 @layer base {
   :root {
+    /* DGC Brand Colors */
+    --dgc-deep-green: 162 50% 12%;
+    --dgc-slate: 220 12% 12%;
+    --dgc-off-white: 80 10% 97%;
+    --dgc-text-primary: 0 0% 10%;
+    --dgc-text-muted: 220 9% 46%;
+    --dgc-border: 80 10% 90%;
+    --dgc-gold: 42 52% 54%;
+    --dgc-gold-hover: 42 48% 50%;
     --background: 220 20% 97%;
     --foreground: 224 30% 20%;
 
