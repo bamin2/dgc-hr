@@ -79,7 +79,7 @@ async function fetchLoanSummary(filters: ReportFilters): Promise<LoanSummaryReco
 async function fetchLoanInstallments(filters: ReportFilters): Promise<LoanInstallmentRecord[]> {
   const { data, error } = await supabase
     .from('loan_installments')
-    .select('id, loan_id, installment_number, due_date, amount, status, payroll_run_id')
+    .select('id, loan_id, installment_number, due_date, amount, status, paid_at, paid_method, paid_in_payroll_run_id')
     .order('due_date', { ascending: false });
   
   if (error) throw error;
@@ -120,7 +120,7 @@ async function fetchLoanInstallments(filters: ReportFilters): Promise<LoanInstal
     const emp = loan ? empMap.get(loan.employee_id) : null;
     let paymentMethod: 'payroll' | 'manual' | 'pending' = 'pending';
     if (r.status === 'paid') {
-      paymentMethod = r.payroll_run_id ? 'payroll' : 'manual';
+      paymentMethod = r.paid_in_payroll_run_id ? 'payroll' : 'manual';
     }
     
     return {
@@ -132,9 +132,9 @@ async function fetchLoanInstallments(filters: ReportFilters): Promise<LoanInstal
       dueMonth: format(new Date(r.due_date), 'MMM yyyy'),
       amount: r.amount,
       status: r.status,
-      paidDate: undefined,
+      paidDate: r.paid_at || undefined,
       paymentMethod,
-      payrollRunId: r.payroll_run_id || undefined,
+      payrollRunId: r.paid_in_payroll_run_id || undefined,
     };
   });
 }
