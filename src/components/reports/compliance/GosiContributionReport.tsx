@@ -166,8 +166,8 @@ export function GosiContributionReport() {
                 <TableCell>{row.location}</TableCell>
                 <TableCell>{row.currencyCode}</TableCell>
                 <TableCell className="text-right">{formatAmount(row.gosiRegisteredSalary, row.currencyCode)}</TableCell>
-                <TableCell className="text-right">{(row.employeeRate * 100).toFixed(1)}%</TableCell>
-                <TableCell className="text-right">{(row.employerRate * 100).toFixed(1)}%</TableCell>
+                <TableCell className="text-right">{row.employeeRate.toFixed(1)}%</TableCell>
+                <TableCell className="text-right">{row.employerRate.toFixed(1)}%</TableCell>
                 <TableCell className="text-right">{formatAmount(row.employeeContribution, row.currencyCode)}</TableCell>
                 <TableCell className="text-right">{formatAmount(row.employerContribution, row.currencyCode)}</TableCell>
                 <TableCell className="text-right font-medium">{formatAmount(row.totalContribution, row.currencyCode)}</TableCell>
