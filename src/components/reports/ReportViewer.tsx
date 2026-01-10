@@ -15,7 +15,7 @@ interface ReportViewerProps {
   title: string;
   description?: string;
   filters: ReportFilters;
-  onFilterChange: (filters: ReportFilters) => void;
+  onFiltersChange: (filters: ReportFilters) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -34,7 +34,7 @@ export function ReportViewer({
   title,
   description,
   filters,
-  onFilterChange,
+  onFiltersChange,
   data,
   columns,
   isLoading,
@@ -117,7 +117,7 @@ export function ReportViewer({
       </div>
 
       {/* Filters */}
-      <ReportFiltersBar filters={filters} onFiltersChange={onFilterChange} />
+      <ReportFiltersBar filters={filters} onFiltersChange={onFiltersChange} />
 
       {/* Summary Cards */}
       {summaryCards && (

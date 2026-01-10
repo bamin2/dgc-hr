@@ -105,7 +105,7 @@ export function GosiContributionReport() {
       title="GOSI Contribution Report"
       description="Employee and employer GOSI contributions by nationality and location"
       filters={filters}
-      onFilterChange={setFilters}
+      onFiltersChange={setFilters}
       data={data}
       columns={columns}
       isLoading={isLoading}

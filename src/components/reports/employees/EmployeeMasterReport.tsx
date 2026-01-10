@@ -117,7 +117,7 @@ export function EmployeeMasterReport() {
       title="Employee Master Report"
       description="Complete employee directory with department, position, location, and employment details"
       filters={filters}
-      onFilterChange={setFilters}
+      onFiltersChange={setFilters}
       data={data}
       columns={columns}
       isLoading={isLoading}
