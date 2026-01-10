@@ -108,7 +108,7 @@ export function SignInForm() {
               <Input
                 id="email"
                 type="email"
-                placeholder="you@dividendgate.com"
+                placeholder="you@dgcholding.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="h-11 transition-all focus-visible:ring-0"
