@@ -45,8 +45,8 @@ async function fetchSalaryDistribution(filters: ReportFilters): Promise<SalaryDi
       salary,
       department_id,
       work_location_id,
-      departments (name),
-      work_locations (name)
+      departments!department_id (name),
+      work_locations!work_location_id (name)
     `)
     .eq('status', 'active');
   
