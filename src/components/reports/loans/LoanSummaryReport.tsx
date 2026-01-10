@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ReportViewer } from '../ReportViewer';
 import { ReportFilters, ReportColumn, LoanSummaryRecord } from '@/types/reports';
 import { useLoanSummaryReport } from '@/hooks/reports';
-import { useCompanySettings } from '@/hooks/useCompanySettings';
+import { useCompanySettings } from '@/contexts/CompanySettingsContext';
 import { Badge } from '@/components/ui/badge';
 import {
   Table,
@@ -46,7 +46,7 @@ function getStatusBadge(status: string) {
 export function LoanSummaryReport() {
   const [filters, setFilters] = useState<ReportFilters>({});
   const { data = [], isLoading, refetch } = useLoanSummaryReport(filters);
-  const { settings } = useCompanySettings();
+  const { settings, formatCurrency } = useCompanySettings();
 
   const totals = data.reduce(
     (acc, row) => ({
@@ -57,14 +57,6 @@ export function LoanSummaryReport() {
     }),
     { originalAmount: 0, outstanding: 0, activeLoans: 0, closedLoans: 0 }
   );
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-SA', {
-      style: 'currency',
-      currency: settings?.currency || 'SAR',
-      minimumFractionDigits: 2,
-    }).format(value);
-  };
 
   const summaryCards = (
     <>
@@ -129,8 +121,8 @@ export function LoanSummaryReport() {
       description="Overview of all employee loans with original amounts, outstanding balances, and payment status"
       filters={filters}
       onFilterChange={setFilters}
-      data={data as unknown as Record<string, unknown>[]}
-      columns={columns as ReportColumn<Record<string, unknown>>[]}
+      data={data}
+      columns={columns}
       isLoading={isLoading}
       onRefresh={() => refetch()}
       summaryCards={summaryCards}

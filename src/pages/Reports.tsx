@@ -3,7 +3,7 @@ import { DashboardLayout } from '@/components/dashboard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, FileText } from 'lucide-react';
 import {
   ReportsMetrics,
   AttendanceChart,
@@ -19,11 +19,20 @@ import {
   DepartmentSalaryTable,
   SalaryChangeTypeChart,
 } from '@/components/reports';
-import { useReportAnalytics, reportsList, type ReportSummary } from '@/hooks/useReportAnalytics';
+import { useReportAnalytics, reportsList } from '@/hooks/useReportAnalytics';
 import { useToast } from '@/hooks/use-toast';
 import { DateRange } from 'react-day-picker';
 import { useSalaryAnalytics } from '@/hooks/useSalaryAnalytics';
 import { useCompanySettings } from '@/contexts/CompanySettingsContext';
+
+// Production Report Components
+import { PayrollRunSummaryReport, PayrollDetailedReport } from '@/components/reports/payroll';
+import { LeaveBalanceReport, LeaveRequestsReport } from '@/components/reports/leave';
+import { LoanSummaryReport, LoanInstallmentsReport } from '@/components/reports/loans';
+import { GosiContributionReport } from '@/components/reports/compliance';
+import { EmployeeMasterReport } from '@/components/reports/employees';
+import { SalaryReportsTab } from '@/components/reports/salary';
+import { ReportCatalogTable } from '@/components/reports/ReportCatalogTable';
 
 type ReportType = 'attendance' | 'payroll' | 'benefits' | 'employees' | 'leave';
 type ReportPeriod = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'custom';
@@ -32,6 +41,7 @@ const Reports = () => {
   const { toast } = useToast();
   const { formatCurrency } = useCompanySettings();
   const [activeTab, setActiveTab] = useState('overview');
+  const [productionReportView, setProductionReportView] = useState<string | null>(null);
   
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -63,7 +73,6 @@ const Reports = () => {
   const handleViewReport = (reportId: string) => {
     const report = reportsList.find(r => r.id === reportId);
     if (report) {
-      // Navigate to appropriate tab based on report type
       setActiveTab(report.type === 'employees' ? 'employees' : report.type);
       toast({
         title: 'Report Loaded',
@@ -95,6 +104,40 @@ const Reports = () => {
     });
   };
 
+  const handleOpenProductionReport = (reportId: string) => {
+    setProductionReportView(reportId);
+    setActiveTab('production');
+  };
+
+  // Render production report based on selected view
+  const renderProductionReport = () => {
+    switch (productionReportView) {
+      case 'payroll-run-summary':
+        return <PayrollRunSummaryReport />;
+      case 'payroll-detailed':
+        return <PayrollDetailedReport />;
+      case 'leave-balance':
+        return <LeaveBalanceReport />;
+      case 'leave-requests':
+        return <LeaveRequestsReport />;
+      case 'loan-summary':
+        return <LoanSummaryReport />;
+      case 'loan-installments':
+        return <LoanInstallmentsReport />;
+      case 'gosi-contribution':
+        return <GosiContributionReport />;
+      case 'employee-master':
+        return <EmployeeMasterReport />;
+      case 'salary-distribution':
+      case 'salary-change-history':
+        return <SalaryReportsTab />;
+      default:
+        return (
+          <ReportCatalogTable onViewReport={handleOpenProductionReport} />
+        );
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
@@ -114,13 +157,22 @@ const Reports = () => {
         </div>
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <Tabs value={activeTab} onValueChange={(value) => {
+          setActiveTab(value);
+          if (value !== 'production') {
+            setProductionReportView(null);
+          }
+        }}>
           <TabsList className="w-full sm:w-auto overflow-x-auto flex-wrap h-auto">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="attendance">Attendance</TabsTrigger>
             <TabsTrigger value="payroll">Payroll</TabsTrigger>
             <TabsTrigger value="salary">Salary</TabsTrigger>
             <TabsTrigger value="leave">Leave</TabsTrigger>
+            <TabsTrigger value="production" className="gap-1">
+              <FileText className="h-4 w-4" />
+              Production Reports
+            </TabsTrigger>
             <TabsTrigger value="reports">All Reports</TabsTrigger>
           </TabsList>
 
@@ -332,6 +384,20 @@ const Reports = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Production Reports Tab */}
+          <TabsContent value="production" className="space-y-6 mt-6">
+            {productionReportView && (
+              <Button 
+                variant="ghost" 
+                onClick={() => setProductionReportView(null)}
+                className="mb-4"
+              >
+                ← Back to Report Catalog
+              </Button>
+            )}
+            {renderProductionReport()}
           </TabsContent>
 
           {/* All Reports Tab */}

@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ReportViewer } from '../ReportViewer';
 import { ReportFilters, ReportColumn, GosiContributionRecord } from '@/types/reports';
 import { useGosiContributionReport } from '@/hooks/reports';
-import { useCompanySettings } from '@/hooks/useCompanySettings';
+import { useCompanySettings } from '@/contexts/CompanySettingsContext';
 import {
   Table,
   TableBody,
@@ -30,7 +30,7 @@ const columns: ReportColumn<GosiContributionRecord>[] = [
 export function GosiContributionReport() {
   const [filters, setFilters] = useState<ReportFilters>({});
   const { data = [], isLoading, refetch } = useGosiContributionReport(filters);
-  const { settings } = useCompanySettings();
+  const { settings, formatCurrency } = useCompanySettings();
 
   const totals = data.reduce(
     (acc, row) => ({
@@ -42,14 +42,6 @@ export function GosiContributionReport() {
     }),
     { employees: 0, gosiSalary: 0, employeeContrib: 0, employerContrib: 0, total: 0 }
   );
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-SA', {
-      style: 'currency',
-      currency: settings?.currency || 'SAR',
-      minimumFractionDigits: 2,
-    }).format(value);
-  };
 
   const summaryCards = (
     <>
@@ -114,8 +106,8 @@ export function GosiContributionReport() {
       description="Employee and employer GOSI contributions by nationality and location"
       filters={filters}
       onFilterChange={setFilters}
-      data={data as unknown as Record<string, unknown>[]}
-      columns={columns as ReportColumn<Record<string, unknown>>[]}
+      data={data}
+      columns={columns}
       isLoading={isLoading}
       onRefresh={() => refetch()}
       summaryCards={summaryCards}

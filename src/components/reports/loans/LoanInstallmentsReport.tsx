@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ReportViewer } from '../ReportViewer';
 import { ReportFilters, ReportColumn, LoanInstallmentRecord } from '@/types/reports';
 import { useLoanInstallmentsReport } from '@/hooks/reports';
-import { useCompanySettings } from '@/hooks/useCompanySettings';
+import { useCompanySettings } from '@/contexts/CompanySettingsContext';
 import { Badge } from '@/components/ui/badge';
 import {
   Table,
@@ -54,15 +54,7 @@ function getPaymentMethodBadge(method: 'payroll' | 'manual' | 'pending') {
 export function LoanInstallmentsReport() {
   const [filters, setFilters] = useState<ReportFilters>({});
   const { data = [], isLoading, refetch } = useLoanInstallmentsReport(filters);
-  const { settings } = useCompanySettings();
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-SA', {
-      style: 'currency',
-      currency: settings?.currency || 'SAR',
-      minimumFractionDigits: 2,
-    }).format(value);
-  };
+  const { settings, formatCurrency } = useCompanySettings();
 
   return (
     <ReportViewer
@@ -70,8 +62,8 @@ export function LoanInstallmentsReport() {
       description="Monthly breakdown of loan installments with payment status and deduction method"
       filters={filters}
       onFilterChange={setFilters}
-      data={data as unknown as Record<string, unknown>[]}
-      columns={columns as ReportColumn<Record<string, unknown>>[]}
+      data={data}
+      columns={columns}
       isLoading={isLoading}
       onRefresh={() => refetch()}
       exportFormats={['excel', 'csv']}
