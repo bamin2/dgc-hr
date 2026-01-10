@@ -5,16 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RefreshCw, Users, DollarSign, Calendar, CreditCard, Shield, FileText, ArrowLeft } from 'lucide-react';
-import {
-  ReportsMetrics,
-  PayrollChart,
-  DepartmentTable,
-  LeaveChart,
-  ExportButton,
-} from '@/components/reports';
-import { useReportAnalytics } from '@/hooks/useReportAnalytics';
+import { ExportButton } from '@/components/reports';
+import { ReportsOverviewDashboard } from '@/components/reports/overview';
 import { useToast } from '@/hooks/use-toast';
-import { useCompanySettings } from '@/contexts/CompanySettingsContext';
 import { useRole } from '@/contexts/RoleContext';
 
 // Production Report Components
@@ -37,7 +30,6 @@ type EmployeeReportView = 'list' | 'employee-master';
 
 const Reports = () => {
   const { toast } = useToast();
-  const { formatCurrency } = useCompanySettings();
   const { hasRole, canAccessManagement, isLoading: roleLoading } = useRole();
   
   const [activeTab, setActiveTab] = useState('overview');
@@ -49,15 +41,6 @@ const Reports = () => {
   const [loanView, setLoanView] = useState<LoanReportView>('list');
   const [complianceView, setComplianceView] = useState<ComplianceReportView>('list');
   const [employeeView, setEmployeeView] = useState<EmployeeReportView>('list');
-
-  // Data from hooks
-  const { 
-    stats, 
-    payrollData, 
-    departmentStats, 
-    leaveData,
-    refetch 
-  } = useReportAnalytics();
 
   // Role-based access control - require HR or Admin
   const canAccessReports = hasRole('hr') || hasRole('admin') || canAccessManagement;
@@ -82,14 +65,6 @@ const Reports = () => {
     toast({
       title: 'Export Started',
       description: `Generating ${activeTab} report as ${format.toUpperCase()}...`
-    });
-  };
-
-  const handleRefresh = () => {
-    refetch();
-    toast({
-      title: 'Data Refreshed',
-      description: 'Report data has been updated.'
     });
   };
 
@@ -178,10 +153,6 @@ const Reports = () => {
             <p className="text-muted-foreground text-sm sm:text-base">Analytics and insights for your organization</p>
           </div>
           <div className="flex gap-2 sm:gap-3">
-            <Button variant="outline" onClick={handleRefresh} size="sm" className="sm:size-default">
-              <RefreshCw className="mr-2 h-4 w-4" />
-              <span className="hidden sm:inline">Refresh</span>
-            </Button>
             <ExportButton onExport={handleExport} />
           </div>
         </div>
@@ -222,57 +193,7 @@ const Reports = () => {
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6 mt-6">
-            <ReportsMetrics stats={stats} />
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <PayrollChart data={payrollData} />
-              <LeaveChart data={leaveData} />
-            </div>
-
-            <DepartmentTable data={departmentStats} />
-            
-            {/* Quick Links to Reports */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base font-medium">Quick Access</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <Button 
-                    variant="outline" 
-                    className="h-auto py-4 flex-col gap-2"
-                    onClick={() => { setActiveTab('payroll'); setPayrollView('payroll-run-summary'); }}
-                  >
-                    <DollarSign className="h-5 w-5" />
-                    <span className="text-xs">Payroll Summary</span>
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="h-auto py-4 flex-col gap-2"
-                    onClick={() => { setActiveTab('leave'); setLeaveView('leave-balance'); }}
-                  >
-                    <Calendar className="h-5 w-5" />
-                    <span className="text-xs">Leave Balances</span>
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="h-auto py-4 flex-col gap-2"
-                    onClick={() => { setActiveTab('loans'); setLoanView('loan-summary'); }}
-                  >
-                    <CreditCard className="h-5 w-5" />
-                    <span className="text-xs">Loan Summary</span>
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="h-auto py-4 flex-col gap-2"
-                    onClick={() => { setActiveTab('compliance'); setComplianceView('gosi-contribution'); }}
-                  >
-                    <Shield className="h-5 w-5" />
-                    <span className="text-xs">GOSI Report</span>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <ReportsOverviewDashboard onNavigate={handleOpenReport} />
           </TabsContent>
 
           {/* Payroll Tab */}
