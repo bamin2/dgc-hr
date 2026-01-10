@@ -133,21 +133,33 @@ export default function EmployeeProfile() {
     });
 
     // Auto-add GOSI deduction if employee is subject to GOSI
+    // Also calculate employer contribution for display
+    let employerGosiContribution = 0;
+    let employerGosiRate = 0;
+    let employeeGosiRate = 0;
+    
     if (employee?.isSubjectToGosi && employee?.gosiRegisteredSalary) {
       const employeeWorkLocation = workLocations?.find(loc => loc.id === employee.workLocationId);
       
       if (employeeWorkLocation?.gosi_enabled) {
-        const rates = (employeeWorkLocation.gosi_nationality_rates || []) as Array<{nationality: string; percentage: number}>;
+        const rates = (employeeWorkLocation.gosi_nationality_rates || []) as Array<{nationality: string; employeeRate?: number; employerRate?: number; percentage?: number}>;
         const nationalityCode = getCountryCodeByName(employee.nationality || '');
         const matchingRate = rates.find(r => r.nationality === nationalityCode);
         
         if (matchingRate) {
-          const gosiAmount = (employee.gosiRegisteredSalary * matchingRate.percentage) / 100;
+          // Support both old (percentage) and new (employeeRate/employerRate) formats
+          employeeGosiRate = matchingRate.employeeRate ?? matchingRate.percentage ?? 0;
+          employerGosiRate = matchingRate.employerRate ?? 0;
+          
+          const gosiAmount = (employee.gosiRegisteredSalary * employeeGosiRate) / 100;
           deductionItems.push({
             id: 'gosi-auto',
-            name: `GOSI (${matchingRate.percentage}%)`,
+            name: `GOSI (${employeeGosiRate}%)`,
             amount: gosiAmount,
           });
+          
+          // Calculate employer contribution for display
+          employerGosiContribution = (employee.gosiRegisteredSalary * employerGosiRate) / 100;
         }
       }
     }
@@ -157,7 +169,7 @@ export default function EmployeeProfile() {
     const grossPay = baseSalary + totalAllowances;
     const totalMonthlySalary = grossPay - totalDeductions;
 
-    return { baseSalary, allowanceItems, deductionItems, totalAllowances, totalDeductions, grossPay, totalMonthlySalary };
+    return { baseSalary, allowanceItems, deductionItems, totalAllowances, totalDeductions, grossPay, totalMonthlySalary, employerGosiContribution, employerGosiRate };
   }, [employee?.salary, employee?.isSubjectToGosi, employee?.gosiRegisteredSalary, employee?.workLocationId, employee?.nationality, workLocations, allowances, deductions]);
   
   // Check if viewing own profile
@@ -495,6 +507,26 @@ export default function EmployeeProfile() {
                     <span className="text-sm font-medium">Net Monthly Salary</span>
                     <span className="text-lg font-bold text-primary">{formatCurrency(compensationBreakdown.totalMonthlySalary)}</span>
                   </div>
+                  
+                  {/* Employer GOSI Contribution - Informational */}
+                  {compensationBreakdown.employerGosiContribution > 0 && (
+                    <>
+                      <Separator />
+                      <div className="bg-muted/30 rounded-lg p-3 mt-2">
+                        <p className="text-xs font-medium text-muted-foreground uppercase mb-2">
+                          Employer Contributions
+                        </p>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">
+                            GOSI Employer Contribution ({compensationBreakdown.employerGosiRate}%)
+                          </span>
+                          <span className="text-sm font-medium text-muted-foreground">
+                            {formatCurrency(compensationBreakdown.employerGosiContribution)}
+                          </span>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </CardContent>
               </Card>
             )}

@@ -25,17 +25,27 @@ interface LocationGeneralSettingsProps {
   workLocation: WorkLocation;
 }
 
+// Helper to normalize rate from old (percentage) or new (employeeRate/employerRate) format
+function normalizeRate(rate: any): GosiNationalityRate {
+  return {
+    nationality: rate.nationality,
+    employeeRate: rate.employeeRate ?? rate.percentage ?? 0,
+    employerRate: rate.employerRate ?? 0,
+  };
+}
+
 export function LocationGeneralSettings({ workLocation }: LocationGeneralSettingsProps) {
   const [gosiEnabled, setGosiEnabled] = useState(workLocation.gosi_enabled);
   const [gosiBaseCalculation, setGosiBaseCalculation] = useState(
     workLocation.gosi_base_calculation || 'gosi_registered_salary'
   );
   const [nationalityRates, setNationalityRates] = useState<GosiNationalityRate[]>(
-    workLocation.gosi_nationality_rates || []
+    (workLocation.gosi_nationality_rates || []).map(normalizeRate)
   );
   const [addPopoverOpen, setAddPopoverOpen] = useState(false);
   const [newNationality, setNewNationality] = useState("");
-  const [newPercentage, setNewPercentage] = useState("8");
+  const [newEmployeeRate, setNewEmployeeRate] = useState("9.75");
+  const [newEmployerRate, setNewEmployerRate] = useState("11.75");
   
   const updateLocation = useUpdateWorkLocation();
 
@@ -64,17 +74,24 @@ export function LocationGeneralSettings({ workLocation }: LocationGeneralSetting
   const handleAddNationality = async () => {
     if (!newNationality) return;
     
-    const percentage = parseFloat(newPercentage);
-    if (isNaN(percentage) || percentage < 0 || percentage > 100) {
-      toast.error("Please enter a valid percentage between 0 and 100");
+    const employeeRate = parseFloat(newEmployeeRate);
+    const employerRate = parseFloat(newEmployerRate);
+    
+    if (isNaN(employeeRate) || employeeRate < 0 || employeeRate > 100) {
+      toast.error("Please enter a valid employee rate between 0 and 100");
+      return;
+    }
+    if (isNaN(employerRate) || employerRate < 0 || employerRate > 100) {
+      toast.error("Please enter a valid employer rate between 0 and 100");
       return;
     }
 
-    const newRates = [...nationalityRates, { nationality: newNationality, percentage }];
+    const newRates = [...nationalityRates, { nationality: newNationality, employeeRate, employerRate }];
     setNationalityRates(newRates);
     setAddPopoverOpen(false);
     setNewNationality("");
-    setNewPercentage("8");
+    setNewEmployeeRate("9.75");
+    setNewEmployerRate("11.75");
 
     try {
       await updateLocation.mutateAsync({
@@ -110,23 +127,25 @@ export function LocationGeneralSettings({ workLocation }: LocationGeneralSetting
     }
   };
 
-  const handlePercentageChange = async (nationalityCode: string, newValue: string) => {
-    const percentage = parseFloat(newValue);
-    if (isNaN(percentage) || percentage < 0 || percentage > 100) return;
+  const handleRateChange = async (nationalityCode: string, field: 'employeeRate' | 'employerRate', newValue: string) => {
+    const value = parseFloat(newValue);
+    if (isNaN(value) || value < 0 || value > 100) return;
 
     const newRates = nationalityRates.map((r) =>
-      r.nationality === nationalityCode ? { ...r, percentage } : r
+      r.nationality === nationalityCode ? { ...r, [field]: value } : r
     );
     setNationalityRates(newRates);
   };
 
-  const handlePercentageBlur = async (nationalityCode: string) => {
+  const handleRateBlur = async (nationalityCode: string) => {
     const rate = nationalityRates.find((r) => r.nationality === nationalityCode);
-    const originalRate = workLocation.gosi_nationality_rates?.find(
-      (r) => r.nationality === nationalityCode
-    );
+    const originalRates = (workLocation.gosi_nationality_rates || []).map(normalizeRate);
+    const originalRate = originalRates.find((r) => r.nationality === nationalityCode);
     
-    if (rate?.percentage === originalRate?.percentage) return;
+    if (
+      rate?.employeeRate === originalRate?.employeeRate &&
+      rate?.employerRate === originalRate?.employerRate
+    ) return;
 
     try {
       await updateLocation.mutateAsync({
@@ -136,10 +155,10 @@ export function LocationGeneralSettings({ workLocation }: LocationGeneralSetting
         gosi_nationality_rates: nationalityRates,
         gosi_base_calculation: gosiBaseCalculation,
       });
-      toast.success("GOSI rate updated");
+      toast.success("GOSI rates updated");
     } catch (error) {
-      setNationalityRates(workLocation.gosi_nationality_rates || []);
-      toast.error("Failed to update GOSI rate");
+      setNationalityRates((workLocation.gosi_nationality_rates || []).map(normalizeRate));
+      toast.error("Failed to update GOSI rates");
     }
   };
 
@@ -212,7 +231,7 @@ export function LocationGeneralSettings({ workLocation }: LocationGeneralSetting
             <div className="space-y-1">
               <Label>Nationality Rates</Label>
               <p className="text-sm text-muted-foreground">
-                Set GOSI percentage for each applicable nationality.
+                Set GOSI employee deduction and employer contribution rates for each applicable nationality.
               </p>
             </div>
 
@@ -223,29 +242,15 @@ export function LocationGeneralSettings({ workLocation }: LocationGeneralSetting
                   return (
                     <div
                       key={rate.nationality}
-                      className="flex items-center justify-between gap-3 p-3 rounded-md border bg-muted/30"
+                      className="flex flex-col gap-3 p-3 rounded-md border bg-muted/30"
                     >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-lg">{country?.flag}</span>
-                        <span className="text-sm font-medium truncate">
-                          {country?.name || rate.nationality}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Input
-                          type="number"
-                          min="0"
-                          max="100"
-                          step="0.01"
-                          value={rate.percentage}
-                          onChange={(e) =>
-                            handlePercentageChange(rate.nationality, e.target.value)
-                          }
-                          onBlur={() => handlePercentageBlur(rate.nationality)}
-                          disabled={updateLocation.isPending}
-                          className="w-20 text-right"
-                        />
-                        <span className="text-muted-foreground text-sm">%</span>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="text-lg">{country?.flag}</span>
+                          <span className="text-sm font-medium truncate">
+                            {country?.name || rate.nationality}
+                          </span>
+                        </div>
                         <Button
                           variant="ghost"
                           size="icon"
@@ -255,6 +260,46 @@ export function LocationGeneralSettings({ workLocation }: LocationGeneralSetting
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Employee Rate</Label>
+                          <div className="flex items-center gap-2">
+                            <Input
+                              type="number"
+                              min="0"
+                              max="100"
+                              step="0.01"
+                              value={rate.employeeRate}
+                              onChange={(e) =>
+                                handleRateChange(rate.nationality, 'employeeRate', e.target.value)
+                              }
+                              onBlur={() => handleRateBlur(rate.nationality)}
+                              disabled={updateLocation.isPending}
+                              className="w-full text-right"
+                            />
+                            <span className="text-muted-foreground text-sm">%</span>
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Employer Rate</Label>
+                          <div className="flex items-center gap-2">
+                            <Input
+                              type="number"
+                              min="0"
+                              max="100"
+                              step="0.01"
+                              value={rate.employerRate}
+                              onChange={(e) =>
+                                handleRateChange(rate.nationality, 'employerRate', e.target.value)
+                              }
+                              onBlur={() => handleRateBlur(rate.nationality)}
+                              disabled={updateLocation.isPending}
+                              className="w-full text-right"
+                            />
+                            <span className="text-muted-foreground text-sm">%</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   );
@@ -295,15 +340,32 @@ export function LocationGeneralSettings({ workLocation }: LocationGeneralSetting
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label>GOSI Rate (%)</Label>
+                    <Label>Employee Rate (%)</Label>
+                    <p className="text-xs text-muted-foreground">Deducted from employee's salary</p>
                     <div className="flex items-center gap-2">
                       <Input
                         type="number"
                         min="0"
                         max="100"
                         step="0.01"
-                        value={newPercentage}
-                        onChange={(e) => setNewPercentage(e.target.value)}
+                        value={newEmployeeRate}
+                        onChange={(e) => setNewEmployeeRate(e.target.value)}
+                        className="text-right"
+                      />
+                      <span className="text-muted-foreground">%</span>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Employer Rate (%)</Label>
+                    <p className="text-xs text-muted-foreground">Employer contribution (display only)</p>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.01"
+                        value={newEmployerRate}
+                        onChange={(e) => setNewEmployerRate(e.target.value)}
                         className="text-right"
                       />
                       <span className="text-muted-foreground">%</span>

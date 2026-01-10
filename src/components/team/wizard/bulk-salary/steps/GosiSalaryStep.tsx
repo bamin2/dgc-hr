@@ -66,10 +66,11 @@ export function GosiSalaryStep({
     if (!workLocation?.gosi_enabled) return 0;
     
     const nationalityCode = getCountryCodeByName(employee.nationality || '');
-    const rates = (workLocation.gosi_nationality_rates || []) as Array<{nationality: string; percentage: number}>;
+    const rates = (workLocation.gosi_nationality_rates || []) as Array<{nationality: string; employeeRate?: number; employerRate?: number; percentage?: number}>;
     const matchingRate = rates.find(r => r.nationality === nationalityCode);
     
-    return matchingRate?.percentage || 0;
+    // Support both old (percentage) and new (employeeRate) formats
+    return matchingRate?.employeeRate ?? matchingRate?.percentage ?? 0;
   };
 
   // Get ORIGINAL housing allowance for an employee (for "before" calculations)

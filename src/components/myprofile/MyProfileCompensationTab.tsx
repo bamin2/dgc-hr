@@ -178,7 +178,9 @@ export function MyProfileCompensationTab({
     const matchingRate = rates.find(r => r.nationality === nationalityCode);
     
     if (matchingRate) {
-      return (gosiBase * matchingRate.percentage) / 100;
+      // Support both old (percentage) and new (employeeRate) formats
+      const employeeRate = (matchingRate as any).employeeRate ?? (matchingRate as any).percentage ?? 0;
+      return (gosiBase * employeeRate) / 100;
     }
     
     return 0;
