@@ -65,29 +65,26 @@ export function useReportsOverview(dateRange: DateRange) {
   const payrollQuery = useQuery({
     queryKey: ['reports-overview-payroll', startDate, endDate],
     queryFn: async (): Promise<PayrollSnapshot> => {
-      // Get finalized payroll runs for the period
-      const { data: payrollRuns, error: runsError } = await supabase
-        .from('payroll_runs')
-        .select(`
-          id,
-          status,
-          work_location:work_locations(currency)
-        `)
-        .in('status', ['finalized', 'payslips_issued'])
-        .gte('pay_period_start', startDate)
-        .lte('pay_period_end', endDate);
+      // Run both queries in parallel
+      const [payrollRunsResult, pendingResult] = await Promise.all([
+        supabase
+          .from('payroll_runs')
+          .select(`id, status, work_location:work_locations(currency)`)
+          .in('status', ['finalized', 'payslips_issued'])
+          .gte('pay_period_start', startDate)
+          .lte('pay_period_end', endDate),
+        supabase
+          .from('payroll_runs')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'draft'),
+      ]);
 
-      if (runsError) throw runsError;
+      if (payrollRunsResult.error) throw payrollRunsResult.error;
+      if (pendingResult.error) throw pendingResult.error;
 
+      const payrollRuns = payrollRunsResult.data;
+      const pendingCount = pendingResult.count;
       const finalizedRunIds = payrollRuns?.map(r => r.id) || [];
-      
-      // Get pending runs count
-      const { count: pendingCount, error: pendingError } = await supabase
-        .from('payroll_runs')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'draft');
-      
-      if (pendingError) throw pendingError;
 
       if (finalizedRunIds.length === 0) {
         return {
@@ -158,38 +155,34 @@ export function useReportsOverview(dateRange: DateRange) {
   const workforceQuery = useQuery({
     queryKey: ['reports-overview-workforce', monthStart, monthEnd],
     queryFn: async (): Promise<WorkforceSnapshot> => {
-      // Total active employees
-      const { count: activeCount, error: activeError } = await supabase
-        .from('employees')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'active');
+      // Run all 3 queries in parallel
+      const [activeResult, hiresResult, exitsResult] = await Promise.all([
+        supabase
+          .from('employees')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'active'),
+        supabase
+          .from('employees')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'active')
+          .gte('join_date', monthStart)
+          .lte('join_date', monthEnd),
+        supabase
+          .from('employees')
+          .select('*', { count: 'exact', head: true })
+          .in('status', ['resigned', 'terminated'])
+          .gte('updated_at', monthStart)
+          .lte('updated_at', monthEnd),
+      ]);
 
-      if (activeError) throw activeError;
-
-      // New hires this month
-      const { count: newHiresCount, error: hiresError } = await supabase
-        .from('employees')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'active')
-        .gte('join_date', monthStart)
-        .lte('join_date', monthEnd);
-
-      if (hiresError) throw hiresError;
-
-      // Exits this month (resigned or terminated, updated this month)
-      const { count: exitsCount, error: exitsError } = await supabase
-        .from('employees')
-        .select('*', { count: 'exact', head: true })
-        .in('status', ['resigned', 'terminated'])
-        .gte('updated_at', monthStart)
-        .lte('updated_at', monthEnd);
-
-      if (exitsError) throw exitsError;
+      if (activeResult.error) throw activeResult.error;
+      if (hiresResult.error) throw hiresResult.error;
+      if (exitsResult.error) throw exitsResult.error;
 
       return {
-        totalActive: activeCount || 0,
-        newHires: newHiresCount || 0,
-        exits: exitsCount || 0,
+        totalActive: activeResult.count || 0,
+        newHires: hiresResult.count || 0,
+        exits: exitsResult.count || 0,
       };
     },
   });
@@ -198,39 +191,35 @@ export function useReportsOverview(dateRange: DateRange) {
   const leaveQuery = useQuery({
     queryKey: ['reports-overview-leave', today, monthStart, monthEnd],
     queryFn: async (): Promise<LeaveSnapshot> => {
-      // Pending leave approvals
-      const { count: pendingCount, error: pendingError } = await supabase
-        .from('leave_requests')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'pending');
+      // Run all 3 queries in parallel
+      const [pendingResult, onLeaveResult, leaveDaysResult] = await Promise.all([
+        supabase
+          .from('leave_requests')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'pending'),
+        supabase
+          .from('leave_requests')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'approved')
+          .lte('start_date', today)
+          .gte('end_date', today),
+        supabase
+          .from('leave_requests')
+          .select('days_count')
+          .eq('status', 'approved')
+          .gte('start_date', monthStart)
+          .lte('start_date', monthEnd),
+      ]);
 
-      if (pendingError) throw pendingError;
+      if (pendingResult.error) throw pendingResult.error;
+      if (onLeaveResult.error) throw onLeaveResult.error;
+      if (leaveDaysResult.error) throw leaveDaysResult.error;
 
-      // Employees on leave today
-      const { count: onLeaveCount, error: onLeaveError } = await supabase
-        .from('leave_requests')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'approved')
-        .lte('start_date', today)
-        .gte('end_date', today);
-
-      if (onLeaveError) throw onLeaveError;
-
-      // Total leave days taken MTD
-      const { data: leaveDays, error: daysError } = await supabase
-        .from('leave_requests')
-        .select('days_count')
-        .eq('status', 'approved')
-        .gte('start_date', monthStart)
-        .lte('start_date', monthEnd);
-
-      if (daysError) throw daysError;
-
-      const totalDays = leaveDays?.reduce((sum, r) => sum + (r.days_count || 0), 0) || 0;
+      const totalDays = leaveDaysResult.data?.reduce((sum, r) => sum + (r.days_count || 0), 0) || 0;
 
       return {
-        pendingApprovals: pendingCount || 0,
-        onLeaveToday: onLeaveCount || 0,
+        pendingApprovals: pendingResult.count || 0,
+        onLeaveToday: onLeaveResult.count || 0,
         daysTakenMTD: totalDays,
       };
     },
@@ -240,29 +229,35 @@ export function useReportsOverview(dateRange: DateRange) {
   const loanQuery = useQuery({
     queryKey: ['reports-overview-loans', monthStart, monthEnd],
     queryFn: async (): Promise<LoanSnapshot> => {
-      // Active loans count
-      const { count: activeCount, error: activeError } = await supabase
-        .from('loans')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'active');
+      // Run all 3 queries in parallel
+      const [activeCountResult, activeLoansResult, dueCountResult] = await Promise.all([
+        supabase
+          .from('loans')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'active'),
+        supabase
+          .from('loans')
+          .select(`
+            id,
+            employee:employees(salary_currency_code),
+            installments:loan_installments(amount, status)
+          `)
+          .eq('status', 'active'),
+        supabase
+          .from('loan_installments')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'due')
+          .gte('due_date', monthStart)
+          .lte('due_date', monthEnd),
+      ]);
 
-      if (activeError) throw activeError;
-
-      // Get active loans with their installments and employee currency
-      const { data: activeLoans, error: loansError } = await supabase
-        .from('loans')
-        .select(`
-          id,
-          employee:employees(salary_currency_code),
-          installments:loan_installments(amount, status)
-        `)
-        .eq('status', 'active');
-
-      if (loansError) throw loansError;
+      if (activeCountResult.error) throw activeCountResult.error;
+      if (activeLoansResult.error) throw activeLoansResult.error;
+      if (dueCountResult.error) throw dueCountResult.error;
 
       // Calculate outstanding balance by currency
       const balanceByCurrency = new Map<string, number>();
-      activeLoans?.forEach(loan => {
+      activeLoansResult.data?.forEach(loan => {
         const currencyCode = (loan.employee as any)?.salary_currency_code || 'SAR';
         const outstanding = (loan.installments as any[])
           ?.filter(i => i.status !== 'paid')
@@ -270,23 +265,13 @@ export function useReportsOverview(dateRange: DateRange) {
         balanceByCurrency.set(currencyCode, (balanceByCurrency.get(currencyCode) || 0) + outstanding);
       });
 
-      // Installments due this month
-      const { count: dueCount, error: dueError } = await supabase
-        .from('loan_installments')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'due')
-        .gte('due_date', monthStart)
-        .lte('due_date', monthEnd);
-
-      if (dueError) throw dueError;
-
       const outstandingBalance = Array.from(balanceByCurrency.entries())
         .map(([currencyCode, amount]) => ({ currencyCode, amount }));
 
       return {
-        activeLoans: activeCount || 0,
+        activeLoans: activeCountResult.count || 0,
         outstandingBalance,
-        installmentsDueThisMonth: dueCount || 0,
+        installmentsDueThisMonth: dueCountResult.count || 0,
         hasMixedCurrencies: outstandingBalance.length > 1,
       };
     },
@@ -296,7 +281,7 @@ export function useReportsOverview(dateRange: DateRange) {
   const insightsQuery = useQuery({
     queryKey: ['reports-overview-insights', startDate, endDate],
     queryFn: async (): Promise<InsightsData> => {
-      // Highest payroll cost department
+      // First fetch payroll runs to get IDs
       const { data: payrollRuns } = await supabase
         .from('payroll_runs')
         .select('id, work_location:work_locations(currency)')
@@ -306,22 +291,36 @@ export function useReportsOverview(dateRange: DateRange) {
 
       const runIds = payrollRuns?.map(r => r.id) || [];
 
-      let highestPayrollDept: InsightsData['highestPayrollDept'] = null;
-
-      if (runIds.length > 0) {
-        const { data: payrollData } = await supabase
-          .from('payroll_run_employees')
+      // Run payroll data and loans queries in parallel
+      const [payrollDataResult, loansDataResult] = await Promise.all([
+        runIds.length > 0
+          ? supabase
+              .from('payroll_run_employees')
+              .select(`
+                gross_pay,
+                employee:employees!inner(
+                  department:departments(id, name),
+                  salary_currency_code
+                )
+              `)
+              .in('payroll_run_id', runIds)
+          : Promise.resolve({ data: null, error: null }),
+        supabase
+          .from('loans')
           .select(`
-            gross_pay,
+            id,
             employee:employees!inner(
-              department:departments(id, name),
-              salary_currency_code
+              department:departments(id, name)
             )
           `)
-          .in('payroll_run_id', runIds);
+          .eq('status', 'active'),
+      ]);
 
+      // Process payroll data for highest cost department
+      let highestPayrollDept: InsightsData['highestPayrollDept'] = null;
+      if (payrollDataResult.data) {
         const deptTotals = new Map<string, { name: string; amount: number; currencyCode: string }>();
-        payrollData?.forEach(record => {
+        payrollDataResult.data.forEach(record => {
           const dept = (record.employee as any)?.department;
           const currencyCode = (record.employee as any)?.salary_currency_code || 'SAR';
           if (dept) {
@@ -343,19 +342,9 @@ export function useReportsOverview(dateRange: DateRange) {
         highestPayrollDept = maxDept;
       }
 
-      // Department with most active loans
-      const { data: loansData } = await supabase
-        .from('loans')
-        .select(`
-          id,
-          employee:employees!inner(
-            department:departments(id, name)
-          )
-        `)
-        .eq('status', 'active');
-
+      // Process loans data for most loans department
       const loansByDept = new Map<string, { name: string; count: number }>();
-      loansData?.forEach(loan => {
+      loansDataResult.data?.forEach(loan => {
         const dept = (loan.employee as any)?.department;
         if (dept) {
           const existing = loansByDept.get(dept.id);
