@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { ReportViewer } from '../ReportViewer';
 import { ReportFilters, ReportColumn, SalaryDistributionRecord, SalaryChangeRecord } from '@/types/reports';
 import { useSalaryDistribution, useSalaryChangeHistory } from '@/hooks/reports';
@@ -13,16 +13,20 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { format } from 'date-fns';
+import { CurrencyViewToggle, CurrencyViewMode } from './CurrencyViewToggle';
+import { formatCurrencyWithCode } from '@/lib/salaryUtils';
+import { useFxRatesForCurrencies, convertToBaseCurrency, getMissingRateCurrencies } from '@/hooks/useFxRates';
 
 const distributionColumns: ReportColumn<SalaryDistributionRecord>[] = [
   { key: 'department', header: 'Department' },
   { key: 'location', header: 'Location' },
+  { key: 'currencyCode', header: 'Currency' },
   { key: 'employeeCount', header: 'Employees', format: 'number', align: 'right' },
-  { key: 'minSalary', header: 'Min Salary', format: 'currency', align: 'right' },
-  { key: 'maxSalary', header: 'Max Salary', format: 'currency', align: 'right' },
-  { key: 'avgSalary', header: 'Avg Salary', format: 'currency', align: 'right' },
-  { key: 'medianSalary', header: 'Median', format: 'currency', align: 'right' },
-  { key: 'totalSalary', header: 'Total', format: 'currency', align: 'right' },
+  { key: 'minGrossPay', header: 'Min Gross Pay', format: 'currency', align: 'right' },
+  { key: 'maxGrossPay', header: 'Max Gross Pay', format: 'currency', align: 'right' },
+  { key: 'avgGrossPay', header: 'Avg Gross Pay', format: 'currency', align: 'right' },
+  { key: 'medianGrossPay', header: 'Median', format: 'currency', align: 'right' },
+  { key: 'totalGrossPay', header: 'Total Gross Pay', format: 'currency', align: 'right' },
 ];
 
 const changeColumns: ReportColumn<SalaryChangeRecord>[] = [
@@ -39,25 +43,96 @@ const changeColumns: ReportColumn<SalaryChangeRecord>[] = [
 
 export function SalaryDistributionReport() {
   const [filters, setFilters] = useState<ReportFilters>({});
+  const [viewMode, setViewMode] = useState<CurrencyViewMode>('local');
   const { data = [], isLoading, error, refetch } = useSalaryDistribution(filters);
-  const { settings, formatCurrency } = useCompanySettings();
+  const { settings } = useCompanySettings();
+  
+  const reportingCurrency = settings?.branding?.reportingCurrency || 'BHD';
+  
+  // Get unique currencies from data (excluding reporting currency)
+  const currencies = useMemo(() => {
+    const uniqueCurrencies = [...new Set(data.map(r => r.currencyCode))];
+    return uniqueCurrencies.filter(c => c && c !== reportingCurrency);
+  }, [data, reportingCurrency]);
+  
+  // Fetch FX rates for all currencies
+  const { data: fxRatesMap } = useFxRatesForCurrencies(currencies);
+  
+  // Check for missing rates
+  const missingRates = useMemo(() => {
+    if (!fxRatesMap) return currencies;
+    return getMissingRateCurrencies(currencies, fxRatesMap);
+  }, [currencies, fxRatesMap]);
+  
+  // Get the FX rate info for display (pick the first non-BHD currency rate)
+  const fxRateInfo = useMemo(() => {
+    if (!fxRatesMap || currencies.length === 0) return null;
+    const firstCurrency = currencies[0];
+    const rateInfo = fxRatesMap.get(firstCurrency);
+    if (!rateInfo) return null;
+    return {
+      currency: firstCurrency,
+      rate: rateInfo.rate,
+      effectiveDate: rateInfo.effectiveDate,
+    };
+  }, [fxRatesMap, currencies]);
+  
+  // Convert data to reporting currency if needed
+  const displayData = useMemo(() => {
+    if (viewMode === 'local' || !fxRatesMap) return data;
+    
+    // In reporting mode, convert all values to reporting currency
+    return data.map(row => {
+      if (row.currencyCode === reportingCurrency) return row;
+      
+      const conversion = convertToBaseCurrency(row.totalGrossPay, row.currencyCode, fxRatesMap);
+      if (!conversion) return row; // Can't convert without rate
+      
+      const minConv = convertToBaseCurrency(row.minGrossPay, row.currencyCode, fxRatesMap);
+      const maxConv = convertToBaseCurrency(row.maxGrossPay, row.currencyCode, fxRatesMap);
+      const avgConv = convertToBaseCurrency(row.avgGrossPay, row.currencyCode, fxRatesMap);
+      const medianConv = convertToBaseCurrency(row.medianGrossPay, row.currencyCode, fxRatesMap);
+      
+      return {
+        ...row,
+        minGrossPay: minConv?.convertedAmount ?? row.minGrossPay,
+        maxGrossPay: maxConv?.convertedAmount ?? row.maxGrossPay,
+        avgGrossPay: avgConv?.convertedAmount ?? row.avgGrossPay,
+        medianGrossPay: medianConv?.convertedAmount ?? row.medianGrossPay,
+        totalGrossPay: conversion.convertedAmount,
+        currencyCode: reportingCurrency,
+      };
+    });
+  }, [data, viewMode, fxRatesMap, reportingCurrency]);
 
-  // Debug logging
-  console.log('SalaryDistributionReport:', { dataLength: data.length, isLoading, error });
+  // Format currency based on view mode
+  const formatAmount = (amount: number, currencyCode: string) => {
+    return formatCurrencyWithCode(amount, currencyCode);
+  };
 
   return (
     <ReportViewer
       title="Salary Distribution Report"
-      description="Salary statistics including average, median, and ranges grouped by department and location"
+      description="Total gross pay (basic salary + allowances) statistics grouped by department, location, and currency"
       filters={filters}
       onFiltersChange={setFilters}
-      data={data}
+      data={displayData}
       columns={distributionColumns}
       isLoading={isLoading}
       onRefresh={() => refetch()}
       exportFormats={['excel', 'csv']}
       companyName={settings?.name}
     >
+      <div className="mb-4">
+        <CurrencyViewToggle
+          mode={viewMode}
+          onModeChange={setViewMode}
+          reportingCurrency={reportingCurrency}
+          fxRateInfo={fxRateInfo}
+          missingRateCurrencies={missingRates}
+        />
+      </div>
+      
       {error && (
         <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 mb-4">
           <p className="text-destructive font-medium">Error loading salary distribution:</p>
@@ -76,19 +151,20 @@ export function SalaryDistributionReport() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.map((row, idx) => (
-              <TableRow key={`${row.department}-${row.location}-${idx}`}>
+            {displayData.map((row, idx) => (
+              <TableRow key={`${row.department}-${row.location}-${row.currencyCode}-${idx}`}>
                 <TableCell>{row.department}</TableCell>
                 <TableCell>{row.location}</TableCell>
+                <TableCell>{row.currencyCode}</TableCell>
                 <TableCell className="text-right">{row.employeeCount}</TableCell>
-                <TableCell className="text-right">{formatCurrency(row.minSalary)}</TableCell>
-                <TableCell className="text-right">{formatCurrency(row.maxSalary)}</TableCell>
-                <TableCell className="text-right">{formatCurrency(row.avgSalary)}</TableCell>
-                <TableCell className="text-right">{formatCurrency(row.medianSalary)}</TableCell>
-                <TableCell className="text-right font-medium">{formatCurrency(row.totalSalary)}</TableCell>
+                <TableCell className="text-right">{formatAmount(row.minGrossPay, row.currencyCode)}</TableCell>
+                <TableCell className="text-right">{formatAmount(row.maxGrossPay, row.currencyCode)}</TableCell>
+                <TableCell className="text-right">{formatAmount(row.avgGrossPay, row.currencyCode)}</TableCell>
+                <TableCell className="text-right">{formatAmount(row.medianGrossPay, row.currencyCode)}</TableCell>
+                <TableCell className="text-right font-medium">{formatAmount(row.totalGrossPay, row.currencyCode)}</TableCell>
               </TableRow>
             ))}
-            {data.length === 0 && !isLoading && (
+            {displayData.length === 0 && !isLoading && (
               <TableRow>
                 <TableCell colSpan={distributionColumns.length} className="h-24 text-center text-muted-foreground">
                   No salary data found.
@@ -106,9 +182,6 @@ export function SalaryChangeHistoryReport() {
   const [filters, setFilters] = useState<ReportFilters>({});
   const { data = [], isLoading, error, refetch } = useSalaryChangeHistory(filters);
   const { settings, formatCurrency } = useCompanySettings();
-
-  // Debug logging
-  console.log('SalaryChangeHistoryReport:', { dataLength: data.length, isLoading, error });
 
   return (
     <ReportViewer

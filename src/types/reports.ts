@@ -88,12 +88,13 @@ export interface PayslipRegisterRecord {
 export interface SalaryDistributionRecord {
   department: string;
   location: string;
+  currencyCode: string;
   employeeCount: number;
-  minSalary: number;
-  maxSalary: number;
-  avgSalary: number;
-  medianSalary: number;
-  totalSalary: number;
+  minGrossPay: number;
+  maxGrossPay: number;
+  avgGrossPay: number;
+  medianGrossPay: number;
+  totalGrossPay: number;
 }
 
 export interface SalaryChangeRecord {

@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { ReportFilters, SalaryDistributionRecord, SalaryChangeRecord } from '@/types/reports';
+import { calculateAllEmployeesGrossPay, EmployeeGrossPay } from '@/lib/salaryUtils';
 
-interface EmployeeWithSalary {
+interface EmployeeWithDetails {
   id: string;
-  salary: number | null;
   department_id: string | null;
   work_location_id: string | null;
   departments: { name: string } | null;
@@ -36,13 +36,18 @@ function calculateMedian(values: number[]): number {
 }
 
 async function fetchSalaryDistribution(filters: ReportFilters): Promise<SalaryDistributionRecord[]> {
+  // Get gross pay for all employees (basic + allowances)
+  const grossPayData = await calculateAllEmployeesGrossPay();
   
+  // Create a map for quick lookup
+  const grossPayMap = new Map<string, EmployeeGrossPay>();
+  grossPayData.forEach(gp => grossPayMap.set(gp.employeeId, gp));
   
+  // Fetch employee department and location info
   const { data: employees, error } = await supabase
     .from('employees')
     .select(`
       id,
-      salary,
       department_id,
       work_location_id,
       departments!department_id (name),
@@ -52,24 +57,38 @@ async function fetchSalaryDistribution(filters: ReportFilters): Promise<SalaryDi
   
   if (error) throw error;
   
-  // Group by department
-  const deptMap = new Map<string, { dept: string; location: string; salaries: number[] }>();
+  // Group by department + location + currency
+  const groupMap = new Map<string, { 
+    dept: string; 
+    location: string; 
+    currencyCode: string;
+    grossPays: number[] 
+  }>();
   
-  (employees || []).forEach((emp: EmployeeWithSalary) => {
-    if (!emp.salary) return;
+  (employees || []).forEach((emp: EmployeeWithDetails) => {
+    const grossPayInfo = grossPayMap.get(emp.id);
+    if (!grossPayInfo || grossPayInfo.grossPay <= 0) return;
     
     const deptName = emp.departments?.name || 'Unassigned';
     const locName = emp.work_locations?.name || 'No Location';
-    const key = `${deptName}|${locName}`;
+    const currencyCode = grossPayInfo.currencyCode;
     
-    if (!deptMap.has(key)) {
-      deptMap.set(key, { dept: deptName, location: locName, salaries: [] });
+    // Group by dept + location + currency to keep currencies separate
+    const key = `${deptName}|${locName}|${currencyCode}`;
+    
+    if (!groupMap.has(key)) {
+      groupMap.set(key, { 
+        dept: deptName, 
+        location: locName, 
+        currencyCode,
+        grossPays: [] 
+      });
     }
-    deptMap.get(key)!.salaries.push(emp.salary);
+    groupMap.get(key)!.grossPays.push(grossPayInfo.grossPay);
   });
   
   // Apply filters
-  let results = Array.from(deptMap.values());
+  let results = Array.from(groupMap.values());
   
   if (filters.departmentId) {
     const { data: dept } = await supabase
@@ -93,21 +112,20 @@ async function fetchSalaryDistribution(filters: ReportFilters): Promise<SalaryDi
     }
   }
   
-  return results.map(({ dept, location, salaries }) => ({
+  return results.map(({ dept, location, currencyCode, grossPays }) => ({
     department: dept,
     location,
-    employeeCount: salaries.length,
-    minSalary: Math.min(...salaries),
-    maxSalary: Math.max(...salaries),
-    avgSalary: Math.round(salaries.reduce((a, b) => a + b, 0) / salaries.length),
-    medianSalary: calculateMedian(salaries),
-    totalSalary: salaries.reduce((a, b) => a + b, 0),
+    currencyCode,
+    employeeCount: grossPays.length,
+    minGrossPay: Math.min(...grossPays),
+    maxGrossPay: Math.max(...grossPays),
+    avgGrossPay: Math.round(grossPays.reduce((a, b) => a + b, 0) / grossPays.length),
+    medianGrossPay: calculateMedian(grossPays),
+    totalGrossPay: grossPays.reduce((a, b) => a + b, 0),
   }));
 }
 
 async function fetchSalaryChangeHistory(filters: ReportFilters): Promise<SalaryChangeRecord[]> {
-  
-  
   const { data, error } = await supabase
     .from('salary_history')
     .select(`

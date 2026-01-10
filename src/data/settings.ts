@@ -52,6 +52,7 @@ export interface CompanySettings {
     dateFormat: string;
     currency: string;
     weekendDays: number[]; // 0=Sunday, 1=Monday, ..., 5=Friday, 6=Saturday
+    reportingCurrency?: string; // Currency for consolidated reporting (default: BHD)
   };
   payrollDayOfMonth: number; // Day of month when payroll is processed (1-31)
   dashboardCardVisibility?: DashboardCardVisibility;
@@ -178,7 +179,8 @@ export const companySettings: CompanySettings = {
     timezone: 'America/Los_Angeles',
     dateFormat: 'MM/DD/YYYY',
     currency: 'USD',
-    weekendDays: [5, 6] // Friday-Saturday
+    weekendDays: [5, 6], // Friday-Saturday
+    reportingCurrency: 'BHD',
   },
   payrollDayOfMonth: 25,
   employeeCanViewCompensation: true,
