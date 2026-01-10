@@ -141,9 +141,13 @@ export function useAdminDashboard() {
           daysCount: r.days_count,
         }));
 
-      // Process leave trends
-      const thisMonthCount = thisMonthLeaveRes.data?.length || 0;
-      const lastMonthCount = lastMonthLeaveRes.data?.length || 0;
+      // Process leave trends (exclude public holidays)
+      const thisMonthCount = (thisMonthLeaveRes.data || [])
+        .filter((r: any) => r.leave_type?.name !== 'Public Holiday')
+        .length;
+      const lastMonthCount = (lastMonthLeaveRes.data || [])
+        .filter((r: any) => r.leave_type?.name !== 'Public Holiday')
+        .length;
 
       const leaveTrends = {
         thisMonth: thisMonthCount,
