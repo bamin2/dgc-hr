@@ -100,7 +100,7 @@ export function LeaveBalanceReport() {
       title="Leave Balance Report"
       description="Current leave balances showing entitled, taken, pending, and remaining days per employee"
       filters={filters}
-      onFilterChange={setFilters}
+      onFiltersChange={setFilters}
       data={data}
       columns={columns}
       isLoading={isLoading}

@@ -37,7 +37,7 @@ export function PayrollDetailedReport() {
       title="Payroll Detailed Report"
       description="Per-employee breakdown of salary components, allowances, deductions, and net pay"
       filters={filters}
-      onFilterChange={setFilters}
+      onFiltersChange={setFilters}
       data={data}
       columns={columns}
       isLoading={isLoading}

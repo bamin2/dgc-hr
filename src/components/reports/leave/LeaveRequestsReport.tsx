@@ -48,7 +48,7 @@ export function LeaveRequestsReport() {
       title="Leave Requests Report"
       description="All leave requests with approval workflow status and outcomes"
       filters={filters}
-      onFilterChange={setFilters}
+      onFiltersChange={setFilters}
       data={data}
       columns={columns}
       isLoading={isLoading}

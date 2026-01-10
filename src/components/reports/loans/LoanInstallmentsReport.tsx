@@ -61,7 +61,7 @@ export function LoanInstallmentsReport() {
       title="Loan Installments Report"
       description="Monthly breakdown of loan installments with payment status and deduction method"
       filters={filters}
-      onFilterChange={setFilters}
+      onFiltersChange={setFilters}
       data={data}
       columns={columns}
       isLoading={isLoading}

@@ -1,32 +1,24 @@
 import { useState } from 'react';
+import { Navigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/dashboard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { RefreshCw, FileText } from 'lucide-react';
+import { RefreshCw, Users, DollarSign, Calendar, CreditCard, Shield, FileText, ArrowLeft } from 'lucide-react';
 import {
   ReportsMetrics,
-  AttendanceChart,
   PayrollChart,
   DepartmentTable,
   LeaveChart,
-  ReportsTable,
-  ReportsFilters,
   ExportButton,
-  SalaryMetricsCards,
-  SalaryDistributionChart,
-  SalaryTrendChart,
-  DepartmentSalaryTable,
-  SalaryChangeTypeChart,
 } from '@/components/reports';
-import { useReportAnalytics, reportsList } from '@/hooks/useReportAnalytics';
+import { useReportAnalytics } from '@/hooks/useReportAnalytics';
 import { useToast } from '@/hooks/use-toast';
-import { DateRange } from 'react-day-picker';
-import { useSalaryAnalytics } from '@/hooks/useSalaryAnalytics';
 import { useCompanySettings } from '@/contexts/CompanySettingsContext';
+import { useRole } from '@/contexts/RoleContext';
 
 // Production Report Components
-import { PayrollRunSummaryReport, PayrollDetailedReport } from '@/components/reports/payroll';
+import { PayrollRunSummaryReport, PayrollDetailedReport, PayslipRegisterReport } from '@/components/reports/payroll';
 import { LeaveBalanceReport, LeaveRequestsReport } from '@/components/reports/leave';
 import { LoanSummaryReport, LoanInstallmentsReport } from '@/components/reports/loans';
 import { GosiContributionReport } from '@/components/reports/compliance';
@@ -34,60 +26,56 @@ import { EmployeeMasterReport } from '@/components/reports/employees';
 import { SalaryReportsTab } from '@/components/reports/salary';
 import { ReportCatalogTable } from '@/components/reports/ReportCatalogTable';
 
-type ReportType = 'attendance' | 'payroll' | 'benefits' | 'employees' | 'leave';
-type ReportPeriod = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'custom';
+// Report sub-views for each category
+type PayrollReportView = 'list' | 'payroll-run-summary' | 'payroll-detailed' | 'payslip-register';
+type SalaryReportView = 'list' | 'salary-distribution' | 'salary-change-history';
+type LeaveReportView = 'list' | 'leave-balance' | 'leave-requests';
+type LoanReportView = 'list' | 'loan-summary' | 'loan-installments';
+type ComplianceReportView = 'list' | 'gosi-contribution';
+type EmployeeReportView = 'list' | 'employee-master';
 
 const Reports = () => {
   const { toast } = useToast();
   const { formatCurrency } = useCompanySettings();
-  const [activeTab, setActiveTab] = useState('overview');
-  const [productionReportView, setProductionReportView] = useState<string | null>(null);
+  const { hasRole, canAccessManagement, isLoading: roleLoading } = useRole();
   
-  // Filters
-  const [searchQuery, setSearchQuery] = useState('');
-  const [typeFilter, setTypeFilter] = useState<ReportType | 'all'>('all');
-  const [periodFilter, setPeriodFilter] = useState<ReportPeriod>('monthly');
-  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [activeTab, setActiveTab] = useState('overview');
+  
+  // Sub-views for each category
+  const [payrollView, setPayrollView] = useState<PayrollReportView>('list');
+  const [salaryView, setSalaryView] = useState<SalaryReportView>('list');
+  const [leaveView, setLeaveView] = useState<LeaveReportView>('list');
+  const [loanView, setLoanView] = useState<LoanReportView>('list');
+  const [complianceView, setComplianceView] = useState<ComplianceReportView>('list');
+  const [employeeView, setEmployeeView] = useState<EmployeeReportView>('list');
 
   // Data from hooks
   const { 
     stats, 
-    attendanceData, 
     payrollData, 
     departmentStats, 
     leaveData,
     refetch 
   } = useReportAnalytics();
+
+  // Role-based access control - require HR or Admin
+  const canAccessReports = hasRole('hr') || hasRole('admin') || canAccessManagement;
   
-  // Salary Analytics
-  const salaryAnalytics = useSalaryAnalytics();
-
-  // Filter reports
-  const filteredReports = reportsList.filter(report => {
-    const matchesSearch = report.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      report.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesType = typeFilter === 'all' || report.type === typeFilter;
-    return matchesSearch && matchesType;
-  });
-
-  const handleViewReport = (reportId: string) => {
-    const report = reportsList.find(r => r.id === reportId);
-    if (report) {
-      setActiveTab(report.type === 'employees' ? 'employees' : report.type);
-      toast({
-        title: 'Report Loaded',
-        description: `Viewing ${report.name}`
-      });
-    }
-  };
-
-  const handleDownloadReport = (reportId: string) => {
-    const report = reportsList.find(r => r.id === reportId);
-    toast({
-      title: 'Export Started',
-      description: `Generating ${report?.name || 'report'} export...`
-    });
-  };
+  // Show loading state while checking roles
+  if (roleLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+  
+  // Redirect if user doesn't have access
+  if (!canAccessReports) {
+    return <Navigate to="/" replace />;
+  }
 
   const handleExport = (format: 'csv' | 'pdf' | 'json') => {
     toast({
@@ -104,39 +92,71 @@ const Reports = () => {
     });
   };
 
-  const handleOpenProductionReport = (reportId: string) => {
-    setProductionReportView(reportId);
-    setActiveTab('production');
-  };
-
-  // Render production report based on selected view
-  const renderProductionReport = () => {
-    switch (productionReportView) {
-      case 'payroll-run-summary':
-        return <PayrollRunSummaryReport />;
-      case 'payroll-detailed':
-        return <PayrollDetailedReport />;
-      case 'leave-balance':
-        return <LeaveBalanceReport />;
-      case 'leave-requests':
-        return <LeaveRequestsReport />;
-      case 'loan-summary':
-        return <LoanSummaryReport />;
-      case 'loan-installments':
-        return <LoanInstallmentsReport />;
-      case 'gosi-contribution':
-        return <GosiContributionReport />;
-      case 'employee-master':
-        return <EmployeeMasterReport />;
-      case 'salary-distribution':
-      case 'salary-change-history':
-        return <SalaryReportsTab />;
-      default:
-        return (
-          <ReportCatalogTable onViewReport={handleOpenProductionReport} />
-        );
+  const handleOpenReport = (reportId: string) => {
+    // Navigate to the appropriate tab and view based on report ID
+    if (reportId.startsWith('payroll')) {
+      setActiveTab('payroll');
+      setPayrollView(reportId as PayrollReportView);
+    } else if (reportId.startsWith('salary')) {
+      setActiveTab('salary');
+      setSalaryView(reportId as SalaryReportView);
+    } else if (reportId.startsWith('leave')) {
+      setActiveTab('leave');
+      setLeaveView(reportId as LeaveReportView);
+    } else if (reportId.startsWith('loan')) {
+      setActiveTab('loans');
+      setLoanView(reportId as LoanReportView);
+    } else if (reportId === 'gosi-contribution') {
+      setActiveTab('compliance');
+      setComplianceView('gosi-contribution');
+    } else if (reportId === 'employee-master') {
+      setActiveTab('employees');
+      setEmployeeView('employee-master');
     }
   };
+
+  // Reset view when changing tabs
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    // Reset all sub-views to list when switching tabs
+    setPayrollView('list');
+    setSalaryView('list');
+    setLeaveView('list');
+    setLoanView('list');
+    setComplianceView('list');
+    setEmployeeView('list');
+  };
+
+  // Render back button for sub-views
+  const renderBackButton = (onBack: () => void) => (
+    <Button variant="ghost" onClick={onBack} className="mb-4">
+      <ArrowLeft className="h-4 w-4 mr-2" />
+      Back to Reports List
+    </Button>
+  );
+
+  // Report list card component
+  const ReportCard = ({ 
+    title, 
+    description, 
+    onClick 
+  }: { 
+    title: string; 
+    description: string; 
+    onClick: () => void;
+  }) => (
+    <Card 
+      className="cursor-pointer hover:border-primary/50 transition-colors"
+      onClick={onClick}
+    >
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base">{title}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className="text-sm text-muted-foreground">{description}</p>
+      </CardContent>
+    </Card>
+  );
 
   return (
     <DashboardLayout>
@@ -157,23 +177,37 @@ const Reports = () => {
         </div>
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={(value) => {
-          setActiveTab(value);
-          if (value !== 'production') {
-            setProductionReportView(null);
-          }
-        }}>
+        <Tabs value={activeTab} onValueChange={handleTabChange}>
           <TabsList className="w-full sm:w-auto overflow-x-auto flex-wrap h-auto">
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="attendance">Attendance</TabsTrigger>
-            <TabsTrigger value="payroll">Payroll</TabsTrigger>
-            <TabsTrigger value="salary">Salary</TabsTrigger>
-            <TabsTrigger value="leave">Leave</TabsTrigger>
-            <TabsTrigger value="production" className="gap-1">
-              <FileText className="h-4 w-4" />
-              Production Reports
+            <TabsTrigger value="payroll" className="gap-1">
+              <DollarSign className="h-3.5 w-3.5" />
+              Payroll
             </TabsTrigger>
-            <TabsTrigger value="reports">All Reports</TabsTrigger>
+            <TabsTrigger value="salary" className="gap-1">
+              <DollarSign className="h-3.5 w-3.5" />
+              Salary
+            </TabsTrigger>
+            <TabsTrigger value="leave" className="gap-1">
+              <Calendar className="h-3.5 w-3.5" />
+              Leave
+            </TabsTrigger>
+            <TabsTrigger value="loans" className="gap-1">
+              <CreditCard className="h-3.5 w-3.5" />
+              Loans
+            </TabsTrigger>
+            <TabsTrigger value="compliance" className="gap-1">
+              <Shield className="h-3.5 w-3.5" />
+              Compliance
+            </TabsTrigger>
+            <TabsTrigger value="employees" className="gap-1">
+              <Users className="h-3.5 w-3.5" />
+              Employees
+            </TabsTrigger>
+            <TabsTrigger value="all-reports" className="gap-1">
+              <FileText className="h-3.5 w-3.5" />
+              All Reports
+            </TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
@@ -181,66 +215,51 @@ const Reports = () => {
             <ReportsMetrics stats={stats} />
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <AttendanceChart data={attendanceData.slice(-14)} />
               <PayrollChart data={payrollData} />
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <DepartmentTable data={departmentStats} />
-              </div>
               <LeaveChart data={leaveData} />
             </div>
-          </TabsContent>
 
-          {/* Attendance Tab */}
-          <TabsContent value="attendance" className="space-y-6 mt-6">
-            <div className="flex items-center justify-between">
-              <ReportsFilters
-                searchQuery={searchQuery}
-                onSearchChange={setSearchQuery}
-                typeFilter="attendance"
-                onTypeChange={() => {}}
-                periodFilter={periodFilter}
-                onPeriodChange={setPeriodFilter}
-                dateRange={dateRange}
-                onDateRangeChange={setDateRange}
-                showDateRange
-              />
-            </div>
+            <DepartmentTable data={departmentStats} />
             
-            <AttendanceChart data={attendanceData} />
-            
-            <Card className="border-border/50">
+            {/* Quick Links to Reports */}
+            <Card>
               <CardHeader>
-                <CardTitle className="text-base font-medium">Attendance Summary</CardTitle>
+                <CardTitle className="text-base font-medium">Quick Access</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
-                    <p className="text-2xl font-bold text-emerald-600">
-                      {attendanceData.reduce((sum, d) => sum + d.present, 0)}
-                    </p>
-                    <p className="text-sm text-muted-foreground">Total Present</p>
-                  </div>
-                  <div className="text-center p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                    <p className="text-2xl font-bold text-red-600">
-                      {attendanceData.reduce((sum, d) => sum + d.absent, 0)}
-                    </p>
-                    <p className="text-sm text-muted-foreground">Total Absent</p>
-                  </div>
-                  <div className="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-                    <p className="text-2xl font-bold text-orange-600">
-                      {attendanceData.reduce((sum, d) => sum + d.late, 0)}
-                    </p>
-                    <p className="text-sm text-muted-foreground">Late Arrivals</p>
-                  </div>
-                  <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <p className="text-2xl font-bold text-blue-600">
-                      {Math.round(attendanceData.reduce((sum, d) => sum + d.attendanceRate, 0) / attendanceData.length)}%
-                    </p>
-                    <p className="text-sm text-muted-foreground">Avg Attendance</p>
-                  </div>
+                  <Button 
+                    variant="outline" 
+                    className="h-auto py-4 flex-col gap-2"
+                    onClick={() => { setActiveTab('payroll'); setPayrollView('payroll-run-summary'); }}
+                  >
+                    <DollarSign className="h-5 w-5" />
+                    <span className="text-xs">Payroll Summary</span>
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="h-auto py-4 flex-col gap-2"
+                    onClick={() => { setActiveTab('leave'); setLeaveView('leave-balance'); }}
+                  >
+                    <Calendar className="h-5 w-5" />
+                    <span className="text-xs">Leave Balances</span>
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="h-auto py-4 flex-col gap-2"
+                    onClick={() => { setActiveTab('loans'); setLoanView('loan-summary'); }}
+                  >
+                    <CreditCard className="h-5 w-5" />
+                    <span className="text-xs">Loan Summary</span>
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="h-auto py-4 flex-col gap-2"
+                    onClick={() => { setActiveTab('compliance'); setComplianceView('gosi-contribution'); }}
+                  >
+                    <Shield className="h-5 w-5" />
+                    <span className="text-xs">GOSI Report</span>
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -248,174 +267,144 @@ const Reports = () => {
 
           {/* Payroll Tab */}
           <TabsContent value="payroll" className="space-y-6 mt-6">
-            <div className="flex items-center justify-between">
-              <ReportsFilters
-                searchQuery={searchQuery}
-                onSearchChange={setSearchQuery}
-                typeFilter="payroll"
-                onTypeChange={() => {}}
-                periodFilter={periodFilter}
-                onPeriodChange={setPeriodFilter}
-              />
-            </div>
-            
-            <PayrollChart data={payrollData} />
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card className="border-border/50">
-                <CardContent className="p-6">
-                  <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">Total Gross Pay (YTD)</p>
-                    <p className="text-3xl font-bold">
-                      {formatCurrency(payrollData.reduce((sum, d) => sum + d.grossPay, 0))}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="border-border/50">
-                <CardContent className="p-6">
-                  <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">Total Taxes (YTD)</p>
-                    <p className="text-3xl font-bold text-blue-600">
-                      {formatCurrency(payrollData.reduce((sum, d) => sum + d.taxes, 0))}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="border-border/50">
-                <CardContent className="p-6">
-                  <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">Total Net Pay (YTD)</p>
-                    <p className="text-3xl font-bold text-emerald-600">
-                      {formatCurrency(payrollData.reduce((sum, d) => sum + d.netPay, 0))}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <DepartmentTable data={departmentStats} />
+            {payrollView === 'list' ? (
+              <div className="grid gap-4 md:grid-cols-3">
+                <ReportCard
+                  title="Payroll Run Summary"
+                  description="Summary of payroll runs with totals for gross, deductions, net pay, and GOSI contributions"
+                  onClick={() => setPayrollView('payroll-run-summary')}
+                />
+                <ReportCard
+                  title="Payroll Detailed Report"
+                  description="Per-employee breakdown of salary components, allowances, deductions, and net pay"
+                  onClick={() => setPayrollView('payroll-detailed')}
+                />
+                <ReportCard
+                  title="Payslip Register"
+                  description="Track payslip issuance status for each employee per payroll run"
+                  onClick={() => setPayrollView('payslip-register')}
+                />
+              </div>
+            ) : (
+              <>
+                {renderBackButton(() => setPayrollView('list'))}
+                {payrollView === 'payroll-run-summary' && <PayrollRunSummaryReport />}
+                {payrollView === 'payroll-detailed' && <PayrollDetailedReport />}
+                {payrollView === 'payslip-register' && <PayslipRegisterReport />}
+              </>
+            )}
           </TabsContent>
 
           {/* Salary Tab */}
           <TabsContent value="salary" className="space-y-6 mt-6">
-            <SalaryMetricsCards stats={salaryAnalytics.stats} isLoading={salaryAnalytics.isLoading} />
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <SalaryDistributionChart data={salaryAnalytics.salaryDistribution} isLoading={salaryAnalytics.isLoading} />
-              <SalaryChangeTypeChart data={salaryAnalytics.changeTypeBreakdown} isLoading={salaryAnalytics.isLoading} />
-            </div>
-
-            <SalaryTrendChart data={salaryAnalytics.salaryTrends} isLoading={salaryAnalytics.isLoading} />
-            
-            <DepartmentSalaryTable data={salaryAnalytics.departmentSalaries} isLoading={salaryAnalytics.isLoading} />
+            {salaryView === 'list' ? (
+              <div className="grid gap-4 md:grid-cols-2">
+                <ReportCard
+                  title="Salary Distribution"
+                  description="Salary statistics including average, median, and ranges grouped by department and location"
+                  onClick={() => setSalaryView('salary-distribution')}
+                />
+                <ReportCard
+                  title="Salary Change History"
+                  description="Historical record of all salary changes with before/after values and change reasons"
+                  onClick={() => setSalaryView('salary-change-history')}
+                />
+              </div>
+            ) : (
+              <>
+                {renderBackButton(() => setSalaryView('list'))}
+                <SalaryReportsTab />
+              </>
+            )}
           </TabsContent>
 
           {/* Leave Tab */}
           <TabsContent value="leave" className="space-y-6 mt-6">
-            <div className="flex items-center justify-between">
-              <ReportsFilters
-                searchQuery={searchQuery}
-                onSearchChange={setSearchQuery}
-                typeFilter="leave"
-                onTypeChange={() => {}}
-                periodFilter={periodFilter}
-                onPeriodChange={setPeriodFilter}
-              />
-            </div>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <LeaveChart data={leaveData} />
-              
-              <Card className="border-border/50">
-                <CardHeader>
-                  <CardTitle className="text-base font-medium">Leave Statistics</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {leaveData.map((leave) => (
-                      <div key={leave.type} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                        <div>
-                          <p className="font-medium">{leave.type}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {leave.taken} taken, {leave.remaining} remaining
-                          </p>
-                        </div>
-                        {leave.pending > 0 && (
-                          <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-full">
-                            {leave.pending} pending
-                          </span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <Card className="border-border/50">
-              <CardContent className="p-6">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                  <div>
-                    <p className="text-3xl font-bold text-blue-600">
-                      {leaveData.reduce((sum, l) => sum + l.taken, 0)}
-                    </p>
-                    <p className="text-sm text-muted-foreground">Total Days Taken</p>
-                  </div>
-                  <div>
-                    <p className="text-3xl font-bold text-emerald-600">
-                      {leaveData.reduce((sum, l) => sum + l.remaining, 0)}
-                    </p>
-                    <p className="text-sm text-muted-foreground">Days Remaining</p>
-                  </div>
-                  <div>
-                    <p className="text-3xl font-bold text-amber-600">
-                      {leaveData.reduce((sum, l) => sum + l.pending, 0)}
-                    </p>
-                    <p className="text-sm text-muted-foreground">Pending Requests</p>
-                  </div>
-                  <div>
-                    <p className="text-3xl font-bold text-purple-600">
-                      {Math.round((leaveData.reduce((sum, l) => sum + l.taken, 0) / 
-                        (leaveData.reduce((sum, l) => sum + l.taken + l.remaining, 0) || 1)) * 100)}%
-                    </p>
-                    <p className="text-sm text-muted-foreground">Utilization Rate</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Production Reports Tab */}
-          <TabsContent value="production" className="space-y-6 mt-6">
-            {productionReportView && (
-              <Button 
-                variant="ghost" 
-                onClick={() => setProductionReportView(null)}
-                className="mb-4"
-              >
-                ← Back to Report Catalog
-              </Button>
+            {leaveView === 'list' ? (
+              <div className="grid gap-4 md:grid-cols-2">
+                <ReportCard
+                  title="Leave Balance Report"
+                  description="Current leave balances showing entitled, taken, pending, and remaining days per employee"
+                  onClick={() => setLeaveView('leave-balance')}
+                />
+                <ReportCard
+                  title="Leave Requests Report"
+                  description="All leave requests with approval workflow status and outcomes"
+                  onClick={() => setLeaveView('leave-requests')}
+                />
+              </div>
+            ) : (
+              <>
+                {renderBackButton(() => setLeaveView('list'))}
+                {leaveView === 'leave-balance' && <LeaveBalanceReport />}
+                {leaveView === 'leave-requests' && <LeaveRequestsReport />}
+              </>
             )}
-            {renderProductionReport()}
           </TabsContent>
 
-          {/* All Reports Tab */}
-          <TabsContent value="reports" className="space-y-6 mt-6">
-            <ReportsFilters
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              typeFilter={typeFilter}
-              onTypeChange={setTypeFilter}
-              periodFilter={periodFilter}
-              onPeriodChange={setPeriodFilter}
-            />
-            
-            <ReportsTable 
-              reports={filteredReports}
-              onView={handleViewReport}
-              onDownload={handleDownloadReport}
-            />
+          {/* Loans Tab */}
+          <TabsContent value="loans" className="space-y-6 mt-6">
+            {loanView === 'list' ? (
+              <div className="grid gap-4 md:grid-cols-2">
+                <ReportCard
+                  title="Loan Summary Report"
+                  description="Overview of all employee loans with original amounts, outstanding balances, and payment status"
+                  onClick={() => setLoanView('loan-summary')}
+                />
+                <ReportCard
+                  title="Loan Installments Report"
+                  description="Monthly breakdown of loan installments with payment status and deduction method"
+                  onClick={() => setLoanView('loan-installments')}
+                />
+              </div>
+            ) : (
+              <>
+                {renderBackButton(() => setLoanView('list'))}
+                {loanView === 'loan-summary' && <LoanSummaryReport />}
+                {loanView === 'loan-installments' && <LoanInstallmentsReport />}
+              </>
+            )}
+          </TabsContent>
+
+          {/* Compliance Tab */}
+          <TabsContent value="compliance" className="space-y-6 mt-6">
+            {complianceView === 'list' ? (
+              <div className="grid gap-4 md:grid-cols-2">
+                <ReportCard
+                  title="GOSI Contribution Report"
+                  description="Employee and employer GOSI contributions by nationality and location"
+                  onClick={() => setComplianceView('gosi-contribution')}
+                />
+              </div>
+            ) : (
+              <>
+                {renderBackButton(() => setComplianceView('list'))}
+                {complianceView === 'gosi-contribution' && <GosiContributionReport />}
+              </>
+            )}
+          </TabsContent>
+
+          {/* Employees Tab */}
+          <TabsContent value="employees" className="space-y-6 mt-6">
+            {employeeView === 'list' ? (
+              <div className="grid gap-4 md:grid-cols-2">
+                <ReportCard
+                  title="Employee Master Report"
+                  description="Complete employee directory with department, position, location, and employment details"
+                  onClick={() => setEmployeeView('employee-master')}
+                />
+              </div>
+            ) : (
+              <>
+                {renderBackButton(() => setEmployeeView('list'))}
+                {employeeView === 'employee-master' && <EmployeeMasterReport />}
+              </>
+            )}
+          </TabsContent>
+
+          {/* All Reports Tab (Catalog) */}
+          <TabsContent value="all-reports" className="space-y-6 mt-6">
+            <ReportCatalogTable onViewReport={handleOpenReport} />
           </TabsContent>
         </Tabs>
       </div>

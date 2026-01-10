@@ -120,7 +120,7 @@ export function LoanSummaryReport() {
       title="Loan Summary Report"
       description="Overview of all employee loans with original amounts, outstanding balances, and payment status"
       filters={filters}
-      onFilterChange={setFilters}
+      onFiltersChange={setFilters}
       data={data}
       columns={columns}
       isLoading={isLoading}

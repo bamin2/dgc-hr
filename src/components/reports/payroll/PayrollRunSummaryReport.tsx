@@ -105,7 +105,7 @@ export function PayrollRunSummaryReport() {
       title="Payroll Run Summary Report"
       description="Summary of payroll runs with totals for gross, deductions, net pay, and GOSI contributions"
       filters={filters}
-      onFilterChange={setFilters}
+      onFiltersChange={setFilters}
       data={data}
       columns={columns}
       isLoading={isLoading}

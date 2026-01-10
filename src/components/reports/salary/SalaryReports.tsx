@@ -47,7 +47,7 @@ export function SalaryDistributionReport() {
       title="Salary Distribution Report"
       description="Salary statistics including average, median, and ranges grouped by department and location"
       filters={filters}
-      onFilterChange={setFilters}
+      onFiltersChange={setFilters}
       data={data}
       columns={distributionColumns}
       isLoading={isLoading}
@@ -103,7 +103,7 @@ export function SalaryChangeHistoryReport() {
       title="Salary Change History"
       description="Historical record of all salary changes with before/after values and change reasons"
       filters={filters}
-      onFilterChange={setFilters}
+      onFiltersChange={setFilters}
       data={data}
       columns={changeColumns}
       isLoading={isLoading}
