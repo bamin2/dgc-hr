@@ -130,7 +130,10 @@ export async function fetchLeaveRequestsByDateRange(
 ) {
   let query = supabase
     .from('leave_requests')
-    .select('id')
+    .select(`
+      id,
+      leave_type:leave_types (name)
+    `)
     .eq('status', 'approved')
     .gte('start_date', startDate);
   
