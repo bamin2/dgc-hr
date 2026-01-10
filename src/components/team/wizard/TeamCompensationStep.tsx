@@ -316,7 +316,7 @@ export function TeamCompensationStep({
                     </span>
                   )}
                   {!a.isCustom && a.isVariable && (
-                    <span className="text-xs text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-950 px-1.5 py-0.5 rounded">
+                    <span className="text-xs text-teal-600 bg-teal-50 dark:text-teal-400 dark:bg-teal-950 px-1.5 py-0.5 rounded">
                       variable
                     </span>
                   )}

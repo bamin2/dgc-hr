@@ -21,8 +21,8 @@ export const NotificationsMetrics = ({ total, unread, today, highPriority }: Not
       label: 'Unread',
       value: unread,
       icon: BellOff,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-100 dark:bg-blue-900/30'
+      color: 'text-teal-600',
+      bgColor: 'bg-teal-100 dark:bg-teal-900/30'
     },
     {
       label: 'Today',

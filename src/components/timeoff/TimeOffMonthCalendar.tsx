@@ -92,7 +92,7 @@ export function TimeOffMonthCalendar() {
         title: `${request.employee?.first_name || ''} - ${request.leave_type?.name || 'Leave'}`,
         startDate: parseISO(request.start_date),
         endDate: parseISO(request.end_date),
-        color: request.leave_type?.color || '#3b82f6',
+        color: request.leave_type?.color || '#14b8a6',
       }));
   }, [leaveRequests]);
 

@@ -18,8 +18,8 @@ export function WorkforceSnapshotCards({ data, isLoading, onNavigate }: Workforc
           value={data.totalActive}
           subtitle="Current headcount"
           icon={Users}
-          iconBg="bg-indigo-100 dark:bg-indigo-900/30"
-          iconColor="text-indigo-600 dark:text-indigo-400"
+          iconBg="bg-teal-100 dark:bg-teal-900/30"
+          iconColor="text-teal-600 dark:text-teal-400"
           onClick={() => onNavigate('employee-master')}
           isLoading={isLoading}
         />

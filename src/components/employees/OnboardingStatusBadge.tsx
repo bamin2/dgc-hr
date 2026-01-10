@@ -27,9 +27,9 @@ const statusConfig: Record<OnboardingStatus, { label: string; dotClass: string; 
   },
   scheduled: {
     label: 'Scheduled',
-    dotClass: 'bg-blue-500',
-    bgClass: 'bg-blue-50 dark:bg-blue-500/10',
-    textClass: 'text-blue-700 dark:text-blue-400',
+    dotClass: 'bg-teal-500',
+    bgClass: 'bg-teal-50 dark:bg-teal-500/10',
+    textClass: 'text-teal-700 dark:text-teal-400',
   },
   incomplete: {
     label: 'Incomplete',

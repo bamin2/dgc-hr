@@ -228,7 +228,7 @@ export function OffboardingReviewStep({
             </div>
             <div className="flex justify-between items-center">
               <span className="text-muted-foreground">Scheduled</span>
-              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+              <Badge variant="outline" className="bg-teal-50 text-teal-700 border-teal-200">
                 {scheduledSystems} systems
               </Badge>
             </div>

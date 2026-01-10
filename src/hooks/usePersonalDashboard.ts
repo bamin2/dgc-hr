@@ -107,7 +107,7 @@ export function usePersonalDashboard() {
       const leaveBalances = (leaveBalancesRes.data || []).map((b: any) => ({
         leaveTypeId: b.leave_type_id,
         leaveTypeName: b.leave_type?.name || 'Unknown',
-        color: b.leave_type?.color || '#3b82f6',
+        color: b.leave_type?.color || '#14b8a6',
         total: b.total_days,
         used: b.used_days || 0,
         pending: b.pending_days || 0,

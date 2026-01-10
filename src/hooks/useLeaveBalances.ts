@@ -84,7 +84,7 @@ export function useLeaveBalanceSummary(employeeId?: string, year?: number) {
   const summary: LeaveBalanceSummary[] = balances?.map((balance) => ({
     leaveTypeId: balance.leave_type_id,
     leaveTypeName: balance.leave_type?.name || 'Unknown',
-    color: balance.leave_type?.color || '#3b82f6',
+    color: balance.leave_type?.color || '#14b8a6',
     total: balance.total_days,
     used: balance.used_days,
     pending: balance.pending_days,

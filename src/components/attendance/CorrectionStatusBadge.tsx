@@ -17,7 +17,7 @@ const statusConfig: Record<CorrectionStatus, { label: string; variant: 'default'
     label: 'Pending HR',
     variant: 'outline',
     icon: UserCheck,
-    className: 'border-blue-500/50 text-blue-600 bg-blue-50 dark:bg-blue-950/20',
+    className: 'border-teal-500/50 text-teal-600 bg-teal-50 dark:bg-teal-950/20',
   },
   approved: {
     label: 'Approved',

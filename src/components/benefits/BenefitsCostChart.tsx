@@ -6,7 +6,7 @@ interface BenefitsCostChartProps {
   enrollments: BenefitEnrollment[];
 }
 
-const COLORS = ['#22C55E', '#3B82F6', '#8B5CF6', '#F97316', '#14B8A6', '#64748B', '#EC4899', '#6B7280'];
+const COLORS = ['#22C55E', '#14B8A6', '#C6A45E', '#F97316', '#6B8E7B', '#64748B', '#F87171', '#6B7280'];
 
 export const BenefitsCostChart = ({ enrollments }: BenefitsCostChartProps) => {
   const costByType = enrollments.reduce((acc, enrollment) => {
