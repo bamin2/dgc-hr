@@ -128,7 +128,7 @@ async function fetchLeaveRequests(filters: ReportFilters): Promise<LeaveRequestR
   const empIds = [...new Set((data || []).map(r => r.employee_id))];
   const { data: employees } = await supabase
     .from('employees')
-    .select('id, first_name, last_name, employee_code, departments(name)')
+    .select('id, first_name, last_name, employee_code, departments!department_id(name)')
     .in('id', empIds);
   
   const empMap = new Map((employees || []).map(e => [e.id, e]));

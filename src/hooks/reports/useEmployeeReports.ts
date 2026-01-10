@@ -34,7 +34,7 @@ async function fetchEmployeeMaster(filters: ReportFilters): Promise<EmployeeMast
       join_date,
       status,
       manager_id,
-      departments (name),
+      departments!department_id (name),
       positions (title),
       work_locations:work_location_id (name)
     `)
