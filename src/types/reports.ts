@@ -44,6 +44,8 @@ export interface PayrollRunSummary {
   processedDate: string;
   status: string;
   employeeCount: number;
+  currencyCode: string;
+  hasMixedCurrencies: boolean;
   totalGross: number;
   totalDeductions: number;
   totalNetPay: number;
@@ -59,6 +61,7 @@ export interface PayrollDetailedRecord {
   employeeName: string;
   department: string;
   position: string;
+  currencyCode: string;
   baseSalary: number;
   housingAllowance: number;
   transportationAllowance: number;
@@ -102,6 +105,7 @@ export interface SalaryChangeRecord {
   employeeCode: string;
   employeeName: string;
   department: string;
+  currencyCode: string;
   effectiveDate: string;
   previousSalary: number;
   newSalary: number;
@@ -148,6 +152,7 @@ export interface LoanSummaryRecord {
   employeeCode: string;
   employeeName: string;
   department: string;
+  currencyCode: string;
   originalAmount: number;
   outstandingBalance: number;
   installmentAmount: number;
@@ -163,6 +168,7 @@ export interface LoanInstallmentRecord {
   loanId: string;
   employeeId: string;
   employeeName: string;
+  currencyCode: string;
   dueDate: string;
   dueMonth: string;
   amount: number;
@@ -179,6 +185,7 @@ export interface GosiContributionRecord {
   employeeName: string;
   nationality: string;
   location: string;
+  currencyCode: string;
   gosiRegisteredSalary: number;
   employeeRate: number;
   employerRate: number;

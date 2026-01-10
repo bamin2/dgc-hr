@@ -3,6 +3,7 @@ import { ReportViewer } from '../ReportViewer';
 import { ReportFilters, ReportColumn, LoanInstallmentRecord } from '@/types/reports';
 import { useLoanInstallmentsReport } from '@/hooks/reports';
 import { useCompanySettings } from '@/contexts/CompanySettingsContext';
+import { formatCurrencyWithCode } from '@/lib/salaryUtils';
 import { Badge } from '@/components/ui/badge';
 import {
   Table,
@@ -16,6 +17,7 @@ import { format } from 'date-fns';
 
 const columns: ReportColumn<LoanInstallmentRecord>[] = [
   { key: 'employeeName', header: 'Employee Name' },
+  { key: 'currencyCode', header: 'Currency' },
   { key: 'dueMonth', header: 'Due Month' },
   { key: 'dueDate', header: 'Due Date', format: 'date' },
   { key: 'amount', header: 'Amount', format: 'currency', align: 'right' },
@@ -54,7 +56,11 @@ function getPaymentMethodBadge(method: 'payroll' | 'manual' | 'pending') {
 export function LoanInstallmentsReport() {
   const [filters, setFilters] = useState<ReportFilters>({});
   const { data = [], isLoading, refetch } = useLoanInstallmentsReport(filters);
-  const { settings, formatCurrency } = useCompanySettings();
+  const { settings } = useCompanySettings();
+
+  const formatAmount = (amount: number, currencyCode: string) => {
+    return formatCurrencyWithCode(amount, currencyCode);
+  };
 
   return (
     <ReportViewer
@@ -84,9 +90,10 @@ export function LoanInstallmentsReport() {
             {data.map((row) => (
               <TableRow key={row.installmentId}>
                 <TableCell>{row.employeeName}</TableCell>
+                <TableCell>{row.currencyCode}</TableCell>
                 <TableCell>{row.dueMonth}</TableCell>
                 <TableCell>{format(new Date(row.dueDate), 'MMM d, yyyy')}</TableCell>
-                <TableCell className="text-right">{formatCurrency(row.amount)}</TableCell>
+                <TableCell className="text-right">{formatAmount(row.amount, row.currencyCode)}</TableCell>
                 <TableCell>{getStatusBadge(row.status)}</TableCell>
                 <TableCell>{getPaymentMethodBadge(row.paymentMethod)}</TableCell>
                 <TableCell>

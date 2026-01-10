@@ -2,7 +2,6 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { ReportFilters, PayrollRunSummary, PayrollDetailedRecord, PayslipRegisterRecord } from '@/types/reports';
 import { format } from 'date-fns';
-import type { Json } from '@/integrations/supabase/types';
 
 async function fetchPayrollRunSummary(filters: ReportFilters): Promise<PayrollRunSummary[]> {
   const { data: runs, error: runsError } = await supabase
@@ -25,7 +24,7 @@ async function fetchPayrollRunSummary(filters: ReportFilters): Promise<PayrollRu
   
   const { data: employees } = await supabase
     .from('payroll_run_employees')
-    .select('*')
+    .select('payroll_run_id, employee_id, gross_pay, total_deductions, net_pay, gosi_deduction')
     .in('payroll_run_id', runIds);
   
   const { data: adjustments } = await supabase
@@ -33,9 +32,34 @@ async function fetchPayrollRunSummary(filters: ReportFilters): Promise<PayrollRu
     .select('*')
     .in('payroll_run_id', runIds);
   
+  // Fetch employee currency codes
+  const employeeIds = [...new Set((employees || []).map(e => e.employee_id))];
+  const { data: empCurrencies } = await supabase
+    .from('employees')
+    .select('id, salary_currency_code, work_locations!work_location_id(currency)')
+    .in('id', employeeIds);
+  
+  const currencyMap = new Map<string, string>();
+  (empCurrencies || []).forEach(emp => {
+    const currency = emp.salary_currency_code || 
+      (emp.work_locations as { currency: string } | null)?.currency || 
+      'BHD';
+    currencyMap.set(emp.id, currency);
+  });
+  
   return filteredRuns.map(run => {
     const runEmployees = (employees || []).filter(e => e.payroll_run_id === run.id);
     const runAdjustments = (adjustments || []).filter(a => a.payroll_run_id === run.id);
+    
+    // Determine currencies in this run
+    const currencies = new Set<string>();
+    runEmployees.forEach(e => {
+      const currency = currencyMap.get(e.employee_id) || 'BHD';
+      currencies.add(currency);
+    });
+    
+    const hasMixedCurrencies = currencies.size > 1;
+    const currencyCode = currencies.size === 1 ? Array.from(currencies)[0] : 'Mixed';
     
     const loanDeductions = runAdjustments
       .filter(a => a.type === 'loan_deduction')
@@ -54,6 +78,8 @@ async function fetchPayrollRunSummary(filters: ReportFilters): Promise<PayrollRu
       processedDate: run.processed_date || run.created_at,
       status: run.status,
       employeeCount: run.employee_count || runEmployees.length,
+      currencyCode,
+      hasMixedCurrencies,
       totalGross,
       totalDeductions,
       totalNetPay: totalNet,
@@ -73,6 +99,21 @@ async function fetchPayrollDetailed(filters: ReportFilters): Promise<PayrollDeta
   
   const { data, error } = await query;
   if (error) throw error;
+  
+  // Fetch employee currency codes
+  const employeeIds = [...new Set((data || []).map(e => e.employee_id))];
+  const { data: empCurrencies } = await supabase
+    .from('employees')
+    .select('id, salary_currency_code, work_locations!work_location_id(currency)')
+    .in('id', employeeIds);
+  
+  const currencyMap = new Map<string, string>();
+  (empCurrencies || []).forEach(emp => {
+    const currency = emp.salary_currency_code || 
+      (emp.work_locations as { currency: string } | null)?.currency || 
+      'BHD';
+    currencyMap.set(emp.id, currency);
+  });
   
   const { data: adjustments } = await supabase
     .from('payroll_run_adjustments')
@@ -95,12 +136,15 @@ async function fetchPayrollDetailed(filters: ReportFilters): Promise<PayrollDeta
       ? Object.values(otherDeductions as Record<string, number>).reduce((sum, v) => sum + (typeof v === 'number' ? v : 0), 0)
       : 0;
     
+    const currencyCode = currencyMap.get(e.employee_id) || 'BHD';
+    
     return {
       employeeId: e.employee_id,
       employeeCode: e.employee_code || '',
       employeeName: e.employee_name,
       department: e.department,
       position: e.position || '',
+      currencyCode,
       baseSalary: e.base_salary,
       housingAllowance: e.housing_allowance,
       transportationAllowance: e.transportation_allowance,

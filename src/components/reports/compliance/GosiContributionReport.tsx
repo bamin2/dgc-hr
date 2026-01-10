@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { ReportViewer } from '../ReportViewer';
 import { ReportFilters, ReportColumn, GosiContributionRecord } from '@/types/reports';
 import { useGosiContributionReport } from '@/hooks/reports';
 import { useCompanySettings } from '@/contexts/CompanySettingsContext';
+import { formatCurrencyWithCode } from '@/lib/salaryUtils';
+import { Badge } from '@/components/ui/badge';
 import {
   Table,
   TableBody,
@@ -12,13 +14,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Users, DollarSign, Building2, Percent } from 'lucide-react';
+import { Users, DollarSign, Building2, Percent, AlertTriangle } from 'lucide-react';
 
 const columns: ReportColumn<GosiContributionRecord>[] = [
   { key: 'employeeCode', header: 'Emp Code' },
   { key: 'employeeName', header: 'Employee Name' },
   { key: 'nationality', header: 'Nationality' },
   { key: 'location', header: 'Location' },
+  { key: 'currencyCode', header: 'Currency' },
   { key: 'gosiRegisteredSalary', header: 'GOSI Salary', format: 'currency', align: 'right' },
   { key: 'employeeRate', header: 'Emp Rate', format: 'percentage', align: 'right' },
   { key: 'employerRate', header: 'Empr Rate', format: 'percentage', align: 'right' },
@@ -30,7 +33,19 @@ const columns: ReportColumn<GosiContributionRecord>[] = [
 export function GosiContributionReport() {
   const [filters, setFilters] = useState<ReportFilters>({});
   const { data = [], isLoading, refetch } = useGosiContributionReport(filters);
-  const { settings, formatCurrency } = useCompanySettings();
+  const { settings } = useCompanySettings();
+
+  // Check if there are mixed currencies in totals
+  const hasMixedCurrencies = useMemo(() => {
+    const currencies = new Set(data.map(r => r.currencyCode));
+    return currencies.size > 1;
+  }, [data]);
+
+  // Get single currency for display if all same
+  const singleCurrency = useMemo(() => {
+    if (hasMixedCurrencies) return null;
+    return data.length > 0 ? data[0].currencyCode : 'BHD';
+  }, [data, hasMixedCurrencies]);
 
   const totals = data.reduce(
     (acc, row) => ({
@@ -42,6 +57,17 @@ export function GosiContributionReport() {
     }),
     { employees: 0, gosiSalary: 0, employeeContrib: 0, employerContrib: 0, total: 0 }
   );
+
+  const formatAmount = (amount: number, currencyCode: string) => {
+    return formatCurrencyWithCode(amount, currencyCode);
+  };
+
+  const formatTotalAmount = (amount: number) => {
+    if (hasMixedCurrencies) {
+      return `${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (Mixed)`;
+    }
+    return formatCurrencyWithCode(amount, singleCurrency || 'BHD');
+  };
 
   const summaryCards = (
     <>
@@ -66,7 +92,13 @@ export function GosiContributionReport() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Employee Contributions</p>
-              <p className="text-2xl font-bold">{formatCurrency(totals.employeeContrib)}</p>
+              <p className="text-2xl font-bold">{formatTotalAmount(totals.employeeContrib)}</p>
+              {hasMixedCurrencies && (
+                <Badge variant="outline" className="text-xs mt-1">
+                  <AlertTriangle className="h-3 w-3 mr-1" />
+                  Mixed Currencies
+                </Badge>
+              )}
             </div>
           </div>
         </CardContent>
@@ -79,7 +111,7 @@ export function GosiContributionReport() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Employer Contributions</p>
-              <p className="text-2xl font-bold">{formatCurrency(totals.employerContrib)}</p>
+              <p className="text-2xl font-bold">{formatTotalAmount(totals.employerContrib)}</p>
             </div>
           </div>
         </CardContent>
@@ -92,7 +124,7 @@ export function GosiContributionReport() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Total Contributions</p>
-              <p className="text-2xl font-bold">{formatCurrency(totals.total)}</p>
+              <p className="text-2xl font-bold">{formatTotalAmount(totals.total)}</p>
             </div>
           </div>
         </CardContent>
@@ -132,12 +164,13 @@ export function GosiContributionReport() {
                 <TableCell>{row.employeeName}</TableCell>
                 <TableCell>{row.nationality}</TableCell>
                 <TableCell>{row.location}</TableCell>
-                <TableCell className="text-right">{formatCurrency(row.gosiRegisteredSalary)}</TableCell>
+                <TableCell>{row.currencyCode}</TableCell>
+                <TableCell className="text-right">{formatAmount(row.gosiRegisteredSalary, row.currencyCode)}</TableCell>
                 <TableCell className="text-right">{(row.employeeRate * 100).toFixed(1)}%</TableCell>
                 <TableCell className="text-right">{(row.employerRate * 100).toFixed(1)}%</TableCell>
-                <TableCell className="text-right">{formatCurrency(row.employeeContribution)}</TableCell>
-                <TableCell className="text-right">{formatCurrency(row.employerContribution)}</TableCell>
-                <TableCell className="text-right font-medium">{formatCurrency(row.totalContribution)}</TableCell>
+                <TableCell className="text-right">{formatAmount(row.employeeContribution, row.currencyCode)}</TableCell>
+                <TableCell className="text-right">{formatAmount(row.employerContribution, row.currencyCode)}</TableCell>
+                <TableCell className="text-right font-medium">{formatAmount(row.totalContribution, row.currencyCode)}</TableCell>
               </TableRow>
             ))}
             {data.length === 0 && !isLoading && (

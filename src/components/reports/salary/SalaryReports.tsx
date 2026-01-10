@@ -33,6 +33,7 @@ const changeColumns: ReportColumn<SalaryChangeRecord>[] = [
   { key: 'employeeCode', header: 'Emp Code' },
   { key: 'employeeName', header: 'Employee Name' },
   { key: 'department', header: 'Department' },
+  { key: 'currencyCode', header: 'Currency' },
   { key: 'effectiveDate', header: 'Effective Date', format: 'date' },
   { key: 'previousSalary', header: 'Previous', format: 'currency', align: 'right' },
   { key: 'newSalary', header: 'New', format: 'currency', align: 'right' },
@@ -181,7 +182,11 @@ export function SalaryDistributionReport() {
 export function SalaryChangeHistoryReport() {
   const [filters, setFilters] = useState<ReportFilters>({});
   const { data = [], isLoading, error, refetch } = useSalaryChangeHistory(filters);
-  const { settings, formatCurrency } = useCompanySettings();
+  const { settings } = useCompanySettings();
+
+  const formatAmount = (amount: number, currencyCode: string) => {
+    return formatCurrencyWithCode(amount, currencyCode);
+  };
 
   return (
     <ReportViewer
@@ -219,11 +224,12 @@ export function SalaryChangeHistoryReport() {
                 <TableCell>{row.employeeCode}</TableCell>
                 <TableCell>{row.employeeName}</TableCell>
                 <TableCell>{row.department}</TableCell>
+                <TableCell>{row.currencyCode}</TableCell>
                 <TableCell>{format(new Date(row.effectiveDate), 'MMM d, yyyy')}</TableCell>
-                <TableCell className="text-right">{formatCurrency(row.previousSalary)}</TableCell>
-                <TableCell className="text-right">{formatCurrency(row.newSalary)}</TableCell>
+                <TableCell className="text-right">{formatAmount(row.previousSalary, row.currencyCode)}</TableCell>
+                <TableCell className="text-right">{formatAmount(row.newSalary, row.currencyCode)}</TableCell>
                 <TableCell className={`text-right ${row.changeAmount >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                  {row.changeAmount >= 0 ? '+' : ''}{formatCurrency(row.changeAmount)}
+                  {row.changeAmount >= 0 ? '+' : ''}{formatAmount(row.changeAmount, row.currencyCode)}
                 </TableCell>
                 <TableCell className={`text-right ${row.changePercentage >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                   {row.changePercentage >= 0 ? '+' : ''}{row.changePercentage.toFixed(1)}%

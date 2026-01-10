@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { ReportViewer } from '../ReportViewer';
 import { ReportFilters, ReportColumn, LoanSummaryRecord } from '@/types/reports';
 import { useLoanSummaryReport } from '@/hooks/reports';
 import { useCompanySettings } from '@/contexts/CompanySettingsContext';
+import { formatCurrencyWithCode } from '@/lib/salaryUtils';
 import { Badge } from '@/components/ui/badge';
 import {
   Table,
@@ -14,12 +15,13 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { format } from 'date-fns';
-import { Wallet, TrendingDown, Clock, CheckCircle } from 'lucide-react';
+import { Wallet, TrendingDown, Clock, CheckCircle, AlertTriangle } from 'lucide-react';
 
 const columns: ReportColumn<LoanSummaryRecord>[] = [
   { key: 'employeeCode', header: 'Emp Code' },
   { key: 'employeeName', header: 'Employee Name' },
   { key: 'department', header: 'Department' },
+  { key: 'currencyCode', header: 'Currency' },
   { key: 'originalAmount', header: 'Original Amount', format: 'currency', align: 'right' },
   { key: 'outstandingBalance', header: 'Outstanding', format: 'currency', align: 'right' },
   { key: 'installmentAmount', header: 'Installment', format: 'currency', align: 'right' },
@@ -46,7 +48,19 @@ function getStatusBadge(status: string) {
 export function LoanSummaryReport() {
   const [filters, setFilters] = useState<ReportFilters>({});
   const { data = [], isLoading, refetch } = useLoanSummaryReport(filters);
-  const { settings, formatCurrency } = useCompanySettings();
+  const { settings } = useCompanySettings();
+
+  // Check if there are mixed currencies in totals
+  const hasMixedCurrencies = useMemo(() => {
+    const currencies = new Set(data.map(r => r.currencyCode));
+    return currencies.size > 1;
+  }, [data]);
+
+  // Get single currency for display if all same
+  const singleCurrency = useMemo(() => {
+    if (hasMixedCurrencies) return null;
+    return data.length > 0 ? data[0].currencyCode : 'BHD';
+  }, [data, hasMixedCurrencies]);
 
   const totals = data.reduce(
     (acc, row) => ({
@@ -58,6 +72,17 @@ export function LoanSummaryReport() {
     { originalAmount: 0, outstanding: 0, activeLoans: 0, closedLoans: 0 }
   );
 
+  const formatAmount = (amount: number, currencyCode: string) => {
+    return formatCurrencyWithCode(amount, currencyCode);
+  };
+
+  const formatTotalAmount = (amount: number) => {
+    if (hasMixedCurrencies) {
+      return `${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (Mixed)`;
+    }
+    return formatCurrencyWithCode(amount, singleCurrency || 'BHD');
+  };
+
   const summaryCards = (
     <>
       <Card>
@@ -68,7 +93,13 @@ export function LoanSummaryReport() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Total Disbursed</p>
-              <p className="text-2xl font-bold">{formatCurrency(totals.originalAmount)}</p>
+              <p className="text-2xl font-bold">{formatTotalAmount(totals.originalAmount)}</p>
+              {hasMixedCurrencies && (
+                <Badge variant="outline" className="text-xs mt-1">
+                  <AlertTriangle className="h-3 w-3 mr-1" />
+                  Mixed Currencies
+                </Badge>
+              )}
             </div>
           </div>
         </CardContent>
@@ -81,7 +112,7 @@ export function LoanSummaryReport() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Outstanding Balance</p>
-              <p className="text-2xl font-bold">{formatCurrency(totals.outstanding)}</p>
+              <p className="text-2xl font-bold">{formatTotalAmount(totals.outstanding)}</p>
             </div>
           </div>
         </CardContent>
@@ -146,9 +177,10 @@ export function LoanSummaryReport() {
                 <TableCell>{row.employeeCode}</TableCell>
                 <TableCell>{row.employeeName}</TableCell>
                 <TableCell>{row.department}</TableCell>
-                <TableCell className="text-right">{formatCurrency(row.originalAmount)}</TableCell>
-                <TableCell className="text-right">{formatCurrency(row.outstandingBalance)}</TableCell>
-                <TableCell className="text-right">{formatCurrency(row.installmentAmount)}</TableCell>
+                <TableCell>{row.currencyCode}</TableCell>
+                <TableCell className="text-right">{formatAmount(row.originalAmount, row.currencyCode)}</TableCell>
+                <TableCell className="text-right">{formatAmount(row.outstandingBalance, row.currencyCode)}</TableCell>
+                <TableCell className="text-right">{formatAmount(row.installmentAmount, row.currencyCode)}</TableCell>
                 <TableCell className="text-right">{row.paidInstallments}</TableCell>
                 <TableCell className="text-right">{row.remainingInstallments}</TableCell>
                 <TableCell>{getStatusBadge(row.status)}</TableCell>

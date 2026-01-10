@@ -3,6 +3,7 @@ import { ReportViewer } from '../ReportViewer';
 import { ReportFilters, ReportColumn, PayrollDetailedRecord } from '@/types/reports';
 import { usePayrollDetailed } from '@/hooks/reports';
 import { useCompanySettings } from '@/contexts/CompanySettingsContext';
+import { formatCurrencyWithCode } from '@/lib/salaryUtils';
 import {
   Table,
   TableBody,
@@ -16,6 +17,7 @@ const columns: ReportColumn<PayrollDetailedRecord>[] = [
   { key: 'employeeCode', header: 'Emp Code' },
   { key: 'employeeName', header: 'Employee Name' },
   { key: 'department', header: 'Department' },
+  { key: 'currencyCode', header: 'Currency' },
   { key: 'baseSalary', header: 'Base Salary', format: 'currency', align: 'right' },
   { key: 'housingAllowance', header: 'Housing', format: 'currency', align: 'right' },
   { key: 'transportationAllowance', header: 'Transport', format: 'currency', align: 'right' },
@@ -30,7 +32,11 @@ const columns: ReportColumn<PayrollDetailedRecord>[] = [
 export function PayrollDetailedReport() {
   const [filters, setFilters] = useState<ReportFilters>({});
   const { data = [], isLoading, refetch } = usePayrollDetailed(filters);
-  const { settings, formatCurrency } = useCompanySettings();
+  const { settings } = useCompanySettings();
+
+  const formatAmount = (amount: number, currencyCode: string) => {
+    return formatCurrencyWithCode(amount, currencyCode);
+  };
 
   return (
     <ReportViewer
@@ -62,15 +68,16 @@ export function PayrollDetailedReport() {
                 <TableCell>{row.employeeCode}</TableCell>
                 <TableCell>{row.employeeName}</TableCell>
                 <TableCell>{row.department}</TableCell>
-                <TableCell className="text-right">{formatCurrency(row.baseSalary)}</TableCell>
-                <TableCell className="text-right">{formatCurrency(row.housingAllowance)}</TableCell>
-                <TableCell className="text-right">{formatCurrency(row.transportationAllowance)}</TableCell>
-                <TableCell className="text-right">{formatCurrency(row.otherAllowances)}</TableCell>
-                <TableCell className="text-right font-medium">{formatCurrency(row.grossPay)}</TableCell>
-                <TableCell className="text-right">{formatCurrency(row.employeeGosi)}</TableCell>
-                <TableCell className="text-right">{formatCurrency(row.loanDeductions)}</TableCell>
-                <TableCell className="text-right">{formatCurrency(row.totalDeductions)}</TableCell>
-                <TableCell className="text-right font-medium">{formatCurrency(row.netPay)}</TableCell>
+                <TableCell>{row.currencyCode}</TableCell>
+                <TableCell className="text-right">{formatAmount(row.baseSalary, row.currencyCode)}</TableCell>
+                <TableCell className="text-right">{formatAmount(row.housingAllowance, row.currencyCode)}</TableCell>
+                <TableCell className="text-right">{formatAmount(row.transportationAllowance, row.currencyCode)}</TableCell>
+                <TableCell className="text-right">{formatAmount(row.otherAllowances, row.currencyCode)}</TableCell>
+                <TableCell className="text-right font-medium">{formatAmount(row.grossPay, row.currencyCode)}</TableCell>
+                <TableCell className="text-right">{formatAmount(row.employeeGosi, row.currencyCode)}</TableCell>
+                <TableCell className="text-right">{formatAmount(row.loanDeductions, row.currencyCode)}</TableCell>
+                <TableCell className="text-right">{formatAmount(row.totalDeductions, row.currencyCode)}</TableCell>
+                <TableCell className="text-right font-medium">{formatAmount(row.netPay, row.currencyCode)}</TableCell>
               </TableRow>
             ))}
             {data.length === 0 && !isLoading && (

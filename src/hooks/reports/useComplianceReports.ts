@@ -12,12 +12,14 @@ interface EmployeeGosi {
   work_location_id: string | null;
   gosi_registered_salary: number | null;
   salary: number | null;
+  salary_currency_code: string | null;
   is_subject_to_gosi: boolean | null;
 }
 
 interface WorkLocationGosi {
   id: string;
   name: string;
+  currency: string | null;
   gosi_enabled: boolean | null;
   gosi_nationality_rates: GosiNationalityRate[] | null;
   gosi_base_calculation: string | null;
@@ -27,7 +29,7 @@ async function fetchGosiContributions(filters: ReportFilters): Promise<GosiContr
   // Fetch employees subject to GOSI
   const { data: employees, error: empError } = await supabase
     .from('employees')
-    .select('id, first_name, last_name, employee_code, nationality, work_location_id, gosi_registered_salary, salary, is_subject_to_gosi')
+    .select('id, first_name, last_name, employee_code, nationality, work_location_id, gosi_registered_salary, salary, salary_currency_code, is_subject_to_gosi')
     .eq('status', 'active');
   
   if (empError) throw empError;
@@ -35,7 +37,7 @@ async function fetchGosiContributions(filters: ReportFilters): Promise<GosiContr
   // Fetch work locations with GOSI settings
   const { data: locations, error: locError } = await supabase
     .from('work_locations')
-    .select('id, name, gosi_enabled, gosi_nationality_rates, gosi_base_calculation');
+    .select('id, name, currency, gosi_enabled, gosi_nationality_rates, gosi_base_calculation');
   
   if (locError) throw locError;
   
@@ -44,6 +46,7 @@ async function fetchGosiContributions(filters: ReportFilters): Promise<GosiContr
     locationMap.set(loc.id, {
       id: loc.id,
       name: loc.name,
+      currency: loc.currency,
       gosi_enabled: loc.gosi_enabled,
       gosi_nationality_rates: loc.gosi_nationality_rates as unknown as GosiNationalityRate[] | null,
       gosi_base_calculation: loc.gosi_base_calculation,
@@ -65,6 +68,9 @@ async function fetchGosiContributions(filters: ReportFilters): Promise<GosiContr
   return records.map((emp: EmployeeGosi) => {
     const location = emp.work_location_id ? locationMap.get(emp.work_location_id) : null;
     const gosiSalary = emp.gosi_registered_salary || emp.salary || 0;
+    
+    // Get currency from employee or location
+    const currencyCode = emp.salary_currency_code || location?.currency || 'BHD';
     
     // Find matching nationality rate
     let employeeRate = 0;
@@ -91,6 +97,7 @@ async function fetchGosiContributions(filters: ReportFilters): Promise<GosiContr
       employeeName: `${emp.first_name} ${emp.last_name}`,
       nationality: emp.nationality || 'Unknown',
       location: location?.name || 'No Location',
+      currencyCode,
       gosiRegisteredSalary: gosiSalary,
       employeeRate,
       employerRate,
