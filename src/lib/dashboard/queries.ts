@@ -50,25 +50,19 @@ export async function fetchPendingLeaveRequests(employeeIds?: string[]) {
 export async function fetchUpcomingTimeOff(
   todayStr: string,
   limit: number = 10,
-  employeeIds?: string[],
-  excludePublicHolidays: boolean = true
+  employeeIds?: string[]
 ) {
   let query = supabase
     .from('leave_requests')
     .select(`
       id, start_date, end_date, days_count,
       employee:employees!leave_requests_employee_id_fkey (id, first_name, last_name),
-      leave_type:leave_types!inner (id, name)
+      leave_type:leave_types (id, name)
     `)
     .eq('status', 'approved')
     .gte('start_date', todayStr)
     .order('start_date', { ascending: true })
     .limit(limit);
-  
-  // Exclude public holidays from the results
-  if (excludePublicHolidays) {
-    query = query.neq('leave_type.name', 'Public Holiday');
-  }
   
   if (employeeIds && employeeIds.length > 0) {
     query = query.in('employee_id', employeeIds);

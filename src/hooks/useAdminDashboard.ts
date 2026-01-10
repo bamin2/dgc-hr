@@ -130,14 +130,16 @@ export function useAdminDashboard() {
       // Get HQ currency
       const hqCurrency = hqLocationRes.data?.currency || 'BHD';
 
-      // Process upcoming time off
-      const upcomingTimeOff = (upcomingTimeOffRes.data || []).map((r: any) => ({
-        employeeId: r.employee?.id,
-        employeeName: formatEmployeeName(r.employee?.first_name, r.employee?.last_name),
-        startDate: r.start_date,
-        endDate: r.end_date,
-        daysCount: r.days_count,
-      }));
+      // Process upcoming time off (exclude public holidays)
+      const upcomingTimeOff = (upcomingTimeOffRes.data || [])
+        .filter((r: any) => r.leave_type?.name !== 'Public Holiday')
+        .map((r: any) => ({
+          employeeId: r.employee?.id,
+          employeeName: formatEmployeeName(r.employee?.first_name, r.employee?.last_name),
+          startDate: r.start_date,
+          endDate: r.end_date,
+          daysCount: r.days_count,
+        }));
 
       // Process leave trends
       const thisMonthCount = thisMonthLeaveRes.data?.length || 0;
