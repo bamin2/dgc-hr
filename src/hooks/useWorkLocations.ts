@@ -6,7 +6,8 @@ import { queryKeys } from "@/lib/queryKeys";
 // Type for per-nationality GOSI rates
 export interface GosiNationalityRate {
   nationality: string;
-  percentage: number;
+  employeeRate: number;    // Deducted from employee's salary
+  employerRate: number;    // Employer contribution (display only)
 }
 
 export type GosiBaseCalculation = 'gosi_registered_salary' | 'basic_plus_housing';

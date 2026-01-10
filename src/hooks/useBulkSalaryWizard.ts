@@ -20,7 +20,8 @@ import {
 // Type for per-nationality GOSI rates
 export interface GosiNationalityRate {
   nationality: string;
-  percentage: number;
+  employeeRate: number;
+  employerRate: number;
 }
 
 // Extended TeamMember with GOSI fields
@@ -288,7 +289,8 @@ export function useBulkSalaryWizard() {
       // Find GOSI rate from work location nationality rates
       const nationalityRates = employee.gosiNationalityRates || [];
       const rateConfig = nationalityRates.find(r => r.nationality === employee.nationality);
-      const gosiRate = rateConfig ? rateConfig.percentage / 100 : 0;
+      // Support both old (percentage) and new (employeeRate) formats
+      const gosiRate = rateConfig ? ((rateConfig as any).employeeRate ?? (rateConfig as any).percentage ?? 0) / 100 : 0;
       const beforeGosiDeduction = beforeGosiSalary ? beforeGosiSalary * gosiRate : 0;
       const afterGosiDeduction = afterGosiSalary ? afterGosiSalary * gosiRate : 0;
       
