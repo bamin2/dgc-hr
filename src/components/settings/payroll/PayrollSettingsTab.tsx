@@ -5,6 +5,7 @@ import { AllowanceTemplatesSection } from "./AllowanceTemplatesSection";
 import { DeductionTemplatesSection } from "./DeductionTemplatesSection";
 import { LocationGeneralSettings } from "./LocationGeneralSettings";
 import { BanksSection } from "./BanksSection";
+import { FxRatesSection } from "./FxRatesSection";
 import { useWorkLocations } from "@/hooks/useWorkLocations";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MapPin, Building2 } from "lucide-react";
@@ -66,6 +67,10 @@ export function PayrollSettingsTab() {
       </div>
 
       <BanksSection />
+
+      <Separator />
+
+      <FxRatesSection />
 
       <Separator />
 

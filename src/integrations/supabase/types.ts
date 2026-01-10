@@ -680,6 +680,7 @@ export type Database = {
           payroll_day_of_month: number | null
           phone: string | null
           primary_color: string | null
+          reporting_currency: string | null
           show_compensation_line_items: boolean | null
           tax_id: string | null
           timezone: string | null
@@ -712,6 +713,7 @@ export type Database = {
           payroll_day_of_month?: number | null
           phone?: string | null
           primary_color?: string | null
+          reporting_currency?: string | null
           show_compensation_line_items?: boolean | null
           tax_id?: string | null
           timezone?: string | null
@@ -744,6 +746,7 @@ export type Database = {
           payroll_day_of_month?: number | null
           phone?: string | null
           primary_color?: string | null
+          reporting_currency?: string | null
           show_compensation_line_items?: boolean | null
           tax_id?: string | null
           timezone?: string | null
@@ -1398,6 +1401,7 @@ export type Database = {
           position_id: string | null
           preferred_name: string | null
           salary: number | null
+          salary_currency_code: string | null
           second_name: string | null
           send_offer_letter: boolean | null
           status: Database["public"]["Enums"]["employee_status"]
@@ -1446,6 +1450,7 @@ export type Database = {
           position_id?: string | null
           preferred_name?: string | null
           salary?: number | null
+          salary_currency_code?: string | null
           second_name?: string | null
           send_offer_letter?: boolean | null
           status?: Database["public"]["Enums"]["employee_status"]
@@ -1494,6 +1499,7 @@ export type Database = {
           position_id?: string | null
           preferred_name?: string | null
           salary?: number | null
+          salary_currency_code?: string | null
           second_name?: string | null
           send_offer_letter?: boolean | null
           status?: Database["public"]["Enums"]["employee_status"]
@@ -1637,6 +1643,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      fx_rates: {
+        Row: {
+          base_currency_code: string
+          created_at: string | null
+          created_by: string | null
+          effective_date: string
+          id: string
+          quote_currency_code: string
+          rate: number
+          updated_at: string | null
+        }
+        Insert: {
+          base_currency_code?: string
+          created_at?: string | null
+          created_by?: string | null
+          effective_date: string
+          id?: string
+          quote_currency_code: string
+          rate: number
+          updated_at?: string | null
+        }
+        Update: {
+          base_currency_code?: string
+          created_at?: string | null
+          created_by?: string | null
+          effective_date?: string
+          id?: string
+          quote_currency_code?: string
+          rate?: number
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       generated_documents: {
         Row: {
