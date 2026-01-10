@@ -58,7 +58,7 @@ async function fetchLeaveBalances(filters: ReportFilters): Promise<LeaveBalanceR
         first_name,
         last_name,
         employee_code,
-        departments (name)
+        departments!department_id (name)
       ),
       leave_types (name)
     `)
