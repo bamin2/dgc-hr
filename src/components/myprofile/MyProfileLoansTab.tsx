@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -13,7 +13,7 @@ import {
   Inbox,
   CheckCircle
 } from 'lucide-react';
-import { useLoans, useLoanInstallments, Loan } from '@/hooks/useLoans';
+import { useEmployeeLoansWithInstallments, LoanWithInstallmentsData } from '@/hooks/useEmployeeLoansWithInstallments';
 import { format } from 'date-fns';
 import { EmployeeRequestLoanDialog } from '@/components/loans/EmployeeRequestLoanDialog';
 
@@ -30,16 +30,24 @@ const statusConfig: Record<string, { label: string; variant: 'default' | 'second
   cancelled: { label: 'Cancelled', variant: 'outline' },
 };
 
-function LoanCard({ loan }: { loan: Loan }) {
-  const { data: installments } = useLoanInstallments(loan.id);
+// Calculate outstanding balance from installments
+function calculateOutstandingBalance(loan: LoanWithInstallmentsData): number {
+  const paidAmount = loan.loan_installments
+    ?.filter(i => i.status === 'paid')
+    .reduce((sum, i) => sum + i.amount, 0) || 0;
+  return loan.principal_amount - paidAmount;
+}
+
+function LoanCard({ loan }: { loan: LoanWithInstallmentsData }) {
+  const installments = loan.loan_installments || [];
   
-  const paidInstallments = installments?.filter(i => i.status === 'paid') || [];
-  const totalInstallments = installments?.length || 0;
+  const paidInstallments = installments.filter(i => i.status === 'paid');
+  const totalInstallments = installments.length;
   const paidAmount = paidInstallments.reduce((sum, i) => sum + i.amount, 0);
   const remainingAmount = loan.principal_amount - paidAmount;
   const progressPercent = (paidAmount / loan.principal_amount) * 100;
 
-  const nextDueInstallment = installments?.find(i => i.status === 'due');
+  const nextDueInstallment = installments.find(i => i.status === 'due');
   const config = statusConfig[loan.status] || statusConfig.requested;
 
   return (
@@ -139,7 +147,7 @@ function LoanCard({ loan }: { loan: Loan }) {
 
 export function MyProfileLoansTab({ employeeId }: MyProfileLoansTabProps) {
   const [showRequestDialog, setShowRequestDialog] = useState(false);
-  const { data: loans, isLoading } = useLoans({ employeeId });
+  const { data: loans, isLoading } = useEmployeeLoansWithInstallments(employeeId);
 
   if (isLoading) {
     return (
@@ -154,7 +162,7 @@ export function MyProfileLoansTab({ employeeId }: MyProfileLoansTabProps) {
   const pendingLoans = loans?.filter(l => l.status === 'requested') || [];
   const closedLoans = loans?.filter(l => ['closed', 'rejected', 'cancelled'].includes(l.status)) || [];
 
-  const totalOutstanding = activeLoans.reduce((sum, loan) => sum + loan.principal_amount, 0);
+  const totalOutstanding = activeLoans.reduce((sum, loan) => sum + calculateOutstandingBalance(loan), 0);
 
   return (
     <div className="space-y-6">
