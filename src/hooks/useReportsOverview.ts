@@ -71,7 +71,7 @@ export function useReportsOverview(dateRange: DateRange) {
         .select(`
           id,
           status,
-          work_location:work_locations(currency_code)
+          work_location:work_locations(currency)
         `)
         .in('status', ['finalized', 'payslips_issued'])
         .gte('pay_period_start', startDate)
@@ -110,7 +110,7 @@ export function useReportsOverview(dateRange: DateRange) {
           gosi_deduction,
           payroll_run:payroll_runs!inner(
             id,
-            work_location:work_locations(currency_code, employer_gosi_rate)
+            work_location:work_locations(currency, gosi_nationality_rates)
           )
         `)
         .in('payroll_run_id', finalizedRunIds);
@@ -124,8 +124,9 @@ export function useReportsOverview(dateRange: DateRange) {
       const employeeIds = new Set<string>();
 
       employeePayroll?.forEach(record => {
-        const currencyCode = (record.payroll_run as any)?.work_location?.currency_code || 'SAR';
-        const employerRate = (record.payroll_run as any)?.work_location?.employer_gosi_rate || 12;
+        const currencyCode = (record.payroll_run as any)?.work_location?.currency || 'SAR';
+        const gosiRates = (record.payroll_run as any)?.work_location?.gosi_nationality_rates;
+        const employerRate = gosiRates?.saudi?.employerRate || gosiRates?.gcc?.employerRate || 12;
         const employeeRate = 10; // Default employee rate
         
         // Calculate employer GOSI from employee GOSI
@@ -298,7 +299,7 @@ export function useReportsOverview(dateRange: DateRange) {
       // Highest payroll cost department
       const { data: payrollRuns } = await supabase
         .from('payroll_runs')
-        .select('id, work_location:work_locations(currency_code)')
+        .select('id, work_location:work_locations(currency)')
         .in('status', ['finalized', 'payslips_issued'])
         .gte('pay_period_start', startDate)
         .lte('pay_period_end', endDate);
