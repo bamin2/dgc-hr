@@ -23,8 +23,9 @@ import { LeaveBalanceReport, LeaveRequestsReport } from '@/components/reports/le
 import { LoanSummaryReport, LoanInstallmentsReport } from '@/components/reports/loans';
 import { GosiContributionReport } from '@/components/reports/compliance';
 import { EmployeeMasterReport } from '@/components/reports/employees';
-import { SalaryReportsTab } from '@/components/reports/salary';
+import { SalaryDistributionReport, SalaryChangeHistoryReport } from '@/components/reports/salary';
 import { ReportCatalogTable } from '@/components/reports/ReportCatalogTable';
+import { ExportFormat } from '@/types/reports';
 
 // Report sub-views for each category
 type PayrollReportView = 'list' | 'payroll-run-summary' | 'payroll-detailed' | 'payslip-register';
@@ -113,6 +114,15 @@ const Reports = () => {
       setActiveTab('employees');
       setEmployeeView('employee-master');
     }
+  };
+
+  const handleExportReport = (reportId: string, format: ExportFormat) => {
+    // Navigate to report and trigger export
+    handleOpenReport(reportId);
+    toast({
+      title: 'Export Started',
+      description: `Generating ${reportId.replace(/-/g, ' ')} as ${format.toUpperCase()}...`,
+    });
   };
 
   // Reset view when changing tabs
@@ -313,7 +323,8 @@ const Reports = () => {
             ) : (
               <>
                 {renderBackButton(() => setSalaryView('list'))}
-                <SalaryReportsTab />
+                {salaryView === 'salary-distribution' && <SalaryDistributionReport />}
+                {salaryView === 'salary-change-history' && <SalaryChangeHistoryReport />}
               </>
             )}
           </TabsContent>
@@ -404,7 +415,10 @@ const Reports = () => {
 
           {/* All Reports Tab (Catalog) */}
           <TabsContent value="all-reports" className="space-y-6 mt-6">
-            <ReportCatalogTable onViewReport={handleOpenReport} />
+            <ReportCatalogTable 
+              onViewReport={handleOpenReport} 
+              onExportReport={handleExportReport}
+            />
           </TabsContent>
         </Tabs>
       </div>
