@@ -25,6 +25,41 @@ interface WorkLocationGosi {
   gosi_base_calculation: string | null;
 }
 
+// Normalize nationality for matching (handles both full names and codes)
+function normalizeNationality(nationality: string): string[] {
+  const normalized = nationality.toLowerCase().trim();
+  
+  // Map of country codes to full names (and vice versa)
+  const countryMap: Record<string, string[]> = {
+    'bh': ['bh', 'bahrain', 'bahraini'],
+    'sa': ['sa', 'saudi arabia', 'saudi', 'ksa'],
+    'ae': ['ae', 'uae', 'united arab emirates', 'emirati'],
+    'kw': ['kw', 'kuwait', 'kuwaiti'],
+    'om': ['om', 'oman', 'omani'],
+    'qa': ['qa', 'qatar', 'qatari'],
+    'in': ['in', 'india', 'indian'],
+    'pk': ['pk', 'pakistan', 'pakistani'],
+    'ph': ['ph', 'philippines', 'filipino', 'filipina'],
+    'eg': ['eg', 'egypt', 'egyptian'],
+    'jo': ['jo', 'jordan', 'jordanian'],
+    'lb': ['lb', 'lebanon', 'lebanese'],
+    'sy': ['sy', 'syria', 'syrian'],
+    'ye': ['ye', 'yemen', 'yemeni'],
+    'bd': ['bd', 'bangladesh', 'bangladeshi'],
+    'np': ['np', 'nepal', 'nepali', 'nepalese'],
+    'lk': ['lk', 'sri lanka', 'sri lankan'],
+  };
+  
+  // Return all possible matches for this nationality
+  for (const [, variants] of Object.entries(countryMap)) {
+    if (variants.includes(normalized)) {
+      return variants;
+    }
+  }
+  
+  return [normalized];
+}
+
 async function fetchGosiContributions(filters: ReportFilters): Promise<GosiContributionRecord[]> {
   // Fetch employees subject to GOSI
   const { data: employees, error: empError } = await supabase
@@ -77,10 +112,14 @@ async function fetchGosiContributions(filters: ReportFilters): Promise<GosiContr
     let employerRate = 0;
     
     if (location?.gosi_nationality_rates && emp.nationality) {
-      const nationalityLower = emp.nationality.toLowerCase();
-      const matchingRate = location.gosi_nationality_rates.find(
-        r => r.nationality.toLowerCase() === nationalityLower
-      );
+      const nationalityVariants = normalizeNationality(emp.nationality);
+      
+      const matchingRate = location.gosi_nationality_rates.find(r => {
+        const rateNationalityVariants = normalizeNationality(r.nationality);
+        // Check if any variant matches
+        return nationalityVariants.some(v => rateNationalityVariants.includes(v));
+      });
+      
       if (matchingRate) {
         // Handle backward compatibility
         employeeRate = matchingRate.employeeRate ?? (matchingRate as { percentage?: number }).percentage ?? 0;
