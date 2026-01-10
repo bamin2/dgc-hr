@@ -135,7 +135,7 @@ export function AllowanceTemplatesSection({ workLocationId, currency }: Allowanc
                           <Badge variant="outline" className="text-xs">Taxable</Badge>
                         )}
                         {template.is_variable && (
-                          <Badge variant="outline" className="text-xs text-blue-600 border-blue-200 bg-blue-50 dark:text-blue-400 dark:border-blue-800 dark:bg-blue-950">
+                          <Badge variant="outline" className="text-xs text-teal-600 border-teal-200 bg-teal-50 dark:text-teal-400 dark:border-teal-800 dark:bg-teal-950">
                             Variable
                           </Badge>
                         )}

@@ -48,12 +48,12 @@ const categoryConfig: Record<
   documentation: {
     label: "Documentation",
     icon: FileText,
-    color: "text-blue-600 dark:text-blue-400",
+    color: "text-teal-600 dark:text-teal-400",
   },
   training: {
     label: "Training",
     icon: GraduationCap,
-    color: "text-purple-600 dark:text-purple-400",
+    color: "text-amber-600 dark:text-amber-400",
   },
   setup: {
     label: "Setup",

@@ -99,8 +99,8 @@ export function EmployeeMasterReport() {
       <Card>
         <CardContent className="pt-6">
           <div className="flex items-center gap-4">
-            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-              <Building2 className="h-5 w-5 text-blue-600" />
+            <div className="p-2 bg-teal-100 dark:bg-teal-900/30 rounded-lg">
+              <Building2 className="h-5 w-5 text-teal-600" />
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Departments</p>

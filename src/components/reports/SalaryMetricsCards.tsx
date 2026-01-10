@@ -32,8 +32,8 @@ export function SalaryMetricsCards({ stats, isLoading }: SalaryMetricsCardsProps
       value: formatCurrency(stats.averageSalary),
       subtext: 'per employee',
       icon: TrendingUp,
-      iconBg: 'bg-blue-500/10',
-      iconColor: 'text-blue-500',
+      iconBg: 'bg-teal-500/10',
+      iconColor: 'text-teal-600',
     },
     {
       label: 'Median Salary',
