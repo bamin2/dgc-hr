@@ -1,4 +1,4 @@
-import { Check, Clock, Calendar, Briefcase, Flag, ChevronRight } from "lucide-react";
+import { Check, Clock, Calendar, Briefcase, Flag } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -121,15 +121,6 @@ export function TimeOffSummaryCard() {
           label="Public Holidays"
           sublabel={`${publicHolidays?.length || 0} total in ${currentYear}`}
         />
-        
-        <p className="text-sm text-muted-foreground pt-2">
-          National holidays now appear directly on your calendar. To book regional and local holidays, you can click.
-        </p>
-        
-        <Button className="w-full mt-2" size="lg">
-          See More Here
-          <ChevronRight className="w-4 h-4 ml-1" />
-        </Button>
       </CardContent>
     </Card>
   );
