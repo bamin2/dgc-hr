@@ -81,10 +81,26 @@ function fillDocxTemplate(templateBuffer: ArrayBuffer, data: Record<string, stri
   return output;
 }
 
+// Convert Uint8Array to base64 without stack overflow
+// Using chunked approach to avoid "Maximum call stack size exceeded"
+function uint8ArrayToBase64(bytes: Uint8Array): string {
+  let binary = "";
+  const chunkSize = 32768; // Process in 32KB chunks
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    const chunk = bytes.subarray(i, Math.min(i + chunkSize, bytes.length));
+    for (let j = 0; j < chunk.length; j++) {
+      binary += String.fromCharCode(chunk[j]);
+    }
+  }
+  return btoa(binary);
+}
+
 async function convertDocxToPdf(docxBuffer: Uint8Array): Promise<Uint8Array> {
   if (!CLOUDCONVERT_API_KEY) {
     throw new Error("CLOUDCONVERT_API_KEY not configured");
   }
+
+  const base64Docx = uint8ArrayToBase64(docxBuffer);
 
   // Create a job with import, convert, and export tasks
   const createJobResponse = await fetch("https://api.cloudconvert.com/v2/jobs", {
@@ -97,7 +113,7 @@ async function convertDocxToPdf(docxBuffer: Uint8Array): Promise<Uint8Array> {
       tasks: {
         "import-file": {
           operation: "import/base64",
-          file: btoa(String.fromCharCode(...docxBuffer)),
+          file: base64Docx,
           filename: "document.docx",
         },
         "convert-to-pdf": {
@@ -384,8 +400,8 @@ serve(async (req: Request): Promise<Response> => {
       console.log("Converting to PDF...");
       const pdfBuffer = await convertDocxToPdf(filledDocx);
 
-      // Prepare attachment
-      const base64Pdf = btoa(String.fromCharCode(...pdfBuffer));
+      // Prepare attachment - use chunked base64 encoding to avoid stack overflow
+      const base64Pdf = uint8ArrayToBase64(pdfBuffer);
       pdfAttachment = {
         filename: `offer-letter-${candidate.first_name}-${candidate.last_name}.pdf`,
         content: base64Pdf,
