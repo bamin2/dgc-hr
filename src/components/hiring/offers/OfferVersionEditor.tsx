@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Send, Save, RefreshCw, CheckCircle, XCircle, CalendarIcon } from "lucide-react";
+import { Save, RefreshCw, CheckCircle, XCircle, CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +18,7 @@ import { useWorkLocations, GosiNationalityRate } from "@/hooks/useWorkLocations"
 import { usePositionsManagement } from "@/hooks/usePositionsManagement";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useAuth } from "@/contexts/AuthContext";
-import { useCreateOfferVersionFromEdit, useReviseOffer, useSendOfferLetter, useAcceptOffer, useRejectOffer } from "@/hooks/useOffers";
+import { useCreateOfferVersionFromEdit, useReviseOffer, useAcceptOffer, useRejectOffer } from "@/hooks/useOffers";
 import type { OfferVersion, Candidate } from "@/hooks/useOffers";
 import { toast } from "sonner";
 import { getCountryCodeByName } from "@/data/countries";
@@ -49,7 +49,6 @@ export function OfferVersionEditor({ version, offerId, candidateId, candidateNat
   
   const createNewVersion = useCreateOfferVersionFromEdit();
   const reviseOffer = useReviseOffer();
-  const sendOfferLetter = useSendOfferLetter();
   const acceptOffer = useAcceptOffer();
   const rejectOffer = useRejectOffer();
 
@@ -178,23 +177,6 @@ export function OfferVersionEditor({ version, offerId, candidateId, candidateNat
     }
   };
 
-  const handleSendOffer = async () => {
-    if (!version.template_id) {
-      toast.error("Please select a template first");
-      return;
-    }
-    
-    try {
-      await sendOfferLetter.mutateAsync({
-        versionId: version.id,
-        templateId: version.template_id,
-        senderEmployeeId: profile?.employee_id || undefined
-      });
-    } catch (error) {
-      // Error is handled by the mutation
-    }
-  };
-
   const handleRevise = async () => {
     try {
       await reviseOffer.mutateAsync({ offerId, copyFromVersionId: version.id });
@@ -253,16 +235,10 @@ export function OfferVersionEditor({ version, offerId, candidateId, candidateNat
             </div>
             <div className="flex gap-2 flex-wrap">
               {version.status === 'draft' && (
-                <>
-                  <Button variant="outline" onClick={handleSave} disabled={createNewVersion.isPending}>
-                    <Save className="h-4 w-4 mr-2" />
-                    Save
-                  </Button>
-                  <Button onClick={handleSendOffer} disabled={sendOfferLetter.isPending}>
-                    <Send className="h-4 w-4 mr-2" />
-                    Send Offer
-                  </Button>
-                </>
+                <Button variant="outline" onClick={handleSave} disabled={createNewVersion.isPending}>
+                  <Save className="h-4 w-4 mr-2" />
+                  Save
+                </Button>
               )}
               {version.status === 'sent' && (
                 <>
