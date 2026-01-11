@@ -1,38 +1,8 @@
 import { format } from "date-fns";
+import type { SmartTag } from "@/types/organization";
 
-// Smart tags for DOCX offer letter templates
-// Uses <<Tag Name>> format compatible with docxtemplater
-
-export const offerLetterSmartTags = [
-  // Candidate
-  { tag: "First Name", description: "Candidate's first name" },
-  { tag: "Last Name", description: "Candidate's last name" },
-  { tag: "Full Name", description: "Candidate's full name" },
-  { tag: "Email", description: "Candidate's email address" },
-  
-  // Position
-  { tag: "Job Title", description: "Position title" },
-  { tag: "Department", description: "Department name" },
-  { tag: "Work Location", description: "Work location name" },
-  
-  // Compensation
-  { tag: "Basic Salary", description: "Base salary amount" },
-  { tag: "Housing Allowance", description: "Housing allowance amount" },
-  { tag: "Transport Allowance", description: "Transport allowance amount" },
-  { tag: "Other Allowances", description: "Other allowances total" },
-  { tag: "Gross Salary", description: "Total gross salary" },
-  { tag: "Net Salary", description: "Net salary estimate" },
-  { tag: "Currency", description: "Currency code (SAR, BHD, etc.)" },
-  { tag: "Employer GOSI", description: "Employer GOSI contribution" },
-  
-  // Company
-  { tag: "Company Name", description: "Company name" },
-  { tag: "Company Legal Name", description: "Company legal name" },
-  
-  // Dates
-  { tag: "Start Date", description: "Employment start date" },
-  { tag: "Current Date", description: "Current date" },
-];
+// Smart tags for offer letters now come from the database (smart_tags table)
+// This file provides the data mapping function to fill templates with actual values
 
 export interface OfferVersionForSmartTags {
   currency_code: string | null;
@@ -60,10 +30,18 @@ export interface CompanyForSmartTags {
   legal_name: string | null;
 }
 
+/**
+ * Builds smart tag data for offer letter templates.
+ * Maps database smart tag fields to actual offer/candidate/company values.
+ * 
+ * The keys match the "field" column in the smart_tags table (e.g., "first_name", "job_title")
+ * which corresponds to what's between << and >> in templates after stripping spaces.
+ */
 export function getOfferLetterSmartTagData(
   version: OfferVersionForSmartTags,
   candidate: CandidateForSmartTags,
-  company: CompanyForSmartTags
+  company: CompanyForSmartTags,
+  smartTags?: SmartTag[]
 ): Record<string, string> {
   const formatNumber = (num: number | null): string => {
     if (num === null || num === undefined) return "0.00";
@@ -79,34 +57,52 @@ export function getOfferLetterSmartTagData(
     }
   };
 
-  return {
-    // Candidate
-    "First Name": candidate.first_name,
-    "Last Name": candidate.last_name,
-    "Full Name": `${candidate.first_name} ${candidate.last_name}`,
-    "Email": candidate.email,
+  // Base data mapping - keys match the "field" column in smart_tags table
+  // These are the values that will replace <<Tag Name>> in templates
+  // docxtemplater uses the text between delimiters as the key
+  const baseData: Record<string, string> = {
+    // Employee/Candidate info (maps to database field names)
+    "first_name": candidate.first_name,
+    "last_name": candidate.last_name,
+    "full_name": `${candidate.first_name} ${candidate.last_name}`,
+    "email": candidate.email,
     
-    // Position
-    "Job Title": version.position?.title || "",
-    "Department": version.department?.name || "",
-    "Work Location": version.work_location?.name || "",
+    // Position info
+    "job_title": version.position?.title || "",
+    "department": version.department?.name || "",
+    "work_location": version.work_location?.name || "",
     
     // Compensation
-    "Basic Salary": formatNumber(version.basic_salary),
-    "Housing Allowance": formatNumber(version.housing_allowance),
-    "Transport Allowance": formatNumber(version.transport_allowance),
-    "Other Allowances": formatNumber(version.other_allowances),
-    "Gross Salary": formatNumber(version.gross_pay_total),
-    "Net Salary": formatNumber(version.net_pay_estimate),
-    "Currency": version.currency_code || "SAR",
-    "Employer GOSI": formatNumber(version.employer_gosi_amount),
+    "basic_salary": formatNumber(version.basic_salary),
+    "housing_allowance": formatNumber(version.housing_allowance),
+    "transport_allowance": formatNumber(version.transport_allowance),
+    "other_allowances": formatNumber(version.other_allowances),
+    "gross_salary": formatNumber(version.gross_pay_total),
+    "net_salary": formatNumber(version.net_pay_estimate),
+    "currency": version.currency_code || "SAR",
+    "employer_gosi": formatNumber(version.employer_gosi_amount),
     
     // Company
-    "Company Name": company.name || "",
-    "Company Legal Name": company.legal_name || company.name || "",
+    "company_name": company.name || "",
+    "company_legal_name": company.legal_name || company.name || "",
     
     // Dates
-    "Start Date": formatDate(version.start_date),
-    "Current Date": format(new Date(), "MMMM d, yyyy"),
+    "start_date": formatDate(version.start_date),
+    "current_date": format(new Date(), "MMMM d, yyyy"),
   };
+
+  // If smart tags provided, also map using the tag display names (for backward compatibility)
+  // This allows templates to use either <<first_name>> or <<First Name>>
+  if (smartTags) {
+    smartTags.forEach(tag => {
+      // Extract the tag name without delimiters (e.g., "<<First Name>>" -> "First Name")
+      const tagName = tag.tag.replace(/^<<|>>$/g, "");
+      const fieldValue = baseData[tag.field];
+      if (fieldValue !== undefined) {
+        baseData[tagName] = fieldValue;
+      }
+    });
+  }
+
+  return baseData;
 }
