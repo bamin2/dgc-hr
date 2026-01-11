@@ -14,7 +14,7 @@ export interface OfferVersionForSmartTags {
   net_pay_estimate: number | null;
   employer_gosi_amount: number | null;
   start_date: string | null;
-  position?: { title: string } | null;
+  position?: { title: string; job_description?: string | null } | null;
   department?: { name: string } | null;
   work_location?: { name: string } | null;
 }
@@ -57,6 +57,11 @@ export function getOfferLetterSmartTagData(
     }
   };
 
+  // Calculate total allowances
+  const totalAllowances = (version.housing_allowance || 0) + 
+    (version.transport_allowance || 0) + 
+    (version.other_allowances || 0);
+
   // Base data mapping - keys match the "field" column in smart_tags table
   // These are the values that will replace <<Tag Name>> in templates
   // docxtemplater uses the text between delimiters as the key
@@ -67,8 +72,10 @@ export function getOfferLetterSmartTagData(
     "full_name": `${candidate.first_name} ${candidate.last_name}`,
     "email": candidate.email,
     
-    // Position info
+    // Position info - support both database field names and common variations
+    "title": version.position?.title || "",
     "job_title": version.position?.title || "",
+    "job_description": version.position?.job_description || "",
     "department": version.department?.name || "",
     "work_location": version.work_location?.name || "",
     
@@ -77,6 +84,8 @@ export function getOfferLetterSmartTagData(
     "housing_allowance": formatNumber(version.housing_allowance),
     "transport_allowance": formatNumber(version.transport_allowance),
     "other_allowances": formatNumber(version.other_allowances),
+    "net_allowances": formatNumber(totalAllowances),
+    "total_allowances": formatNumber(totalAllowances),
     "gross_salary": formatNumber(version.gross_pay_total),
     "net_salary": formatNumber(version.net_pay_estimate),
     "currency": version.currency_code || "SAR",
@@ -86,8 +95,9 @@ export function getOfferLetterSmartTagData(
     "company_name": company.name || "",
     "company_legal_name": company.legal_name || company.name || "",
     
-    // Dates
+    // Dates - support both field names
     "start_date": formatDate(version.start_date),
+    "join_date": formatDate(version.start_date),
     "current_date": format(new Date(), "MMMM d, yyyy"),
   };
 

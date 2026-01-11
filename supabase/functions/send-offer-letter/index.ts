@@ -203,7 +203,7 @@ serve(async (req: Request): Promise<Response> => {
         ),
         work_location:work_locations(*),
         department:departments(*),
-        position:positions(*)
+        position:positions(id, title, job_description)
       `)
       .eq("id", offer_version_id)
       .single();
@@ -270,6 +270,11 @@ serve(async (req: Request): Promise<Response> => {
       // Handle DOCX template
       console.log("Processing DOCX template...");
 
+      // Calculate total allowances
+      const totalAllowances = (version.housing_allowance || 0) + 
+        (version.transport_allowance || 0) + 
+        (version.other_allowances || 0);
+
       // Base data mapping using field names from database smart_tags
       const baseData: Record<string, string> = {
         // Employee/Candidate info
@@ -278,8 +283,10 @@ serve(async (req: Request): Promise<Response> => {
         "full_name": candidateName,
         "email": candidate.email,
         
-        // Position info
+        // Position info - support both database field names and common variations
+        "title": version.position?.title || "",
         "job_title": version.position?.title || "",
+        "job_description": version.position?.job_description || "",
         "department": version.department?.name || "",
         "work_location": version.work_location?.name || "",
         
@@ -288,6 +295,8 @@ serve(async (req: Request): Promise<Response> => {
         "housing_allowance": formatNumber(version.housing_allowance),
         "transport_allowance": formatNumber(version.transport_allowance),
         "other_allowances": formatNumber(version.other_allowances),
+        "net_allowances": formatNumber(totalAllowances),
+        "total_allowances": formatNumber(totalAllowances),
         "gross_salary": formatNumber(version.gross_pay_total),
         "net_salary": formatNumber(version.net_pay_estimate),
         "currency": version.currency_code || "SAR",
@@ -297,8 +306,9 @@ serve(async (req: Request): Promise<Response> => {
         "company_name": companyName,
         "company_legal_name": companySettings?.legal_name || companyName,
         
-        // Dates
+        // Dates - support both field names
         "start_date": formatDate(version.start_date),
+        "join_date": formatDate(version.start_date),
         "current_date": new Date().toLocaleDateString("en-US", {
           year: "numeric",
           month: "long",
