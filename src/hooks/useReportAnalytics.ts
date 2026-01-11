@@ -135,7 +135,7 @@ async function fetchDashboardStats(): Promise<ReportDashboardStats> {
   // Fetch pending leave requests
   const { count: pendingLeaves, error: leaveError } = await supabase
     .from('leave_requests')
-    .select('*', { count: 'exact', head: true })
+    .select('id', { count: 'exact', head: true })
     .eq('status', 'pending');
 
   if (leaveError) throw leaveError;
@@ -166,7 +166,7 @@ async function fetchAttendanceReportData(days: number = 30): Promise<AttendanceR
   // Fetch total active employees for denominator
   const { count: totalEmployees } = await supabase
     .from('employees')
-    .select('*', { count: 'exact', head: true })
+    .select('id', { count: 'exact', head: true })
     .eq('status', 'active');
 
   const total = totalEmployees || 1;
@@ -214,7 +214,7 @@ async function fetchPayrollReportData(months: number = 12): Promise<PayrollRepor
   // Fetch payroll runs
   const { data: runs, error } = await supabase
     .from('payroll_runs')
-    .select('*')
+    .select('id, pay_period_start, pay_period_end, total_amount, employee_count, status')
     .gte('pay_period_start', startDate.toISOString().split('T')[0])
     .lte('pay_period_end', endDate.toISOString().split('T')[0])
     .order('pay_period_start', { ascending: true });

@@ -15,7 +15,7 @@ export function usePendingApprovals() {
       // Fetch pending steps for current user
       const { data: steps, error: stepsError } = await supabase
         .from("request_approval_steps")
-        .select("*")
+        .select("id, request_id, request_type, step_number, approver_type, approver_user_id, status, comment, acted_by, acted_at, created_at")
         .eq("approver_user_id", user.id)
         .eq("status", "pending")
         .order("created_at", { ascending: false });
@@ -78,7 +78,7 @@ export function useRequestApprovalSteps(requestId: string | null, requestType: R
     queryFn: async (): Promise<RequestApprovalStep[]> => {
       const { data, error } = await supabase
         .from("request_approval_steps")
-        .select("*")
+        .select("id, request_id, request_type, step_number, approver_type, approver_user_id, status, comment, acted_by, acted_at, created_at")
         .eq("request_id", requestId!)
         .eq("request_type", requestType!)
         .order("step_number");
@@ -126,7 +126,7 @@ export function useApproveStep() {
       // Get the step details
       const { data: step, error: stepError } = await supabase
         .from("request_approval_steps")
-        .select("*")
+        .select("id, request_id, request_type, step_number, approver_type, approver_user_id, status, comment, acted_by, acted_at, created_at")
         .eq("id", stepId)
         .single();
 
@@ -148,7 +148,7 @@ export function useApproveStep() {
       // Check for next queued step
       const { data: nextStep, error: nextError } = await supabase
         .from("request_approval_steps")
-        .select("*")
+        .select("id, request_id, request_type, step_number, status")
         .eq("request_id", step.request_id)
         .eq("request_type", step.request_type)
         .eq("status", "queued")
@@ -207,7 +207,7 @@ export function useRejectStep() {
       // Get the step details
       const { data: step, error: stepError } = await supabase
         .from("request_approval_steps")
-        .select("*")
+        .select("id, request_id, request_type, step_number, status")
         .eq("id", stepId)
         .single();
 

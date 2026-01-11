@@ -13,7 +13,7 @@ export function useSmartTags() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("smart_tags")
-        .select("*")
+        .select("id, tag, field, source, category, description, is_system, is_active, created_at, updated_at")
         .order("category")
         .order("tag");
 
@@ -29,7 +29,7 @@ export function useActiveSmartTags() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("smart_tags")
-        .select("*")
+        .select("id, tag, field, source, category, description, is_system, is_active, created_at, updated_at")
         .eq("is_active", true)
         .order("category")
         .order("tag");

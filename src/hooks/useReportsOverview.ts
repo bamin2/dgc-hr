@@ -76,7 +76,7 @@ export function useReportsOverview(dateRange: DateRange) {
           .lte('pay_period_end', endDate),
         supabase
           .from('payroll_runs')
-          .select('*', { count: 'exact', head: true })
+          .select('id', { count: 'exact', head: true })
           .eq('status', 'draft'),
       ]);
 
@@ -159,17 +159,17 @@ export function useReportsOverview(dateRange: DateRange) {
       const [activeResult, hiresResult, exitsResult] = await Promise.all([
         supabase
           .from('employees')
-          .select('*', { count: 'exact', head: true })
+          .select('id', { count: 'exact', head: true })
           .eq('status', 'active'),
         supabase
           .from('employees')
-          .select('*', { count: 'exact', head: true })
+          .select('id', { count: 'exact', head: true })
           .eq('status', 'active')
           .gte('join_date', monthStart)
           .lte('join_date', monthEnd),
         supabase
           .from('employees')
-          .select('*', { count: 'exact', head: true })
+          .select('id', { count: 'exact', head: true })
           .in('status', ['resigned', 'terminated'])
           .gte('updated_at', monthStart)
           .lte('updated_at', monthEnd),
@@ -195,11 +195,11 @@ export function useReportsOverview(dateRange: DateRange) {
       const [pendingResult, onLeaveResult, leaveDaysResult] = await Promise.all([
         supabase
           .from('leave_requests')
-          .select('*', { count: 'exact', head: true })
+          .select('id', { count: 'exact', head: true })
           .eq('status', 'pending'),
         supabase
           .from('leave_requests')
-          .select('*', { count: 'exact', head: true })
+          .select('id', { count: 'exact', head: true })
           .eq('status', 'approved')
           .lte('start_date', today)
           .gte('end_date', today),
@@ -233,7 +233,7 @@ export function useReportsOverview(dateRange: DateRange) {
       const [activeCountResult, activeLoansResult, dueCountResult] = await Promise.all([
         supabase
           .from('loans')
-          .select('*', { count: 'exact', head: true })
+          .select('id', { count: 'exact', head: true })
           .eq('status', 'active'),
         supabase
           .from('loans')
@@ -245,7 +245,7 @@ export function useReportsOverview(dateRange: DateRange) {
           .eq('status', 'active'),
         supabase
           .from('loan_installments')
-          .select('*', { count: 'exact', head: true })
+          .select('id', { count: 'exact', head: true })
           .eq('status', 'due')
           .gte('due_date', monthStart)
           .lte('due_date', monthEnd),

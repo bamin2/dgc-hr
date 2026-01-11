@@ -22,7 +22,7 @@ export function usePayrollRunEmployees(runId: string | null) {
 
       const { data, error } = await supabase
         .from("payroll_run_employees")
-        .select("*")
+        .select("id, employee_id, employee_name, employee_code, department, position, base_salary, housing_allowance, transportation_allowance, other_allowances, gosi_deduction, other_deductions, gross_pay, total_deductions, net_pay")
         .eq("payroll_run_id", runId);
 
       if (error) throw error;

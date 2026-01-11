@@ -29,10 +29,10 @@ export function useDashboardMetrics() {
         todayAttendanceResult,
         workHoursResult
       ] = await Promise.all([
-        supabase.from('employees').select('*', { count: 'exact', head: true }).eq('status', 'active'),
-        supabase.from('employees').select('*', { count: 'exact', head: true }).gte('created_at', thirtyDaysAgo),
-        supabase.from('employees').select('*', { count: 'exact', head: true }).gte('created_at', sixtyDaysAgo).lt('created_at', thirtyDaysAgo),
-        supabase.from('attendance_records').select('*', { count: 'exact', head: true }).eq('date', today).in('status', ['present', 'late', 'remote']),
+        supabase.from('employees').select('id', { count: 'exact', head: true }).eq('status', 'active'),
+        supabase.from('employees').select('id', { count: 'exact', head: true }).gte('created_at', thirtyDaysAgo),
+        supabase.from('employees').select('id', { count: 'exact', head: true }).gte('created_at', sixtyDaysAgo).lt('created_at', thirtyDaysAgo),
+        supabase.from('attendance_records').select('id', { count: 'exact', head: true }).eq('date', today).in('status', ['present', 'late', 'remote']),
         supabase.from('attendance_records').select('work_hours').gte('date', sevenDaysAgo).not('work_hours', 'is', null),
       ]);
 
@@ -97,12 +97,12 @@ export function useTodayAttendance(limit = 5) {
           .limit(limit),
         supabase
           .from('attendance_records')
-          .select('*', { count: 'exact', head: true })
+          .select('id', { count: 'exact', head: true })
           .eq('date', today)
           .in('status', ['present', 'late', 'remote']),
         supabase
           .from('attendance_records')
-          .select('*', { count: 'exact', head: true })
+          .select('id', { count: 'exact', head: true })
           .eq('date', today)
           .eq('status', 'absent'),
       ]);

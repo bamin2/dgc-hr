@@ -15,7 +15,7 @@ export function usePendingApprovalsCount() {
 
       const { count, error } = await supabase
         .from("request_approval_steps")
-        .select("*", { count: "exact", head: true })
+        .select("id", { count: "exact", head: true })
         .eq("approver_user_id", currentUser.id)
         .eq("status", "pending");
 
