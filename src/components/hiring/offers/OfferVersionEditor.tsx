@@ -13,6 +13,7 @@ import { useDepartmentsManagement } from "@/hooks/useDepartmentsManagement";
 import { useWorkLocations, GosiNationalityRate } from "@/hooks/useWorkLocations";
 import { usePositionsManagement } from "@/hooks/usePositionsManagement";
 import { useEmployees } from "@/hooks/useEmployees";
+import { useAuth } from "@/contexts/AuthContext";
 import { useCreateOfferVersionFromEdit, useReviseOffer, useSendOfferLetter, useAcceptOffer, useRejectOffer } from "@/hooks/useOffers";
 import type { OfferVersion, Candidate } from "@/hooks/useOffers";
 import { toast } from "sonner";
@@ -40,6 +41,7 @@ export function OfferVersionEditor({ version, offerId, candidateId, candidateNat
   const { data: workLocations } = useWorkLocations();
   const { data: positions } = usePositionsManagement();
   const { data: employees } = useEmployees();
+  const { profile } = useAuth();
   
   const createNewVersion = useCreateOfferVersionFromEdit();
   const reviseOffer = useReviseOffer();
@@ -170,11 +172,19 @@ export function OfferVersionEditor({ version, offerId, candidateId, candidateNat
   };
 
   const handleSendOffer = async () => {
+    if (!version.template_id) {
+      toast.error("Please select a template first");
+      return;
+    }
+    
     try {
-      await sendOfferLetter.mutateAsync(version.id);
-      toast.success("Offer letter sent");
+      await sendOfferLetter.mutateAsync({
+        versionId: version.id,
+        templateId: version.template_id,
+        senderEmployeeId: profile?.employee_id || undefined
+      });
     } catch (error) {
-      toast.error("Failed to send offer letter");
+      // Error is handled by the mutation
     }
   };
 

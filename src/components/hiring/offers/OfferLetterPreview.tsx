@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { useOfferLetterTemplates } from "@/hooks/useOfferLetterTemplates";
 import { useCompanySettings } from "@/contexts/CompanySettingsContext";
 import { useActiveSmartTags } from "@/hooks/useSmartTags";
+import { useMyEmployee } from "@/hooks/useMyEmployee";
 import { exportOfferLetterToDocx } from "@/utils/offerLetterExport";
 import { getOfferLetterSmartTagData } from "@/utils/offerLetterSmartTags";
 import type { OfferVersion } from "@/hooks/useOffers";
@@ -29,8 +30,15 @@ export function OfferLetterPreview({ version, candidate }: OfferLetterPreviewPro
   const { data: templates } = useOfferLetterTemplates();
   const { settings } = useCompanySettings();
   const { data: smartTags } = useActiveSmartTags();
+  const { data: currentUserEmployee } = useMyEmployee();
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
   const [isDownloading, setIsDownloading] = useState(false);
+
+  // Build current user info for smart tags (signature, etc.)
+  const currentUser = currentUserEmployee ? {
+    name: `${currentUserEmployee.firstName} ${currentUserEmployee.lastName}`,
+    position: currentUserEmployee.position || null
+  } : undefined;
 
   const selectedTemplate = templates?.find(t => t.id === selectedTemplateId);
 
@@ -71,7 +79,8 @@ export function OfferLetterPreview({ version, candidate }: OfferLetterPreviewPro
         version,
         candidate,
         { name: settings?.name || null, legal_name: settings?.legalName || null },
-        smartTags // Pass smart tags for enhanced mapping
+        smartTags,
+        currentUser
       );
       
       await exportOfferLetterToDocx(
