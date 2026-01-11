@@ -13,7 +13,13 @@ export function MyRequestsTab() {
   const { data: hrDocRequests, isLoading: hrDocLoading } = useMyHRDocumentRequests();
 
   const isLoadingAll = isLoading || hrDocLoading;
-  const hasNoRequests = (!requests || requests.length === 0) && (!hrDocRequests || hrDocRequests.length === 0);
+  
+  // Filter out public holidays from leave requests
+  const filteredRequests = requests?.filter(
+    (request) => request.leave_type?.name !== "Public Holiday"
+  );
+  
+  const hasNoRequests = (!filteredRequests || filteredRequests.length === 0) && (!hrDocRequests || hrDocRequests.length === 0);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -68,8 +74,8 @@ export function MyRequestsTab() {
         <NewRequestDropdown />
       </div>
 
-      {/* Leave Requests */}
-      {requests?.map((request) => (
+      {/* Leave Requests - excluding public holidays */}
+      {filteredRequests?.map((request) => (
         <Card key={request.id}>
           <CardContent className="p-4">
             <div className="flex items-start justify-between mb-3">
