@@ -60,28 +60,22 @@ export function OrgChartTree({
           <div className="w-0.5 h-8 bg-muted-foreground/50" />
 
           {/* Children with connectors */}
-          <div className="flex">
-            {employee.children!.map((child, index) => (
-              <div key={child.id} className="flex flex-col items-center px-3">
-                {/* Horizontal + vertical connector */}
-                <div className="flex items-start w-full h-8 -mx-3">
-                  {/* Left horizontal segment */}
-                  <div
-                    className={`h-0.5 flex-1 ${
-                      index === 0 ? "bg-transparent" : "bg-muted-foreground/50"
-                    }`}
-                  />
-                  {/* Vertical drop */}
-                  <div className="w-0.5 h-full bg-muted-foreground/50" />
-                  {/* Right horizontal segment */}
-                  <div
-                    className={`h-0.5 flex-1 ${
-                      index === employee.children!.length - 1
-                        ? "bg-transparent"
-                        : "bg-muted-foreground/50"
-                    }`}
-                  />
-                </div>
+          <div className="relative flex gap-6">
+            {/* Single continuous horizontal line spanning from first to last child */}
+            {employee.children!.length > 1 && (
+              <div 
+                className="absolute top-0 h-0.5 bg-muted-foreground/50"
+                style={{
+                  left: `calc(100% / ${employee.children!.length} / 2)`,
+                  right: `calc(100% / ${employee.children!.length} / 2)`,
+                }}
+              />
+            )}
+            
+            {employee.children!.map((child) => (
+              <div key={child.id} className="flex flex-col items-center">
+                {/* Vertical drop only */}
+                <div className="w-0.5 h-8 bg-muted-foreground/50" />
                 {/* Recursive child tree */}
                 <OrgChartTree
                   employee={child}
