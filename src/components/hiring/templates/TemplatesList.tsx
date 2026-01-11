@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Plus, Edit, Trash2, FileText, FileType } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -42,16 +42,33 @@ export function TemplatesList() {
             <Card key={template.id}>
               <CardHeader>
                 <div className="flex items-start justify-between">
-                  <div>
-                    <CardTitle className="text-lg">{template.template_name}</CardTitle>
-                    <CardDescription className="mt-1">{template.description || "No description"}</CardDescription>
+                  <div className="flex items-start gap-2">
+                    {template.template_type === 'docx' ? (
+                      <FileType className="h-5 w-5 text-primary mt-0.5" />
+                    ) : (
+                      <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    )}
+                    <div>
+                      <CardTitle className="text-lg">{template.template_name}</CardTitle>
+                      <CardDescription className="mt-1">{template.description || "No description"}</CardDescription>
+                    </div>
                   </div>
-                  <Badge variant={template.is_active ? "default" : "secondary"}>
-                    {template.is_active ? "Active" : "Inactive"}
-                  </Badge>
+                  <div className="flex flex-col gap-1 items-end">
+                    <Badge variant={template.is_active ? "default" : "secondary"}>
+                      {template.is_active ? "Active" : "Inactive"}
+                    </Badge>
+                    <Badge variant="outline" className="text-xs">
+                      {template.template_type === 'docx' ? 'DOCX' : 'HTML'}
+                    </Badge>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
+                {template.template_type === 'docx' && template.docx_original_filename && (
+                  <p className="text-xs text-muted-foreground mb-3 truncate">
+                    📄 {template.docx_original_filename}
+                  </p>
+                )}
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" onClick={() => handleEdit(template.id)}>
                     <Edit className="h-4 w-4 mr-1" /> Edit

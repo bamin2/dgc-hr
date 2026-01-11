@@ -7,9 +7,12 @@ export interface OfferLetterTemplate {
   template_name: string;
   description: string | null;
   is_active: boolean;
-  subject_template: string;
-  body_template: string;
+  subject_template: string | null;
+  body_template: string | null;
   placeholders_supported: string[];
+  template_type: 'html' | 'docx';
+  docx_template_url: string | null;
+  docx_original_filename: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -18,8 +21,11 @@ export interface TemplateFormData {
   template_name: string;
   description?: string;
   is_active?: boolean;
-  subject_template: string;
-  body_template: string;
+  subject_template?: string;
+  body_template?: string;
+  template_type?: 'html' | 'docx';
+  docx_template_url?: string | null;
+  docx_original_filename?: string | null;
 }
 
 export function useOfferLetterTemplates(activeOnly: boolean = false) {
@@ -130,6 +136,33 @@ export function useDeleteOfferLetterTemplate() {
     },
     onError: (error: Error) => {
       toast.error(`Failed to delete template: ${error.message}`);
+    },
+  });
+}
+
+export function useUploadDocxTemplate() {
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const filename = `${Date.now()}-${file.name}`;
+      const { data, error } = await supabase.storage
+        .from("docx-templates")
+        .upload(filename, file);
+
+      if (error) throw error;
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from("docx-templates")
+        .getPublicUrl(filename);
+
+      return {
+        path: filename,
+        url: urlData.publicUrl,
+        originalName: file.name,
+      };
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to upload template: ${error.message}`);
     },
   });
 }
