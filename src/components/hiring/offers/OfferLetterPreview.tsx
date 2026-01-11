@@ -75,10 +75,28 @@ export function OfferLetterPreview({ version, candidate }: OfferLetterPreviewPro
     
     setIsDownloading(true);
     try {
+      // Build full address from settings
+      const fullAddress = settings?.address
+        ? [
+            settings.address.street,
+            settings.address.city,
+            settings.address.state,
+            settings.address.zipCode,
+            settings.address.country,
+          ].filter(Boolean).join(", ")
+        : null;
+
       const smartTagData = getOfferLetterSmartTagData(
         version,
         candidate,
-        { name: settings?.name || null, legal_name: settings?.legalName || null },
+        { 
+          name: settings?.name || null, 
+          legal_name: settings?.legalName || null,
+          email: settings?.email || null,
+          phone: settings?.phone || null,
+          fullAddress,
+          logoUrl: settings?.branding?.documentLogoUrl || settings?.branding?.logoUrl || null,
+        },
         smartTags,
         currentUser
       );
