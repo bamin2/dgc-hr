@@ -41,7 +41,7 @@ export interface OfferVersion {
   // Joined data
   work_location?: { id: string; name: string } | null;
   department?: { id: string; name: string } | null;
-  position?: { id: string; title: string } | null;
+  position?: { id: string; title: string; job_description?: string | null } | null;
   manager?: { id: string; first_name: string; last_name: string } | null;
   template?: { id: string; template_name: string } | null;
 }
@@ -157,7 +157,7 @@ export function useOffer(id: string | undefined) {
             *,
             work_location:work_locations(id, name),
             department:departments(id, name),
-            position:positions(id, title),
+            position:positions(id, title, job_description),
             manager:employees!offer_versions_manager_employee_id_fkey(id, first_name, last_name),
             template:offer_letter_templates(id, template_name)
           )
