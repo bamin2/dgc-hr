@@ -76,28 +76,7 @@ export function CreateOfferWizard({ candidate, onSuccess, onCancel }: CreateOffe
     }
   }, [formData.work_location_id, workLocations]);
 
-  // Calculate GOSI based on work location rates and candidate nationality
-  const gosiCalculation = useMemo(() => {
-    if (!isSubjectToGosi || !selectedWorkLocation?.gosi_enabled) {
-      return { employeeAmount: 0, employerAmount: 0, rate: 0 };
-    }
-
-    const nationalityCode = getCountryCodeByName(candidate.nationality || '');
-    const rates = selectedWorkLocation.gosi_nationality_rates || [];
-    const matchingRate = rates.find(r => r.nationality === nationalityCode);
-
-    if (matchingRate) {
-      const baseSalary = formData.basic_salary || 0;
-      return {
-        employeeAmount: (baseSalary * matchingRate.employeeRate) / 100,
-        employerAmount: (baseSalary * matchingRate.employerRate) / 100,
-        rate: matchingRate.employeeRate,
-      };
-    }
-    return { employeeAmount: 0, employerAmount: 0, rate: 0 };
-  }, [isSubjectToGosi, selectedWorkLocation, formData.basic_salary, candidate.nationality]);
-
-  // Calculate totals
+  // Calculate allowances first (needed for GOSI calculation)
   const allowancesTotal = useMemo(() => {
     return allowances.reduce((sum, a) => {
       if (a.isPercentage && a.percentageOf === 'basic_salary') {
@@ -106,6 +85,31 @@ export function CreateOfferWizard({ candidate, onSuccess, onCancel }: CreateOffe
       return sum + a.amount;
     }, 0);
   }, [allowances, formData.basic_salary]);
+
+  // Calculate GOSI based on work location rates and candidate nationality
+  // GOSI base = Basic Salary + All Allowances
+  const gosiCalculation = useMemo(() => {
+    if (!isSubjectToGosi || !selectedWorkLocation?.gosi_enabled) {
+      return { employeeAmount: 0, employerAmount: 0, rate: 0, base: 0 };
+    }
+
+    const nationalityCode = getCountryCodeByName(candidate.nationality || '');
+    const rates = selectedWorkLocation.gosi_nationality_rates || [];
+    const matchingRate = rates.find(r => r.nationality === nationalityCode);
+
+    if (matchingRate) {
+      const gosiBase = (formData.basic_salary || 0) + allowancesTotal;
+      return {
+        employeeAmount: (gosiBase * matchingRate.employeeRate) / 100,
+        employerAmount: (gosiBase * matchingRate.employerRate) / 100,
+        rate: matchingRate.employeeRate,
+        base: gosiBase,
+      };
+    }
+    return { employeeAmount: 0, employerAmount: 0, rate: 0, base: 0 };
+  }, [isSubjectToGosi, selectedWorkLocation, formData.basic_salary, allowancesTotal, candidate.nationality]);
+
+  // Calculate totals
 
   const deductionsTotal = useMemo(() => {
     return deductions.reduce((sum, d) => {
