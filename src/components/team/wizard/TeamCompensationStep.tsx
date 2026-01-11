@@ -15,6 +15,7 @@ import { useActiveAllowanceTemplatesByLocation } from "@/hooks/useAllowanceTempl
 import { useActiveDeductionTemplatesByLocation } from "@/hooks/useDeductionTemplates";
 import { useWorkLocations } from "@/hooks/useWorkLocations";
 import { getCurrencyByCode } from "@/data/currencies";
+import { getCountryCodeByName } from "@/data/countries";
 import { Plus, X, Info } from "lucide-react";
 import { AddAllowanceDialog, AllowanceEntry } from "./AddAllowanceDialog";
 import { AddDeductionDialog, DeductionEntry } from "./AddDeductionDialog";
@@ -34,6 +35,7 @@ interface TeamCompensationStepProps {
   onChange: (data: TeamCompensationData) => void;
   workLocationId: string;
   isBahraini: boolean;
+  nationality: string;
 }
 
 export function TeamCompensationStep({
@@ -41,6 +43,7 @@ export function TeamCompensationStep({
   onChange,
   workLocationId,
   isBahraini,
+  nationality,
 }: TeamCompensationStepProps) {
   const [showAllowanceDialog, setShowAllowanceDialog] = useState(false);
   const [showDeductionDialog, setShowDeductionDialog] = useState(false);
@@ -130,7 +133,22 @@ export function TeamCompensationStep({
     return { totalDeductions: total, deductionBreakdown: breakdown };
   }, [data.deductions, deductionTemplates, baseSalary, totalGrossPay]);
 
-  const totalNetPay = totalGrossPay - totalDeductions;
+  // Calculate GOSI deduction
+  const gosiDeduction = useMemo(() => {
+    if (!data.isSubjectToGosi || !workLocation?.gosi_enabled) return 0;
+    
+    const gosiBase = parseFloat(data.gosiRegisteredSalary) || baseSalary;
+    const nationalityCode = getCountryCodeByName(nationality);
+    const rates = (workLocation.gosi_nationality_rates as Array<{ nationality: string; employeeRate: number; employerRate: number }>) || [];
+    const matchingRate = rates.find(r => r.nationality === nationalityCode);
+    
+    if (matchingRate) {
+      return (gosiBase * matchingRate.employeeRate) / 100;
+    }
+    return 0;
+  }, [data.isSubjectToGosi, data.gosiRegisteredSalary, baseSalary, workLocation, nationality]);
+
+  const totalNetPay = totalGrossPay - totalDeductions - gosiDeduction;
 
   const updateField = <K extends keyof TeamCompensationData>(
     field: K,
@@ -397,8 +415,22 @@ export function TeamCompensationStep({
           </Button>
         </div>
 
-        {data.deductions.length > 0 ? (
+        {(data.deductions.length > 0 || gosiDeduction > 0) ? (
           <div className="border rounded-lg divide-y">
+            {/* GOSI Deduction - shown first if applicable */}
+            {gosiDeduction > 0 && (
+              <div className="flex items-center justify-between px-3 py-2 bg-amber-50/50 dark:bg-amber-950/20">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">GOSI (Employee Contribution)</span>
+                  <span className="text-xs text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/50 px-1.5 py-0.5 rounded">
+                    statutory
+                  </span>
+                </div>
+                <span className="text-sm font-medium text-destructive">
+                  -{formatCurrency(gosiDeduction)}
+                </span>
+              </div>
+            )}
             {deductionBreakdown.map((d) => (
               <div
                 key={d.id}
@@ -431,7 +463,7 @@ export function TeamCompensationStep({
             <div className="flex items-center justify-between px-3 py-2 bg-muted/50">
               <span className="text-sm text-muted-foreground">Subtotal</span>
               <span className="text-sm font-medium text-destructive">
-                -{formatCurrency(totalDeductions)}
+                -{formatCurrency(totalDeductions + gosiDeduction)}
               </span>
             </div>
           </div>
