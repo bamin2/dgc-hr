@@ -172,6 +172,26 @@ export function useOffer(id: string | undefined) {
   });
 }
 
+export interface AllowanceEntryData {
+  id: string;
+  templateId?: string;
+  customName?: string;
+  amount: number;
+  isCustom: boolean;
+  isPercentage?: boolean;
+  percentageOf?: string;
+}
+
+export interface DeductionEntryData {
+  id: string;
+  templateId?: string;
+  customName?: string;
+  amount: number;
+  isCustom: boolean;
+  isPercentage?: boolean;
+  percentageOf?: string;
+}
+
 export interface CreateOfferData {
   candidateId: string;
   work_location_id: string;
@@ -185,6 +205,11 @@ export interface CreateOfferData {
   transport_allowance: number;
   other_allowances: number;
   deductions_fixed: number;
+  is_subject_to_gosi?: boolean;
+  gosi_employee_amount?: number;
+  gosi_employer_amount?: number;
+  allowances?: AllowanceEntryData[];
+  deductions?: DeductionEntryData[];
 }
 
 export function useCreateOfferWithDetails() {
@@ -195,10 +220,13 @@ export function useCreateOfferWithDetails() {
       // Calculate totals
       const grossTotal = data.basic_salary + data.housing_allowance + 
         data.transport_allowance + data.other_allowances;
-      const gosiAmount = data.basic_salary * 0.0975; // 9.75% employee GOSI
-      const deductionsTotal = data.deductions_fixed + gosiAmount;
+      
+      // Use provided GOSI amounts or fallback to default calculation
+      const gosiEmployeeAmount = data.gosi_employee_amount ?? (data.is_subject_to_gosi ? data.basic_salary * 0.0975 : 0);
+      const gosiEmployerAmount = data.gosi_employer_amount ?? (data.is_subject_to_gosi ? data.basic_salary * 0.1175 : 0);
+      
+      const deductionsTotal = data.deductions_fixed + gosiEmployeeAmount;
       const netPayEstimate = grossTotal - deductionsTotal;
-      const employerGosiAmount = data.basic_salary * 0.1175; // 11.75% employer GOSI
 
       // Create offer
       const { data: offer, error: offerError } = await supabase
@@ -233,7 +261,7 @@ export function useCreateOfferWithDetails() {
           gross_pay_total: grossTotal,
           deductions_total: deductionsTotal,
           net_pay_estimate: netPayEstimate,
-          employer_gosi_amount: employerGosiAmount,
+          employer_gosi_amount: gosiEmployerAmount,
         })
         .select()
         .single();

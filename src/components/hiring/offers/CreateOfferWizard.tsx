@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { format } from "date-fns";
-import { CalendarIcon, Check, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { CalendarIcon, Check, ChevronLeft, ChevronRight, Loader2, Plus, X, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,12 +9,20 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useDepartmentsManagement } from "@/hooks/useDepartmentsManagement";
 import { useWorkLocations } from "@/hooks/useWorkLocations";
 import { usePositionsManagement } from "@/hooks/usePositionsManagement";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useCreateOfferWithDetails, type CreateOfferData } from "@/hooks/useOffers";
+import { AddAllowanceDialog, type AllowanceEntry } from "@/components/team/wizard/AddAllowanceDialog";
+import { AddDeductionDialog, type DeductionEntry } from "@/components/team/wizard/AddDeductionDialog";
+import { useActiveAllowanceTemplatesByLocation } from "@/hooks/useAllowanceTemplates";
+import { useActiveDeductionTemplatesByLocation } from "@/hooks/useDeductionTemplates";
+import { getCurrencyByCode } from "@/data/currencies";
+import { getCountryCodeByName } from "@/data/countries";
 import type { Candidate } from "@/hooks/useCandidates";
 
 interface CreateOfferWizardProps {
@@ -38,26 +46,79 @@ export function CreateOfferWizard({ candidate, onSuccess, onCancel }: CreateOffe
     candidateId: candidate.id,
     currency_code: "SAR",
     basic_salary: 0,
-    housing_allowance: 0,
-    transport_allowance: 0,
-    other_allowances: 0,
-    deductions_fixed: 0,
   });
+
+  // Dynamic allowances and deductions
+  const [allowances, setAllowances] = useState<AllowanceEntry[]>([]);
+  const [deductions, setDeductions] = useState<DeductionEntry[]>([]);
+  const [isSubjectToGosi, setIsSubjectToGosi] = useState(false);
+  const [showAllowanceDialog, setShowAllowanceDialog] = useState(false);
+  const [showDeductionDialog, setShowDeductionDialog] = useState(false);
 
   const { data: departments } = useDepartmentsManagement();
   const { data: workLocations } = useWorkLocations();
   const { data: positions } = usePositionsManagement();
   const { data: employees } = useEmployees();
+  const { data: allowanceTemplates } = useActiveAllowanceTemplatesByLocation(formData.work_location_id || null);
+  const { data: deductionTemplates } = useActiveDeductionTemplatesByLocation(formData.work_location_id || null);
   const createOffer = useCreateOfferWithDetails();
 
-  // Calculated values
-  const grossTotal = (formData.basic_salary || 0) + 
-    (formData.housing_allowance || 0) + 
-    (formData.transport_allowance || 0) + 
-    (formData.other_allowances || 0);
-  
-  const gosiAmount = (formData.basic_salary || 0) * 0.0975; // 9.75% employee GOSI
-  const netEstimate = grossTotal - (formData.deductions_fixed || 0) - gosiAmount;
+  const selectedWorkLocation = workLocations?.find(l => l.id === formData.work_location_id);
+  const currencyInfo = getCurrencyByCode(formData.currency_code || "SAR");
+
+  // Auto-set currency when work location changes
+  useEffect(() => {
+    if (formData.work_location_id && workLocations) {
+      const location = workLocations.find(l => l.id === formData.work_location_id);
+      if (location?.currency) {
+        setFormData(prev => ({ ...prev, currency_code: location.currency }));
+      }
+    }
+  }, [formData.work_location_id, workLocations]);
+
+  // Calculate GOSI based on work location rates and candidate nationality
+  const gosiCalculation = useMemo(() => {
+    if (!isSubjectToGosi || !selectedWorkLocation?.gosi_enabled) {
+      return { employeeAmount: 0, employerAmount: 0, rate: 0 };
+    }
+
+    const nationalityCode = getCountryCodeByName(candidate.nationality || '');
+    const rates = selectedWorkLocation.gosi_nationality_rates || [];
+    const matchingRate = rates.find(r => r.nationality === nationalityCode);
+
+    if (matchingRate) {
+      const baseSalary = formData.basic_salary || 0;
+      return {
+        employeeAmount: (baseSalary * matchingRate.employeeRate) / 100,
+        employerAmount: (baseSalary * matchingRate.employerRate) / 100,
+        rate: matchingRate.employeeRate,
+      };
+    }
+    return { employeeAmount: 0, employerAmount: 0, rate: 0 };
+  }, [isSubjectToGosi, selectedWorkLocation, formData.basic_salary, candidate.nationality]);
+
+  // Calculate totals
+  const allowancesTotal = useMemo(() => {
+    return allowances.reduce((sum, a) => {
+      if (a.isPercentage && a.percentageOf === 'basic_salary') {
+        return sum + ((formData.basic_salary || 0) * a.amount / 100);
+      }
+      return sum + a.amount;
+    }, 0);
+  }, [allowances, formData.basic_salary]);
+
+  const deductionsTotal = useMemo(() => {
+    return deductions.reduce((sum, d) => {
+      if (d.isPercentage && d.percentageOf === 'basic_salary') {
+        return sum + ((formData.basic_salary || 0) * d.amount / 100);
+      }
+      return sum + d.amount;
+    }, 0);
+  }, [deductions, formData.basic_salary]);
+
+  const grossTotal = (formData.basic_salary || 0) + allowancesTotal;
+  const totalDeductions = deductionsTotal + gosiCalculation.employeeAmount;
+  const netEstimate = grossTotal - totalDeductions;
 
   const updateField = <K extends keyof CreateOfferData>(field: K, value: CreateOfferData[K]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -76,8 +137,45 @@ export function CreateOfferWizard({ candidate, onSuccess, onCancel }: CreateOffe
     if (currentStep > 1) setCurrentStep(prev => prev - 1);
   };
 
+  const handleAddAllowance = (allowance: AllowanceEntry) => {
+    setAllowances(prev => [...prev, allowance]);
+  };
+
+  const handleRemoveAllowance = (id: string) => {
+    setAllowances(prev => prev.filter(a => a.id !== id));
+  };
+
+  const handleAddDeduction = (deduction: DeductionEntry) => {
+    setDeductions(prev => [...prev, deduction]);
+  };
+
+  const handleRemoveDeduction = (id: string) => {
+    setDeductions(prev => prev.filter(d => d.id !== id));
+  };
+
   const handleSubmit = async () => {
-    const offer = await createOffer.mutateAsync(formData as CreateOfferData);
+    // Prepare offer data with calculated values
+    const offerData: CreateOfferData = {
+      candidateId: candidate.id,
+      work_location_id: formData.work_location_id!,
+      department_id: formData.department_id!,
+      position_id: formData.position_id!,
+      manager_employee_id: formData.manager_employee_id,
+      start_date: formData.start_date!,
+      currency_code: formData.currency_code || "SAR",
+      basic_salary: formData.basic_salary || 0,
+      housing_allowance: 0, // We'll use the allowances array instead
+      transport_allowance: 0,
+      other_allowances: allowancesTotal,
+      deductions_fixed: totalDeductions,
+      is_subject_to_gosi: isSubjectToGosi,
+      gosi_employee_amount: gosiCalculation.employeeAmount,
+      gosi_employer_amount: gosiCalculation.employerAmount,
+      allowances,
+      deductions,
+    };
+
+    const offer = await createOffer.mutateAsync(offerData);
     onSuccess(offer.id);
   };
 
@@ -88,6 +186,22 @@ export function CreateOfferWizard({ candidate, onSuccess, onCancel }: CreateOffe
   const getManagerName = () => {
     const mgr = employees?.find(e => e.id === formData.manager_employee_id);
     return mgr ? `${mgr.firstName} ${mgr.lastName}` : "-";
+  };
+
+  const getAllowanceName = (allowance: AllowanceEntry) => {
+    if (allowance.isCustom) return allowance.customName || "Custom Allowance";
+    const template = allowanceTemplates?.find(t => t.id === allowance.templateId);
+    return template?.name || "Unknown Allowance";
+  };
+
+  const getDeductionName = (deduction: DeductionEntry) => {
+    if (deduction.isCustom) return deduction.customName || "Custom Deduction";
+    const template = deductionTemplates?.find(t => t.id === deduction.templateId);
+    return template?.name || "Unknown Deduction";
+  };
+
+  const formatAmount = (amount: number) => {
+    return `${currencyInfo?.symbol || formData.currency_code} ${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   return (
@@ -241,6 +355,7 @@ export function CreateOfferWizard({ candidate, onSuccess, onCancel }: CreateOffe
 
         {currentStep === 2 && (
           <div className="space-y-6">
+            {/* Currency and Basic Salary */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Currency</Label>
@@ -252,99 +367,241 @@ export function CreateOfferWizard({ candidate, onSuccess, onCancel }: CreateOffe
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="SAR">SAR</SelectItem>
-                    <SelectItem value="USD">USD</SelectItem>
-                    <SelectItem value="AED">AED</SelectItem>
-                    <SelectItem value="BHD">BHD</SelectItem>
+                    <SelectItem value="SAR">SAR - Saudi Riyal</SelectItem>
+                    <SelectItem value="USD">USD - US Dollar</SelectItem>
+                    <SelectItem value="AED">AED - UAE Dirham</SelectItem>
+                    <SelectItem value="BHD">BHD - Bahraini Dinar</SelectItem>
+                    <SelectItem value="KWD">KWD - Kuwaiti Dinar</SelectItem>
+                    <SelectItem value="QAR">QAR - Qatari Riyal</SelectItem>
+                    <SelectItem value="OMR">OMR - Omani Rial</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label>Basic Salary *</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={formData.basic_salary || ""}
-                  onChange={(e) => updateField("basic_salary", parseFloat(e.target.value) || 0)}
-                  placeholder="0.00"
-                />
-              </div>
-            </div>
-
-            <Separator />
-
-            <div className="space-y-4">
-              <h4 className="font-medium text-sm text-muted-foreground">Allowances</h4>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Housing Allowance</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                    {currencyInfo?.symbol || formData.currency_code}
+                  </span>
                   <Input
                     type="number"
                     min={0}
-                    value={formData.housing_allowance || ""}
-                    onChange={(e) => updateField("housing_allowance", parseFloat(e.target.value) || 0)}
+                    value={formData.basic_salary || ""}
+                    onChange={(e) => updateField("basic_salary", parseFloat(e.target.value) || 0)}
                     placeholder="0.00"
+                    className="pl-12"
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* GOSI Toggle */}
+            <Card className={cn(
+              "transition-colors",
+              isSubjectToGosi && selectedWorkLocation?.gosi_enabled ? "border-primary/50 bg-primary/5" : ""
+            )}>
+              <CardContent className="pt-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="gosi-toggle" className="font-medium">Subject to GOSI</Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          <p>GOSI (General Organization for Social Insurance) deductions will be calculated based on the work location's configured rates for {candidate.nationality || "the candidate's nationality"}.</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  <Switch
+                    id="gosi-toggle"
+                    checked={isSubjectToGosi}
+                    onCheckedChange={setIsSubjectToGosi}
+                    disabled={!selectedWorkLocation?.gosi_enabled}
+                  />
+                </div>
+                {!selectedWorkLocation?.gosi_enabled && formData.work_location_id && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    GOSI is not enabled for this work location
+                  </p>
+                )}
+                {isSubjectToGosi && gosiCalculation.rate > 0 && (
+                  <div className="mt-3 p-2 bg-muted rounded-md text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Employee Rate ({gosiCalculation.rate}%)</span>
+                      <span className="font-medium text-destructive">-{formatAmount(gosiCalculation.employeeAmount)}</span>
+                    </div>
+                  </div>
+                )}
+                {isSubjectToGosi && gosiCalculation.rate === 0 && candidate.nationality && (
+                  <p className="text-xs text-amber-600 mt-2">
+                    No GOSI rate configured for nationality: {candidate.nationality}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+
+            <Separator />
+
+            {/* Allowances */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium text-sm">Allowances</h4>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowAllowanceDialog(true)}
+                  disabled={!formData.work_location_id}
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Allowance
+                </Button>
+              </div>
+
+              {allowances.length === 0 ? (
+                <div className="text-sm text-muted-foreground text-center py-4 border rounded-lg border-dashed">
+                  No allowances added
+                </div>
+              ) : (
                 <div className="space-y-2">
-                  <Label>Transport Allowance</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    value={formData.transport_allowance || ""}
-                    onChange={(e) => updateField("transport_allowance", parseFloat(e.target.value) || 0)}
-                    placeholder="0.00"
-                  />
+                  {allowances.map((allowance) => {
+                    const displayAmount = allowance.isPercentage && allowance.percentageOf === 'basic_salary'
+                      ? (formData.basic_salary || 0) * allowance.amount / 100
+                      : allowance.amount;
+                    return (
+                      <div key={allowance.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                        <div>
+                          <span className="font-medium text-sm">{getAllowanceName(allowance)}</span>
+                          {allowance.isPercentage && (
+                            <span className="text-xs text-muted-foreground ml-2">({allowance.amount}%)</span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium">{formatAmount(displayAmount)}</span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => handleRemoveAllowance(allowance.id)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <div className="flex justify-between text-sm pt-2">
+                    <span className="text-muted-foreground">Total Allowances</span>
+                    <span className="font-medium">{formatAmount(allowancesTotal)}</span>
+                  </div>
                 </div>
+              )}
+            </div>
+
+            <Separator />
+
+            {/* Deductions */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium text-sm">Deductions</h4>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowDeductionDialog(true)}
+                  disabled={!formData.work_location_id}
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Deduction
+                </Button>
               </div>
+
               <div className="space-y-2">
-                <Label>Other Allowances</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={formData.other_allowances || ""}
-                  onChange={(e) => updateField("other_allowances", parseFloat(e.target.value) || 0)}
-                  placeholder="0.00"
-                />
+                {/* GOSI deduction (if applicable) */}
+                {isSubjectToGosi && gosiCalculation.employeeAmount > 0 && (
+                  <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border-l-2 border-primary">
+                    <div>
+                      <span className="font-medium text-sm">GOSI (Employee)</span>
+                      <span className="text-xs text-muted-foreground ml-2">({gosiCalculation.rate}%)</span>
+                      <span className="text-xs text-primary ml-2">(statutory)</span>
+                    </div>
+                    <span className="text-sm font-medium text-destructive">-{formatAmount(gosiCalculation.employeeAmount)}</span>
+                  </div>
+                )}
+
+                {deductions.map((deduction) => {
+                  const displayAmount = deduction.isPercentage && deduction.percentageOf === 'basic_salary'
+                    ? (formData.basic_salary || 0) * deduction.amount / 100
+                    : deduction.amount;
+                  return (
+                    <div key={deduction.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                      <div>
+                        <span className="font-medium text-sm">{getDeductionName(deduction)}</span>
+                        {deduction.isPercentage && (
+                          <span className="text-xs text-muted-foreground ml-2">({deduction.amount}%)</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-destructive">-{formatAmount(displayAmount)}</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => handleRemoveDeduction(deduction.id)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {deductions.length === 0 && !isSubjectToGosi && (
+                  <div className="text-sm text-muted-foreground text-center py-4 border rounded-lg border-dashed">
+                    No deductions added
+                  </div>
+                )}
+
+                {(deductions.length > 0 || gosiCalculation.employeeAmount > 0) && (
+                  <div className="flex justify-between text-sm pt-2">
+                    <span className="text-muted-foreground">Total Deductions</span>
+                    <span className="font-medium text-destructive">-{formatAmount(totalDeductions)}</span>
+                  </div>
+                )}
               </div>
             </div>
 
             <Separator />
 
-            <div className="space-y-4">
-              <h4 className="font-medium text-sm text-muted-foreground">Deductions</h4>
-              <div className="space-y-2">
-                <Label>Fixed Deductions</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={formData.deductions_fixed || ""}
-                  onChange={(e) => updateField("deductions_fixed", parseFloat(e.target.value) || 0)}
-                  placeholder="0.00"
-                />
-              </div>
-            </div>
-
-            <Separator />
-
+            {/* Summary Card */}
             <Card className="bg-muted/50">
               <CardContent className="pt-4 space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Gross Total</span>
-                  <span className="font-medium">{formData.currency_code} {grossTotal.toLocaleString()}</span>
+                  <span className="text-muted-foreground">Basic Salary</span>
+                  <span className="font-medium">{formatAmount(formData.basic_salary || 0)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">GOSI (9.75%)</span>
-                  <span className="text-destructive">- {gosiAmount.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Fixed Deductions</span>
-                  <span className="text-destructive">- {(formData.deductions_fixed || 0).toLocaleString()}</span>
+                  <span className="text-muted-foreground">Total Allowances</span>
+                  <span className="font-medium">+{formatAmount(allowancesTotal)}</span>
                 </div>
                 <Separator className="my-2" />
-                <div className="flex justify-between font-semibold">
+                <div className="flex justify-between font-medium">
+                  <span>Gross Total</span>
+                  <span>{formatAmount(grossTotal)}</span>
+                </div>
+                <div className="flex justify-between text-sm text-destructive">
+                  <span className="text-muted-foreground">Total Deductions</span>
+                  <span>-{formatAmount(totalDeductions)}</span>
+                </div>
+                <Separator className="my-2" />
+                <div className="flex justify-between font-semibold text-lg">
                   <span>Net Estimate</span>
-                  <span>{formData.currency_code} {netEstimate.toLocaleString()}</span>
+                  <span>{formatAmount(netEstimate)}</span>
                 </div>
               </CardContent>
             </Card>
@@ -366,6 +623,12 @@ export function CreateOfferWizard({ candidate, onSuccess, onCancel }: CreateOffe
                   <span className="text-muted-foreground">Email</span>
                   <span>{candidate.email}</span>
                 </div>
+                {candidate.nationality && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Nationality</span>
+                    <span>{candidate.nationality}</span>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -404,32 +667,61 @@ export function CreateOfferWizard({ candidate, onSuccess, onCancel }: CreateOffe
               <CardContent className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Basic Salary</span>
-                  <span>{formData.currency_code} {(formData.basic_salary || 0).toLocaleString()}</span>
+                  <span>{formatAmount(formData.basic_salary || 0)}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Housing Allowance</span>
-                  <span>{formData.currency_code} {(formData.housing_allowance || 0).toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Transport Allowance</span>
-                  <span>{formData.currency_code} {(formData.transport_allowance || 0).toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Other Allowances</span>
-                  <span>{formData.currency_code} {(formData.other_allowances || 0).toLocaleString()}</span>
-                </div>
+                
+                {allowances.length > 0 && (
+                  <>
+                    <Separator className="my-2" />
+                    <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Allowances</div>
+                    {allowances.map((allowance) => {
+                      const displayAmount = allowance.isPercentage && allowance.percentageOf === 'basic_salary'
+                        ? (formData.basic_salary || 0) * allowance.amount / 100
+                        : allowance.amount;
+                      return (
+                        <div key={allowance.id} className="flex justify-between">
+                          <span className="text-muted-foreground">{getAllowanceName(allowance)}</span>
+                          <span>{formatAmount(displayAmount)}</span>
+                        </div>
+                      );
+                    })}
+                  </>
+                )}
+
                 <Separator className="my-2" />
                 <div className="flex justify-between font-medium">
                   <span>Gross Total</span>
-                  <span>{formData.currency_code} {grossTotal.toLocaleString()}</span>
+                  <span>{formatAmount(grossTotal)}</span>
                 </div>
-                <div className="flex justify-between text-destructive">
-                  <span className="text-muted-foreground">Deductions</span>
-                  <span>- {(gosiAmount + (formData.deductions_fixed || 0)).toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between font-semibold pt-2">
+
+                {(isSubjectToGosi || deductions.length > 0) && (
+                  <>
+                    <Separator className="my-2" />
+                    <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Deductions</div>
+                    {isSubjectToGosi && gosiCalculation.employeeAmount > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">GOSI ({gosiCalculation.rate}%)</span>
+                        <span className="text-destructive">-{formatAmount(gosiCalculation.employeeAmount)}</span>
+                      </div>
+                    )}
+                    {deductions.map((deduction) => {
+                      const displayAmount = deduction.isPercentage && deduction.percentageOf === 'basic_salary'
+                        ? (formData.basic_salary || 0) * deduction.amount / 100
+                        : deduction.amount;
+                      return (
+                        <div key={deduction.id} className="flex justify-between">
+                          <span className="text-muted-foreground">{getDeductionName(deduction)}</span>
+                          <span className="text-destructive">-{formatAmount(displayAmount)}</span>
+                        </div>
+                      );
+                    })}
+                  </>
+                )}
+
+                <Separator className="my-2" />
+                <div className="flex justify-between font-semibold text-lg">
                   <span>Net Estimate</span>
-                  <span>{formData.currency_code} {netEstimate.toLocaleString()}</span>
+                  <span>{formatAmount(netEstimate)}</span>
                 </div>
               </CardContent>
             </Card>
@@ -469,6 +761,25 @@ export function CreateOfferWizard({ candidate, onSuccess, onCancel }: CreateOffe
           </Button>
         )}
       </div>
+
+      {/* Dialogs */}
+      <AddAllowanceDialog
+        open={showAllowanceDialog}
+        onOpenChange={setShowAllowanceDialog}
+        onAdd={handleAddAllowance}
+        currency={formData.currency_code || "SAR"}
+        existingTemplateIds={allowances.filter(a => a.templateId).map(a => a.templateId!)}
+        workLocationId={formData.work_location_id || null}
+      />
+
+      <AddDeductionDialog
+        open={showDeductionDialog}
+        onOpenChange={setShowDeductionDialog}
+        onAdd={handleAddDeduction}
+        currency={formData.currency_code || "SAR"}
+        existingTemplateIds={deductions.filter(d => d.templateId).map(d => d.templateId!)}
+        workLocationId={formData.work_location_id || null}
+      />
     </div>
   );
 }
