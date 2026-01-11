@@ -1,24 +1,12 @@
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { CountrySelect } from "@/components/ui/country-select";
-import { cn } from "@/lib/utils";
-import { useCreateCandidate, type CandidateFormData } from "@/hooks/useCandidates";
-import { useDepartmentsManagement } from "@/hooks/useDepartmentsManagement";
-import { useWorkLocations } from "@/hooks/useWorkLocations";
-import { usePositionsManagement } from "@/hooks/usePositionsManagement";
-import { useEmployees } from "@/hooks/useEmployees";
+import { useCreateCandidate } from "@/hooks/useCandidates";
 import { getCountryByCode } from "@/data/countries";
 
 const schema = z.object({
@@ -28,38 +16,35 @@ const schema = z.object({
   phone: z.string().optional(),
   phone_country_code: z.string().optional(),
   nationality: z.string().optional(),
-  work_location_id: z.string().optional(),
-  department_id: z.string().optional(),
-  position_id: z.string().optional(),
-  manager_employee_id: z.string().optional(),
-  proposed_start_date: z.string().optional(),
-  notes: z.string().optional(),
 });
+
+type FormData = z.infer<typeof schema>;
 
 interface CandidateFormProps {
   onSuccess: () => void;
 }
 
 export function CandidateForm({ onSuccess }: CandidateFormProps) {
-  const [dateOpen, setDateOpen] = useState(false);
   const createCandidate = useCreateCandidate();
-  const { data: departments } = useDepartmentsManagement();
-  const { data: workLocations } = useWorkLocations();
-  const { data: positions } = usePositionsManagement();
-  const { data: employees } = useEmployees();
 
-  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<CandidateFormData & { phone_country_code?: string }>({
+  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { status: 'draft', phone_country_code: 'SA' },
+    defaultValues: { phone_country_code: 'SA' },
   });
 
-  const onSubmit = async (data: CandidateFormData & { phone_country_code?: string }) => {
+  const onSubmit = async (data: FormData) => {
     // Combine country dial code with phone number for storage
     const countryCode = data.phone_country_code || 'SA';
     const country = getCountryByCode(countryCode);
     const fullPhone = data.phone && country ? `${country.dialCode} ${data.phone}` : data.phone;
     
-    const { phone_country_code, ...candidateData } = data;
+    const candidateData = {
+      first_name: data.first_name,
+      last_name: data.last_name,
+      email: data.email,
+      phone: fullPhone,
+      nationality: data.nationality,
+    };
     await createCandidate.mutateAsync({ ...candidateData, phone: fullPhone });
     onSuccess();
   };
@@ -102,84 +87,6 @@ export function CandidateForm({ onSuccess }: CandidateFormProps) {
           onValueChange={(value) => setValue("nationality", value)}
           placeholder="Select nationality"
         />
-      </div>
-
-      <div className="space-y-2">
-        <Label>Work Location</Label>
-        <Select onValueChange={(v) => setValue("work_location_id", v)} value={watch("work_location_id")}>
-          <SelectTrigger><SelectValue placeholder="Select location" /></SelectTrigger>
-          <SelectContent>
-            {workLocations?.map((l) => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2">
-        <Label>Department</Label>
-        <Select onValueChange={(v) => setValue("department_id", v)} value={watch("department_id")}>
-          <SelectTrigger><SelectValue placeholder="Select department" /></SelectTrigger>
-          <SelectContent>
-            {departments?.map((d) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2">
-        <Label>Position</Label>
-        <Select onValueChange={(v) => setValue("position_id", v)} value={watch("position_id")}>
-          <SelectTrigger><SelectValue placeholder="Select position" /></SelectTrigger>
-          <SelectContent>
-            {positions?.map((p) => <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>)}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2">
-        <Label>Manager</Label>
-        <Select onValueChange={(v) => setValue("manager_employee_id", v)} value={watch("manager_employee_id")}>
-          <SelectTrigger><SelectValue placeholder="Select manager" /></SelectTrigger>
-          <SelectContent>
-            {employees?.map((e) => <SelectItem key={e.id} value={e.id}>{e.firstName} {e.lastName}</SelectItem>)}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2">
-        <Label>Proposed Start Date</Label>
-        <Popover open={dateOpen} onOpenChange={setDateOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              type="button"
-              variant="outline"
-              className={cn(
-                "w-full justify-start text-left font-normal",
-                !watch("proposed_start_date") && "text-muted-foreground"
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {watch("proposed_start_date")
-                ? format(new Date(watch("proposed_start_date")), "PPP")
-                : "Select date"}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={watch("proposed_start_date") ? new Date(watch("proposed_start_date")) : undefined}
-              onSelect={(date) => {
-                setValue("proposed_start_date", date ? format(date, "yyyy-MM-dd") : "");
-                setDateOpen(false);
-              }}
-              initialFocus
-              className="pointer-events-auto"
-            />
-          </PopoverContent>
-        </Popover>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="notes">Notes</Label>
-        <Textarea id="notes" {...register("notes")} />
       </div>
 
       <div className="flex justify-end gap-2 pt-4">
