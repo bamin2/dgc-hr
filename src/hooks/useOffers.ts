@@ -77,14 +77,27 @@ export interface OfferVersionFormData {
   other_allowances?: number;
   deductions_fixed?: number;
   deductions_total?: number;
+  gross_pay_total?: number;
+  net_pay_estimate?: number;
   employer_gosi_amount?: number;
   template_id?: string;
   remarks_internal?: string;
   change_reason?: string;
 }
 
+export interface Candidate {
+  id: string;
+  candidate_code: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone?: string | null;
+  nationality?: string | null;
+}
+
 interface OfferFilters {
   status?: OfferStatus | 'all';
+  candidateId?: string;
   search?: string;
 }
 
@@ -105,6 +118,9 @@ export function useOffers(filters?: OfferFilters) {
 
       if (filters?.status && filters.status !== 'all') {
         query = query.eq("status", filters.status);
+      }
+      if (filters?.candidateId) {
+        query = query.eq("candidate_id", filters.candidateId);
       }
       if (filters?.search) {
         query = query.or(`offer_code.ilike.%${filters.search}%`);
@@ -239,11 +255,11 @@ export function useUpdateOfferVersion() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<OfferVersionFormData> }) => {
+    mutationFn: async ({ versionId, data }: { versionId: string; data: Partial<OfferVersionFormData> }) => {
       const { data: result, error } = await supabase
         .from("offer_versions")
         .update(data)
-        .eq("id", id)
+        .eq("id", versionId)
         .select()
         .single();
 
@@ -253,7 +269,6 @@ export function useUpdateOfferVersion() {
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["offers"] });
       queryClient.invalidateQueries({ queryKey: ["offer", result.offer_id] });
-      toast.success("Offer version updated");
     },
     onError: (error: Error) => {
       toast.error(`Failed to update offer: ${error.message}`);
@@ -422,6 +437,179 @@ export function useMarkOfferRejected() {
     },
     onError: (error: Error) => {
       toast.error(`Failed to mark offer as rejected: ${error.message}`);
+    },
+  });
+}
+
+// Alias hooks for better naming
+export function useReviseOffer() {
+  return useCreateOfferVersion();
+}
+
+export function useSendOfferLetter() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (versionId: string) => {
+      // Get version details
+      const { data: version, error: versionError } = await supabase
+        .from("offer_versions")
+        .select(`
+          *,
+          offer:offers(id, candidate_id, offer_code)
+        `)
+        .eq("id", versionId)
+        .single();
+
+      if (versionError) throw versionError;
+
+      // Update version status to sent
+      const { error: updateError } = await supabase
+        .from("offer_versions")
+        .update({ 
+          status: 'sent' as OfferVersionStatus,
+          sent_at: new Date().toISOString()
+        })
+        .eq("id", versionId);
+
+      if (updateError) throw updateError;
+
+      // Update offer status
+      const offerId = (version.offer as { id: string }).id;
+      const candidateId = (version.offer as { candidate_id: string }).candidate_id;
+      
+      await supabase
+        .from("offers")
+        .update({ status: 'sent' as OfferStatus })
+        .eq("id", offerId);
+
+      // Update candidate status
+      await supabase
+        .from("candidates")
+        .update({ status: 'offer_sent' })
+        .eq("id", candidateId);
+
+      return version;
+    },
+    onSuccess: (version) => {
+      const offerId = (version.offer as { id: string })?.id;
+      queryClient.invalidateQueries({ queryKey: ["offers"] });
+      queryClient.invalidateQueries({ queryKey: ["offer", offerId] });
+      queryClient.invalidateQueries({ queryKey: ["candidates"] });
+      toast.success("Offer sent successfully");
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to send offer: ${error.message}`);
+    },
+  });
+}
+
+export function useAcceptOffer() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (versionId: string) => {
+      // Get version and offer details
+      const { data: version, error: versionError } = await supabase
+        .from("offer_versions")
+        .select(`
+          *,
+          offer:offers(id, candidate_id)
+        `)
+        .eq("id", versionId)
+        .single();
+
+      if (versionError) throw versionError;
+
+      const offerId = (version.offer as { id: string }).id;
+      const candidateId = (version.offer as { candidate_id: string }).candidate_id;
+
+      // Mark version as accepted
+      await supabase
+        .from("offer_versions")
+        .update({ 
+          status: 'accepted' as OfferVersionStatus,
+          accepted_at: new Date().toISOString()
+        })
+        .eq("id", versionId);
+
+      // Update offer status
+      await supabase
+        .from("offers")
+        .update({ status: 'accepted' as OfferStatus })
+        .eq("id", offerId);
+
+      // Update candidate status
+      await supabase
+        .from("candidates")
+        .update({ status: 'offer_accepted' })
+        .eq("id", candidateId);
+
+      return { offerId, versionId };
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ["offers"] });
+      queryClient.invalidateQueries({ queryKey: ["offer", result.offerId] });
+      queryClient.invalidateQueries({ queryKey: ["candidates"] });
+      toast.success("Offer marked as accepted");
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to accept offer: ${error.message}`);
+    },
+  });
+}
+
+export function useRejectOffer() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (versionId: string) => {
+      // Get version and offer details
+      const { data: version, error: versionError } = await supabase
+        .from("offer_versions")
+        .select(`
+          *,
+          offer:offers(id, candidate_id)
+        `)
+        .eq("id", versionId)
+        .single();
+
+      if (versionError) throw versionError;
+
+      const offerId = (version.offer as { id: string }).id;
+      const candidateId = (version.offer as { candidate_id: string }).candidate_id;
+
+      // Mark version as rejected
+      await supabase
+        .from("offer_versions")
+        .update({ 
+          status: 'rejected' as OfferVersionStatus,
+          rejected_at: new Date().toISOString()
+        })
+        .eq("id", versionId);
+
+      // Update offer status
+      await supabase
+        .from("offers")
+        .update({ status: 'rejected' as OfferStatus })
+        .eq("id", offerId);
+
+      // Update candidate status
+      await supabase
+        .from("candidates")
+        .update({ status: 'offer_rejected' })
+        .eq("id", candidateId);
+
+      return { offerId, versionId };
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ["offers"] });
+      queryClient.invalidateQueries({ queryKey: ["offer", result.offerId] });
+      queryClient.invalidateQueries({ queryKey: ["candidates"] });
+      toast.success("Offer marked as rejected");
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to reject offer: ${error.message}`);
     },
   });
 }
