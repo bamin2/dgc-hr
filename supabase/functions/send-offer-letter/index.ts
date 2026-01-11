@@ -212,11 +212,12 @@ serve(async (req: Request): Promise<Response> => {
     }
 
     // Fetch offer version with related data
+    // Use explicit FK reference to avoid ambiguity between offers_current_version_id_fkey and offer_versions_offer_id_fkey
     const { data: version, error: versionError } = await supabase
       .from("offer_versions")
       .select(`
         *,
-        offer:offers!inner(
+        offer:offers!offer_versions_offer_id_fkey(
           *,
           candidate:candidates!inner(*)
         ),
