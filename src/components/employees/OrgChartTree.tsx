@@ -57,7 +57,7 @@ export function OrgChartTree({
       {hasChildren && (
         <>
           {/* Vertical line down from parent */}
-          <div className="w-px h-8 bg-border" />
+          <div className="w-0.5 h-8 bg-muted-foreground/50" />
 
           {/* Children with connectors */}
           <div className="flex gap-6">
@@ -67,18 +67,18 @@ export function OrgChartTree({
                 <div className="flex items-start w-full h-8">
                   {/* Left horizontal segment */}
                   <div
-                    className={`h-px flex-1 min-w-[12px] ${
-                      index === 0 ? "bg-transparent" : "bg-border"
+                    className={`h-0.5 flex-1 min-w-[12px] ${
+                      index === 0 ? "bg-transparent" : "bg-muted-foreground/50"
                     }`}
                   />
                   {/* Vertical drop */}
-                  <div className="w-px h-full bg-border" />
+                  <div className="w-0.5 h-full bg-muted-foreground/50" />
                   {/* Right horizontal segment */}
                   <div
-                    className={`h-px flex-1 min-w-[12px] ${
+                    className={`h-0.5 flex-1 min-w-[12px] ${
                       index === employee.children!.length - 1
                         ? "bg-transparent"
-                        : "bg-border"
+                        : "bg-muted-foreground/50"
                     }`}
                   />
                 </div>
