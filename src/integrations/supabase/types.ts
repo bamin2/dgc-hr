@@ -655,6 +655,95 @@ export type Database = {
           },
         ]
       }
+      candidates: {
+        Row: {
+          candidate_code: string
+          created_at: string
+          created_by: string | null
+          department_id: string | null
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          manager_employee_id: string | null
+          nationality: string | null
+          notes: string | null
+          phone: string | null
+          position_id: string | null
+          proposed_start_date: string | null
+          status: Database["public"]["Enums"]["candidate_status"]
+          updated_at: string
+          work_location_id: string | null
+        }
+        Insert: {
+          candidate_code: string
+          created_at?: string
+          created_by?: string | null
+          department_id?: string | null
+          email: string
+          first_name: string
+          id?: string
+          last_name: string
+          manager_employee_id?: string | null
+          nationality?: string | null
+          notes?: string | null
+          phone?: string | null
+          position_id?: string | null
+          proposed_start_date?: string | null
+          status?: Database["public"]["Enums"]["candidate_status"]
+          updated_at?: string
+          work_location_id?: string | null
+        }
+        Update: {
+          candidate_code?: string
+          created_at?: string
+          created_by?: string | null
+          department_id?: string | null
+          email?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          manager_employee_id?: string | null
+          nationality?: string | null
+          notes?: string | null
+          phone?: string | null
+          position_id?: string | null
+          proposed_start_date?: string | null
+          status?: Database["public"]["Enums"]["candidate_status"]
+          updated_at?: string
+          work_location_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidates_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidates_manager_employee_id_fkey"
+            columns: ["manager_employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidates_position_id_fkey"
+            columns: ["position_id"]
+            isOneToOne: false
+            referencedRelation: "positions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidates_work_location_id_fkey"
+            columns: ["work_location_id"]
+            isOneToOne: false
+            referencedRelation: "work_locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_settings: {
         Row: {
           address_city: string | null
@@ -1198,6 +1287,65 @@ export type Database = {
             columns: ["employee_id"]
             isOneToOne: false
             referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_conversion_log: {
+        Row: {
+          candidate_id: string
+          converted_at: string
+          converted_by: string | null
+          employee_id: string
+          id: string
+          offer_id: string
+          offer_version_id: string
+        }
+        Insert: {
+          candidate_id: string
+          converted_at?: string
+          converted_by?: string | null
+          employee_id: string
+          id?: string
+          offer_id: string
+          offer_version_id: string
+        }
+        Update: {
+          candidate_id?: string
+          converted_at?: string
+          converted_by?: string | null
+          employee_id?: string
+          id?: string
+          offer_id?: string
+          offer_version_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_conversion_log_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_conversion_log_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_conversion_log_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "offers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_conversion_log_offer_version_id_fkey"
+            columns: ["offer_version_id"]
+            isOneToOne: false
+            referencedRelation: "offer_versions"
             referencedColumns: ["id"]
           },
         ]
@@ -2562,6 +2710,276 @@ export type Database = {
           },
         ]
       }
+      offer_emails: {
+        Row: {
+          body_rendered: string
+          error_message: string | null
+          id: string
+          offer_version_id: string
+          provider_message_id: string | null
+          sent_at: string | null
+          sent_by: string | null
+          status: Database["public"]["Enums"]["offer_email_status"]
+          subject: string
+          to_email: string
+        }
+        Insert: {
+          body_rendered: string
+          error_message?: string | null
+          id?: string
+          offer_version_id: string
+          provider_message_id?: string | null
+          sent_at?: string | null
+          sent_by?: string | null
+          status?: Database["public"]["Enums"]["offer_email_status"]
+          subject: string
+          to_email: string
+        }
+        Update: {
+          body_rendered?: string
+          error_message?: string | null
+          id?: string
+          offer_version_id?: string
+          provider_message_id?: string | null
+          sent_at?: string | null
+          sent_by?: string | null
+          status?: Database["public"]["Enums"]["offer_email_status"]
+          subject?: string
+          to_email?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offer_emails_offer_version_id_fkey"
+            columns: ["offer_version_id"]
+            isOneToOne: false
+            referencedRelation: "offer_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      offer_letter_templates: {
+        Row: {
+          body_template: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          placeholders_supported: string[] | null
+          subject_template: string
+          template_name: string
+          updated_at: string
+        }
+        Insert: {
+          body_template: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          placeholders_supported?: string[] | null
+          subject_template?: string
+          template_name: string
+          updated_at?: string
+        }
+        Update: {
+          body_template?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          placeholders_supported?: string[] | null
+          subject_template?: string
+          template_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      offer_versions: {
+        Row: {
+          accepted_at: string | null
+          basic_salary: number
+          change_reason: string | null
+          created_at: string
+          created_by: string | null
+          currency_code: string
+          deductions_fixed: number
+          deductions_total: number
+          department_id: string | null
+          effective_date: string | null
+          employer_gosi_amount: number
+          gross_pay_total: number | null
+          housing_allowance: number
+          id: string
+          manager_employee_id: string | null
+          net_pay_estimate: number | null
+          offer_id: string
+          other_allowances: number
+          position_id: string | null
+          rejected_at: string | null
+          remarks_internal: string | null
+          sent_at: string | null
+          start_date: string | null
+          status: Database["public"]["Enums"]["offer_version_status"]
+          superseded_at: string | null
+          template_id: string | null
+          transport_allowance: number
+          version_number: number
+          work_location_id: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          basic_salary?: number
+          change_reason?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency_code?: string
+          deductions_fixed?: number
+          deductions_total?: number
+          department_id?: string | null
+          effective_date?: string | null
+          employer_gosi_amount?: number
+          gross_pay_total?: number | null
+          housing_allowance?: number
+          id?: string
+          manager_employee_id?: string | null
+          net_pay_estimate?: number | null
+          offer_id: string
+          other_allowances?: number
+          position_id?: string | null
+          rejected_at?: string | null
+          remarks_internal?: string | null
+          sent_at?: string | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["offer_version_status"]
+          superseded_at?: string | null
+          template_id?: string | null
+          transport_allowance?: number
+          version_number?: number
+          work_location_id?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          basic_salary?: number
+          change_reason?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency_code?: string
+          deductions_fixed?: number
+          deductions_total?: number
+          department_id?: string | null
+          effective_date?: string | null
+          employer_gosi_amount?: number
+          gross_pay_total?: number | null
+          housing_allowance?: number
+          id?: string
+          manager_employee_id?: string | null
+          net_pay_estimate?: number | null
+          offer_id?: string
+          other_allowances?: number
+          position_id?: string | null
+          rejected_at?: string | null
+          remarks_internal?: string | null
+          sent_at?: string | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["offer_version_status"]
+          superseded_at?: string | null
+          template_id?: string | null
+          transport_allowance?: number
+          version_number?: number
+          work_location_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offer_versions_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_versions_manager_employee_id_fkey"
+            columns: ["manager_employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_versions_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "offers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_versions_position_id_fkey"
+            columns: ["position_id"]
+            isOneToOne: false
+            referencedRelation: "positions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_versions_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "offer_letter_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_versions_work_location_id_fkey"
+            columns: ["work_location_id"]
+            isOneToOne: false
+            referencedRelation: "work_locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      offers: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          created_by: string | null
+          current_version_id: string | null
+          id: string
+          offer_code: string
+          status: Database["public"]["Enums"]["offer_status"]
+          updated_at: string
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          created_by?: string | null
+          current_version_id?: string | null
+          id?: string
+          offer_code: string
+          status?: Database["public"]["Enums"]["offer_status"]
+          updated_at?: string
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          created_by?: string | null
+          current_version_id?: string | null
+          id?: string
+          offer_code?: string
+          status?: Database["public"]["Enums"]["offer_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offers_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offers_current_version_id_fkey"
+            columns: ["current_version_id"]
+            isOneToOne: false
+            referencedRelation: "offer_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       onboarding_records: {
         Row: {
           buddy_id: string | null
@@ -3844,6 +4262,13 @@ export type Database = {
         | "retirement"
         | "wellness"
         | "other"
+      candidate_status:
+        | "draft"
+        | "in_process"
+        | "offer_sent"
+        | "offer_accepted"
+        | "offer_rejected"
+        | "archived"
       claim_status: "pending" | "approved" | "rejected" | "processing"
       correction_status:
         | "pending_manager"
@@ -3873,6 +4298,21 @@ export type Database = {
       interview_format: "in_person" | "video" | "written"
       notice_period_status: "serving" | "waived" | "garden_leave"
       offboarding_status: "pending" | "in_progress" | "completed" | "cancelled"
+      offer_email_status: "draft" | "sent" | "failed"
+      offer_status:
+        | "draft"
+        | "sent"
+        | "accepted"
+        | "rejected"
+        | "expired"
+        | "archived"
+      offer_version_status:
+        | "draft"
+        | "sent"
+        | "superseded"
+        | "accepted"
+        | "rejected"
+        | "expired"
       onboarding_status:
         | "pending"
         | "scheduled"
@@ -4059,6 +4499,14 @@ export const Constants = {
         "wellness",
         "other",
       ],
+      candidate_status: [
+        "draft",
+        "in_process",
+        "offer_sent",
+        "offer_accepted",
+        "offer_rejected",
+        "archived",
+      ],
       claim_status: ["pending", "approved", "rejected", "processing"],
       correction_status: [
         "pending_manager",
@@ -4091,6 +4539,23 @@ export const Constants = {
       interview_format: ["in_person", "video", "written"],
       notice_period_status: ["serving", "waived", "garden_leave"],
       offboarding_status: ["pending", "in_progress", "completed", "cancelled"],
+      offer_email_status: ["draft", "sent", "failed"],
+      offer_status: [
+        "draft",
+        "sent",
+        "accepted",
+        "rejected",
+        "expired",
+        "archived",
+      ],
+      offer_version_status: [
+        "draft",
+        "sent",
+        "superseded",
+        "accepted",
+        "rejected",
+        "expired",
+      ],
       onboarding_status: [
         "pending",
         "scheduled",

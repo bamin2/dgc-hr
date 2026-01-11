@@ -1,0 +1,427 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
+export type OfferStatus = 'draft' | 'sent' | 'accepted' | 'rejected' | 'expired' | 'archived';
+export type OfferVersionStatus = 'draft' | 'sent' | 'superseded' | 'accepted' | 'rejected' | 'expired';
+
+export interface OfferVersion {
+  id: string;
+  offer_id: string;
+  version_number: number;
+  status: OfferVersionStatus;
+  effective_date: string | null;
+  sent_at: string | null;
+  superseded_at: string | null;
+  accepted_at: string | null;
+  rejected_at: string | null;
+  remarks_internal: string | null;
+  change_reason: string | null;
+  work_location_id: string | null;
+  department_id: string | null;
+  position_id: string | null;
+  manager_employee_id: string | null;
+  start_date: string | null;
+  currency_code: string;
+  basic_salary: number;
+  housing_allowance: number;
+  transport_allowance: number;
+  other_allowances: number;
+  deductions_fixed: number;
+  gross_pay_total: number;
+  deductions_total: number;
+  net_pay_estimate: number;
+  employer_gosi_amount: number;
+  template_id: string | null;
+  created_by: string | null;
+  created_at: string;
+  // Joined data
+  work_location?: { id: string; name: string } | null;
+  department?: { id: string; name: string } | null;
+  position?: { id: string; title: string } | null;
+  manager?: { id: string; first_name: string; last_name: string } | null;
+  template?: { id: string; template_name: string } | null;
+}
+
+export interface Offer {
+  id: string;
+  offer_code: string;
+  candidate_id: string;
+  status: OfferStatus;
+  current_version_id: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  // Joined data
+  candidate?: {
+    id: string;
+    candidate_code: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+  } | null;
+  current_version?: OfferVersion | null;
+  versions?: OfferVersion[];
+}
+
+export interface OfferVersionFormData {
+  work_location_id?: string;
+  department_id?: string;
+  position_id?: string;
+  manager_employee_id?: string;
+  start_date?: string;
+  currency_code?: string;
+  basic_salary?: number;
+  housing_allowance?: number;
+  transport_allowance?: number;
+  other_allowances?: number;
+  deductions_fixed?: number;
+  deductions_total?: number;
+  employer_gosi_amount?: number;
+  template_id?: string;
+  remarks_internal?: string;
+  change_reason?: string;
+}
+
+interface OfferFilters {
+  status?: OfferStatus | 'all';
+  search?: string;
+}
+
+export function useOffers(filters?: OfferFilters) {
+  return useQuery({
+    queryKey: ["offers", filters],
+    queryFn: async () => {
+      let query = supabase
+        .from("offers")
+        .select(`
+          *,
+          candidate:candidates(id, candidate_code, first_name, last_name, email),
+          current_version:offer_versions!offers_current_version_id_fkey(
+            id, version_number, status, gross_pay_total, currency_code, sent_at, accepted_at
+          )
+        `)
+        .order("created_at", { ascending: false });
+
+      if (filters?.status && filters.status !== 'all') {
+        query = query.eq("status", filters.status);
+      }
+      if (filters?.search) {
+        query = query.or(`offer_code.ilike.%${filters.search}%`);
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+      return data as Offer[];
+    },
+  });
+}
+
+export function useOffer(id: string | undefined) {
+  return useQuery({
+    queryKey: ["offer", id],
+    queryFn: async () => {
+      if (!id) return null;
+      
+      const { data, error } = await supabase
+        .from("offers")
+        .select(`
+          *,
+          candidate:candidates(id, candidate_code, first_name, last_name, email, phone, nationality),
+          current_version:offer_versions!offers_current_version_id_fkey(*),
+          versions:offer_versions(
+            *,
+            work_location:work_locations(id, name),
+            department:departments(id, name),
+            position:positions(id, title),
+            manager:employees!offer_versions_manager_employee_id_fkey(id, first_name, last_name),
+            template:offer_letter_templates(id, template_name)
+          )
+        `)
+        .eq("id", id)
+        .single();
+
+      if (error) throw error;
+      
+      // Sort versions by version_number descending
+      const result = data as unknown as Offer;
+      if (result?.versions && Array.isArray(result.versions)) {
+        result.versions.sort((a: OfferVersion, b: OfferVersion) => b.version_number - a.version_number);
+      }
+      
+      return result;
+    },
+    enabled: !!id,
+  });
+}
+
+export function useCreateOffer() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (candidateId: string) => {
+      // Get candidate data to pre-populate offer
+      const { data: candidate, error: candidateError } = await supabase
+        .from("candidates")
+        .select("*")
+        .eq("id", candidateId)
+        .single();
+
+      if (candidateError) throw candidateError;
+
+      // Create offer
+      const { data: offer, error: offerError } = await supabase
+        .from("offers")
+        .insert({
+          candidate_id: candidateId,
+          offer_code: '', // Will be auto-generated
+        })
+        .select()
+        .single();
+
+      if (offerError) throw offerError;
+
+      // Create first version
+      const { data: version, error: versionError } = await supabase
+        .from("offer_versions")
+        .insert({
+          offer_id: offer.id,
+          version_number: 1,
+          status: 'draft',
+          work_location_id: candidate.work_location_id,
+          department_id: candidate.department_id,
+          position_id: candidate.position_id,
+          manager_employee_id: candidate.manager_employee_id,
+          start_date: candidate.proposed_start_date,
+          currency_code: 'SAR',
+          basic_salary: 0,
+          housing_allowance: 0,
+          transport_allowance: 0,
+          other_allowances: 0,
+          deductions_fixed: 0,
+          deductions_total: 0,
+          employer_gosi_amount: 0,
+        })
+        .select()
+        .single();
+
+      if (versionError) throw versionError;
+
+      // Update offer with current version
+      const { error: updateError } = await supabase
+        .from("offers")
+        .update({ current_version_id: version.id })
+        .eq("id", offer.id);
+
+      if (updateError) throw updateError;
+
+      // Update candidate status
+      await supabase
+        .from("candidates")
+        .update({ status: 'in_process' })
+        .eq("id", candidateId);
+
+      return offer;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["offers"] });
+      queryClient.invalidateQueries({ queryKey: ["candidates"] });
+      toast.success("Offer created successfully");
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to create offer: ${error.message}`);
+    },
+  });
+}
+
+export function useUpdateOfferVersion() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<OfferVersionFormData> }) => {
+      const { data: result, error } = await supabase
+        .from("offer_versions")
+        .update(data)
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return result;
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ["offers"] });
+      queryClient.invalidateQueries({ queryKey: ["offer", result.offer_id] });
+      toast.success("Offer version updated");
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to update offer: ${error.message}`);
+    },
+  });
+}
+
+export function useCreateOfferVersion() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ offerId, copyFromVersionId, changeReason }: { 
+      offerId: string; 
+      copyFromVersionId: string;
+      changeReason?: string;
+    }) => {
+      // Get the version to copy from
+      const { data: sourceVersion, error: sourceError } = await supabase
+        .from("offer_versions")
+        .select("*")
+        .eq("id", copyFromVersionId)
+        .single();
+
+      if (sourceError) throw sourceError;
+
+      // Mark current version as superseded
+      await supabase
+        .from("offer_versions")
+        .update({ 
+          status: 'superseded' as OfferVersionStatus,
+          superseded_at: new Date().toISOString()
+        })
+        .eq("id", copyFromVersionId);
+
+      // Create new version
+      const { data: newVersion, error: createError } = await supabase
+        .from("offer_versions")
+        .insert({
+          offer_id: offerId,
+          version_number: sourceVersion.version_number + 1,
+          status: 'draft',
+          work_location_id: sourceVersion.work_location_id,
+          department_id: sourceVersion.department_id,
+          position_id: sourceVersion.position_id,
+          manager_employee_id: sourceVersion.manager_employee_id,
+          start_date: sourceVersion.start_date,
+          currency_code: sourceVersion.currency_code,
+          basic_salary: sourceVersion.basic_salary,
+          housing_allowance: sourceVersion.housing_allowance,
+          transport_allowance: sourceVersion.transport_allowance,
+          other_allowances: sourceVersion.other_allowances,
+          deductions_fixed: sourceVersion.deductions_fixed,
+          deductions_total: sourceVersion.deductions_total,
+          employer_gosi_amount: sourceVersion.employer_gosi_amount,
+          template_id: sourceVersion.template_id,
+          change_reason: changeReason,
+        })
+        .select()
+        .single();
+
+      if (createError) throw createError;
+
+      // Update offer with new current version
+      await supabase
+        .from("offers")
+        .update({ 
+          current_version_id: newVersion.id,
+          status: 'draft' // Reset to draft for new version
+        })
+        .eq("id", offerId);
+
+      return newVersion;
+    },
+    onSuccess: (_, { offerId }) => {
+      queryClient.invalidateQueries({ queryKey: ["offers"] });
+      queryClient.invalidateQueries({ queryKey: ["offer", offerId] });
+      toast.success("New offer version created");
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to create offer version: ${error.message}`);
+    },
+  });
+}
+
+export function useMarkOfferAccepted() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ offerId, versionId, candidateId }: { 
+      offerId: string; 
+      versionId: string;
+      candidateId: string;
+    }) => {
+      // Mark version as accepted
+      await supabase
+        .from("offer_versions")
+        .update({ 
+          status: 'accepted' as OfferVersionStatus,
+          accepted_at: new Date().toISOString()
+        })
+        .eq("id", versionId);
+
+      // Update offer status
+      await supabase
+        .from("offers")
+        .update({ status: 'accepted' as OfferStatus })
+        .eq("id", offerId);
+
+      // Update candidate status
+      await supabase
+        .from("candidates")
+        .update({ status: 'offer_accepted' })
+        .eq("id", candidateId);
+
+      return { offerId, versionId };
+    },
+    onSuccess: (_, { offerId }) => {
+      queryClient.invalidateQueries({ queryKey: ["offers"] });
+      queryClient.invalidateQueries({ queryKey: ["offer", offerId] });
+      queryClient.invalidateQueries({ queryKey: ["candidates"] });
+      toast.success("Offer marked as accepted");
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to mark offer as accepted: ${error.message}`);
+    },
+  });
+}
+
+export function useMarkOfferRejected() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ offerId, versionId, candidateId }: { 
+      offerId: string; 
+      versionId: string;
+      candidateId: string;
+    }) => {
+      // Mark version as rejected
+      await supabase
+        .from("offer_versions")
+        .update({ 
+          status: 'rejected' as OfferVersionStatus,
+          rejected_at: new Date().toISOString()
+        })
+        .eq("id", versionId);
+
+      // Update offer status
+      await supabase
+        .from("offers")
+        .update({ status: 'rejected' as OfferStatus })
+        .eq("id", offerId);
+
+      // Update candidate status
+      await supabase
+        .from("candidates")
+        .update({ status: 'offer_rejected' })
+        .eq("id", candidateId);
+
+      return { offerId, versionId };
+    },
+    onSuccess: (_, { offerId }) => {
+      queryClient.invalidateQueries({ queryKey: ["offers"] });
+      queryClient.invalidateQueries({ queryKey: ["offer", offerId] });
+      queryClient.invalidateQueries({ queryKey: ["candidates"] });
+      toast.success("Offer marked as rejected");
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to mark offer as rejected: ${error.message}`);
+    },
+  });
+}
