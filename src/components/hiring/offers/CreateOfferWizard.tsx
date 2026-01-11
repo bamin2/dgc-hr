@@ -209,15 +209,15 @@ export function CreateOfferWizard({ candidate, onSuccess, onCancel }: CreateOffe
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full min-h-0">
       {/* Candidate Header */}
-      <div className="px-6 py-4 border-b bg-muted/30">
+      <div className="px-6 py-4 border-b bg-muted/30 shrink-0">
         <h3 className="font-semibold text-lg">{candidate.first_name} {candidate.last_name}</h3>
         <p className="text-sm text-muted-foreground">{candidate.email}</p>
       </div>
 
       {/* Step Indicator */}
-      <div className="px-6 py-4 border-b">
+      <div className="px-6 py-4 border-b shrink-0">
         <div className="flex items-center justify-between">
           {STEPS.map((step, idx) => (
             <div key={step.id} className="flex items-center flex-1">
@@ -251,7 +251,7 @@ export function CreateOfferWizard({ candidate, onSuccess, onCancel }: CreateOffe
       </div>
 
       {/* Step Content */}
-      <div className="flex-1 overflow-y-auto px-6 py-6">
+      <div className="flex-1 min-h-0 overflow-y-auto px-6 py-6">
         {currentStep === 1 && (
           <div className="space-y-4">
             <div className="space-y-2">
@@ -734,7 +734,7 @@ export function CreateOfferWizard({ candidate, onSuccess, onCancel }: CreateOffe
       </div>
 
       {/* Footer */}
-      <div className="px-6 py-4 border-t flex justify-between">
+      <div className="px-6 py-4 border-t flex justify-between shrink-0 sticky bottom-0 bg-background">
         <Button variant="outline" onClick={currentStep === 1 ? onCancel : handleBack}>
           {currentStep === 1 ? "Cancel" : (
             <>
