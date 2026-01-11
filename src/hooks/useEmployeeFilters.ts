@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { Employee } from "@/hooks/useEmployees";
 import { filterActiveEmployees } from "@/utils/orgHierarchy";
+import { useDebounce } from "./useDebounce";
 
 interface EmployeeFiltersState {
   searchQuery: string;
@@ -10,11 +11,14 @@ interface EmployeeFiltersState {
 }
 
 interface UseEmployeeFiltersReturn {
-  // Filter state
+  // Filter state (immediate values for inputs)
   searchQuery: string;
   departmentFilter: string;
   statusFilter: string;
   workLocationFilter: string;
+  
+  // Debounced search query for filtering
+  debouncedSearchQuery: string;
   
   // Setters
   setSearchQuery: (query: string) => void;
@@ -42,19 +46,22 @@ export function useEmployeeFilters(
 ): UseEmployeeFiltersReturn {
   const [filters, setFilters] = useState<EmployeeFiltersState>(initialFilters);
 
+  // Debounce search query to avoid filtering on every keystroke
+  const debouncedSearchQuery = useDebounce(filters.searchQuery, 300);
+
   // Active employees only (filter out resigned/terminated)
   const activeEmployees = useMemo(
     () => filterActiveEmployees(employees),
     [employees]
   );
 
-  // Filter employees based on current filters
+  // Filter employees based on current filters (using debounced search)
   const filteredEmployees = useMemo(() => {
     let result = [...activeEmployees];
 
-    // Search filter
-    if (filters.searchQuery) {
-      const query = filters.searchQuery.toLowerCase();
+    // Search filter (uses debounced value)
+    if (debouncedSearchQuery) {
+      const query = debouncedSearchQuery.toLowerCase();
       result = result.filter(
         (emp) =>
           `${emp.firstName} ${emp.lastName}`.toLowerCase().includes(query) ||
@@ -79,7 +86,7 @@ export function useEmployeeFilters(
     }
 
     return result;
-  }, [activeEmployees, filters]);
+  }, [activeEmployees, debouncedSearchQuery, filters.departmentFilter, filters.statusFilter, filters.workLocationFilter]);
 
   const hasActiveFilters =
     filters.searchQuery !== "" ||
@@ -87,10 +94,10 @@ export function useEmployeeFilters(
     filters.statusFilter !== "all" ||
     filters.workLocationFilter !== "all";
 
-  // Notify parent when filters change
+  // Notify parent when filters change (uses debounced search)
   useEffect(() => {
     onFiltersChange?.();
-  }, [filters, onFiltersChange]);
+  }, [debouncedSearchQuery, filters.departmentFilter, filters.statusFilter, filters.workLocationFilter, onFiltersChange]);
 
   const setSearchQuery = useCallback((query: string) => {
     setFilters((prev) => ({ ...prev, searchQuery: query }));
@@ -114,6 +121,7 @@ export function useEmployeeFilters(
 
   return {
     searchQuery: filters.searchQuery,
+    debouncedSearchQuery,
     departmentFilter: filters.departmentFilter,
     statusFilter: filters.statusFilter,
     workLocationFilter: filters.workLocationFilter,

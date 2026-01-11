@@ -1,21 +1,58 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { History, Download } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AuditFilters, AuditTable } from "@/components/audit";
 import { useAuditLogs, type AuditLogFilters } from "@/hooks/useAuditLogs";
+import { usePrefetchPagination } from "@/hooks/usePrefetchPagination";
+import { queryKeys } from "@/lib/queryKeys";
+import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
 export default function AuditTrail() {
   const [filters, setFilters] = useState<AuditLogFilters>({});
   const [page, setPage] = useState(1);
+  const pageSize = 50;
 
   const { data, isLoading } = useAuditLogs({
     filters,
     page,
-    pageSize: 50,
+    pageSize,
+  });
+
+  // Prefetch next page for instant navigation
+  const prefetchAuditLogs = useCallback(async (nextPage: number) => {
+    let query = supabase
+      .from('audit_logs')
+      .select(`*, employee:employees(id, first_name, last_name, avatar_url)`, { count: 'exact' })
+      .order('created_at', { ascending: false });
+
+    if (filters.employeeId) query = query.eq('employee_id', filters.employeeId);
+    if (filters.entityType && filters.entityType !== 'all') query = query.eq('entity_type', filters.entityType);
+    if (filters.action && filters.action !== 'all') query = query.eq('action', filters.action);
+    if (filters.dateFrom) query = query.gte('created_at', filters.dateFrom.toISOString());
+    if (filters.dateTo) {
+      const endDate = new Date(filters.dateTo);
+      endDate.setDate(endDate.getDate() + 1);
+      query = query.lt('created_at', endDate.toISOString());
+    }
+    if (filters.search) query = query.or(`description.ilike.%${filters.search}%,field_name.ilike.%${filters.search}%`);
+
+    const from = (nextPage - 1) * pageSize;
+    query = query.range(from, from + pageSize - 1);
+
+    const { data } = await query;
+    return data;
+  }, [filters, pageSize]);
+
+  usePrefetchPagination({
+    queryKey: [...queryKeys.audit.logs, filters, page, pageSize],
+    currentPage: page,
+    totalPages: data?.totalPages || 1,
+    prefetchFn: prefetchAuditLogs,
+    enabled: !isLoading && !!data,
   });
 
   // Reset to page 1 when filters change

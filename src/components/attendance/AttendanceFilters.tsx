@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -8,6 +9,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Search, Download, Calendar } from 'lucide-react';
+import { useDebounce } from '@/hooks/useDebounce';
 
 interface AttendanceFiltersProps {
   searchQuery: string;
@@ -45,14 +47,34 @@ export function AttendanceFilters({
   statusFilter,
   onStatusChange,
 }: AttendanceFiltersProps) {
+  // Local state for immediate input feedback
+  const [localSearch, setLocalSearch] = useState(searchQuery);
+  
+  // Debounce search to avoid filtering on every keystroke
+  const debouncedSearch = useDebounce(localSearch, 300);
+
+  // Sync debounced value to parent
+  useEffect(() => {
+    if (debouncedSearch !== searchQuery) {
+      onSearchChange(debouncedSearch);
+    }
+  }, [debouncedSearch]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Sync external changes to local state
+  useEffect(() => {
+    if (searchQuery !== localSearch && searchQuery === '') {
+      setLocalSearch('');
+    }
+  }, [searchQuery]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <div className="flex flex-col sm:flex-row gap-3">
       <div className="relative flex-1">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder="Search employees..."
-          value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
+          value={localSearch}
+          onChange={(e) => setLocalSearch(e.target.value)}
           className="pl-9"
         />
       </div>
