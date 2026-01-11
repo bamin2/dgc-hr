@@ -113,7 +113,7 @@ export function CandidateForm({ onSuccess }: CandidateFormProps) {
         <Select onValueChange={(v) => setValue("manager_employee_id", v)} value={watch("manager_employee_id")}>
           <SelectTrigger><SelectValue placeholder="Select manager" /></SelectTrigger>
           <SelectContent>
-            {employees?.map((e) => <SelectItem key={e.id} value={e.id}>{e.first_name} {e.last_name}</SelectItem>)}
+            {employees?.map((e) => <SelectItem key={e.id} value={e.id}>{e.firstName} {e.lastName}</SelectItem>)}
           </SelectContent>
         </Select>
       </div>

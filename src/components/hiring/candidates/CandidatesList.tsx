@@ -7,7 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { useCandidates, useCreateOffer, useArchiveCandidate, type CandidateStatus } from "@/hooks/useCandidates";
+import { useCandidates, useArchiveCandidate, type CandidateStatus } from "@/hooks/useCandidates";
+import { useCreateOffer } from "@/hooks/useOffers";
 import { useDepartmentsManagement } from "@/hooks/useDepartmentsManagement";
 import { useWorkLocations } from "@/hooks/useWorkLocations";
 import { CandidateStatusBadge } from "./CandidateStatusBadge";

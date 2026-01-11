@@ -37,6 +37,9 @@ import Loans from "./pages/Loans";
 import Approvals from "./pages/Approvals";
 import MyProfile from "./pages/MyProfile";
 import AuditTrail from "./pages/AuditTrail";
+import Hiring from "./pages/Hiring";
+import CandidateDetail from "./pages/CandidateDetail";
+import OfferDetail from "./pages/OfferDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -79,6 +82,9 @@ const App = () => (
                 <Route path="/payroll/run" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><PayrollRun /></ProtectedRoute>} />
                 <Route path="/payroll/payslip/:id" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><Payslip /></ProtectedRoute>} />
                 <Route path="/loans" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><Loans /></ProtectedRoute>} />
+                <Route path="/hiring" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><Hiring /></ProtectedRoute>} />
+                <Route path="/hiring/candidates/:id" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><CandidateDetail /></ProtectedRoute>} />
+                <Route path="/hiring/offers/:id" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><OfferDetail /></ProtectedRoute>} />
                 
                 {/* Protected routes - Manager, HR & Admin */}
                 <Route path="/team/add" element={<ProtectedRoute requiredRoles={['manager', 'hr', 'admin']}><AddTeamMember /></ProtectedRoute>} />

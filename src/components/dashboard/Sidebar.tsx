@@ -23,6 +23,7 @@ import {
   CheckSquare,
   UserCircle,
   History,
+  UserPlus,
   icons,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -39,6 +40,7 @@ import dgcLogoLight from "@/assets/dgc-logo-light.svg";
 // MANAGEMENT - HR & Manager roles only
 const managementMenuItems = [
   { icon: Users, label: "Employee Management", path: "/employees" },
+  { icon: UserPlus, label: "Hiring", path: "/hiring" },
   { icon: Clock, label: "Time Management", path: "/time-management" },
   { icon: FileText, label: "Reports", path: "/reports" },
   { icon: Wallet, label: "Payrolls", path: "/payroll" },
