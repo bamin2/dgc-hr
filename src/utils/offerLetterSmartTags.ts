@@ -38,24 +38,6 @@ export interface CompanyForSmartTags {
 }
 
 /**
- * Strips HTML tags and decodes common HTML entities from a string.
- * Used to convert rich text content to plain text for templates.
- */
-const stripHtml = (html: string | null): string => {
-  if (!html) return "";
-  return html
-    .replace(/<[^>]*>/g, "")      // Remove HTML tags
-    .replace(/&nbsp;/g, " ")       // Replace non-breaking spaces
-    .replace(/&amp;/g, "&")        // Decode common entities
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/\s+/g, " ")          // Normalize whitespace
-    .trim();
-};
-
-/**
  * Builds smart tag data for offer letter templates.
  * Maps database smart tag fields to actual offer/candidate/company values.
  * 
@@ -101,7 +83,7 @@ export function getOfferLetterSmartTagData(
     // Position info - support both database field names and common variations
     "title": version.position?.title || "",
     "job_title": version.position?.title || "",
-    "job_description": stripHtml(version.position?.job_description),
+    "job_description": version.position?.job_description || "",
     "department": version.department?.name || "",
     "work_location": version.work_location?.name || "",
     
