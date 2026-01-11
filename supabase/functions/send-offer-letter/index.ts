@@ -222,7 +222,8 @@ serve(async (req: Request): Promise<Response> => {
         ),
         work_location:work_locations(*),
         department:departments(*),
-        position:positions(id, title, job_description)
+        position:positions(id, title, job_description),
+        manager:employees!offer_versions_manager_employee_id_fkey(id, first_name, last_name)
       `)
       .eq("id", offer_version_id)
       .single();
@@ -294,6 +295,11 @@ serve(async (req: Request): Promise<Response> => {
         (version.transport_allowance || 0) + 
         (version.other_allowances || 0);
 
+      // Get manager name from the version
+      const managerName = version.manager 
+        ? `${version.manager.first_name} ${version.manager.last_name}` 
+        : "";
+
       // Base data mapping using field names from database smart_tags
       const baseData: Record<string, string> = {
         // Employee/Candidate info
@@ -308,6 +314,9 @@ serve(async (req: Request): Promise<Response> => {
         "job_description": version.position?.job_description || "",
         "department": version.department?.name || "",
         "work_location": version.work_location?.name || "",
+        
+        // Manager info (from the offer version, not the candidate)
+        "manager_name": managerName,
         
         // Compensation
         "basic_salary": formatNumber(version.basic_salary),
@@ -328,6 +337,7 @@ serve(async (req: Request): Promise<Response> => {
         // Dates - support both field names
         "start_date": formatDate(version.start_date),
         "join_date": formatDate(version.start_date),
+        "offer_expiry_date": formatDate(version.offer_expiry_date),
         "current_date": new Date().toLocaleDateString("en-US", {
           year: "numeric",
           month: "long",

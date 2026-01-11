@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
-import { Send, Save, RefreshCw, CheckCircle, XCircle } from "lucide-react";
+import { Send, Save, RefreshCw, CheckCircle, XCircle, CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,6 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { useDepartmentsManagement } from "@/hooks/useDepartmentsManagement";
 import { useWorkLocations, GosiNationalityRate } from "@/hooks/useWorkLocations";
@@ -57,6 +61,7 @@ export function OfferVersionEditor({ version, offerId, candidateId, candidateNat
     position_id: version.position_id || "",
     manager_employee_id: version.manager_employee_id || "",
     start_date: version.start_date || "",
+    offer_expiry_date: version.offer_expiry_date || "",
     currency_code: version.currency_code || "BHD",
     basic_salary: version.basic_salary || 0,
     housing_allowance: version.housing_allowance || 0,
@@ -75,6 +80,7 @@ export function OfferVersionEditor({ version, offerId, candidateId, candidateNat
       position_id: version.position_id || "",
       manager_employee_id: version.manager_employee_id || "",
       start_date: version.start_date || "",
+      offer_expiry_date: version.offer_expiry_date || "",
       currency_code: version.currency_code || "BHD",
       basic_salary: version.basic_salary || 0,
       housing_allowance: version.housing_allowance || 0,
@@ -144,6 +150,7 @@ export function OfferVersionEditor({ version, offerId, candidateId, candidateNat
         position_id: formData.position_id || null,
         manager_employee_id: formData.manager_employee_id || null,
         start_date: formData.start_date || null,
+        offer_expiry_date: formData.offer_expiry_date || null,
         currency_code: formData.currency_code,
         basic_salary: formData.basic_salary,
         housing_allowance: formData.housing_allowance,
@@ -348,6 +355,40 @@ export function OfferVersionEditor({ version, offerId, candidateId, candidateNat
               onChange={(e) => setFormData(p => ({ ...p, start_date: e.target.value }))}
               disabled={isReadOnly}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Offer Expiry Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !formData.offer_expiry_date && "text-muted-foreground"
+                  )}
+                  disabled={isReadOnly}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {formData.offer_expiry_date 
+                    ? format(new Date(formData.offer_expiry_date), "PPP") 
+                    : "Select expiry date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={formData.offer_expiry_date ? new Date(formData.offer_expiry_date) : undefined}
+                  onSelect={(date) => setFormData(p => ({ 
+                    ...p, 
+                    offer_expiry_date: date ? format(date, "yyyy-MM-dd") : "" 
+                  }))}
+                  disabled={(date) => date < new Date()}
+                  initialFocus
+                  className="p-3 pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
           </div>
         </CardContent>
       </Card>

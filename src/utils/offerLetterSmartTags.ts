@@ -19,9 +19,11 @@ export interface OfferVersionForSmartTags {
   net_pay_estimate: number | null;
   employer_gosi_amount: number | null;
   start_date: string | null;
+  offer_expiry_date?: string | null;
   position?: { title: string; job_description?: string | null } | null;
   department?: { name: string } | null;
   work_location?: { name: string } | null;
+  manager?: { first_name: string; last_name: string } | null;
 }
 
 export interface CandidateForSmartTags {
@@ -85,6 +87,11 @@ export function getOfferLetterSmartTagData(
     "department": version.department?.name || "",
     "work_location": version.work_location?.name || "",
     
+    // Manager info (from the offer version, not the candidate)
+    "manager_name": version.manager 
+      ? `${version.manager.first_name} ${version.manager.last_name}` 
+      : "",
+    
     // Compensation
     "basic_salary": formatNumber(version.basic_salary),
     "housing_allowance": formatNumber(version.housing_allowance),
@@ -104,6 +111,7 @@ export function getOfferLetterSmartTagData(
     // Dates - support both field names
     "start_date": formatDate(version.start_date),
     "join_date": formatDate(version.start_date),
+    "offer_expiry_date": formatDate(version.offer_expiry_date),
     "current_date": format(new Date(), "MMMM d, yyyy"),
     
     // Current user / Signature info (auto-populated from logged-in user)
