@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { FileText, Download, FileType } from "lucide-react";
+import { useState, useEffect } from "react";
+import { FileText, Download, FileType, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -11,6 +11,7 @@ import { useOfferLetterTemplates } from "@/hooks/useOfferLetterTemplates";
 import { useCompanySettings } from "@/contexts/CompanySettingsContext";
 import { useActiveSmartTags } from "@/hooks/useSmartTags";
 import { useMyEmployee } from "@/hooks/useMyEmployee";
+import { useSendOfferLetter, useUpdateOfferVersion } from "@/hooks/useOffers";
 import { exportOfferLetterToDocx } from "@/utils/offerLetterExport";
 import { getOfferLetterSmartTagData } from "@/utils/offerLetterSmartTags";
 import type { OfferVersion } from "@/hooks/useOffers";
@@ -31,8 +32,18 @@ export function OfferLetterPreview({ version, candidate }: OfferLetterPreviewPro
   const { settings } = useCompanySettings();
   const { data: smartTags } = useActiveSmartTags();
   const { data: currentUserEmployee } = useMyEmployee();
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
+  const sendOfferLetter = useSendOfferLetter();
+  const updateVersion = useUpdateOfferVersion();
+  
+  // Initialize with saved template_id if exists
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>(version.template_id || "");
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+
+  // Update selection when version changes (e.g., switching between versions)
+  useEffect(() => {
+    setSelectedTemplateId(version.template_id || "");
+  }, [version.template_id, version.id]);
 
   // Build current user info for smart tags (signature, etc.)
   const currentUser = currentUserEmployee ? {
@@ -115,7 +126,38 @@ export function OfferLetterPreview({ version, candidate }: OfferLetterPreviewPro
     }
   };
 
+  const handleSendOffer = async () => {
+    if (!selectedTemplateId || !candidate) {
+      toast.error("Please select a template first");
+      return;
+    }
+    
+    setIsSending(true);
+    try {
+      // First, save the template selection to the version
+      await updateVersion.mutateAsync({
+        versionId: version.id,
+        data: { template_id: selectedTemplateId }
+      });
+      
+      // Then send the offer letter
+      await sendOfferLetter.mutateAsync({
+        versionId: version.id,
+        templateId: selectedTemplateId,
+        senderEmployeeId: currentUserEmployee?.id || undefined
+      });
+      
+      toast.success("Offer letter sent successfully!");
+    } catch (error) {
+      console.error("Send error:", error);
+      toast.error("Failed to send offer letter");
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   const activeTemplates = templates?.filter(t => t.is_active) || [];
+  const canSend = version.status === 'draft' && selectedTemplateId && candidate;
 
   return (
     <Card>
@@ -215,6 +257,22 @@ export function OfferLetterPreview({ version, candidate }: OfferLetterPreviewPro
                     {'{candidate_name}'}, {'{job_title}'}, {'{department}'}, {'{work_location}'}, {'{start_date}'}, {'{currency}'}, {'{basic_salary}'}, {'{housing_allowance}'}, {'{transport_allowance}'}, {'{other_allowances}'}, {'{gross_pay_total}'}, {'{employer_gosi_amount}'}, {'{company_name}'}, {'{current_date}'}
                   </p>
                 </div>
+              </>
+            )}
+
+            {/* Send Offer Button */}
+            {canSend && (
+              <>
+                <Separator />
+                <Button 
+                  onClick={handleSendOffer} 
+                  disabled={isSending}
+                  className="w-full"
+                  size="lg"
+                >
+                  <Send className="h-4 w-4 mr-2" />
+                  {isSending ? "Sending..." : "Send Offer Letter"}
+                </Button>
               </>
             )}
           </>
