@@ -4206,6 +4206,10 @@ export type Database = {
         Args: { loan_uuid: string }
         Returns: undefined
       }
+      get_reports_overview: {
+        Args: { p_end_date: string; p_start_date: string }
+        Returns: Json
+      }
       get_user_employee_id: { Args: { _user_id: string }; Returns: string }
       has_any_role:
         | {
