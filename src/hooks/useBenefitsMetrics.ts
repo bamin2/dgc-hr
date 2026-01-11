@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { queryKeys } from '@/lib/queryKeys';
+import { measureAsync } from '@/lib/perf';
 
 export interface BenefitsMetrics {
   totalPlans: number;
@@ -13,7 +14,7 @@ export interface BenefitsMetrics {
 export function useBenefitsMetrics() {
   return useQuery({
     queryKey: queryKeys.benefits.metrics,
-    queryFn: async () => {
+    queryFn: () => measureAsync('BenefitsMetrics: all queries', async () => {
       // Get active plans count
       const { count: totalPlans, error: plansError } = await supabase
         .from('benefit_plans')
@@ -72,6 +73,6 @@ export function useBenefitsMetrics() {
         monthlyBenefitsCost,
         enrollmentRate,
       } as BenefitsMetrics;
-    },
+    }),
   });
 }

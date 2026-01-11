@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useRole } from "@/contexts/RoleContext";
+import { measureAsync } from "@/lib/perf";
 
 export function usePendingApprovalsCount() {
   const { currentUser } = useRole();
@@ -9,7 +10,7 @@ export function usePendingApprovalsCount() {
     queryKey: ["pending-approvals-count", currentUser?.id],
     staleTime: 1000 * 30, // 30 seconds
     refetchInterval: 1000 * 60, // Refetch every minute
-    queryFn: async () => {
+    queryFn: () => measureAsync("PendingApprovalsCount", async () => {
       if (!currentUser?.id) return 0;
 
       const { count, error } = await supabase
@@ -23,7 +24,7 @@ export function usePendingApprovalsCount() {
         return 0;
       }
       return count || 0;
-    },
+    }),
     enabled: !!currentUser?.id,
   });
 }
