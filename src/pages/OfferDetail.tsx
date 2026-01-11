@@ -94,6 +94,7 @@ export default function OfferDetail() {
                     version={selectedVersion} 
                     offerId={offer.id}
                     candidateId={offer.candidate_id}
+                    candidateNationality={offer.candidate?.nationality}
                   />
                 ) : (
                   <Card>
