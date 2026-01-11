@@ -11,6 +11,12 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useActiveAllowanceTemplatesByLocation } from "@/hooks/useAllowanceTemplates";
 import { useActiveDeductionTemplatesByLocation } from "@/hooks/useDeductionTemplates";
 import { useWorkLocations } from "@/hooks/useWorkLocations";
@@ -133,9 +139,11 @@ export function TeamCompensationStep({
     return { totalDeductions: total, deductionBreakdown: breakdown };
   }, [data.deductions, deductionTemplates, baseSalary, totalGrossPay]);
 
-  // Calculate GOSI deduction
-  const gosiDeduction = useMemo(() => {
-    if (!data.isSubjectToGosi || !workLocation?.gosi_enabled) return 0;
+  // Calculate GOSI deduction and details for tooltip
+  const { gosiDeduction, gosiCalculationDetails } = useMemo(() => {
+    if (!data.isSubjectToGosi || !workLocation?.gosi_enabled) {
+      return { gosiDeduction: 0, gosiCalculationDetails: null };
+    }
     
     const gosiBase = parseFloat(data.gosiRegisteredSalary) || baseSalary;
     const nationalityCode = getCountryCodeByName(nationality);
@@ -143,9 +151,17 @@ export function TeamCompensationStep({
     const matchingRate = rates.find(r => r.nationality === nationalityCode);
     
     if (matchingRate) {
-      return (gosiBase * matchingRate.employeeRate) / 100;
+      const deduction = (gosiBase * matchingRate.employeeRate) / 100;
+      return {
+        gosiDeduction: deduction,
+        gosiCalculationDetails: {
+          base: gosiBase,
+          rate: matchingRate.employeeRate,
+          nationality: nationality,
+        },
+      };
     }
-    return 0;
+    return { gosiDeduction: 0, gosiCalculationDetails: null };
   }, [data.isSubjectToGosi, data.gosiRegisteredSalary, baseSalary, workLocation, nationality]);
 
   const totalNetPay = totalGrossPay - totalDeductions - gosiDeduction;
@@ -418,10 +434,27 @@ export function TeamCompensationStep({
         {(data.deductions.length > 0 || gosiDeduction > 0) ? (
           <div className="border rounded-lg divide-y">
             {/* GOSI Deduction - shown first if applicable */}
-            {gosiDeduction > 0 && (
+            {gosiDeduction > 0 && gosiCalculationDetails && (
               <div className="flex items-center justify-between px-3 py-2 bg-amber-50/50 dark:bg-amber-950/20">
                 <div className="flex items-center gap-2">
                   <span className="text-sm">GOSI (Employee Contribution)</span>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-xs">
+                        <div className="text-xs space-y-1">
+                          <p className="font-medium">GOSI Calculation</p>
+                          <p>Base Salary: {formatCurrency(gosiCalculationDetails.base)}</p>
+                          <p>Employee Rate ({gosiCalculationDetails.nationality}): {gosiCalculationDetails.rate}%</p>
+                          <p className="pt-1 border-t">
+                            {formatCurrency(gosiCalculationDetails.base)} × {gosiCalculationDetails.rate}% = {formatCurrency(gosiDeduction)}
+                          </p>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   <span className="text-xs text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/50 px-1.5 py-0.5 rounded">
                     statutory
                   </span>
