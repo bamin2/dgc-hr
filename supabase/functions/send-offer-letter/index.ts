@@ -16,6 +16,7 @@ const corsHeaders = {
 interface SendOfferLetterRequest {
   offer_version_id: string;
   template_id: string;
+  sender_employee_id?: string;
 }
 
 async function sendEmailWithAttachment(
@@ -183,13 +184,31 @@ serve(async (req: Request): Promise<Response> => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { offer_version_id, template_id }: SendOfferLetterRequest = await req.json();
+    const { offer_version_id, template_id, sender_employee_id }: SendOfferLetterRequest = await req.json();
 
     if (!offer_version_id || !template_id) {
       return new Response(
         JSON.stringify({ error: "offer_version_id and template_id are required" }),
         { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
+    }
+
+    // Fetch sender employee info if provided
+    let senderName = "";
+    let senderPosition = "";
+    
+    if (sender_employee_id) {
+      const { data: sender } = await supabase
+        .from("employees")
+        .select("first_name, last_name, position:positions(title)")
+        .eq("id", sender_employee_id)
+        .single();
+      
+      if (sender) {
+        senderName = `${sender.first_name} ${sender.last_name}`;
+        const positionData = sender.position as { title: string } | { title: string }[] | null;
+        senderPosition = Array.isArray(positionData) ? positionData[0]?.title || "" : positionData?.title || "";
+      }
     }
 
     // Fetch offer version with related data
@@ -314,6 +333,12 @@ serve(async (req: Request): Promise<Response> => {
           month: "long",
           day: "numeric",
         }),
+        
+        // Current user / Signature info (sender of the offer letter)
+        "current_user_name": senderName,
+        "current_user_position": senderPosition,
+        "signature_name": senderName,
+        "signature_title": senderPosition,
       };
 
       // Build smart tag data with both field names and display names for flexibility

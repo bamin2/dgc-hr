@@ -4,6 +4,11 @@ import type { SmartTag } from "@/types/organization";
 // Smart tags for offer letters now come from the database (smart_tags table)
 // This file provides the data mapping function to fill templates with actual values
 
+export interface CurrentUserForSmartTags {
+  name: string;
+  position: string | null;
+}
+
 export interface OfferVersionForSmartTags {
   currency_code: string | null;
   basic_salary: number | null;
@@ -41,7 +46,8 @@ export function getOfferLetterSmartTagData(
   version: OfferVersionForSmartTags,
   candidate: CandidateForSmartTags,
   company: CompanyForSmartTags,
-  smartTags?: SmartTag[]
+  smartTags?: SmartTag[],
+  currentUser?: CurrentUserForSmartTags
 ): Record<string, string> {
   const formatNumber = (num: number | null): string => {
     if (num === null || num === undefined) return "0.00";
@@ -99,6 +105,12 @@ export function getOfferLetterSmartTagData(
     "start_date": formatDate(version.start_date),
     "join_date": formatDate(version.start_date),
     "current_date": format(new Date(), "MMMM d, yyyy"),
+    
+    // Current user / Signature info (auto-populated from logged-in user)
+    "current_user_name": currentUser?.name || "",
+    "current_user_position": currentUser?.position || "",
+    "signature_name": currentUser?.name || "",
+    "signature_title": currentUser?.position || "",
   };
 
   // If smart tags provided, also map using the tag display names (for backward compatibility)

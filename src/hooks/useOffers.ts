@@ -640,56 +640,34 @@ export function useSendOfferLetter() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (versionId: string) => {
-      // Get version details
-      const { data: version, error: versionError } = await supabase
-        .from("offer_versions")
-        .select(`
-          *,
-          offer:offers(id, candidate_id, offer_code)
-        `)
-        .eq("id", versionId)
-        .single();
+    mutationFn: async ({ 
+      versionId, 
+      templateId, 
+      senderEmployeeId 
+    }: { 
+      versionId: string; 
+      templateId: string;
+      senderEmployeeId?: string;
+    }) => {
+      // Call the edge function to send the offer letter email
+      const { data, error } = await supabase.functions.invoke('send-offer-letter', {
+        body: {
+          offer_version_id: versionId,
+          template_id: templateId,
+          sender_employee_id: senderEmployeeId
+        }
+      });
 
-      if (versionError) throw versionError;
-
-      // Update version status to sent
-      const { error: updateError } = await supabase
-        .from("offer_versions")
-        .update({ 
-          status: 'sent' as OfferVersionStatus,
-          sent_at: new Date().toISOString()
-        })
-        .eq("id", versionId);
-
-      if (updateError) throw updateError;
-
-      // Update offer status
-      const offerId = (version.offer as { id: string }).id;
-      const candidateId = (version.offer as { candidate_id: string }).candidate_id;
-      
-      await supabase
-        .from("offers")
-        .update({ status: 'sent' as OfferStatus })
-        .eq("id", offerId);
-
-      // Update candidate status
-      await supabase
-        .from("candidates")
-        .update({ status: 'offer_sent' })
-        .eq("id", candidateId);
-
-      return version;
+      if (error) throw error;
+      return data;
     },
-    onSuccess: (version) => {
-      const offerId = (version.offer as { id: string })?.id;
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["offers"] });
-      queryClient.invalidateQueries({ queryKey: ["offer", offerId] });
       queryClient.invalidateQueries({ queryKey: ["candidates"] });
-      toast.success("Offer sent successfully");
+      toast.success("Offer letter sent successfully");
     },
     onError: (error: Error) => {
-      toast.error(`Failed to send offer: ${error.message}`);
+      toast.error(`Failed to send offer letter: ${error.message}`);
     },
   });
 }
