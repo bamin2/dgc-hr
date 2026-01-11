@@ -241,6 +241,7 @@ export function useCreateOfferWithDetails() {
       if (offerError) throw offerError;
 
       // Create first version with all details
+      // Note: gross_pay_total and net_pay_estimate are generated columns calculated by the database
       const { data: version, error: versionError } = await supabase
         .from("offer_versions")
         .insert({
@@ -258,9 +259,7 @@ export function useCreateOfferWithDetails() {
           transport_allowance: data.transport_allowance,
           other_allowances: data.other_allowances,
           deductions_fixed: data.deductions_fixed,
-          gross_pay_total: grossTotal,
           deductions_total: deductionsTotal,
-          net_pay_estimate: netPayEstimate,
           employer_gosi_amount: gosiEmployerAmount,
         })
         .select()
