@@ -1,5 +1,4 @@
 import { useState, useCallback } from "react";
-import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard";
 import {
@@ -20,6 +19,7 @@ import { useEmployeeActions } from "@/hooks/useEmployeeActions";
 import { TeamMember } from "@/hooks/employee";
 import { EmployeeTableColumnId } from "@/data/settings";
 import { useTimeToFirstData } from "@/lib/perf";
+import { EmployeesLoadingSkeleton } from "@/components/ui/table-skeleton";
 
 export default function Employees() {
   const navigate = useNavigate();
@@ -162,12 +162,8 @@ export default function Employees() {
         onOpenImport={() => setImportOpen(true)}
       />
 
-      {/* Loading State */}
-      {isLoading && (
-        <div className="flex items-center justify-center h-96">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      )}
+      {/* Loading State - Skeleton instead of spinner */}
+      {isLoading && <EmployeesLoadingSkeleton />}
 
       {/* Error State */}
       {error && (
