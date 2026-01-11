@@ -32,6 +32,9 @@ export interface OfferVersion {
   deductions_total: number;
   net_pay_estimate: number;
   employer_gosi_amount: number;
+  is_subject_to_gosi: boolean;
+  gosi_employee_amount: number;
+  other_deductions: number;
   template_id: string | null;
   created_by: string | null;
   created_at: string;
@@ -59,6 +62,8 @@ export interface Offer {
     first_name: string;
     last_name: string;
     email: string;
+    phone?: string | null;
+    nationality?: string | null;
   } | null;
   current_version?: OfferVersion | null;
   versions?: OfferVersion[];
@@ -77,12 +82,14 @@ export interface OfferVersionFormData {
   other_allowances?: number;
   deductions_fixed?: number;
   deductions_total?: number;
-  gross_pay_total?: number;
-  net_pay_estimate?: number;
   employer_gosi_amount?: number;
+  is_subject_to_gosi?: boolean;
+  gosi_employee_amount?: number;
+  other_deductions?: number;
   template_id?: string;
   remarks_internal?: string;
   change_reason?: string;
+  // Note: gross_pay_total and net_pay_estimate are GENERATED columns and should NOT be included in updates
 }
 
 export interface Candidate {

@@ -2806,13 +2806,16 @@ export type Database = {
           department_id: string | null
           effective_date: string | null
           employer_gosi_amount: number
+          gosi_employee_amount: number | null
           gross_pay_total: number | null
           housing_allowance: number
           id: string
+          is_subject_to_gosi: boolean | null
           manager_employee_id: string | null
           net_pay_estimate: number | null
           offer_id: string
           other_allowances: number
+          other_deductions: number | null
           position_id: string | null
           rejected_at: string | null
           remarks_internal: string | null
@@ -2837,13 +2840,16 @@ export type Database = {
           department_id?: string | null
           effective_date?: string | null
           employer_gosi_amount?: number
+          gosi_employee_amount?: number | null
           gross_pay_total?: number | null
           housing_allowance?: number
           id?: string
+          is_subject_to_gosi?: boolean | null
           manager_employee_id?: string | null
           net_pay_estimate?: number | null
           offer_id: string
           other_allowances?: number
+          other_deductions?: number | null
           position_id?: string | null
           rejected_at?: string | null
           remarks_internal?: string | null
@@ -2868,13 +2874,16 @@ export type Database = {
           department_id?: string | null
           effective_date?: string | null
           employer_gosi_amount?: number
+          gosi_employee_amount?: number | null
           gross_pay_total?: number | null
           housing_allowance?: number
           id?: string
+          is_subject_to_gosi?: boolean | null
           manager_employee_id?: string | null
           net_pay_estimate?: number | null
           offer_id?: string
           other_allowances?: number
+          other_deductions?: number | null
           position_id?: string | null
           rejected_at?: string | null
           remarks_internal?: string | null

@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { Send, Save, RefreshCw, CheckCircle, XCircle, Clock } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Send, Save, RefreshCw, CheckCircle, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,18 +8,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { useDepartmentsManagement } from "@/hooks/useDepartmentsManagement";
-import { useWorkLocations } from "@/hooks/useWorkLocations";
+import { useWorkLocations, GosiNationalityRate } from "@/hooks/useWorkLocations";
 import { usePositionsManagement } from "@/hooks/usePositionsManagement";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useUpdateOfferVersion, useReviseOffer, useSendOfferLetter, useAcceptOffer, useRejectOffer } from "@/hooks/useOffers";
-import type { OfferVersion } from "@/hooks/useOffers";
+import type { OfferVersion, Candidate } from "@/hooks/useOffers";
 import { toast } from "sonner";
+import { getCountryCodeByName } from "@/data/countries";
 
 interface OfferVersionEditorProps {
   version: OfferVersion;
   offerId: string;
   candidateId: string;
+  candidateNationality?: string | null;
 }
 
 const CURRENCIES = [
@@ -33,7 +35,7 @@ const CURRENCIES = [
   { code: "USD", name: "US Dollar" },
 ];
 
-export function OfferVersionEditor({ version, offerId, candidateId }: OfferVersionEditorProps) {
+export function OfferVersionEditor({ version, offerId, candidateId, candidateNationality }: OfferVersionEditorProps) {
   const { data: departments } = useDepartmentsManagement();
   const { data: workLocations } = useWorkLocations();
   const { data: positions } = usePositionsManagement();
@@ -58,7 +60,8 @@ export function OfferVersionEditor({ version, offerId, candidateId }: OfferVersi
     housing_allowance: version.housing_allowance || 0,
     transport_allowance: version.transport_allowance || 0,
     other_allowances: version.other_allowances || 0,
-    deductions_fixed: version.deductions_fixed || 0,
+    is_subject_to_gosi: version.is_subject_to_gosi ?? false,
+    other_deductions: version.other_deductions || 0,
     remarks_internal: version.remarks_internal || "",
     change_reason: version.change_reason || "",
   });
@@ -75,32 +78,92 @@ export function OfferVersionEditor({ version, offerId, candidateId }: OfferVersi
       housing_allowance: version.housing_allowance || 0,
       transport_allowance: version.transport_allowance || 0,
       other_allowances: version.other_allowances || 0,
-      deductions_fixed: version.deductions_fixed || 0,
+      is_subject_to_gosi: version.is_subject_to_gosi ?? false,
+      other_deductions: version.other_deductions || 0,
       remarks_internal: version.remarks_internal || "",
       change_reason: version.change_reason || "",
     });
   }, [version]);
 
+  // Get selected work location for GOSI rates
+  const selectedWorkLocation = useMemo(() => {
+    return workLocations?.find(l => l.id === formData.work_location_id);
+  }, [workLocations, formData.work_location_id]);
+
+  // Calculate GOSI based on work location rates and candidate nationality
+  const gosiCalculation = useMemo(() => {
+    if (!formData.is_subject_to_gosi || !selectedWorkLocation?.gosi_enabled) {
+      return { employeeAmount: 0, employerAmount: 0 };
+    }
+
+    // GOSI base = Basic Salary + All Allowances
+    const gosiBase = formData.basic_salary + formData.housing_allowance + 
+                     formData.transport_allowance + formData.other_allowances;
+
+    const rates = selectedWorkLocation.gosi_nationality_rates || [];
+    const nationalityCode = candidateNationality ? getCountryCodeByName(candidateNationality) : '';
+    
+    // Find matching rate for nationality
+    const matchingRate = rates.find(r => 
+      r.nationality.toLowerCase() === nationalityCode?.toLowerCase() ||
+      r.nationality.toLowerCase() === candidateNationality?.toLowerCase()
+    );
+
+    if (matchingRate) {
+      return {
+        employeeAmount: (gosiBase * matchingRate.employeeRate) / 100,
+        employerAmount: (gosiBase * matchingRate.employerRate) / 100,
+      };
+    }
+
+    // Default rates if no matching nationality found
+    return {
+      employeeAmount: gosiBase * 0.0975, // 9.75% default employee rate
+      employerAmount: gosiBase * 0.1175, // 11.75% default employer rate
+    };
+  }, [formData, selectedWorkLocation, candidateNationality]);
+
+  // Calculate totals
   const grossPayTotal = 
     Number(formData.basic_salary) + 
     Number(formData.housing_allowance) + 
     Number(formData.transport_allowance) + 
     Number(formData.other_allowances);
 
-  const netPayEstimate = grossPayTotal - Number(formData.deductions_fixed);
+  const totalDeductions = gosiCalculation.employeeAmount + Number(formData.other_deductions);
+  const netPayEstimate = grossPayTotal - totalDeductions;
 
   const handleSave = async () => {
     try {
+      // Prepare data without generated columns
+      const updateData = {
+        work_location_id: formData.work_location_id || null,
+        department_id: formData.department_id || null,
+        position_id: formData.position_id || null,
+        manager_employee_id: formData.manager_employee_id || null,
+        start_date: formData.start_date || null,
+        currency_code: formData.currency_code,
+        basic_salary: formData.basic_salary,
+        housing_allowance: formData.housing_allowance,
+        transport_allowance: formData.transport_allowance,
+        other_allowances: formData.other_allowances,
+        is_subject_to_gosi: formData.is_subject_to_gosi,
+        gosi_employee_amount: gosiCalculation.employeeAmount,
+        employer_gosi_amount: gosiCalculation.employerAmount,
+        other_deductions: formData.other_deductions,
+        deductions_fixed: totalDeductions,
+        deductions_total: totalDeductions,
+        remarks_internal: formData.remarks_internal || null,
+        change_reason: formData.change_reason || null,
+      };
+
       await updateVersion.mutateAsync({
         versionId: version.id,
-        data: {
-          ...formData,
-          gross_pay_total: grossPayTotal,
-          net_pay_estimate: netPayEstimate,
-        },
+        data: updateData,
       });
       toast.success("Version saved");
     } catch (error) {
+      console.error("Save error:", error);
       toast.error("Failed to save version");
     }
   };
@@ -338,15 +401,71 @@ export function OfferVersionEditor({ version, offerId, candidateId }: OfferVersi
                 disabled={isReadOnly}
               />
             </div>
+          </div>
 
+          <Separator />
+
+          {/* GOSI Section */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Subject to GOSI</Label>
+                <p className="text-sm text-muted-foreground">
+                  {selectedWorkLocation?.gosi_enabled 
+                    ? "GOSI is enabled for this work location" 
+                    : "GOSI is not enabled for this work location"}
+                </p>
+              </div>
+              <Switch
+                checked={formData.is_subject_to_gosi}
+                onCheckedChange={(checked) => setFormData(p => ({ ...p, is_subject_to_gosi: checked }))}
+                disabled={isReadOnly || !selectedWorkLocation?.gosi_enabled}
+              />
+            </div>
+
+            {formData.is_subject_to_gosi && selectedWorkLocation?.gosi_enabled && (
+              <div className="grid gap-4 sm:grid-cols-2 p-4 bg-muted/50 rounded-lg">
+                <div className="space-y-1">
+                  <Label className="text-sm text-muted-foreground">GOSI Employee Deduction</Label>
+                  <p className="text-lg font-semibold">
+                    {formData.currency_code} {gosiCalculation.employeeAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Auto-calculated from gross salary</p>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-sm text-muted-foreground">GOSI Employer Contribution</Label>
+                  <p className="text-lg font-semibold">
+                    {formData.currency_code} {gosiCalculation.employerAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Employer's share (not deducted from salary)</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <Separator />
+
+          {/* Other Deductions */}
+          <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label>Fixed Deductions</Label>
+              <Label>Other Deductions</Label>
               <Input 
                 type="number" 
-                value={formData.deductions_fixed} 
-                onChange={(e) => setFormData(p => ({ ...p, deductions_fixed: Number(e.target.value) }))}
+                value={formData.other_deductions} 
+                onChange={(e) => setFormData(p => ({ ...p, other_deductions: Number(e.target.value) }))}
                 disabled={isReadOnly}
+                placeholder="Non-GOSI deductions"
               />
+              <p className="text-xs text-muted-foreground">Deductions not related to GOSI</p>
+            </div>
+            <div className="space-y-2">
+              <Label>Total Deductions</Label>
+              <div className="h-10 flex items-center px-3 border rounded-md bg-muted">
+                <span className="font-medium">
+                  {formData.currency_code} {totalDeductions.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground">GOSI + Other deductions</p>
             </div>
           </div>
 
