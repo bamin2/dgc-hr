@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Send, CheckCircle, XCircle, Clock, Plus, History, FileText } from "lucide-react";
+import { ArrowLeft, History } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,16 +10,13 @@ import { OfferStatusBadge } from "@/components/hiring/offers/OfferStatusBadge";
 import { OfferVersionCard } from "@/components/hiring/offers/OfferVersionCard";
 import { OfferVersionEditor } from "@/components/hiring/offers/OfferVersionEditor";
 import { OfferLetterPreview } from "@/components/hiring/offers/OfferLetterPreview";
-import { ConvertToEmployeeDialog } from "@/components/hiring/conversion/ConvertToEmployeeDialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { format } from "date-fns";
 
 export default function OfferDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: offer, isLoading } = useOffer(id);
   const [selectedVersionId, setSelectedVersionId] = useState<string | null>(null);
-  const [showConvertDialog, setShowConvertDialog] = useState(false);
 
   // Get the selected version or the current version
   const selectedVersion = selectedVersionId 
@@ -50,9 +47,6 @@ export default function OfferDetail() {
     );
   }
 
-  const canConvert = offer.status === 'accepted' && 
-    offer.versions?.some(v => v.status === 'accepted');
-
   return (
     <DashboardLayout>
       <div className="space-y-6 p-4 md:p-6 max-w-7xl mx-auto">
@@ -69,14 +63,6 @@ export default function OfferDetail() {
             <p className="text-muted-foreground">
               For: {offer.candidate?.first_name} {offer.candidate?.last_name}
             </p>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            {canConvert && (
-              <Button onClick={() => setShowConvertDialog(true)} className="bg-green-600 hover:bg-green-700">
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Convert to Employee
-              </Button>
-            )}
           </div>
         </div>
 
@@ -152,16 +138,6 @@ export default function OfferDetail() {
           </Card>
         </div>
 
-        {/* Convert to Employee Dialog */}
-        {offer.candidate && selectedVersion && (
-          <ConvertToEmployeeDialog
-            open={showConvertDialog}
-            onOpenChange={setShowConvertDialog}
-            candidate={offer.candidate}
-            offerId={offer.id}
-            version={selectedVersion}
-          />
-        )}
       </div>
     </DashboardLayout>
   );
