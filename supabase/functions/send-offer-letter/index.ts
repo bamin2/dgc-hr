@@ -330,9 +330,19 @@ serve(async (req: Request): Promise<Response> => {
         "currency": version.currency_code || "SAR",
         "employer_gosi": formatNumber(version.employer_gosi_amount),
         
-        // Company
+        // Company - expanded fields
         "company_name": companyName,
         "company_legal_name": companySettings?.legal_name || companyName,
+        "company_email": companySettings?.email || "",
+        "company_phone": companySettings?.phone || "",
+        "company_full_address": [
+          companySettings?.address_street,
+          companySettings?.address_city,
+          companySettings?.address_state,
+          companySettings?.address_zip_code,
+          companySettings?.address_country,
+        ].filter(Boolean).join(", "),
+        "company_logo_url": companySettings?.document_logo_url || companySettings?.logo_url || "",
         
         // Dates - support both field names
         "start_date": formatDate(version.start_date),

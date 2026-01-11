@@ -35,6 +35,10 @@ export interface CandidateForSmartTags {
 export interface CompanyForSmartTags {
   name: string | null;
   legal_name: string | null;
+  email?: string | null;
+  phone?: string | null;
+  fullAddress?: string | null;
+  logoUrl?: string | null;
 }
 
 /**
@@ -107,6 +111,10 @@ export function getOfferLetterSmartTagData(
     // Company
     "company_name": company.name || "",
     "company_legal_name": company.legal_name || company.name || "",
+    "company_email": company.email || "",
+    "company_phone": company.phone || "",
+    "company_full_address": company.fullAddress || "",
+    "company_logo_url": company.logoUrl || "",
     
     // Dates - support both field names
     "start_date": formatDate(version.start_date),
