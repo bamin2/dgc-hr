@@ -63,7 +63,7 @@ export function IssuePayslipsDialog({
           (a) => a.employeeId === employee.employeeId
         );
 
-        downloadPayslip(
+        await downloadPayslip(
           employee,
           employeeAdjustments,
           location,

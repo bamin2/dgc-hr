@@ -1,8 +1,3 @@
-import { toPng } from 'html-to-image';
-import { jsPDF } from 'jspdf';
-import PizZip from 'pizzip';
-import Docxtemplater from 'docxtemplater';
-import { saveAs } from 'file-saver';
 import { supabase } from '@/integrations/supabase/client';
 
 // DocxTemplateData uses smart tag names (with spaces) as keys
@@ -14,10 +9,16 @@ function getFormattedDate(): string {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 }
 
+// Dynamic imports of html-to-image and jsPDF for reduced initial bundle
 export async function exportOfferLetterToPdf(
   element: HTMLElement,
   employeeName: string
 ): Promise<void> {
+  const [{ toPng }, { jsPDF }] = await Promise.all([
+    import('html-to-image'),
+    import('jspdf'),
+  ]);
+
   const sanitizedName = employeeName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
   const filename = `offer-letter-${sanitizedName}-${getFormattedDate()}.pdf`;
 
@@ -116,11 +117,18 @@ export async function exportOfferLetterToPdf(
   pdf.save(filename);
 }
 
+// Dynamic imports of pizzip, docxtemplater, and file-saver for reduced initial bundle
 export async function exportOfferLetterToDocx(
   docxTemplateUrl: string,
   data: DocxTemplateData,
   employeeName: string
 ): Promise<void> {
+  const [{ default: PizZip }, { default: Docxtemplater }, { saveAs }] = await Promise.all([
+    import('pizzip'),
+    import('docxtemplater'),
+    import('file-saver'),
+  ]);
+
   const sanitizedName = employeeName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
   const filename = `offer-letter-${sanitizedName}-${getFormattedDate()}.docx`;
 

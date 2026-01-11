@@ -1,5 +1,4 @@
 import { Employee } from '@/hooks/useEmployees';
-import jsPDF from 'jspdf';
 
 export function exportEmployeesToCSV(employees: Employee[], filename: string) {
   const headers = [
@@ -33,7 +32,9 @@ export function exportEmployeesToJSON(employees: Employee[], filename: string) {
   downloadFile(jsonContent, `${filename}.json`, 'application/json');
 }
 
-export function exportEmployeesToPDF(employees: Employee[], filename: string) {
+// Dynamic import of jsPDF for reduced initial bundle
+export async function exportEmployeesToPDF(employees: Employee[], filename: string) {
+  const { default: jsPDF } = await import('jspdf');
   const doc = new jsPDF();
   
   // Title
