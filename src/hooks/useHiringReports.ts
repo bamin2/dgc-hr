@@ -30,11 +30,11 @@ export function useHiringMetrics(startDate?: string, endDate?: string) {
       // Get candidates count
       const { count: totalCandidates } = await supabase
         .from("candidates")
-        .select("*", { count: "exact", head: true });
+        .select("id", { count: "exact", head: true });
 
       const { count: candidatesInPipeline } = await supabase
         .from("candidates")
-        .select("*", { count: "exact", head: true })
+        .select("id", { count: "exact", head: true })
         .in("status", ["draft", "in_process", "offer_sent"]);
 
       // Get offers data

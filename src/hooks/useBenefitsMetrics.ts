@@ -18,7 +18,7 @@ export function useBenefitsMetrics() {
       // Get active plans count
       const { count: totalPlans, error: plansError } = await supabase
         .from('benefit_plans')
-        .select('*', { count: 'exact', head: true })
+        .select('id', { count: 'exact', head: true })
         .eq('status', 'active');
 
       if (plansError) throw plansError;
@@ -40,7 +40,7 @@ export function useBenefitsMetrics() {
       // Get pending claims count
       const { count: pendingClaims, error: claimsError } = await supabase
         .from('benefit_claims')
-        .select('*', { count: 'exact', head: true })
+        .select('id', { count: 'exact', head: true })
         .eq('status', 'pending');
 
       if (claimsError) throw claimsError;
@@ -48,7 +48,7 @@ export function useBenefitsMetrics() {
       // Get total active employees for enrollment rate
       const { count: totalEmployees, error: employeesError } = await supabase
         .from('employees')
-        .select('*', { count: 'exact', head: true })
+        .select('id', { count: 'exact', head: true })
         .eq('status', 'active');
 
       if (employeesError) throw employeesError;

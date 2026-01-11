@@ -44,7 +44,7 @@ export interface WorkLocationInput {
 async function fetchWorkLocationsWithCounts(): Promise<WorkLocation[]> {
   const { data: locations, error } = await supabase
     .from("work_locations")
-    .select("*")
+    .select("id, name, address, city, country, currency, is_remote, is_hq, created_at, gosi_enabled, gosi_nationality_rates, gosi_base_calculation")
     .order("name");
 
   if (error) throw error;

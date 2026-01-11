@@ -63,7 +63,7 @@ export function useNotifications() {
 
       const { data, error } = await supabase
         .from('notifications')
-        .select('*')
+        .select('id, user_id, type, title, message, priority, is_read, action_url, actor_name, actor_avatar, metadata, created_at')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
@@ -166,7 +166,7 @@ export function useUnreadNotificationsCount() {
 
       const { count, error } = await supabase
         .from('notifications')
-        .select('*', { count: 'exact', head: true })
+        .select('id', { count: 'exact', head: true })
         .eq('user_id', user.id)
         .eq('is_read', false);
 

@@ -70,7 +70,7 @@ export function usePayrollDashboardData(monthFilter: string = "all") {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("payroll_runs")
-        .select("*")
+        .select("id, pay_period_start, pay_period_end, total_amount, employee_count, status, processed_date")
         .order("processed_date", { ascending: false });
 
       if (error) throw error;

@@ -6,7 +6,7 @@ import { format, addMonths } from 'date-fns';
 async function fetchLoanSummary(filters: ReportFilters): Promise<LoanSummaryRecord[]> {
   const { data: loans, error } = await supabase
     .from('loans')
-    .select('*')
+    .select('id, employee_id, principal_amount, installment_amount, duration_months, start_date, status')
     .order('start_date', { ascending: false });
   
   if (error) throw error;

@@ -36,7 +36,7 @@ export function useEmailTemplates() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("email_templates")
-        .select("*")
+        .select("id, type, name, subject, description, body_content, is_active, created_at, updated_at")
         .order("name");
 
       if (error) throw error;

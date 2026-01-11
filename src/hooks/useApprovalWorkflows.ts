@@ -11,7 +11,7 @@ export function useApprovalWorkflows() {
     queryFn: async (): Promise<ApprovalWorkflow[]> => {
       const { data, error } = await supabase
         .from("approval_workflows")
-        .select("*")
+        .select("id, request_type, is_active, steps, default_hr_approver_id, created_at, updated_at, updated_by")
         .order("request_type");
 
       if (error) throw error;
@@ -32,7 +32,7 @@ export function useApprovalWorkflow(requestType: RequestType) {
     queryFn: async (): Promise<ApprovalWorkflow | null> => {
       const { data, error } = await supabase
         .from("approval_workflows")
-        .select("*")
+        .select("id, request_type, is_active, steps, default_hr_approver_id, created_at, updated_at, updated_by")
         .eq("request_type", requestType)
         .single();
 
