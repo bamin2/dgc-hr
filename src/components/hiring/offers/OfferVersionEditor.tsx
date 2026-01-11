@@ -192,11 +192,13 @@ export function OfferVersionEditor({ version, offerId, candidateId, candidateNat
     try {
       const result = await acceptOffer.mutateAsync(version.id);
       toast.success("Offer accepted and employee created successfully");
-      // Navigate to the new employee's page
       navigate(`/employees/${result.employeeId}`);
     } catch (error) {
       console.error("Accept offer error:", error);
-      toast.error(`Failed to accept offer: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : (error as any)?.message || JSON.stringify(error);
+      toast.error(`Failed to accept offer: ${errorMessage}`);
     }
   };
 

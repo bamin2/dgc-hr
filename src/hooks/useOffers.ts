@@ -680,14 +680,14 @@ export function useAcceptOffer() {
   return useMutation({
     mutationFn: async (versionId: string) => {
       // Get version and offer details
-      const { data: version, error: versionError } = await supabase
-        .from("offer_versions")
-        .select(`
-          *,
-          offer:offers(id, candidate_id)
-        `)
-        .eq("id", versionId)
-        .single();
+    const { data: version, error: versionError } = await supabase
+      .from("offer_versions")
+      .select(`
+        *,
+        offer:offers!offer_versions_offer_id_fkey(id, candidate_id)
+      `)
+      .eq("id", versionId)
+      .single();
 
       if (versionError) throw versionError;
 
