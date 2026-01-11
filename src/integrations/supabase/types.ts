@@ -2822,6 +2822,7 @@ export type Database = {
           is_subject_to_gosi: boolean | null
           manager_employee_id: string | null
           net_pay_estimate: number | null
+          offer_expiry_date: string | null
           offer_id: string
           other_allowances: number
           other_deductions: number | null
@@ -2856,6 +2857,7 @@ export type Database = {
           is_subject_to_gosi?: boolean | null
           manager_employee_id?: string | null
           net_pay_estimate?: number | null
+          offer_expiry_date?: string | null
           offer_id: string
           other_allowances?: number
           other_deductions?: number | null
@@ -2890,6 +2892,7 @@ export type Database = {
           is_subject_to_gosi?: boolean | null
           manager_employee_id?: string | null
           net_pay_estimate?: number | null
+          offer_expiry_date?: string | null
           offer_id?: string
           other_allowances?: number
           other_deductions?: number | null

@@ -22,6 +22,7 @@ export interface OfferVersion {
   position_id: string | null;
   manager_employee_id: string | null;
   start_date: string | null;
+  offer_expiry_date: string | null;
   currency_code: string;
   basic_salary: number;
   housing_allowance: number;
@@ -75,6 +76,7 @@ export interface OfferVersionFormData {
   position_id?: string;
   manager_employee_id?: string;
   start_date?: string;
+  offer_expiry_date?: string | null;
   currency_code?: string;
   basic_salary?: number;
   housing_allowance?: number;
