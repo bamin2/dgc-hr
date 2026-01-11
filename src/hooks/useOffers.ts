@@ -392,6 +392,73 @@ export function useUpdateOfferVersion() {
   });
 }
 
+export function useCreateOfferVersionFromEdit() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      offerId,
+      previousVersionId,
+      data,
+    }: {
+      offerId: string;
+      previousVersionId: string;
+      data: Partial<OfferVersionFormData>;
+    }) => {
+      // Get the previous version to get version_number
+      const { data: previousVersion, error: prevError } = await supabase
+        .from("offer_versions")
+        .select("version_number")
+        .eq("id", previousVersionId)
+        .single();
+
+      if (prevError) throw prevError;
+
+      // Mark previous version as superseded
+      const { error: updateError } = await supabase
+        .from("offer_versions")
+        .update({
+          status: "superseded" as OfferVersionStatus,
+        })
+        .eq("id", previousVersionId);
+
+      if (updateError) throw updateError;
+
+      // Create new version with incremented version_number
+      const { data: newVersion, error: createError } = await supabase
+        .from("offer_versions")
+        .insert({
+          ...data,
+          offer_id: offerId,
+          version_number: (previousVersion?.version_number || 0) + 1,
+          status: "draft" as OfferVersionStatus,
+        })
+        .select()
+        .single();
+
+      if (createError) throw createError;
+
+      // Update offer's current_version_id
+      const { error: offerError } = await supabase
+        .from("offers")
+        .update({ current_version_id: newVersion.id })
+        .eq("id", offerId);
+
+      if (offerError) throw offerError;
+
+      return newVersion;
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ["offers"] });
+      queryClient.invalidateQueries({ queryKey: ["offer", result.offer_id] });
+      toast.success("New version created");
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to create new version: ${error.message}`);
+    },
+  });
+}
+
 export function useCreateOfferVersion() {
   const queryClient = useQueryClient();
 
