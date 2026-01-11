@@ -261,6 +261,7 @@ export function AddTeamMemberWizard() {
             onChange={setCompensationData}
             workLocationId={roleData.workLocationId}
             isBahraini={basicData.nationality === "Bahrain"}
+            nationality={basicData.nationality}
           />
         );
       case 4:
