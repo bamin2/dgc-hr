@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
-import { Save, RefreshCw, CheckCircle, XCircle, CalendarIcon } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Save, RefreshCw, CheckCircle, XCircle, CalendarIcon, UserPlus } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,6 +42,7 @@ const CURRENCIES = [
 ];
 
 export function OfferVersionEditor({ version, offerId, candidateId, candidateNationality }: OfferVersionEditorProps) {
+  const navigate = useNavigate();
   const { data: departments } = useDepartmentsManagement();
   const { data: workLocations } = useWorkLocations();
   const { data: positions } = usePositionsManagement();
@@ -188,10 +190,13 @@ export function OfferVersionEditor({ version, offerId, candidateId, candidateNat
 
   const handleAccept = async () => {
     try {
-      await acceptOffer.mutateAsync(version.id);
-      toast.success("Offer marked as accepted");
+      const result = await acceptOffer.mutateAsync(version.id);
+      toast.success("Offer accepted and employee created successfully");
+      // Navigate to the new employee's page
+      navigate(`/employees/${result.employeeId}`);
     } catch (error) {
-      toast.error("Failed to accept offer");
+      console.error("Accept offer error:", error);
+      toast.error(`Failed to accept offer: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -246,9 +251,9 @@ export function OfferVersionEditor({ version, offerId, candidateId, candidateNat
                     <RefreshCw className="h-4 w-4 mr-2" />
                     Revise Offer
                   </Button>
-                  <Button variant="outline" onClick={handleAccept} disabled={acceptOffer.isPending} className="text-green-600 hover:text-green-700">
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Accept
+                  <Button onClick={handleAccept} disabled={acceptOffer.isPending} className="bg-green-600 hover:bg-green-700 text-white">
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    {acceptOffer.isPending ? "Converting..." : "Accept & Convert to Employee"}
                   </Button>
                   <Button variant="outline" onClick={handleReject} disabled={rejectOffer.isPending} className="text-red-600 hover:text-red-700">
                     <XCircle className="h-4 w-4 mr-2" />
