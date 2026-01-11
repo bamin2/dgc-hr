@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { startOfMonth, endOfMonth, format } from 'date-fns';
+import { measureAsync } from '@/lib/perf';
 
 export interface DateRange {
   start: Date;
@@ -64,7 +65,7 @@ export function useReportsOverview(dateRange: DateRange) {
   // Payroll Snapshot Query
   const payrollQuery = useQuery({
     queryKey: ['reports-overview-payroll', startDate, endDate],
-    queryFn: async (): Promise<PayrollSnapshot> => {
+    queryFn: () => measureAsync('ReportsOverview: payroll', async (): Promise<PayrollSnapshot> => {
       // Run both queries in parallel
       const [payrollRunsResult, pendingResult] = await Promise.all([
         supabase
@@ -148,13 +149,12 @@ export function useReportsOverview(dateRange: DateRange) {
         pendingRuns: pendingCount || 0,
         hasMixedCurrencies: totalGross.length > 1,
       };
-    },
+    }),
   });
-
   // Workforce Snapshot Query
   const workforceQuery = useQuery({
     queryKey: ['reports-overview-workforce', monthStart, monthEnd],
-    queryFn: async (): Promise<WorkforceSnapshot> => {
+    queryFn: () => measureAsync('ReportsOverview: workforce', async (): Promise<WorkforceSnapshot> => {
       // Run all 3 queries in parallel
       const [activeResult, hiresResult, exitsResult] = await Promise.all([
         supabase
@@ -184,13 +184,13 @@ export function useReportsOverview(dateRange: DateRange) {
         newHires: hiresResult.count || 0,
         exits: exitsResult.count || 0,
       };
-    },
+    }),
   });
 
   // Leave Snapshot Query
   const leaveQuery = useQuery({
     queryKey: ['reports-overview-leave', today, monthStart, monthEnd],
-    queryFn: async (): Promise<LeaveSnapshot> => {
+    queryFn: () => measureAsync('ReportsOverview: leave', async (): Promise<LeaveSnapshot> => {
       // Run all 3 queries in parallel
       const [pendingResult, onLeaveResult, leaveDaysResult] = await Promise.all([
         supabase
@@ -222,13 +222,13 @@ export function useReportsOverview(dateRange: DateRange) {
         onLeaveToday: onLeaveResult.count || 0,
         daysTakenMTD: totalDays,
       };
-    },
+    }),
   });
 
   // Loan Snapshot Query
   const loanQuery = useQuery({
     queryKey: ['reports-overview-loans', monthStart, monthEnd],
-    queryFn: async (): Promise<LoanSnapshot> => {
+    queryFn: () => measureAsync('ReportsOverview: loans', async (): Promise<LoanSnapshot> => {
       // Run all 3 queries in parallel
       const [activeCountResult, activeLoansResult, dueCountResult] = await Promise.all([
         supabase
@@ -274,13 +274,13 @@ export function useReportsOverview(dateRange: DateRange) {
         installmentsDueThisMonth: dueCountResult.count || 0,
         hasMixedCurrencies: outstandingBalance.length > 1,
       };
-    },
+    }),
   });
 
   // Insights Query
   const insightsQuery = useQuery({
     queryKey: ['reports-overview-insights', startDate, endDate],
-    queryFn: async (): Promise<InsightsData> => {
+    queryFn: () => measureAsync('ReportsOverview: insights', async (): Promise<InsightsData> => {
       // First fetch payroll runs to get IDs
       const { data: payrollRuns } = await supabase
         .from('payroll_runs')
@@ -367,7 +367,7 @@ export function useReportsOverview(dateRange: DateRange) {
         highestPayrollDept,
         mostLoansDept,
       };
-    },
+    }),
   });
 
   const isLoading = payrollQuery.isLoading || workforceQuery.isLoading || 

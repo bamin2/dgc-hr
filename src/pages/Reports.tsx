@@ -9,6 +9,7 @@ import { ExportButton } from '@/components/reports';
 import { ReportsOverviewDashboard } from '@/components/reports/overview';
 import { useToast } from '@/hooks/use-toast';
 import { useRole } from '@/contexts/RoleContext';
+import { useTimeToFirstData } from '@/lib/perf';
 
 // Production Report Components
 import { PayrollRunSummaryReport, PayrollDetailedReport, PayslipRegisterReport } from '@/components/reports/payroll';
@@ -31,6 +32,9 @@ type EmployeeReportView = 'list' | 'employee-master';
 const Reports = () => {
   const { toast } = useToast();
   const { hasRole, canAccessManagement, isLoading: roleLoading } = useRole();
+  
+  // Track time to first data
+  useTimeToFirstData('Reports', roleLoading);
   
   const [activeTab, setActiveTab] = useState('overview');
   

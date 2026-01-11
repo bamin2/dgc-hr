@@ -19,6 +19,7 @@ import { usePagination } from "@/hooks/usePagination";
 import { useEmployeeActions } from "@/hooks/useEmployeeActions";
 import { TeamMember } from "@/hooks/employee";
 import { EmployeeTableColumnId } from "@/data/settings";
+import { useTimeToFirstData } from "@/lib/perf";
 
 export default function Employees() {
   const navigate = useNavigate();
@@ -27,6 +28,9 @@ export default function Employees() {
   // Fetch employees from Supabase
   const { data: employees = [], isLoading, error } = useEmployees();
   const { preferences, updatePreferences, isSaving: isSavingPreferences } = useUserPreferences();
+
+  // Track time to first data
+  useTimeToFirstData('Employees List', isLoading);
 
   // Tab state
   const [activeTab, setActiveTab] = useState<EmployeesTabType>("directory");
