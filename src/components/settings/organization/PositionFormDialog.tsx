@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SimpleRichTextEditor } from '@/components/ui/simple-rich-text-editor';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Select,
   SelectContent,
@@ -82,70 +83,72 @@ export function PositionFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>{isEdit ? 'Edit Position' : 'Add Position'}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="title">Title *</Label>
-            <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g., Senior Developer"
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="department">Department</Label>
-            <Select value={departmentId} onValueChange={setDepartmentId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select department (optional)" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">No department</SelectItem>
-                {departments.map((dept) => (
-                  <SelectItem key={dept.id} value={dept.id}>
-                    {dept.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="level">Level (1-10)</Label>
-            <Input
-              id="level"
-              type="number"
-              min={1}
-              max={10}
-              value={level}
-              onChange={(e) => setLevel(parseInt(e.target.value) || 1)}
-            />
-            <p className="text-xs text-muted-foreground">
-              Higher levels indicate more senior positions
-            </p>
-          </div>
-          <div className="space-y-2">
-            <Label>Job Description</Label>
-            <SimpleRichTextEditor
-              content={jobDescription}
-              onChange={setJobDescription}
-              placeholder="Describe the responsibilities, requirements, and qualifications..."
-              minHeight="120px"
-            />
-          </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isLoading || !title.trim()}>
-              {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              {isEdit ? 'Save Changes' : 'Add Position'}
-            </Button>
-          </DialogFooter>
-        </form>
+        <ScrollArea className="flex-1 overflow-auto">
+          <form id="position-form" onSubmit={handleSubmit} className="space-y-4 pr-4">
+            <div className="space-y-2">
+              <Label htmlFor="title">Title *</Label>
+              <Input
+                id="title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g., Senior Developer"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="department">Department</Label>
+              <Select value={departmentId} onValueChange={setDepartmentId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select department (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No department</SelectItem>
+                  {departments.map((dept) => (
+                    <SelectItem key={dept.id} value={dept.id}>
+                      {dept.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="level">Level (1-10)</Label>
+              <Input
+                id="level"
+                type="number"
+                min={1}
+                max={10}
+                value={level}
+                onChange={(e) => setLevel(parseInt(e.target.value) || 1)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Higher levels indicate more senior positions
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label>Job Description</Label>
+              <SimpleRichTextEditor
+                content={jobDescription}
+                onChange={setJobDescription}
+                placeholder="Describe the responsibilities, requirements, and qualifications..."
+                minHeight="120px"
+              />
+            </div>
+          </form>
+        </ScrollArea>
+        <DialogFooter className="pt-4">
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button type="submit" form="position-form" disabled={isLoading || !title.trim()}>
+            {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+            {isEdit ? 'Save Changes' : 'Add Position'}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
