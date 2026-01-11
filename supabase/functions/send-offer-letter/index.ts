@@ -407,6 +407,33 @@ serve(async (req: Request): Promise<Response> => {
         content: base64Pdf,
       };
 
+      // Upload PDF to storage for later use when offer is accepted
+      const pdfStoragePath = `offer-letters/${offer_version_id}.pdf`;
+      console.log("Uploading PDF to storage:", pdfStoragePath);
+      const { error: storageError } = await supabase.storage
+        .from("employee-documents")
+        .upload(pdfStoragePath, pdfBuffer, {
+          contentType: "application/pdf",
+          upsert: true,
+        });
+
+      if (storageError) {
+        console.error("Failed to upload PDF to storage:", storageError);
+        // Don't throw - storage upload is not critical for sending email
+      } else {
+        // Save path to offer version for later retrieval when accepted
+        const { error: updatePathError } = await supabase
+          .from("offer_versions")
+          .update({ pdf_storage_path: pdfStoragePath })
+          .eq("id", offer_version_id);
+        
+        if (updatePathError) {
+          console.error("Failed to save PDF path:", updatePathError);
+        } else {
+          console.log("PDF path saved to offer version");
+        }
+      }
+
       // Replace placeholders in subject
       renderedSubject = renderedSubject
         .replace(/{candidate_name}/g, candidateName)

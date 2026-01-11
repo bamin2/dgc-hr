@@ -2826,6 +2826,7 @@ export type Database = {
           offer_id: string
           other_allowances: number
           other_deductions: number | null
+          pdf_storage_path: string | null
           position_id: string | null
           rejected_at: string | null
           remarks_internal: string | null
@@ -2861,6 +2862,7 @@ export type Database = {
           offer_id: string
           other_allowances?: number
           other_deductions?: number | null
+          pdf_storage_path?: string | null
           position_id?: string | null
           rejected_at?: string | null
           remarks_internal?: string | null
@@ -2896,6 +2898,7 @@ export type Database = {
           offer_id?: string
           other_allowances?: number
           other_deductions?: number | null
+          pdf_storage_path?: string | null
           position_id?: string | null
           rejected_at?: string | null
           remarks_internal?: string | null
