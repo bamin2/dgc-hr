@@ -1,7 +1,7 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { format } from "date-fns";
-import { Eye, Upload, FileText, X, FileType } from "lucide-react";
+import { Eye, Upload, FileText, X, FileType, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,7 +13,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useOfferLetterTemplate, useCreateOfferLetterTemplate, useUpdateOfferLetterTemplate, useUploadDocxTemplate, type TemplateFormData } from "@/hooks/useOfferLetterTemplates";
 import { useCompanySettings } from "@/contexts/CompanySettingsContext";
-import { offerLetterSmartTags } from "@/utils/offerLetterSmartTags";
+import { useActiveSmartTags } from "@/hooks/useSmartTags";
 import { toast } from "sonner";
 
 const PLACEHOLDERS = [
@@ -41,13 +41,36 @@ interface TemplateEditorProps {
 export function TemplateEditor({ templateId, onSuccess }: TemplateEditorProps) {
   const { settings } = useCompanySettings();
   const { data: template } = useOfferLetterTemplate(templateId || undefined);
+  const { data: smartTags, isLoading: tagsLoading } = useActiveSmartTags();
   const createTemplate = useCreateOfferLetterTemplate();
   const updateTemplate = useUpdateOfferLetterTemplate();
   const uploadDocx = useUploadDocxTemplate();
   const [showPreview, setShowPreview] = useState(false);
   const [templateType, setTemplateType] = useState<'html' | 'docx'>('html');
   const [docxFile, setDocxFile] = useState<{ url: string; name: string } | null>(null);
+  const [copiedTag, setCopiedTag] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Group smart tags by category for display
+  const groupedTags = useMemo(() => {
+    if (!smartTags) return {};
+    const groups: Record<string, typeof smartTags> = {};
+    smartTags.forEach(tag => {
+      if (!groups[tag.category]) groups[tag.category] = [];
+      groups[tag.category].push(tag);
+    });
+    return groups;
+  }, [smartTags]);
+
+  const handleCopyTag = async (tag: string) => {
+    try {
+      await navigator.clipboard.writeText(tag);
+      setCopiedTag(tag);
+      setTimeout(() => setCopiedTag(null), 2000);
+    } catch (err) {
+      toast.error("Failed to copy tag");
+    }
+  };
 
   const getSampleData = (): Record<string, string> => ({
     "{candidate_name}": "Ahmed Al-Rashid",
@@ -299,16 +322,42 @@ export function TemplateEditor({ templateId, onSuccess }: TemplateEditorProps) {
                 <p className="text-xs text-muted-foreground mb-3">
                   Use these tags in your Word document. They will be replaced with actual values when the offer letter is generated.
                 </p>
-                <ScrollArea className="h-[200px]">
-                  <div className="grid grid-cols-1 gap-2 text-xs">
-                    {offerLetterSmartTags.map((tag) => (
-                      <div key={tag.tag} className="flex items-center gap-2">
-                        <code className="bg-muted px-2 py-1 rounded font-mono whitespace-nowrap">{`<<${tag.tag}>>`}</code>
-                        <span className="text-muted-foreground">{tag.description}</span>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
+                {tagsLoading ? (
+                  <p className="text-xs text-muted-foreground">Loading smart tags...</p>
+                ) : (
+                  <ScrollArea className="h-[250px]">
+                    <div className="space-y-4">
+                      {Object.entries(groupedTags).map(([category, tags]) => (
+                        <div key={category} className="space-y-2">
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{category}</p>
+                          <div className="space-y-1">
+                            {tags.map((tag) => (
+                              <div key={tag.id} className="flex items-center gap-2 group">
+                                <code className="bg-muted px-2 py-1 rounded font-mono text-xs whitespace-nowrap">
+                                  {tag.tag}
+                                </code>
+                                <span className="text-xs text-muted-foreground flex-1">{tag.description}</span>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  onClick={() => handleCopyTag(tag.tag)}
+                                >
+                                  {copiedTag === tag.tag ? (
+                                    <Check className="h-3 w-3 text-green-500" />
+                                  ) : (
+                                    <Copy className="h-3 w-3" />
+                                  )}
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                )}
                 <p className="text-xs text-muted-foreground mt-3 italic">
                   When sent, the document will be converted to PDF so the recipient cannot edit it.
                 </p>

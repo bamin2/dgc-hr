@@ -9,6 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { useOfferLetterTemplates } from "@/hooks/useOfferLetterTemplates";
 import { useCompanySettings } from "@/contexts/CompanySettingsContext";
+import { useActiveSmartTags } from "@/hooks/useSmartTags";
 import { exportOfferLetterToDocx } from "@/utils/offerLetterExport";
 import { getOfferLetterSmartTagData } from "@/utils/offerLetterSmartTags";
 import type { OfferVersion } from "@/hooks/useOffers";
@@ -27,6 +28,7 @@ interface OfferLetterPreviewProps {
 export function OfferLetterPreview({ version, candidate }: OfferLetterPreviewProps) {
   const { data: templates } = useOfferLetterTemplates();
   const { settings } = useCompanySettings();
+  const { data: smartTags } = useActiveSmartTags();
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
   const [isDownloading, setIsDownloading] = useState(false);
 
@@ -68,7 +70,8 @@ export function OfferLetterPreview({ version, candidate }: OfferLetterPreviewPro
       const smartTagData = getOfferLetterSmartTagData(
         version,
         candidate,
-        { name: settings?.name || null, legal_name: settings?.legalName || null }
+        { name: settings?.name || null, legal_name: settings?.legalName || null },
+        smartTags // Pass smart tags for enhanced mapping
       );
       
       await exportOfferLetterToDocx(

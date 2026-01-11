@@ -241,6 +241,12 @@ serve(async (req: Request): Promise<Response> => {
     const candidateName = `${candidate.first_name} ${candidate.last_name}`;
     const companyName = companySettings?.name || "Company";
 
+    // Fetch active smart tags from database for consistent tag mapping
+    const { data: smartTags } = await supabase
+      .from("smart_tags")
+      .select("*")
+      .eq("is_active", true);
+
     const formatNumber = (num: number | null): string => {
       if (num === null || num === undefined) return "0.00";
       return num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -264,32 +270,55 @@ serve(async (req: Request): Promise<Response> => {
       // Handle DOCX template
       console.log("Processing DOCX template...");
 
-      // Smart tag data for DOCX templates
-      const smartTagData: Record<string, string> = {
-        "First Name": candidate.first_name,
-        "Last Name": candidate.last_name,
-        "Full Name": candidateName,
-        "Email": candidate.email,
-        "Job Title": version.position?.title || "",
-        "Department": version.department?.name || "",
-        "Work Location": version.work_location?.name || "",
-        "Basic Salary": formatNumber(version.basic_salary),
-        "Housing Allowance": formatNumber(version.housing_allowance),
-        "Transport Allowance": formatNumber(version.transport_allowance),
-        "Other Allowances": formatNumber(version.other_allowances),
-        "Gross Salary": formatNumber(version.gross_pay_total),
-        "Net Salary": formatNumber(version.net_pay_estimate),
-        "Currency": version.currency_code || "SAR",
-        "Employer GOSI": formatNumber(version.employer_gosi_amount),
-        "Company Name": companyName,
-        "Company Legal Name": companySettings?.legal_name || companyName,
-        "Start Date": formatDate(version.start_date),
-        "Current Date": new Date().toLocaleDateString("en-US", {
+      // Base data mapping using field names from database smart_tags
+      const baseData: Record<string, string> = {
+        // Employee/Candidate info
+        "first_name": candidate.first_name,
+        "last_name": candidate.last_name,
+        "full_name": candidateName,
+        "email": candidate.email,
+        
+        // Position info
+        "job_title": version.position?.title || "",
+        "department": version.department?.name || "",
+        "work_location": version.work_location?.name || "",
+        
+        // Compensation
+        "basic_salary": formatNumber(version.basic_salary),
+        "housing_allowance": formatNumber(version.housing_allowance),
+        "transport_allowance": formatNumber(version.transport_allowance),
+        "other_allowances": formatNumber(version.other_allowances),
+        "gross_salary": formatNumber(version.gross_pay_total),
+        "net_salary": formatNumber(version.net_pay_estimate),
+        "currency": version.currency_code || "SAR",
+        "employer_gosi": formatNumber(version.employer_gosi_amount),
+        
+        // Company
+        "company_name": companyName,
+        "company_legal_name": companySettings?.legal_name || companyName,
+        
+        // Dates
+        "start_date": formatDate(version.start_date),
+        "current_date": new Date().toLocaleDateString("en-US", {
           year: "numeric",
           month: "long",
           day: "numeric",
         }),
       };
+
+      // Build smart tag data with both field names and display names for flexibility
+      const smartTagData: Record<string, string> = { ...baseData };
+      
+      // Add mappings using tag display names from database (e.g., "First Name" from "<<First Name>>")
+      if (smartTags) {
+        for (const tag of smartTags) {
+          const tagName = tag.tag.replace(/^<<|>>$/g, ""); // Extract "First Name" from "<<First Name>>"
+          const fieldValue = baseData[tag.field];
+          if (fieldValue !== undefined) {
+            smartTagData[tagName] = fieldValue;
+          }
+        }
+      }
 
       // Download and fill the template
       const templateBuffer = await downloadTemplate(template.docx_template_url);
