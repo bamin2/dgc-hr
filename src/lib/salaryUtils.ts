@@ -244,7 +244,7 @@ export async function calculateAllEmployeesGrossPay(
 /**
  * Format currency with the correct symbol based on currency code
  */
-export function formatCurrencyWithCode(amount: number, currencyCode: string): string {
+export function formatCurrencyWithCode(amount: number | null | undefined, currencyCode: string): string {
   const symbols: Record<string, string> = {
     'BHD': 'BD',
     'SAR': 'SAR',
@@ -259,9 +259,12 @@ export function formatCurrencyWithCode(amount: number, currencyCode: string): st
 
   const symbol = symbols[currencyCode] || currencyCode;
   
+  // Handle null/undefined amounts
+  const safeAmount = amount ?? 0;
+  
   // Format number with appropriate decimals
   const decimals = ['BHD', 'KWD', 'OMR'].includes(currencyCode) ? 3 : 2;
-  const formatted = amount.toLocaleString('en-US', {
+  const formatted = safeAmount.toLocaleString('en-US', {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   });
