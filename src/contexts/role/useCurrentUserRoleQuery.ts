@@ -41,6 +41,7 @@ export function useCurrentUserRoleQuery(
     enabled: !!user,
     staleTime: 5 * 60 * 1000, // 5 minutes - roles don't change often
     gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    retry: 0,  // Don't retry auth-dependent queries
   });
 
   // Build the CurrentUser object

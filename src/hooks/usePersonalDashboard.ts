@@ -172,5 +172,6 @@ export function usePersonalDashboard() {
     },
     enabled: !!effectiveEmployeeId || !!user?.id,
     staleTime: 1000 * 60 * 5,
+    retry: 0,  // Don't retry auth-dependent queries
   });
 }

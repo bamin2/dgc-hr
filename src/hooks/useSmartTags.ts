@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { queryKeys } from "@/lib/queryKeys";
+import { queryPresets } from "@/lib/queryOptions";
 import type { SmartTag, SmartTagInsert, SmartTagUpdate } from "@/types/organization";
 
 // Re-export types for backward compatibility
@@ -20,6 +21,7 @@ export function useSmartTags() {
       if (error) throw error;
       return data as SmartTag[];
     },
+    ...queryPresets.referenceData,  // Tags rarely change
   });
 }
 
@@ -37,6 +39,7 @@ export function useActiveSmartTags() {
       if (error) throw error;
       return data as SmartTag[];
     },
+    ...queryPresets.referenceData,  // Tags rarely change
   });
 }
 

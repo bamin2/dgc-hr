@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Json } from '@/integrations/supabase/types';
 import { queryKeys } from '@/lib/queryKeys';
+import { queryPresets } from '@/lib/queryOptions';
 
 export interface SalaryDeductionTier {
   from_days: number;
@@ -57,6 +58,7 @@ export function useLeaveTypes() {
       if (error) throw error;
       return (data || []).map(parseLeaveType);
     },
+    ...queryPresets.referenceData,  // Leave types rarely change
   });
 }
 
@@ -72,6 +74,7 @@ export function useAllLeaveTypes() {
       if (error) throw error;
       return (data || []).map(parseLeaveType);
     },
+    ...queryPresets.referenceData,  // Leave types rarely change
   });
 }
 

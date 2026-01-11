@@ -43,7 +43,16 @@ import CandidateDetail from "./pages/CandidateDetail";
 import OfferDetail from "./pages/OfferDetail";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,  // Prevent jarring refetches on tab focus
+      retry: 1,                      // Only retry once on failure
+      staleTime: 1000 * 30,          // 30 seconds default stale time
+      gcTime: 1000 * 60 * 5,         // 5 minutes garbage collection time
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

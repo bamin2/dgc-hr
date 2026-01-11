@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { DeductionTemplate } from '@/data/payrollTemplates';
 import { queryKeys } from '@/lib/queryKeys';
+import { queryPresets } from '@/lib/queryOptions';
 
 export function useDeductionTemplates() {
   return useQuery({
@@ -15,6 +16,7 @@ export function useDeductionTemplates() {
       if (error) throw error;
       return data as DeductionTemplate[];
     },
+    ...queryPresets.referenceData,  // Templates rarely change
   });
 }
 

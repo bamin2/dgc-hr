@@ -71,6 +71,7 @@ export function useNotifications() {
       return (data as Notification[]).map(transformToDisplay);
     },
     enabled: !!user?.id,
+    retry: 0,  // Don't retry auth-dependent queries
   });
 
   const markAsReadMutation = useMutation({
@@ -174,5 +175,6 @@ export function useUnreadNotificationsCount() {
       return count || 0;
     },
     enabled: !!user?.id,
+    retry: 0,  // Don't retry auth-dependent queries
   });
 }

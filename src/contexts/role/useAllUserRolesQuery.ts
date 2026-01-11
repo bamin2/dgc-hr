@@ -43,6 +43,7 @@ export function useAllUserRolesQuery(user: User | null): UseAllUserRolesQueryRes
     enabled: !!user,
     staleTime: 2 * 60 * 1000, // 2 minutes
     gcTime: 5 * 60 * 1000,
+    retry: 0,  // Don't retry auth-dependent queries
   });
 
   return { userRoles, isLoading };
