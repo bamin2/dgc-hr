@@ -1,26 +1,25 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { X, ArrowLeft } from "lucide-react";
+import { X, ArrowLeft, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { VerticalWizardProgress } from "./VerticalWizardProgress";
 import { TeamBasicStep, TeamBasicData } from "./TeamBasicStep";
 import { TeamRoleStep, TeamRoleData } from "./TeamRoleStep";
 import { TeamCompensationStep, TeamCompensationData } from "./TeamCompensationStep";
-import { TeamOfferStep, TeamOfferData } from "./TeamOfferStep";
 import { TeamFinalizeStep } from "./TeamFinalizeStep";
 import { useCreateEmployee, useDepartments, usePositions } from "@/hooks/useEmployees";
 import { useAssignAllowances } from "@/hooks/useEmployeeAllowances";
 import { useAssignDeductions } from "@/hooks/useEmployeeDeductions";
 import { useWorkLocations } from "@/hooks/useWorkLocations";
 import { getCountryByCode } from "@/data/countries";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const steps = [
-  { id: 1, label: "Team Basic" },
-  { id: 2, label: "Team Role" },
-  { id: 3, label: "Team Compensation" },
-  { id: 4, label: "Team Offer" },
-  { id: 5, label: "Team Finalize" },
+  { id: 1, label: "Basic Info" },
+  { id: 2, label: "Role" },
+  { id: 3, label: "Compensation" },
+  { id: 4, label: "Review & Add" },
 ];
 
 export function AddTeamMemberWizard() {
@@ -93,15 +92,6 @@ export function AddTeamMemberWizard() {
     }
   }, [roleData.workLocationId, workLocations]);
 
-  const [offerData, setOfferData] = useState<TeamOfferData>({
-    sendOfferLetter: true,
-    setupBackgroundChecks: false,
-    templateId: "",
-    expirationDate: undefined,
-    signatureTitle: "",
-    signatureName: "",
-  });
-
   const [note, setNote] = useState("");
 
   const validateStep = (step: number): boolean => {
@@ -144,9 +134,6 @@ export function AddTeamMemberWizard() {
           return false;
         }
         return true;
-      case 4:
-        // Offer step is optional
-        return true;
       default:
         return true;
     }
@@ -174,7 +161,7 @@ export function AddTeamMemberWizard() {
         ? `${country?.dialCode || ""} ${basicData.mobileNumber}`.trim()
         : null;
 
-      // Create the employee
+      // Create the employee as Active (this wizard is for already hired employees)
       const newEmployee = await createEmployee.mutateAsync({
         first_name: basicData.firstName,
         last_name: basicData.lastName,
@@ -187,7 +174,7 @@ export function AddTeamMemberWizard() {
         salary: parseFloat(compensationData.salary) || null,
         pay_frequency: "month",
         employment_type: compensationData.employmentStatus,
-        status: 'on_boarding',
+        status: 'active',
         work_location_id: roleData.workLocationId || null,
         avatar_url: basicData.avatar || null,
         nationality: basicData.nationality || null,
@@ -245,9 +232,6 @@ export function AddTeamMemberWizard() {
     setCurrentStep(step);
   };
 
-  // Get position title for offer step
-  const positionTitle = positions?.find(p => p.id === roleData.positionId)?.title || "";
-
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
@@ -266,21 +250,10 @@ export function AddTeamMemberWizard() {
         );
       case 4:
         return (
-          <TeamOfferStep
-            data={offerData}
-            onChange={setOfferData}
-            basicData={basicData}
-            roleData={roleData}
-            compensationData={compensationData}
-          />
-        );
-      case 5:
-        return (
           <TeamFinalizeStep
             basicData={basicData}
             roleData={roleData}
             compensationData={compensationData}
-            offerData={offerData}
             note={note}
             onNoteChange={setNote}
             onEditStep={handleEditStep}
@@ -315,7 +288,16 @@ export function AddTeamMemberWizard() {
 
         {/* Main content */}
         <main className="flex-1 p-6 overflow-y-auto">
-          <div className="max-w-2xl mx-auto">{renderStepContent()}</div>
+          <div className="max-w-2xl mx-auto">
+            <Alert className="mb-6">
+              <Info className="h-4 w-4" />
+              <AlertDescription>
+                This form creates <strong>active employees</strong> directly. For new hires who need offer letters, 
+                use the <a href="/hiring" className="underline font-medium">Hiring module</a> instead.
+              </AlertDescription>
+            </Alert>
+            {renderStepContent()}
+          </div>
         </main>
       </div>
 
@@ -334,9 +316,9 @@ export function AddTeamMemberWizard() {
           <Button
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white"
+            className="bg-primary hover:bg-primary/90"
           >
-            {isSubmitting ? "Saving..." : "Send Offer"}
+            {isSubmitting ? "Saving..." : "Add Employee"}
           </Button>
         )}
       </footer>

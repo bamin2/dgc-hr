@@ -22,7 +22,7 @@ interface TeamFinalizeStepProps {
   basicData: TeamBasicData;
   roleData: TeamRoleData;
   compensationData: TeamCompensationData;
-  offerData: TeamOfferData;
+  offerData?: TeamOfferData;
   note: string;
   onNoteChange: (note: string) => void;
   onEditStep: (step: number) => void;
@@ -54,7 +54,7 @@ export function TeamFinalizeStep({
   const position = positions?.find(p => p.id === roleData.positionId);
   const manager = employees?.find(e => e.id === roleData.managerId);
   const workLocation = workLocations?.find(w => w.id === roleData.workLocationId);
-  const offerTemplate = documentTemplates?.find(t => t.id === offerData.templateId);
+  const offerTemplate = offerData ? documentTemplates?.find(t => t.id === offerData.templateId) : null;
 
   // Get allowance names from the new structure
   const allowanceNames = compensationData.allowances.map(a => {
@@ -98,10 +98,10 @@ export function TeamFinalizeStep({
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-semibold text-foreground">
-          Review and finalize
+          Review and add employee
         </h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Review all information before sending the offer
+          Review all information before adding this employee
         </p>
       </div>
 
@@ -251,7 +251,7 @@ export function TeamFinalizeStep({
       </Card>
 
       {/* Offer Letter Information */}
-      {offerData.sendOfferLetter && (
+      {offerData?.sendOfferLetter && (
         <Card>
           <CardHeader className="flex flex-row items-center justify-between py-3">
             <CardTitle className="text-sm font-medium">Offer Letter</CardTitle>
@@ -298,18 +298,18 @@ export function TeamFinalizeStep({
         <CardHeader className="py-3">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
             <Check className="h-4 w-4 text-primary" />
-            Here's what happens next
+            What happens when you add this employee
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           <div className="flex items-start gap-3">
             <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-              <Mail className="h-3 w-3 text-primary" />
+              <UserCheck className="h-3 w-3 text-primary" />
             </div>
             <div>
-              <p className="font-medium">Offer letter sent</p>
+              <p className="font-medium">Employee created as Active</p>
               <p className="text-muted-foreground">
-                An offer letter will be sent to {basicData.email}
+                They will appear in the employee directory immediately
               </p>
             </div>
           </div>
@@ -318,20 +318,9 @@ export function TeamFinalizeStep({
               <FileText className="h-3 w-3 text-primary" />
             </div>
             <div>
-              <p className="font-medium">Documents prepared</p>
+              <p className="font-medium">Compensation set up</p>
               <p className="text-muted-foreground">
-                Onboarding documents will be prepared automatically
-              </p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-              <UserCheck className="h-3 w-3 text-primary" />
-            </div>
-            <div>
-              <p className="font-medium">Onboarding starts</p>
-              <p className="text-muted-foreground">
-                Once accepted, the onboarding process will begin
+                Salary, allowances, and deductions will be configured
               </p>
             </div>
           </div>
