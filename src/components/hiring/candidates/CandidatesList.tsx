@@ -20,13 +20,13 @@ export function CandidatesList() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<CandidateStatus | "all">("all");
-  const [departmentFilter, setDepartmentFilter] = useState<string>("");
+  const [departmentFilter, setDepartmentFilter] = useState<string>("all");
   const [isFormOpen, setIsFormOpen] = useState(false);
 
   const { data: candidates, isLoading } = useCandidates({
     search,
     status: statusFilter,
-    department_id: departmentFilter || undefined,
+    department_id: departmentFilter !== "all" ? departmentFilter : undefined,
   });
   const { data: departments } = useDepartmentsManagement();
   const createOffer = useCreateOffer();
@@ -70,7 +70,7 @@ export function CandidatesList() {
               <SelectValue placeholder="Department" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Departments</SelectItem>
+              <SelectItem value="all">All Departments</SelectItem>
               {departments?.map((d) => (
                 <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
               ))}
