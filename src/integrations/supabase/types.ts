@@ -4206,6 +4206,10 @@ export type Database = {
         Args: { loan_uuid: string }
         Returns: undefined
       }
+      get_dashboard_metrics: {
+        Args: { p_attendance_limit?: number; p_team_limit?: number }
+        Returns: Json
+      }
       get_reports_overview: {
         Args: { p_end_date: string; p_start_date: string }
         Returns: Json
