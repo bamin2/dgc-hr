@@ -9,7 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { SimpleRichTextEditor } from '@/components/ui/simple-rich-text-editor';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -82,7 +82,7 @@ export function PositionFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{isEdit ? 'Edit Position' : 'Add Position'}</DialogTitle>
         </DialogHeader>
@@ -128,12 +128,13 @@ export function PositionFormDialog({
             </p>
           </div>
           <div className="space-y-2">
-            <Label>Job Description</Label>
-            <SimpleRichTextEditor
-              content={jobDescription}
-              onChange={setJobDescription}
+            <Label htmlFor="jobDescription">Job Description</Label>
+            <Textarea
+              id="jobDescription"
+              value={jobDescription}
+              onChange={(e) => setJobDescription(e.target.value)}
               placeholder="Describe the responsibilities, requirements, and qualifications..."
-              minHeight="120px"
+              rows={4}
             />
           </div>
           <DialogFooter>
