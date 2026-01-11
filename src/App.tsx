@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
@@ -8,51 +9,60 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { RoleProvider } from "@/contexts/RoleContext";
 import { CompanySettingsProvider } from "@/contexts/CompanySettingsContext";
 import { ProtectedRoute, PublicRoute } from "@/components/auth";
+import { PageLoader } from "@/components/ui/page-loader";
+
+// Critical routes - keep eager for fast initial load
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import ResetPassword from "./pages/ResetPassword";
-import Employees from "./pages/Employees";
-import EmployeeProfile from "./pages/EmployeeProfile";
-import OnboardingDetail from "./pages/OnboardingDetail";
-import NewOnboarding from "./pages/NewOnboarding";
-import AddTeamMember from "./pages/AddTeamMember";
-import BulkSalaryUpdate from "./pages/BulkSalaryUpdate";
-import Payroll from "./pages/Payroll";
-import PayrollRun from "./pages/PayrollRun";
-import Payslip from "./pages/Payslip";
-
-import Benefits from "./pages/Benefits";
-import BenefitDetail from "./pages/BenefitDetail";
-import BenefitEnrollment from "./pages/BenefitEnrollment";
-import ClaimSubmission from "./pages/ClaimSubmission";
-import Reports from "./pages/Reports";
-import Settings from "./pages/Settings";
-import Notifications from "./pages/Notifications";
-import Calendar from "./pages/Calendar";
-import Projects from "./pages/Projects";
-import TimeOff from "./pages/TimeOff";
-import TimeManagement from "./pages/TimeManagement";
-import Documents from "./pages/Documents";
-import Directory from "./pages/Directory";
-import Loans from "./pages/Loans";
-import Approvals from "./pages/Approvals";
-import MyProfile from "./pages/MyProfile";
-import AuditTrail from "./pages/AuditTrail";
-import Hiring from "./pages/Hiring";
-import CandidateDetail from "./pages/CandidateDetail";
-import OfferDetail from "./pages/OfferDetail";
 import NotFound from "./pages/NotFound";
+
+// Lazy load all other pages for reduced initial bundle
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Employees = lazy(() => import("./pages/Employees"));
+const EmployeeProfile = lazy(() => import("./pages/EmployeeProfile"));
+const OnboardingDetail = lazy(() => import("./pages/OnboardingDetail"));
+const NewOnboarding = lazy(() => import("./pages/NewOnboarding"));
+const AddTeamMember = lazy(() => import("./pages/AddTeamMember"));
+const BulkSalaryUpdate = lazy(() => import("./pages/BulkSalaryUpdate"));
+const Payroll = lazy(() => import("./pages/Payroll"));
+const PayrollRun = lazy(() => import("./pages/PayrollRun"));
+const Payslip = lazy(() => import("./pages/Payslip"));
+const Benefits = lazy(() => import("./pages/Benefits"));
+const BenefitDetail = lazy(() => import("./pages/BenefitDetail"));
+const BenefitEnrollment = lazy(() => import("./pages/BenefitEnrollment"));
+const ClaimSubmission = lazy(() => import("./pages/ClaimSubmission"));
+const Reports = lazy(() => import("./pages/Reports"));
+const Settings = lazy(() => import("./pages/Settings"));
+const Notifications = lazy(() => import("./pages/Notifications"));
+const Calendar = lazy(() => import("./pages/Calendar"));
+const Projects = lazy(() => import("./pages/Projects"));
+const TimeOff = lazy(() => import("./pages/TimeOff"));
+const TimeManagement = lazy(() => import("./pages/TimeManagement"));
+const Documents = lazy(() => import("./pages/Documents"));
+const Directory = lazy(() => import("./pages/Directory"));
+const Loans = lazy(() => import("./pages/Loans"));
+const Approvals = lazy(() => import("./pages/Approvals"));
+const MyProfile = lazy(() => import("./pages/MyProfile"));
+const AuditTrail = lazy(() => import("./pages/AuditTrail"));
+const Hiring = lazy(() => import("./pages/Hiring"));
+const CandidateDetail = lazy(() => import("./pages/CandidateDetail"));
+const OfferDetail = lazy(() => import("./pages/OfferDetail"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      refetchOnWindowFocus: false,  // Prevent jarring refetches on tab focus
-      retry: 1,                      // Only retry once on failure
-      staleTime: 1000 * 30,          // 30 seconds default stale time
-      gcTime: 1000 * 60 * 5,         // 5 minutes garbage collection time
+      refetchOnWindowFocus: false,
+      retry: 1,
+      staleTime: 1000 * 30,
+      gcTime: 1000 * 60 * 5,
     },
   },
 });
+
+// Wrapper component to reduce repetition
+function LazyPage({ children }: { children: React.ReactNode }) {
+  return <Suspense fallback={<PageLoader />}>{children}</Suspense>;
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -66,46 +76,46 @@ const App = () => (
               <Routes>
                 {/* Public routes */}
                 <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
-                <Route path="/auth/reset-password" element={<ResetPassword />} />
+                <Route path="/auth/reset-password" element={<LazyPage><ResetPassword /></LazyPage>} />
                 
                 {/* Protected routes - All authenticated users */}
                 <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-                <Route path="/directory" element={<ProtectedRoute><Directory /></ProtectedRoute>} />
-                <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
-                <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
-                <Route path="/attendance" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><TimeManagement /></ProtectedRoute>} />
-                <Route path="/time-off" element={<ProtectedRoute><TimeOff /></ProtectedRoute>} />
-                <Route path="/approvals" element={<ProtectedRoute><Approvals /></ProtectedRoute>} />
-                <Route path="/benefits" element={<ProtectedRoute><Benefits /></ProtectedRoute>} />
-                <Route path="/benefits/plans/:id" element={<ProtectedRoute><BenefitDetail /></ProtectedRoute>} />
-                <Route path="/benefits/enroll" element={<ProtectedRoute><BenefitEnrollment /></ProtectedRoute>} />
-                <Route path="/benefits/claims/new" element={<ProtectedRoute><ClaimSubmission /></ProtectedRoute>} />
-                <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
-                <Route path="/my-profile" element={<ProtectedRoute><MyProfile /></ProtectedRoute>} />
+                <Route path="/directory" element={<ProtectedRoute><LazyPage><Directory /></LazyPage></ProtectedRoute>} />
+                <Route path="/calendar" element={<ProtectedRoute><LazyPage><Calendar /></LazyPage></ProtectedRoute>} />
+                <Route path="/projects" element={<ProtectedRoute><LazyPage><Projects /></LazyPage></ProtectedRoute>} />
+                <Route path="/attendance" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><LazyPage><TimeManagement /></LazyPage></ProtectedRoute>} />
+                <Route path="/time-off" element={<ProtectedRoute><LazyPage><TimeOff /></LazyPage></ProtectedRoute>} />
+                <Route path="/approvals" element={<ProtectedRoute><LazyPage><Approvals /></LazyPage></ProtectedRoute>} />
+                <Route path="/benefits" element={<ProtectedRoute><LazyPage><Benefits /></LazyPage></ProtectedRoute>} />
+                <Route path="/benefits/plans/:id" element={<ProtectedRoute><LazyPage><BenefitDetail /></LazyPage></ProtectedRoute>} />
+                <Route path="/benefits/enroll" element={<ProtectedRoute><LazyPage><BenefitEnrollment /></LazyPage></ProtectedRoute>} />
+                <Route path="/benefits/claims/new" element={<ProtectedRoute><LazyPage><ClaimSubmission /></LazyPage></ProtectedRoute>} />
+                <Route path="/notifications" element={<ProtectedRoute><LazyPage><Notifications /></LazyPage></ProtectedRoute>} />
+                <Route path="/my-profile" element={<ProtectedRoute><LazyPage><MyProfile /></LazyPage></ProtectedRoute>} />
                 
                 {/* Protected routes - HR & Admin */}
-                <Route path="/employees" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><Employees /></ProtectedRoute>} />
-                <Route path="/employees/:id" element={<ProtectedRoute requiredRoles={['hr', 'admin', 'manager']}><EmployeeProfile /></ProtectedRoute>} />
-                <Route path="/employees/onboarding/new" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><NewOnboarding /></ProtectedRoute>} />
-                <Route path="/employees/onboarding/:id" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><OnboardingDetail /></ProtectedRoute>} />
-                <Route path="/payroll" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><Payroll /></ProtectedRoute>} />
-                <Route path="/payroll/run" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><PayrollRun /></ProtectedRoute>} />
-                <Route path="/payroll/payslip/:id" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><Payslip /></ProtectedRoute>} />
-                <Route path="/loans" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><Loans /></ProtectedRoute>} />
-                <Route path="/hiring" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><Hiring /></ProtectedRoute>} />
-                <Route path="/hiring/candidates/:id" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><CandidateDetail /></ProtectedRoute>} />
-                <Route path="/hiring/offers/:id" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><OfferDetail /></ProtectedRoute>} />
+                <Route path="/employees" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><LazyPage><Employees /></LazyPage></ProtectedRoute>} />
+                <Route path="/employees/:id" element={<ProtectedRoute requiredRoles={['hr', 'admin', 'manager']}><LazyPage><EmployeeProfile /></LazyPage></ProtectedRoute>} />
+                <Route path="/employees/onboarding/new" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><LazyPage><NewOnboarding /></LazyPage></ProtectedRoute>} />
+                <Route path="/employees/onboarding/:id" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><LazyPage><OnboardingDetail /></LazyPage></ProtectedRoute>} />
+                <Route path="/payroll" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><LazyPage><Payroll /></LazyPage></ProtectedRoute>} />
+                <Route path="/payroll/run" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><LazyPage><PayrollRun /></LazyPage></ProtectedRoute>} />
+                <Route path="/payroll/payslip/:id" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><LazyPage><Payslip /></LazyPage></ProtectedRoute>} />
+                <Route path="/loans" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><LazyPage><Loans /></LazyPage></ProtectedRoute>} />
+                <Route path="/hiring" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><LazyPage><Hiring /></LazyPage></ProtectedRoute>} />
+                <Route path="/hiring/candidates/:id" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><LazyPage><CandidateDetail /></LazyPage></ProtectedRoute>} />
+                <Route path="/hiring/offers/:id" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><LazyPage><OfferDetail /></LazyPage></ProtectedRoute>} />
                 
                 {/* Protected routes - Manager, HR & Admin */}
-                <Route path="/team/add" element={<ProtectedRoute requiredRoles={['manager', 'hr', 'admin']}><AddTeamMember /></ProtectedRoute>} />
-                <Route path="/team/bulk-salary-update" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><BulkSalaryUpdate /></ProtectedRoute>} />
-                <Route path="/reports" element={<ProtectedRoute requiredRoles={['manager', 'hr', 'admin']}><Reports /></ProtectedRoute>} />
-                <Route path="/time-management" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><TimeManagement /></ProtectedRoute>} />
+                <Route path="/team/add" element={<ProtectedRoute requiredRoles={['manager', 'hr', 'admin']}><LazyPage><AddTeamMember /></LazyPage></ProtectedRoute>} />
+                <Route path="/team/bulk-salary-update" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><LazyPage><BulkSalaryUpdate /></LazyPage></ProtectedRoute>} />
+                <Route path="/reports" element={<ProtectedRoute requiredRoles={['manager', 'hr', 'admin']}><LazyPage><Reports /></LazyPage></ProtectedRoute>} />
+                <Route path="/time-management" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><LazyPage><TimeManagement /></LazyPage></ProtectedRoute>} />
                 
                 {/* Protected routes - Admin only */}
-                <Route path="/documents" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><Documents /></ProtectedRoute>} />
-                <Route path="/audit-trail" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><AuditTrail /></ProtectedRoute>} />
-                <Route path="/settings" element={<ProtectedRoute requiredRoles={['admin']}><Settings /></ProtectedRoute>} />
+                <Route path="/documents" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><LazyPage><Documents /></LazyPage></ProtectedRoute>} />
+                <Route path="/audit-trail" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><LazyPage><AuditTrail /></LazyPage></ProtectedRoute>} />
+                <Route path="/settings" element={<ProtectedRoute requiredRoles={['admin']}><LazyPage><Settings /></LazyPage></ProtectedRoute>} />
                 
                 {/* Catch-all */}
                 <Route path="*" element={<NotFound />} />

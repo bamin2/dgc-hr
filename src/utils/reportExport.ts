@@ -1,5 +1,4 @@
 import { format } from 'date-fns';
-import jsPDF from 'jspdf';
 import { ReportColumn } from '@/types/reports';
 
 /**
@@ -126,9 +125,11 @@ export interface PDFExportConfig<T extends Record<string, unknown>> {
 }
 
 /**
- * Export data to PDF format
+ * Export data to PDF format - uses dynamic import for reduced initial bundle
  */
-export function exportToPDF<T extends Record<string, unknown>>(config: PDFExportConfig<T>): void {
+export async function exportToPDF<T extends Record<string, unknown>>(config: PDFExportConfig<T>): Promise<void> {
+  const { default: jsPDF } = await import('jspdf');
+  
   const {
     title,
     data,

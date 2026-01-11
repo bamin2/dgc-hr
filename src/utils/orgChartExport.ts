@@ -1,6 +1,3 @@
-import { toPng, toSvg } from 'html-to-image';
-import { jsPDF } from 'jspdf';
-
 const getFormattedDate = () => {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -13,7 +10,9 @@ const downloadFile = (dataUrl: string, filename: string) => {
   link.click();
 };
 
+// Dynamic import of html-to-image for reduced initial bundle
 export async function exportToPng(element: HTMLElement): Promise<void> {
+  const { toPng } = await import('html-to-image');
   const filename = `org-chart-${getFormattedDate()}.png`;
   
   const dataUrl = await toPng(element, {
@@ -26,7 +25,9 @@ export async function exportToPng(element: HTMLElement): Promise<void> {
   downloadFile(dataUrl, filename);
 }
 
+// Dynamic import of html-to-image for reduced initial bundle
 export async function exportToSvg(element: HTMLElement): Promise<void> {
+  const { toSvg } = await import('html-to-image');
   const filename = `org-chart-${getFormattedDate()}.svg`;
   
   const dataUrl = await toSvg(element, {
@@ -37,7 +38,13 @@ export async function exportToSvg(element: HTMLElement): Promise<void> {
   downloadFile(dataUrl, filename);
 }
 
+// Dynamic imports of html-to-image and jsPDF for reduced initial bundle
 export async function exportToPdf(element: HTMLElement): Promise<void> {
+  const [{ toPng }, { jsPDF }] = await Promise.all([
+    import('html-to-image'),
+    import('jspdf'),
+  ]);
+  
   const filename = `org-chart-${getFormattedDate()}.pdf`;
   
   const dataUrl = await toPng(element, {

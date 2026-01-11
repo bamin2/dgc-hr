@@ -1,4 +1,3 @@
-import jsPDF from "jspdf";
 import { PayrollRunEmployee } from "@/hooks/usePayrollRunEmployees";
 import { PayrollRunAdjustment } from "@/hooks/usePayrollRunAdjustments";
 import { format } from "date-fns";
@@ -12,7 +11,9 @@ interface PayslipData {
   companyAddress?: string;
 }
 
-export function generatePayslipPDF(data: PayslipData): jsPDF {
+// Dynamic import of jsPDF for reduced initial bundle
+export async function generatePayslipPDF(data: PayslipData): Promise<InstanceType<typeof import('jspdf').default>> {
+  const { default: jsPDF } = await import('jspdf');
   const doc = new jsPDF();
   const { employee, adjustments, location, payPeriod, companyName, companyAddress } = data;
 
@@ -192,6 +193,7 @@ export async function generateAllPayslips(
   companyName: string,
   companyAddress?: string
 ): Promise<Blob> {
+  const { default: jsPDF } = await import('jspdf');
   const doc = new jsPDF();
   let isFirstPage = true;
 
@@ -204,7 +206,7 @@ export async function generateAllPayslips(
     const employeeAdjustments = adjustments.filter(a => a.employeeId === employee.employeeId);
     
     // Generate the payslip content on the current page
-    const singleDoc = generatePayslipPDF({
+    const singleDoc = await generatePayslipPDF({
       employee,
       adjustments: employeeAdjustments,
       location,
@@ -228,7 +230,7 @@ export async function generateAllPayslips(
   return doc.output("blob");
 }
 
-export function downloadPayslip(
+export async function downloadPayslip(
   employee: PayrollRunEmployee,
   adjustments: PayrollRunAdjustment[],
   location: { name: string; currency: string },
@@ -236,7 +238,7 @@ export function downloadPayslip(
   companyName: string,
   companyAddress?: string
 ) {
-  const doc = generatePayslipPDF({
+  const doc = await generatePayslipPDF({
     employee,
     adjustments,
     location,

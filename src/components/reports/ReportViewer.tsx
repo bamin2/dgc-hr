@@ -46,7 +46,7 @@ export function ReportViewer({
   locationName,
   children,
 }: ReportViewerProps) {
-  const handleExport = (format: ExportFormat) => {
+  const handleExport = async (format: ExportFormat) => {
     const filename = generateReportFilename(title, format === 'pdf' ? 'pdf' : format === 'excel' ? 'xlsx' : 'csv');
     
     if (format === 'csv') {
@@ -54,7 +54,7 @@ export function ReportViewer({
     } else if (format === 'excel') {
       exportToExcel(data, columns, filename);
     } else if (format === 'pdf') {
-      exportToPDF({
+      await exportToPDF({
         title,
         data,
         columns,
