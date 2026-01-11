@@ -2759,36 +2759,45 @@ export type Database = {
       }
       offer_letter_templates: {
         Row: {
-          body_template: string
+          body_template: string | null
           created_at: string
           description: string | null
+          docx_original_filename: string | null
+          docx_template_url: string | null
           id: string
           is_active: boolean
           placeholders_supported: string[] | null
-          subject_template: string
+          subject_template: string | null
           template_name: string
+          template_type: string
           updated_at: string
         }
         Insert: {
-          body_template: string
+          body_template?: string | null
           created_at?: string
           description?: string | null
+          docx_original_filename?: string | null
+          docx_template_url?: string | null
           id?: string
           is_active?: boolean
           placeholders_supported?: string[] | null
-          subject_template?: string
+          subject_template?: string | null
           template_name: string
+          template_type?: string
           updated_at?: string
         }
         Update: {
-          body_template?: string
+          body_template?: string | null
           created_at?: string
           description?: string | null
+          docx_original_filename?: string | null
+          docx_template_url?: string | null
           id?: string
           is_active?: boolean
           placeholders_supported?: string[] | null
-          subject_template?: string
+          subject_template?: string | null
           template_name?: string
+          template_type?: string
           updated_at?: string
         }
         Relationships: []
