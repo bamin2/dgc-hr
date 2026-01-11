@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useCallback, useMemo, ReactNode } from 'react';
 import { format as dateFnsFormat } from 'date-fns';
 import { CompanySettings, companySettings as defaultSettings, currencies } from '@/data/settings';
 import { useCompanySettingsDb } from '@/hooks/useCompanySettingsDb';
@@ -81,8 +81,8 @@ export function CompanySettingsProvider({ children }: { children: ReactNode }) {
     isSaving 
   } = useCompanySettingsDb();
 
-  // Use database settings if available, otherwise default
-  const settings = dbSettings || defaultSettings;
+  // Memoize settings to prevent object recreation on every render
+  const settings = useMemo(() => dbSettings || defaultSettings, [dbSettings]);
 
   // Apply brand color when settings change
   React.useEffect(() => {
@@ -135,19 +135,29 @@ export function CompanySettingsProvider({ children }: { children: ReactNode }) {
     }).format(amount);
   }, []);
 
+  // Memoize context value to prevent unnecessary rerenders of consumers
+  const contextValue = useMemo(() => ({ 
+    settings, 
+    updateSettings, 
+    formatDate, 
+    formatCurrency,
+    formatCurrencyWithCode,
+    getCurrencySymbol,
+    isLoading,
+    isSaving
+  }), [
+    settings, 
+    updateSettings, 
+    formatDate, 
+    formatCurrency,
+    formatCurrencyWithCode,
+    getCurrencySymbol,
+    isLoading,
+    isSaving
+  ]);
+
   return (
-    <CompanySettingsContext.Provider 
-      value={{ 
-        settings, 
-        updateSettings, 
-        formatDate, 
-        formatCurrency,
-        formatCurrencyWithCode,
-        getCurrencySymbol,
-        isLoading,
-        isSaving
-      }}
-    >
+    <CompanySettingsContext.Provider value={contextValue}>
       {children}
     </CompanySettingsContext.Provider>
   );
