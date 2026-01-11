@@ -1,7 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { queryKeys } from "@/lib/queryKeys";
+import { queryPresets } from "@/lib/queryOptions";
 import { 
   fetchEmployeesBase, 
   fetchEmployeeBase, 
@@ -54,6 +55,8 @@ export function useEmployees() {
   return useQuery({
     queryKey: queryKeys.employees.all,
     queryFn: fetchEmployees,
+    placeholderData: keepPreviousData,  // Prevent blank state on filter changes
+    ...queryPresets.userData,
   });
 }
 
@@ -69,6 +72,7 @@ export function useDepartments() {
   return useQuery({
     queryKey: queryKeys.departments.all,
     queryFn: fetchDepartments,
+    ...queryPresets.referenceData,  // Departments rarely change
   });
 }
 
@@ -76,6 +80,7 @@ export function usePositions() {
   return useQuery({
     queryKey: queryKeys.positions.all,
     queryFn: fetchPositions,
+    ...queryPresets.referenceData,  // Positions rarely change
   });
 }
 

@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { queryKeys } from "@/lib/queryKeys";
+import { queryPresets } from "@/lib/queryOptions";
 export interface DocumentTemplate {
   id: string;
   name: string;
@@ -30,6 +31,7 @@ export function useRequestableTemplates() {
       if (error) throw error;
       return data as DocumentTemplate[];
     },
+    ...queryPresets.referenceData,  // Templates rarely change
   });
 }
 
@@ -46,6 +48,7 @@ export function useDocumentTemplates() {
       if (error) throw error;
       return data as DocumentTemplate[];
     },
+    ...queryPresets.referenceData,  // Templates rarely change
   });
 }
 

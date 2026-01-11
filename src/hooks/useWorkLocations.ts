@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Json } from "@/integrations/supabase/types";
 import { queryKeys } from "@/lib/queryKeys";
+import { queryPresets } from "@/lib/queryOptions";
 
 // Type for per-nationality GOSI rates
 export interface GosiNationalityRate {
@@ -84,6 +85,7 @@ export function useWorkLocations() {
   return useQuery({
     queryKey: queryKeys.company.workLocations,
     queryFn: fetchWorkLocationsWithCounts,
+    ...queryPresets.configData,  // Work locations change occasionally
   });
 }
 

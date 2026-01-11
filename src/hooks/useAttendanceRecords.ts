@@ -1,8 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { queryKeys } from '@/lib/queryKeys';
+import { queryPresets } from '@/lib/queryOptions';
 import type { AttendanceRecord, AttendanceStatus, AttendanceRecordFilters } from '@/types/attendance';
 
 // Re-export types for backward compatibility
@@ -50,6 +51,8 @@ export function useAttendanceRecords(options: AttendanceRecordFilters = {}) {
       if (error) throw error;
       return data as AttendanceRecord[];
     },
+    placeholderData: keepPreviousData,  // Prevent blank state on filter changes
+    ...queryPresets.userData,
   });
 }
 

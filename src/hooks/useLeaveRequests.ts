@@ -1,7 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { queryKeys } from '@/lib/queryKeys';
+import { queryPresets } from '@/lib/queryOptions';
 
 export type LeaveRequestStatus = 'pending' | 'approved' | 'rejected';
 
@@ -96,6 +97,8 @@ export function useLeaveRequests(options: UseLeaveRequestsOptions = {}) {
       if (error) throw error;
       return data as LeaveRequest[];
     },
+    placeholderData: keepPreviousData,  // Prevent blank state on filter changes
+    ...queryPresets.userData,
   });
 }
 
