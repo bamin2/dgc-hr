@@ -13,7 +13,7 @@ import { useDepartmentsManagement } from "@/hooks/useDepartmentsManagement";
 import { useWorkLocations, GosiNationalityRate } from "@/hooks/useWorkLocations";
 import { usePositionsManagement } from "@/hooks/usePositionsManagement";
 import { useEmployees } from "@/hooks/useEmployees";
-import { useUpdateOfferVersion, useReviseOffer, useSendOfferLetter, useAcceptOffer, useRejectOffer } from "@/hooks/useOffers";
+import { useCreateOfferVersionFromEdit, useReviseOffer, useSendOfferLetter, useAcceptOffer, useRejectOffer } from "@/hooks/useOffers";
 import type { OfferVersion, Candidate } from "@/hooks/useOffers";
 import { toast } from "sonner";
 import { getCountryCodeByName } from "@/data/countries";
@@ -41,7 +41,7 @@ export function OfferVersionEditor({ version, offerId, candidateId, candidateNat
   const { data: positions } = usePositionsManagement();
   const { data: employees } = useEmployees();
   
-  const updateVersion = useUpdateOfferVersion();
+  const createNewVersion = useCreateOfferVersionFromEdit();
   const reviseOffer = useReviseOffer();
   const sendOfferLetter = useSendOfferLetter();
   const acceptOffer = useAcceptOffer();
@@ -157,11 +157,12 @@ export function OfferVersionEditor({ version, offerId, candidateId, candidateNat
         change_reason: formData.change_reason || null,
       };
 
-      await updateVersion.mutateAsync({
-        versionId: version.id,
+      // Create a new version instead of updating in place
+      await createNewVersion.mutateAsync({
+        offerId,
+        previousVersionId: version.id,
         data: updateData,
       });
-      toast.success("Version saved");
     } catch (error) {
       console.error("Save error:", error);
       toast.error("Failed to save version");
@@ -236,7 +237,7 @@ export function OfferVersionEditor({ version, offerId, candidateId, candidateNat
             <div className="flex gap-2 flex-wrap">
               {version.status === 'draft' && (
                 <>
-                  <Button variant="outline" onClick={handleSave} disabled={updateVersion.isPending}>
+                  <Button variant="outline" onClick={handleSave} disabled={createNewVersion.isPending}>
                     <Save className="h-4 w-4 mr-2" />
                     Save
                   </Button>
