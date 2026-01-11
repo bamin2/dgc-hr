@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Search, Filter, MoreHorizontal, FileText, Archive } from "lucide-react";
+import { Plus, Search, MoreHorizontal, FileText, Archive } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -7,12 +7,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { useCandidates, useArchiveCandidate, type CandidateStatus } from "@/hooks/useCandidates";
-import { useCreateOffer } from "@/hooks/useOffers";
+import { useCandidates, useArchiveCandidate, type CandidateStatus, type Candidate } from "@/hooks/useCandidates";
 import { useDepartmentsManagement } from "@/hooks/useDepartmentsManagement";
-import { useWorkLocations } from "@/hooks/useWorkLocations";
 import { CandidateStatusBadge } from "./CandidateStatusBadge";
 import { CandidateForm } from "./CandidateForm";
+import { CreateOfferWizard } from "../offers/CreateOfferWizard";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 
@@ -22,6 +21,7 @@ export function CandidatesList() {
   const [statusFilter, setStatusFilter] = useState<CandidateStatus | "all">("all");
   const [departmentFilter, setDepartmentFilter] = useState<string>("all");
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
 
   const { data: candidates, isLoading } = useCandidates({
     search,
@@ -29,12 +29,15 @@ export function CandidatesList() {
     department_id: departmentFilter !== "all" ? departmentFilter : undefined,
   });
   const { data: departments } = useDepartmentsManagement();
-  const createOffer = useCreateOffer();
   const archiveCandidate = useArchiveCandidate();
 
-  const handleCreateOffer = async (candidateId: string) => {
-    const offer = await createOffer.mutateAsync(candidateId);
-    navigate(`/hiring/offers/${offer.id}`);
+  const handleCreateOffer = (candidate: Candidate) => {
+    setSelectedCandidate(candidate);
+  };
+
+  const handleOfferCreated = (offerId: string) => {
+    setSelectedCandidate(null);
+    navigate(`/hiring/offers/${offerId}`);
   };
 
   return (
@@ -92,7 +95,7 @@ export function CandidatesList() {
                 <TableHead>Code</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead className="hidden md:table-cell">Email</TableHead>
-                <TableHead className="hidden lg:table-cell">Department</TableHead>
+                <TableHead className="hidden lg:table-cell">Nationality</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="hidden md:table-cell">Updated</TableHead>
                 <TableHead className="w-[50px]"></TableHead>
@@ -122,7 +125,7 @@ export function CandidatesList() {
                       {candidate.email}
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">
-                      {candidate.department?.name || "-"}
+                      {candidate.nationality || "-"}
                     </TableCell>
                     <TableCell>
                       <CandidateStatusBadge status={candidate.status} />
@@ -139,7 +142,7 @@ export function CandidatesList() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem
-                            onClick={() => handleCreateOffer(candidate.id)}
+                            onClick={() => handleCreateOffer(candidate)}
                             disabled={candidate.status === 'archived' || candidate.status === 'offer_accepted'}
                           >
                             <FileText className="h-4 w-4 mr-2" />
@@ -170,6 +173,22 @@ export function CandidatesList() {
             <SheetTitle>Add Candidate</SheetTitle>
           </SheetHeader>
           <CandidateForm onSuccess={() => setIsFormOpen(false)} />
+        </SheetContent>
+      </Sheet>
+
+      {/* Create Offer Wizard Sheet */}
+      <Sheet open={!!selectedCandidate} onOpenChange={(open) => !open && setSelectedCandidate(null)}>
+        <SheetContent className="sm:max-w-xl p-0 flex flex-col">
+          <SheetHeader className="px-6 pt-6 pb-0">
+            <SheetTitle>Create Offer</SheetTitle>
+          </SheetHeader>
+          {selectedCandidate && (
+            <CreateOfferWizard
+              candidate={selectedCandidate}
+              onSuccess={handleOfferCreated}
+              onCancel={() => setSelectedCandidate(null)}
+            />
+          )}
         </SheetContent>
       </Sheet>
     </div>

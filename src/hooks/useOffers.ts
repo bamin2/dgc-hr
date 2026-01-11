@@ -172,20 +172,107 @@ export function useOffer(id: string | undefined) {
   });
 }
 
+export interface CreateOfferData {
+  candidateId: string;
+  work_location_id: string;
+  department_id: string;
+  position_id: string;
+  manager_employee_id?: string;
+  start_date: string;
+  currency_code: string;
+  basic_salary: number;
+  housing_allowance: number;
+  transport_allowance: number;
+  other_allowances: number;
+  deductions_fixed: number;
+}
+
+export function useCreateOfferWithDetails() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: CreateOfferData) => {
+      // Calculate totals
+      const grossTotal = data.basic_salary + data.housing_allowance + 
+        data.transport_allowance + data.other_allowances;
+      const gosiAmount = data.basic_salary * 0.0975; // 9.75% employee GOSI
+      const deductionsTotal = data.deductions_fixed + gosiAmount;
+      const netPayEstimate = grossTotal - deductionsTotal;
+      const employerGosiAmount = data.basic_salary * 0.1175; // 11.75% employer GOSI
+
+      // Create offer
+      const { data: offer, error: offerError } = await supabase
+        .from("offers")
+        .insert({
+          candidate_id: data.candidateId,
+          offer_code: '', // Will be auto-generated
+        })
+        .select()
+        .single();
+
+      if (offerError) throw offerError;
+
+      // Create first version with all details
+      const { data: version, error: versionError } = await supabase
+        .from("offer_versions")
+        .insert({
+          offer_id: offer.id,
+          version_number: 1,
+          status: 'draft',
+          work_location_id: data.work_location_id,
+          department_id: data.department_id,
+          position_id: data.position_id,
+          manager_employee_id: data.manager_employee_id || null,
+          start_date: data.start_date,
+          currency_code: data.currency_code,
+          basic_salary: data.basic_salary,
+          housing_allowance: data.housing_allowance,
+          transport_allowance: data.transport_allowance,
+          other_allowances: data.other_allowances,
+          deductions_fixed: data.deductions_fixed,
+          gross_pay_total: grossTotal,
+          deductions_total: deductionsTotal,
+          net_pay_estimate: netPayEstimate,
+          employer_gosi_amount: employerGosiAmount,
+        })
+        .select()
+        .single();
+
+      if (versionError) throw versionError;
+
+      // Update offer with current version
+      const { error: updateError } = await supabase
+        .from("offers")
+        .update({ current_version_id: version.id })
+        .eq("id", offer.id);
+
+      if (updateError) throw updateError;
+
+      // Update candidate status
+      await supabase
+        .from("candidates")
+        .update({ status: 'in_process' })
+        .eq("id", data.candidateId);
+
+      return offer;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["offers"] });
+      queryClient.invalidateQueries({ queryKey: ["candidates"] });
+      toast.success("Offer created successfully");
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to create offer: ${error.message}`);
+    },
+  });
+}
+
+// Keep old hook for backward compatibility but mark as deprecated
 export function useCreateOffer() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (candidateId: string) => {
-      // Get candidate data to pre-populate offer
-      const { data: candidate, error: candidateError } = await supabase
-        .from("candidates")
-        .select("*")
-        .eq("id", candidateId)
-        .single();
-
-      if (candidateError) throw candidateError;
-
       // Create offer
       const { data: offer, error: offerError } = await supabase
         .from("offers")
@@ -198,18 +285,13 @@ export function useCreateOffer() {
 
       if (offerError) throw offerError;
 
-      // Create first version
+      // Create first version with empty data
       const { data: version, error: versionError } = await supabase
         .from("offer_versions")
         .insert({
           offer_id: offer.id,
           version_number: 1,
           status: 'draft',
-          work_location_id: candidate.work_location_id,
-          department_id: candidate.department_id,
-          position_id: candidate.position_id,
-          manager_employee_id: candidate.manager_employee_id,
-          start_date: candidate.proposed_start_date,
           currency_code: 'SAR',
           basic_salary: 0,
           housing_allowance: 0,
