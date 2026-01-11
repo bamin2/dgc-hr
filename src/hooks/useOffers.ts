@@ -146,7 +146,7 @@ export function useOffer(id: string | undefined) {
           *,
           candidate:candidates(id, candidate_code, first_name, last_name, email, phone, nationality),
           current_version:offer_versions!offers_current_version_id_fkey(*),
-          versions:offer_versions(
+          versions:offer_versions!offer_versions_offer_id_fkey(
             *,
             work_location:work_locations(id, name),
             department:departments(id, name),
