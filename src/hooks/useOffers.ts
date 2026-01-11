@@ -805,6 +805,58 @@ export function useAcceptOffer() {
         // Don't throw - logging is not critical
       }
 
+      // Copy offer letter PDF to employee documents if available
+      if (version.pdf_storage_path) {
+        try {
+          // Download the PDF from storage
+          const { data: pdfData, error: downloadError } = await supabase.storage
+            .from("employee-documents")
+            .download(version.pdf_storage_path);
+
+          if (!downloadError && pdfData) {
+            // Upload to employee's folder with a unique name
+            const employeePdfPath = `${employee.id}/offer-letter-${candidate.first_name}-${candidate.last_name}.pdf`;
+            const { error: uploadError } = await supabase.storage
+              .from("employee-documents")
+              .upload(employeePdfPath, pdfData, { 
+                contentType: "application/pdf",
+                upsert: true 
+              });
+
+            if (!uploadError) {
+              // Create employee document record
+              // Document type ID for "Offer Letter" 
+              const OFFER_LETTER_DOC_TYPE_ID = "2c3db934-ed86-4390-acf3-d6fcec4b6a3c";
+              const { data: userData } = await supabase.auth.getUser();
+              
+              const { error: docError } = await supabase
+                .from("employee_documents")
+                .insert({
+                  employee_id: employee.id,
+                  document_type_id: OFFER_LETTER_DOC_TYPE_ID,
+                  document_name: "Accepted Offer Letter",
+                  file_url: employeePdfPath,
+                  file_name: `offer-letter-${candidate.first_name}-${candidate.last_name}.pdf`,
+                  mime_type: "application/pdf",
+                  visible_to_employee: true,
+                  uploaded_by: userData?.user?.id || null,
+                });
+
+              if (docError) {
+                console.error("Failed to create employee document record:", docError);
+              }
+            } else {
+              console.error("Failed to upload offer letter to employee folder:", uploadError);
+            }
+          } else {
+            console.error("Failed to download offer letter PDF:", downloadError);
+          }
+        } catch (docCopyError) {
+          console.error("Error copying offer letter to employee documents:", docCopyError);
+          // Don't throw - document copy is not critical
+        }
+      }
+
       // Archive the candidate
       await supabase
         .from("candidates")
