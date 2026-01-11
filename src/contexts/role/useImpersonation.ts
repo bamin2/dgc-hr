@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { AppRole, CurrentUser } from '@/data/roles';
 import { ImpersonatedEmployee } from './types';
@@ -74,7 +74,8 @@ export function useImpersonation(
     setCurrentUser(prev => ({ ...prev, role: actualRole }));
   }, [actualRole, setCurrentUser]);
 
-  return {
+  // Memoize return value to prevent object recreation on every render
+  return useMemo(() => ({
     isImpersonating,
     actualRole,
     impersonatedEmployee,
@@ -83,5 +84,14 @@ export function useImpersonation(
     effectiveTeamMemberIds,
     startImpersonation,
     stopImpersonation,
-  };
+  }), [
+    isImpersonating,
+    actualRole,
+    impersonatedEmployee,
+    effectiveRole,
+    effectiveEmployeeId,
+    effectiveTeamMemberIds,
+    startImpersonation,
+    stopImpersonation,
+  ]);
 }

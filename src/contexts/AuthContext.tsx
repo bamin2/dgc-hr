@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -82,68 +82,57 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     });
 
-    // Periodic session validity check every 5 minutes
-    const sessionCheckInterval = setInterval(async () => {
-      const { data: { session: currentSession }, error } = await supabase.auth.getSession();
-      
-      if (error) {
-        console.warn('Session check failed:', error.message);
-      } else if (!currentSession && session) {
-        // Session was lost, update state
-        console.warn('Session expired');
-        setSession(null);
-        setUser(null);
-        setProfile(null);
-      }
-    }, 5 * 60 * 1000);
+    // Note: Removed 5-minute session interval - onAuthStateChange handles
+    // token refresh (TOKEN_REFRESHED) and expiry (SIGNED_OUT) automatically.
+    // The interval had a stale closure bug and was redundant.
 
     return () => {
       subscription.unsubscribe();
-      clearInterval(sessionCheckInterval);
     };
   }, []);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = useCallback(async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
     return { error: error as Error | null };
-  };
+  }, []);
 
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     await supabase.auth.signOut();
     setProfile(null);
-  };
+  }, []);
 
-  const resetPassword = async (email: string) => {
+  const resetPassword = useCallback(async (email: string) => {
     const redirectUrl = `${window.location.origin}/auth/reset-password`;
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: redirectUrl,
     });
     return { error: error as Error | null };
-  };
+  }, []);
 
-  const updatePassword = async (newPassword: string) => {
+  const updatePassword = useCallback(async (newPassword: string) => {
     const { error } = await supabase.auth.updateUser({
       password: newPassword,
     });
     return { error: error as Error | null };
-  };
+  }, []);
+
+  // Memoize context value to prevent unnecessary rerenders of consumers
+  const contextValue = useMemo(() => ({
+    user,
+    session,
+    profile,
+    loading,
+    signIn,
+    signOut,
+    resetPassword,
+    updatePassword,
+  }), [user, session, profile, loading, signIn, signOut, resetPassword, updatePassword]);
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        session,
-        profile,
-        loading,
-        signIn,
-        signOut,
-        resetPassword,
-        updatePassword,
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );
