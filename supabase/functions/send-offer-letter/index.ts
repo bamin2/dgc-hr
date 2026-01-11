@@ -27,7 +27,7 @@ async function sendEmailWithAttachment(
   attachment?: { filename: string; content: string }
 ) {
   const body: Record<string, unknown> = {
-    from: `${fromName} <onboarding@resend.dev>`,
+    from: `${fromName} <noreply@updates.dgcholding.com>`,
     to: [to],
     subject,
     html,
