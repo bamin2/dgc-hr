@@ -12,9 +12,9 @@ const corsHeaders = {
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-// Brand colors
-const BRAND_PRIMARY = "#804EEC";
-const BRAND_PRIMARY_DARK = "#6B3FD4";
+// DGC Brand colors (Gold)
+const BRAND_PRIMARY = "#C6A45E";
+const BRAND_PRIMARY_DARK = "#B8934D";
 
 interface SendPayslipRequest {
   payrollRunId: string;
