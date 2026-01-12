@@ -73,7 +73,7 @@ export function BalanceAdjustmentDialog({
   });
 
   const adjustmentDays = form.watch("adjustment_days");
-  const newTotal = balance.total_days + (adjustmentDays || 0);
+  const newTotal = balance.total_days + (Number(adjustmentDays) || 0);
 
   const onSubmit = async (values: FormValues) => {
     try {
