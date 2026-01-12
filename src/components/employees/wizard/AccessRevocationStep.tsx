@@ -19,7 +19,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ShieldOff, Plus, Trash2, Mail, Cloud, Building, Globe, KeyRound } from "lucide-react";
+import { ShieldOff, Plus, Trash2, Mail, Cloud, Building, Globe, KeyRound, CalendarIcon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format, parseISO } from "date-fns";
+import { cn } from "@/lib/utils";
 import { type AccessSystem, type AccessSystemType, type AccessStatus } from "./OffboardingWizard";
 import { Badge } from "@/components/ui/badge";
 import { useEmployees } from "@/hooks/useEmployees";
@@ -225,14 +229,30 @@ export function AccessRevocationStep({
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Input
-                      type="date"
-                      value={system.revocationDate}
-                      onChange={(e) =>
-                        updateSystem(system.id, "revocationDate", e.target.value)
-                      }
-                      className="h-8 w-36"
-                    />
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className={cn(
+                            "h-8 w-36 justify-start text-left font-normal",
+                            !system.revocationDate && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-3 w-3" />
+                          {system.revocationDate ? format(parseISO(system.revocationDate), "MMM d, yyyy") : "Select"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={system.revocationDate ? parseISO(system.revocationDate) : undefined}
+                          onSelect={(date) => updateSystem(system.id, "revocationDate", date ? format(date, "yyyy-MM-dd") : "")}
+                          initialFocus
+                          className="pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
                   </TableCell>
                   <TableCell>
                     <Select

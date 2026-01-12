@@ -2,6 +2,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -10,7 +11,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { MessageSquare, ClipboardList, Video, FileText, Users } from "lucide-react";
+import { MessageSquare, ClipboardList, Video, FileText, Users, CalendarIcon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format, parseISO } from "date-fns";
+import { cn } from "@/lib/utils";
 import { type ExitInterviewData, type InterviewFormat } from "./OffboardingWizard";
 import { interviewFormatOptions } from "@/hooks/useOffboarding";
 import { useEmployees } from "@/hooks/useEmployees";
@@ -125,14 +130,31 @@ export function ExitInterviewStep({
           {/* Schedule */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="scheduledDate">Interview Date *</Label>
-              <Input
-                id="scheduledDate"
-                type="date"
-                value={interviewData.scheduledDate}
-                onChange={(e) => updateField("scheduledDate", e.target.value)}
-                disabled={interviewData.skipInterview}
-              />
+              <Label>Interview Date *</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !interviewData.scheduledDate && "text-muted-foreground"
+                    )}
+                    disabled={interviewData.skipInterview}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {interviewData.scheduledDate ? format(parseISO(interviewData.scheduledDate), "PPP") : "Select date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={interviewData.scheduledDate ? parseISO(interviewData.scheduledDate) : undefined}
+                    onSelect={(date) => updateField("scheduledDate", date ? format(date, "yyyy-MM-dd") : "")}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
             <div className="space-y-2">
               <Label htmlFor="scheduledTime">Interview Time *</Label>

@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { format, startOfMonth, endOfMonth, addMonths, subMonths } from "date-fns";
-import { Calendar, ChevronLeft, ChevronRight, AlertCircle } from "lucide-react";
+import { format, startOfMonth, endOfMonth, addMonths, subMonths, parseISO } from "date-fns";
+import { Calendar as CalendarIconNav, ChevronLeft, ChevronRight, AlertCircle, CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PayrollRunData } from "@/components/payroll/PayrollRunCard";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 interface PayPeriodStepProps {
   payPeriodStart: string;
@@ -74,7 +76,7 @@ export function PayPeriodStep({
           <ChevronLeft className="h-4 w-4" />
         </Button>
         <div className="flex items-center gap-2 min-w-[150px] justify-center">
-          <Calendar className="h-5 w-5 text-muted-foreground" />
+          <CalendarIconNav className="h-5 w-5 text-muted-foreground" />
           <span className="text-lg font-medium text-foreground">
             {format(selectedMonth, "MMMM yyyy")}
           </span>
@@ -87,22 +89,56 @@ export function PayPeriodStep({
       {/* Custom Date Range */}
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="space-y-2">
-          <Label htmlFor="start-date">Start Date</Label>
-          <Input
-            id="start-date"
-            type="date"
-            value={payPeriodStart}
-            onChange={(e) => onStartChange(e.target.value)}
-          />
+          <Label>Start Date</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-full justify-start text-left font-normal",
+                  !payPeriodStart && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {payPeriodStart ? format(parseISO(payPeriodStart), "PPP") : "Select date"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={payPeriodStart ? parseISO(payPeriodStart) : undefined}
+                onSelect={(date) => onStartChange(date ? format(date, "yyyy-MM-dd") : "")}
+                initialFocus
+                className="pointer-events-auto"
+              />
+            </PopoverContent>
+          </Popover>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="end-date">End Date</Label>
-          <Input
-            id="end-date"
-            type="date"
-            value={payPeriodEnd}
-            onChange={(e) => onEndChange(e.target.value)}
-          />
+          <Label>End Date</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-full justify-start text-left font-normal",
+                  !payPeriodEnd && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {payPeriodEnd ? format(parseISO(payPeriodEnd), "PPP") : "Select date"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={payPeriodEnd ? parseISO(payPeriodEnd) : undefined}
+                onSelect={(date) => onEndChange(date ? format(date, "yyyy-MM-dd") : "")}
+                initialFocus
+                className="pointer-events-auto"
+              />
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
 

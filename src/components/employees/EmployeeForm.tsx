@@ -1,5 +1,9 @@
 import { useState, useEffect, useRef } from "react";
-import { Upload, Loader2, AlertTriangle } from "lucide-react";
+import { Upload, Loader2, AlertTriangle, CalendarIcon } from "lucide-react";
+import { format, parseISO } from "date-fns";
+import { cn } from "@/lib/utils";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -391,13 +395,31 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="dateOfBirth">Date of Birth</Label>
-                  <Input
-                    id="dateOfBirth"
-                    type="date"
-                    value={formData.dateOfBirth}
-                    onChange={(e) => handleChange('dateOfBirth', e.target.value)}
-                  />
+                  <Label>Date of Birth</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !formData.dateOfBirth && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {formData.dateOfBirth ? format(parseISO(formData.dateOfBirth), "PPP") : "Select date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={formData.dateOfBirth ? parseISO(formData.dateOfBirth) : undefined}
+                        onSelect={(date) => handleChange('dateOfBirth', date ? format(date, "yyyy-MM-dd") : "")}
+                        disabled={(date) => date > new Date()}
+                        initialFocus
+                        className="pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="gender">Gender</Label>
@@ -551,13 +573,30 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="joinDate">Hiring Date</Label>
-                  <Input
-                    id="joinDate"
-                    type="date"
-                    value={formData.joinDate}
-                    onChange={(e) => handleChange('joinDate', e.target.value)}
-                  />
+                  <Label>Hiring Date</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !formData.joinDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {formData.joinDate ? format(parseISO(formData.joinDate), "PPP") : "Select date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={formData.joinDate ? parseISO(formData.joinDate) : undefined}
+                        onSelect={(date) => handleChange('joinDate', date ? format(date, "yyyy-MM-dd") : "")}
+                        initialFocus
+                        className="pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
             </div>
