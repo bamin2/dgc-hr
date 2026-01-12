@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { format, differenceInCalendarDays } from "date-fns";
 import { DateRange } from "react-day-picker";
-import { Calendar as CalendarIcon, Clock, Paperclip, Upload, X, Folder, AlertTriangle } from "lucide-react";
+import { Calendar as CalendarIcon, Paperclip, Upload, X, Folder, AlertTriangle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -11,6 +11,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 import {
   Select,
   SelectContent,
@@ -24,10 +26,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { cn } from "@/lib/utils";
 import { useLeaveTypes } from "@/hooks/useLeaveTypes";
 import { useCreateLeaveRequest } from "@/hooks/useLeaveRequests";
 import { useMyLeaveBalances } from "@/hooks/useLeaveBalances";
@@ -176,12 +176,75 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl">Request time off</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-5 mt-4">
+          {/* Leave Balance Summary */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Your Leave Balances</Label>
+            {!myBalances ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-20 w-full" />
+                ))}
+              </div>
+            ) : myBalances.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {myBalances.map((balance) => {
+                  const remaining = balance.total_days - (balance.used_days || 0) - (balance.pending_days || 0);
+                  const isLow = remaining > 0 && remaining <= 2;
+                  const isNegativeOrZero = remaining <= 0;
+                  const isSelected = balance.leave_type_id === leaveTypeId;
+                  
+                  return (
+                    <div
+                      key={balance.id}
+                      className={cn(
+                        "p-3 rounded-lg border cursor-pointer transition-all",
+                        isSelected 
+                          ? "border-primary bg-primary/5 ring-1 ring-primary" 
+                          : "hover:border-muted-foreground/50",
+                        !isSelected && isLow && "border-amber-300 bg-amber-50 dark:bg-amber-950/30",
+                        !isSelected && isNegativeOrZero && "border-red-300 bg-red-50 dark:bg-red-950/30"
+                      )}
+                      onClick={() => setLeaveTypeId(balance.leave_type_id)}
+                    >
+                      <div className="flex items-center gap-2 mb-1">
+                        <div
+                          className="w-2 h-2 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: balance.leave_type?.color || '#6b7280' }}
+                        />
+                        <span className="text-xs font-medium truncate">
+                          {balance.leave_type?.name}
+                        </span>
+                      </div>
+                      <div className={cn(
+                        "text-lg font-bold",
+                        isNegativeOrZero && "text-red-600 dark:text-red-400",
+                        isLow && "text-amber-600 dark:text-amber-400"
+                      )}>
+                        {remaining.toFixed(remaining % 1 === 0 ? 0 : 1)}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        of {balance.total_days} days
+                      </div>
+                      {(balance.pending_days || 0) > 0 && (
+                        <div className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                          {balance.pending_days} pending
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No leave balances found for this year.</p>
+            )}
+          </div>
+
           {/* Time off type */}
           <div className="space-y-2">
             <Label>Time off type</Label>
