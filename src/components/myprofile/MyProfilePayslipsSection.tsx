@@ -12,7 +12,7 @@ interface MyProfilePayslipsSectionProps {
 }
 
 export function MyProfilePayslipsSection({ employeeId }: MyProfilePayslipsSectionProps) {
-  const { data: payslips, isLoading } = useMyPayslips(employeeId);
+  const { data: payslips, isLoading, isError } = useMyPayslips(employeeId);
   const navigate = useNavigate();
 
   const formatCurrency = (amount: number, currency: string) => {
@@ -55,6 +55,28 @@ export function MyProfilePayslipsSection({ employeeId }: MyProfilePayslipsSectio
           {[1, 2, 3].map((i) => (
             <Skeleton key={i} className="h-16 w-full" />
           ))}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-medium flex items-center gap-2">
+            <Receipt className="h-4 w-4 text-primary" />
+            Payslips
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-8 text-center">
+          <Inbox className="h-12 w-12 text-destructive/30 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-muted-foreground">
+            Could not load payslips
+          </h3>
+          <p className="text-sm text-muted-foreground/70 mt-1">
+            Please try refreshing the page.
+          </p>
         </CardContent>
       </Card>
     );
