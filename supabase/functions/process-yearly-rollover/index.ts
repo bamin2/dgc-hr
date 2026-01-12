@@ -8,6 +8,7 @@ const corsHeaders = {
 
 interface RolloverResult {
   balancesCreated: number;
+  balancesUpdated: number;
   carryoversApplied: number;
   errors: string[];
 }
@@ -103,6 +104,7 @@ Deno.serve(async (req) => {
 
     const result: RolloverResult = {
       balancesCreated: 0,
+      balancesUpdated: 0,
       carryoversApplied: 0,
       errors: [],
     };
@@ -127,22 +129,25 @@ Deno.serve(async (req) => {
 
     console.log(`Found ${currentBalances?.length || 0} balances for ${fromYear}`);
 
-    // Check for existing balances in toYear
+    // Check for existing balances in toYear (include id and total_days for updates)
     const { data: existingNextYearBalances, error: existError } = await supabase
       .from("leave_balances")
-      .select("employee_id, leave_type_id")
+      .select("id, employee_id, leave_type_id, total_days")
       .eq("year", toYear);
 
     if (existError) throw existError;
 
-    const existingSet = new Set(
-      existingNextYearBalances?.map(
-        (b) => `${b.employee_id}-${b.leave_type_id}`
-      ) || []
+    // Create a map for quick lookup of existing balances
+    const existingBalanceMap = new Map(
+      existingNextYearBalances?.map((b) => [
+        `${b.employee_id}-${b.leave_type_id}`,
+        b,
+      ]) || []
     );
 
     // Process each current balance
     const balancesToCreate: any[] = [];
+    const balancesToUpdate: { id: string; new_total: number; carryover: number }[] = [];
     const adjustmentsToCreate: any[] = [];
 
     for (const balance of currentBalances || []) {
@@ -150,24 +155,54 @@ Deno.serve(async (req) => {
       if (!leaveType) continue;
 
       const key = `${balance.employee_id}-${balance.leave_type_id}`;
-      if (existingSet.has(key)) {
-        console.log(`Skipping ${key} - already exists for ${toYear}`);
+
+      // Calculate remaining days (can be negative)
+      const remaining = (balance.total_days || 0) - (balance.used_days || 0);
+
+      // Calculate carryover amount (handles both positive and negative)
+      let carryover = 0;
+      if (leaveType.allow_carryover) {
+        if (remaining > 0) {
+          // Positive carryover: cap by max_carryover_days if set
+          carryover = leaveType.max_carryover_days
+            ? Math.min(remaining, leaveType.max_carryover_days)
+            : remaining;
+        } else if (remaining < 0) {
+          // Negative carryover (debt): always carry forward in full
+          carryover = remaining;
+        }
+      }
+
+      // Check if balance already exists for next year
+      const existingBalance = existingBalanceMap.get(key);
+
+      if (existingBalance) {
+        // Update existing balance with carryover if there's anything to carry
+        if (carryover !== 0) {
+          balancesToUpdate.push({
+            id: existingBalance.id,
+            new_total: existingBalance.total_days + carryover,
+            carryover,
+          });
+
+          // Create carryover adjustment record
+          adjustmentsToCreate.push({
+            leave_balance_id: balance.id,
+            employee_id: balance.employee_id,
+            leave_type_id: balance.leave_type_id,
+            adjustment_days: carryover,
+            adjustment_type: "carryover",
+            reason: `Carryover from ${fromYear} (${remaining} days remaining, ${carryover} days carried over)`,
+          });
+
+          console.log(`Will update ${key} - adding ${carryover} days carryover to existing ${toYear} balance`);
+        } else {
+          console.log(`Skipping ${key} - already exists for ${toYear} and no carryover to apply`);
+        }
         continue;
       }
 
-      // Calculate remaining days
-      const remaining =
-        (balance.total_days || 0) - (balance.used_days || 0);
-
-      // Calculate carryover amount
-      let carryover = 0;
-      if (leaveType.allow_carryover && remaining > 0) {
-        carryover = leaveType.max_carryover_days
-          ? Math.min(remaining, leaveType.max_carryover_days)
-          : remaining;
-      }
-
-      // Base allocation for next year
+      // Create new balance for next year
       const baseAllocation = leaveType.max_days_per_year || 0;
       const totalDays = baseAllocation + carryover;
 
@@ -180,10 +215,10 @@ Deno.serve(async (req) => {
         pending_days: 0,
       });
 
-      // Create carryover adjustment record
-      if (carryover > 0) {
+      // Create carryover adjustment record if there was carryover
+      if (carryover !== 0) {
         adjustmentsToCreate.push({
-          leave_balance_id: balance.id, // Reference to the source balance
+          leave_balance_id: balance.id,
           employee_id: balance.employee_id,
           leave_type_id: balance.leave_type_id,
           adjustment_days: carryover,
@@ -205,6 +240,23 @@ Deno.serve(async (req) => {
         result.balancesCreated = balancesToCreate.length;
         console.log(`Created ${balancesToCreate.length} new balances`);
       }
+    }
+
+    // Update existing balances with carryover
+    if (balancesToUpdate.length > 0) {
+      for (const update of balancesToUpdate) {
+        const { error: updateError } = await supabase
+          .from("leave_balances")
+          .update({ total_days: update.new_total })
+          .eq("id", update.id);
+
+        if (updateError) {
+          result.errors.push(`Failed to update balance ${update.id}: ${updateError.message}`);
+        } else {
+          result.balancesUpdated++;
+        }
+      }
+      console.log(`Updated ${result.balancesUpdated} existing balances with carryover`);
     }
 
     // Insert carryover adjustments
