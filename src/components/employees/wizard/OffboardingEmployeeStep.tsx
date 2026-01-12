@@ -1,6 +1,6 @@
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -9,7 +9,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, User } from "lucide-react";
+import { Calendar as CalendarIcon, User } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format, parseISO } from "date-fns";
+import { cn } from "@/lib/utils";
 import {
   type EmployeeDepartureData,
   type DepartureReason,
@@ -89,13 +93,30 @@ export function OffboardingEmployeeStep({
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="lastWorkingDay">Last Working Day *</Label>
-              <Input
-                id="lastWorkingDay"
-                type="date"
-                value={departureData.lastWorkingDay}
-                onChange={(e) => updateField("lastWorkingDay", e.target.value)}
-              />
+              <Label>Last Working Day *</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !departureData.lastWorkingDay && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {departureData.lastWorkingDay ? format(parseISO(departureData.lastWorkingDay), "PPP") : "Select date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={departureData.lastWorkingDay ? parseISO(departureData.lastWorkingDay) : undefined}
+                    onSelect={(date) => updateField("lastWorkingDay", date ? format(date, "yyyy-MM-dd") : "")}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div className="space-y-2">

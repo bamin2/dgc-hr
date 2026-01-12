@@ -332,12 +332,35 @@ export function OfferVersionEditor({ version, offerId, candidateId, candidateNat
 
           <div className="space-y-2">
             <Label>Start Date</Label>
-            <Input 
-              type="date" 
-              value={formData.start_date} 
-              onChange={(e) => setFormData(p => ({ ...p, start_date: e.target.value }))}
-              disabled={isReadOnly}
-            />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !formData.start_date && "text-muted-foreground"
+                  )}
+                  disabled={isReadOnly}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {formData.start_date 
+                    ? format(new Date(formData.start_date), "PPP") 
+                    : "Select start date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={formData.start_date ? new Date(formData.start_date) : undefined}
+                  onSelect={(date) => setFormData(p => ({ 
+                    ...p, 
+                    start_date: date ? format(date, "yyyy-MM-dd") : "" 
+                  }))}
+                  initialFocus
+                  className="pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div className="space-y-2">

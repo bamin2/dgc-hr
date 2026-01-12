@@ -8,6 +8,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 import {
   Table,
   TableBody,
@@ -32,8 +35,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Pencil, Trash2, AlertTriangle, RefreshCw } from 'lucide-react';
-import { format } from 'date-fns';
+import { Plus, Pencil, Trash2, AlertTriangle, RefreshCw, CalendarIcon } from 'lucide-react';
+import { format, parseISO } from 'date-fns';
 import {
   useFxRates,
   useCreateFxRate,
@@ -226,14 +229,30 @@ export function FxRatesSection() {
                       </p>
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="effective_date">Effective Date</Label>
-                      <Input
-                        id="effective_date"
-                        type="date"
-                        value={formData.effective_date}
-                        onChange={(e) => setFormData({ ...formData, effective_date: e.target.value })}
-                        required
-                      />
+                      <Label>Effective Date</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !formData.effective_date && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {formData.effective_date ? format(parseISO(formData.effective_date), "PPP") : "Select date"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={formData.effective_date ? parseISO(formData.effective_date) : undefined}
+                            onSelect={(date) => setFormData({ ...formData, effective_date: date ? format(date, "yyyy-MM-dd") : "" })}
+                            initialFocus
+                            className="pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
                     </div>
                   </div>
                   <DialogFooter>
