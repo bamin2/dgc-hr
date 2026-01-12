@@ -14,7 +14,7 @@ export const EMPLOYEE_SELECT_QUERY = `
   *,
   department:departments!employees_department_id_fkey(id, name),
   position:positions!employees_position_id_fkey(id, title),
-  manager:employees!manager_id(id, first_name, last_name),
+  manager(id, first_name, last_name),
   work_location:work_locations!employees_work_location_id_fkey(id, name, country)
 `;
 
@@ -23,7 +23,7 @@ export const EMPLOYEE_SELECT_QUERY_MINIMAL = `
   *,
   department:departments!employees_department_id_fkey(id, name),
   position:positions!employees_position_id_fkey(id, title),
-  manager:employees!manager_id(id, first_name, last_name)
+  manager(id, first_name, last_name)
 `;
 
 // Shared fetch function for all employees

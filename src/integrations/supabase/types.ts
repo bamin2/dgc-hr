@@ -1559,6 +1559,104 @@ export type Database = {
           work_location: string | null
           work_location_id: string | null
           worker_type: Database["public"]["Enums"]["worker_type"] | null
+          direct_reports: {
+            address: string | null
+            avatar_url: string | null
+            bank_account_number: string | null
+            bank_name: string | null
+            country: string | null
+            cpr_number: string | null
+            created_at: string
+            date_of_birth: string | null
+            department_id: string | null
+            email: string
+            emergency_contact_name: string | null
+            emergency_contact_phone: string | null
+            emergency_contact_relationship: string | null
+            employee_code: string | null
+            employment_type:
+              | Database["public"]["Enums"]["employment_type"]
+              | null
+            first_name: string
+            full_name: string | null
+            gender: Database["public"]["Enums"]["gender_type"] | null
+            gosi_registered_salary: number | null
+            iban: string | null
+            id: string
+            import_batch_id: string | null
+            is_subject_to_gosi: boolean | null
+            join_date: string | null
+            last_name: string
+            location: string | null
+            manager_id: string | null
+            nationality: string | null
+            offer_letter_template: string | null
+            passport_number: string | null
+            pay_frequency: Database["public"]["Enums"]["pay_frequency"] | null
+            phone: string | null
+            position_id: string | null
+            preferred_name: string | null
+            salary: number | null
+            salary_currency_code: string | null
+            second_name: string | null
+            send_offer_letter: boolean | null
+            status: Database["public"]["Enums"]["employee_status"]
+            tax_exemption_status: string | null
+            updated_at: string
+            user_id: string | null
+            work_location: string | null
+            work_location_id: string | null
+            worker_type: Database["public"]["Enums"]["worker_type"] | null
+          } | null
+          manager: {
+            address: string | null
+            avatar_url: string | null
+            bank_account_number: string | null
+            bank_name: string | null
+            country: string | null
+            cpr_number: string | null
+            created_at: string
+            date_of_birth: string | null
+            department_id: string | null
+            email: string
+            emergency_contact_name: string | null
+            emergency_contact_phone: string | null
+            emergency_contact_relationship: string | null
+            employee_code: string | null
+            employment_type:
+              | Database["public"]["Enums"]["employment_type"]
+              | null
+            first_name: string
+            full_name: string | null
+            gender: Database["public"]["Enums"]["gender_type"] | null
+            gosi_registered_salary: number | null
+            iban: string | null
+            id: string
+            import_batch_id: string | null
+            is_subject_to_gosi: boolean | null
+            join_date: string | null
+            last_name: string
+            location: string | null
+            manager_id: string | null
+            nationality: string | null
+            offer_letter_template: string | null
+            passport_number: string | null
+            pay_frequency: Database["public"]["Enums"]["pay_frequency"] | null
+            phone: string | null
+            position_id: string | null
+            preferred_name: string | null
+            salary: number | null
+            salary_currency_code: string | null
+            second_name: string | null
+            send_offer_letter: boolean | null
+            status: Database["public"]["Enums"]["employee_status"]
+            tax_exemption_status: string | null
+            updated_at: string
+            user_id: string | null
+            work_location: string | null
+            work_location_id: string | null
+            worker_type: Database["public"]["Enums"]["worker_type"] | null
+          } | null
         }
         Insert: {
           address?: string | null
@@ -4202,6 +4300,62 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      direct_reports: {
+        Args: { "": Database["public"]["Tables"]["employees"]["Row"] }
+        Returns: {
+          address: string | null
+          avatar_url: string | null
+          bank_account_number: string | null
+          bank_name: string | null
+          country: string | null
+          cpr_number: string | null
+          created_at: string
+          date_of_birth: string | null
+          department_id: string | null
+          email: string
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          emergency_contact_relationship: string | null
+          employee_code: string | null
+          employment_type: Database["public"]["Enums"]["employment_type"] | null
+          first_name: string
+          full_name: string | null
+          gender: Database["public"]["Enums"]["gender_type"] | null
+          gosi_registered_salary: number | null
+          iban: string | null
+          id: string
+          import_batch_id: string | null
+          is_subject_to_gosi: boolean | null
+          join_date: string | null
+          last_name: string
+          location: string | null
+          manager_id: string | null
+          nationality: string | null
+          offer_letter_template: string | null
+          passport_number: string | null
+          pay_frequency: Database["public"]["Enums"]["pay_frequency"] | null
+          phone: string | null
+          position_id: string | null
+          preferred_name: string | null
+          salary: number | null
+          salary_currency_code: string | null
+          second_name: string | null
+          send_offer_letter: boolean | null
+          status: Database["public"]["Enums"]["employee_status"]
+          tax_exemption_status: string | null
+          updated_at: string
+          user_id: string | null
+          work_location: string | null
+          work_location_id: string | null
+          worker_type: Database["public"]["Enums"]["worker_type"] | null
+        }[]
+        SetofOptions: {
+          from: "employees"
+          to: "employees"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       generate_loan_installments: {
         Args: { loan_uuid: string }
         Returns: undefined
@@ -4264,6 +4418,62 @@ export type Database = {
       is_project_owner: {
         Args: { p_employee_id: string; p_project_id: string }
         Returns: boolean
+      }
+      manager: {
+        Args: { "": Database["public"]["Tables"]["employees"]["Row"] }
+        Returns: {
+          address: string | null
+          avatar_url: string | null
+          bank_account_number: string | null
+          bank_name: string | null
+          country: string | null
+          cpr_number: string | null
+          created_at: string
+          date_of_birth: string | null
+          department_id: string | null
+          email: string
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          emergency_contact_relationship: string | null
+          employee_code: string | null
+          employment_type: Database["public"]["Enums"]["employment_type"] | null
+          first_name: string
+          full_name: string | null
+          gender: Database["public"]["Enums"]["gender_type"] | null
+          gosi_registered_salary: number | null
+          iban: string | null
+          id: string
+          import_batch_id: string | null
+          is_subject_to_gosi: boolean | null
+          join_date: string | null
+          last_name: string
+          location: string | null
+          manager_id: string | null
+          nationality: string | null
+          offer_letter_template: string | null
+          passport_number: string | null
+          pay_frequency: Database["public"]["Enums"]["pay_frequency"] | null
+          phone: string | null
+          position_id: string | null
+          preferred_name: string | null
+          salary: number | null
+          salary_currency_code: string | null
+          second_name: string | null
+          send_offer_letter: boolean | null
+          status: Database["public"]["Enums"]["employee_status"]
+          tax_exemption_status: string | null
+          updated_at: string
+          user_id: string | null
+          work_location: string | null
+          work_location_id: string | null
+          worker_type: Database["public"]["Enums"]["worker_type"] | null
+        }
+        SetofOptions: {
+          from: "employees"
+          to: "employees"
+          isOneToOne: true
+          isSetofReturn: true
+        }
       }
     }
     Enums: {
