@@ -15,6 +15,7 @@ export { AttendanceOverview } from "./AttendanceOverview";
 export { ImpersonationBanner } from "./ImpersonationBanner";
 export { DashboardRenderer } from "./DashboardRenderer";
 export { DashboardLayout } from "./DashboardLayout";
+export { DashboardPageLoader } from "./DashboardPageLoader";
 
 // Section exports
 export * from "./personal";
