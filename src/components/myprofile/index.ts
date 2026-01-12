@@ -6,3 +6,4 @@ export { MyProfileCompensationTab } from './MyProfileCompensationTab';
 export { MyProfileDocumentsTab } from './MyProfileDocumentsTab';
 export { MyProfileTimeOffTab } from './MyProfileTimeOffTab';
 export { MyProfileLoansTab } from './MyProfileLoansTab';
+export { MyProfilePayslipsSection } from './MyProfilePayslipsSection';
