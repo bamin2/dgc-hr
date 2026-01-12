@@ -53,6 +53,7 @@ export function useLeaveTypes() {
         .from('leave_types')
         .select('*')
         .eq('is_active', true)
+        .eq('visible_to_employees', true)
         .order('name');
 
       if (error) throw error;
