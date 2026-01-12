@@ -62,15 +62,17 @@ export function useMyLeaveBalances(year?: number) {
         .from('leave_balances')
         .select(`
           *,
-          leave_type:leave_types (
+          leave_type:leave_types!inner (
             id,
             name,
             color,
-            is_paid
+            is_paid,
+            visible_to_employees
           )
         `)
         .eq('employee_id', profile.employee_id)
-        .eq('year', currentYear);
+        .eq('year', currentYear)
+        .eq('leave_type.visible_to_employees', true);
 
       if (error) throw error;
       return data as LeaveBalance[];
