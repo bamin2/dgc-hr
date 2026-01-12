@@ -15,7 +15,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { format } from 'date-fns';
-import { DollarSign, Users, TrendingUp, Wallet, AlertTriangle } from 'lucide-react';
+import { DollarSign, Users, TrendingUp, Wallet } from 'lucide-react';
+import { CurrencyViewToggle, CurrencyViewMode } from '../CurrencyViewToggle';
+import { useFxRatesForCurrencies, convertToBaseCurrency, getMissingRateCurrencies } from '@/hooks/useFxRates';
 
 const columns: ReportColumn<PayrollRunSummary>[] = [
   { key: 'payPeriodStart', header: 'Pay Period Start', format: 'date' },
@@ -33,22 +35,85 @@ const columns: ReportColumn<PayrollRunSummary>[] = [
 
 export function PayrollRunSummaryReport() {
   const [filters, setFilters] = useState<ReportFilters>({});
+  const [viewMode, setViewMode] = useState<CurrencyViewMode>('local');
   const { data = [], isLoading, refetch } = usePayrollRunSummary(filters);
   const { settings } = useCompanySettings();
 
-  // Check if there are mixed currencies in totals
+  const reportingCurrency = settings?.branding?.reportingCurrency || 'BHD';
+
+  // Get unique currencies from data (excluding reporting currency)
+  const currencies = useMemo(() => {
+    const uniqueCurrencies = [...new Set(data.map(r => r.currencyCode))];
+    return uniqueCurrencies.filter(c => c && c !== reportingCurrency);
+  }, [data, reportingCurrency]);
+
+  // Fetch FX rates for all currencies
+  const { data: fxRatesMap } = useFxRatesForCurrencies(currencies);
+
+  // Check for missing rates
+  const missingRates = useMemo(() => {
+    if (!fxRatesMap) return currencies;
+    return getMissingRateCurrencies(currencies, fxRatesMap);
+  }, [currencies, fxRatesMap]);
+
+  // Get the FX rate info for display
+  const fxRateInfo = useMemo(() => {
+    if (!fxRatesMap || currencies.length === 0) return null;
+    const firstCurrency = currencies[0];
+    const rateInfo = fxRatesMap.get(firstCurrency);
+    if (!rateInfo) return null;
+    return {
+      currency: firstCurrency,
+      rate: rateInfo.rate,
+      effectiveDate: rateInfo.effectiveDate,
+    };
+  }, [fxRatesMap, currencies]);
+
+  // Convert data to reporting currency if needed
+  const displayData = useMemo(() => {
+    if (viewMode === 'local' || !fxRatesMap) return data;
+
+    return data.map(row => {
+      if (row.currencyCode === reportingCurrency) return row;
+
+      const grossConv = convertToBaseCurrency(row.totalGross, row.currencyCode, fxRatesMap);
+      const deductionsConv = convertToBaseCurrency(row.totalDeductions, row.currencyCode, fxRatesMap);
+      const netPayConv = convertToBaseCurrency(row.totalNetPay, row.currencyCode, fxRatesMap);
+      const empGosiConv = convertToBaseCurrency(row.employeeGosiTotal, row.currencyCode, fxRatesMap);
+      const emprGosiConv = convertToBaseCurrency(row.employerGosiTotal, row.currencyCode, fxRatesMap);
+      const loanConv = convertToBaseCurrency(row.loanDeductionsTotal, row.currencyCode, fxRatesMap);
+
+      if (!grossConv) return row;
+
+      return {
+        ...row,
+        totalGross: grossConv.convertedAmount,
+        totalDeductions: deductionsConv?.convertedAmount ?? row.totalDeductions,
+        totalNetPay: netPayConv?.convertedAmount ?? row.totalNetPay,
+        employeeGosiTotal: empGosiConv?.convertedAmount ?? row.employeeGosiTotal,
+        employerGosiTotal: emprGosiConv?.convertedAmount ?? row.employerGosiTotal,
+        loanDeductionsTotal: loanConv?.convertedAmount ?? row.loanDeductionsTotal,
+        currencyCode: reportingCurrency,
+        hasMixedCurrencies: false,
+      };
+    });
+  }, [data, viewMode, fxRatesMap, reportingCurrency]);
+
+  // Check if there are mixed currencies in totals (only in local mode)
   const hasMixedCurrencies = useMemo(() => {
+    if (viewMode === 'reporting') return false;
     const currencies = new Set(data.map(r => r.currencyCode));
     return currencies.size > 1;
-  }, [data]);
+  }, [data, viewMode]);
 
   // Get single currency for display if all same
   const singleCurrency = useMemo(() => {
+    if (viewMode === 'reporting') return reportingCurrency;
     if (hasMixedCurrencies) return null;
     return data.length > 0 ? data[0].currencyCode : 'BHD';
-  }, [data, hasMixedCurrencies]);
+  }, [data, hasMixedCurrencies, viewMode, reportingCurrency]);
 
-  const totals = data.reduce(
+  const totals = displayData.reduce(
     (acc, run) => ({
       employees: acc.employees + run.employeeCount,
       gross: acc.gross + run.totalGross,
@@ -93,12 +158,6 @@ export function PayrollRunSummaryReport() {
             <div>
               <p className="text-sm text-muted-foreground">Total Gross</p>
               <p className="text-2xl font-bold">{formatTotalAmount(totals.gross)}</p>
-              {hasMixedCurrencies && (
-                <Badge variant="outline" className="text-xs mt-1">
-                  <AlertTriangle className="h-3 w-3 mr-1" />
-                  Mixed Currencies
-                </Badge>
-              )}
             </div>
           </div>
         </CardContent>
@@ -138,7 +197,7 @@ export function PayrollRunSummaryReport() {
       description="Summary of payroll runs with totals for gross, deductions, net pay, and GOSI contributions"
       filters={filters}
       onFiltersChange={setFilters}
-      data={data}
+      data={displayData}
       columns={columns}
       isLoading={isLoading}
       onRefresh={() => refetch()}
@@ -146,6 +205,16 @@ export function PayrollRunSummaryReport() {
       exportFormats={['excel', 'csv', 'pdf']}
       companyName={settings?.name}
     >
+      <div className="mb-4">
+        <CurrencyViewToggle
+          mode={viewMode}
+          onModeChange={setViewMode}
+          reportingCurrency={reportingCurrency}
+          fxRateInfo={fxRateInfo}
+          missingRateCurrencies={missingRates}
+        />
+      </div>
+
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
@@ -158,7 +227,7 @@ export function PayrollRunSummaryReport() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.map((row) => (
+            {displayData.map((row) => (
               <TableRow key={row.id}>
                 <TableCell>{format(new Date(row.payPeriodStart), 'MMM d, yyyy')}</TableCell>
                 <TableCell>{format(new Date(row.payPeriodEnd), 'MMM d, yyyy')}</TableCell>
@@ -179,7 +248,7 @@ export function PayrollRunSummaryReport() {
                 <TableCell className="text-right">{formatAmount(row.loanDeductionsTotal, row.currencyCode)}</TableCell>
               </TableRow>
             ))}
-            {data.length === 0 && !isLoading && (
+            {displayData.length === 0 && !isLoading && (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
                   No payroll runs found.

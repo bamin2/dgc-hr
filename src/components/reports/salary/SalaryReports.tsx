@@ -13,7 +13,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { format } from 'date-fns';
-import { CurrencyViewToggle, CurrencyViewMode } from './CurrencyViewToggle';
+import { CurrencyViewToggle, CurrencyViewMode } from '../CurrencyViewToggle';
 import { formatCurrencyWithCode } from '@/lib/salaryUtils';
 import { useFxRatesForCurrencies, convertToBaseCurrency, getMissingRateCurrencies } from '@/hooks/useFxRates';
 
@@ -181,8 +181,62 @@ export function SalaryDistributionReport() {
 
 export function SalaryChangeHistoryReport() {
   const [filters, setFilters] = useState<ReportFilters>({});
+  const [viewMode, setViewMode] = useState<CurrencyViewMode>('local');
   const { data = [], isLoading, error, refetch } = useSalaryChangeHistory(filters);
   const { settings } = useCompanySettings();
+
+  const reportingCurrency = settings?.branding?.reportingCurrency || 'BHD';
+
+  // Get unique currencies from data (excluding reporting currency)
+  const currencies = useMemo(() => {
+    const uniqueCurrencies = [...new Set(data.map(r => r.currencyCode))];
+    return uniqueCurrencies.filter(c => c && c !== reportingCurrency);
+  }, [data, reportingCurrency]);
+
+  // Fetch FX rates for all currencies
+  const { data: fxRatesMap } = useFxRatesForCurrencies(currencies);
+
+  // Check for missing rates
+  const missingRates = useMemo(() => {
+    if (!fxRatesMap) return currencies;
+    return getMissingRateCurrencies(currencies, fxRatesMap);
+  }, [currencies, fxRatesMap]);
+
+  // Get the FX rate info for display
+  const fxRateInfo = useMemo(() => {
+    if (!fxRatesMap || currencies.length === 0) return null;
+    const firstCurrency = currencies[0];
+    const rateInfo = fxRatesMap.get(firstCurrency);
+    if (!rateInfo) return null;
+    return {
+      currency: firstCurrency,
+      rate: rateInfo.rate,
+      effectiveDate: rateInfo.effectiveDate,
+    };
+  }, [fxRatesMap, currencies]);
+
+  // Convert data to reporting currency if needed
+  const displayData = useMemo(() => {
+    if (viewMode === 'local' || !fxRatesMap) return data;
+
+    return data.map(row => {
+      if (row.currencyCode === reportingCurrency) return row;
+
+      const prevConv = convertToBaseCurrency(row.previousSalary, row.currencyCode, fxRatesMap);
+      const newConv = convertToBaseCurrency(row.newSalary, row.currencyCode, fxRatesMap);
+      const changeConv = convertToBaseCurrency(row.changeAmount, row.currencyCode, fxRatesMap);
+
+      if (!prevConv || !newConv || !changeConv) return row;
+
+      return {
+        ...row,
+        previousSalary: prevConv.convertedAmount,
+        newSalary: newConv.convertedAmount,
+        changeAmount: changeConv.convertedAmount,
+        currencyCode: reportingCurrency,
+      };
+    });
+  }, [data, viewMode, fxRatesMap, reportingCurrency]);
 
   const formatAmount = (amount: number, currencyCode: string) => {
     return formatCurrencyWithCode(amount, currencyCode);
@@ -194,13 +248,23 @@ export function SalaryChangeHistoryReport() {
       description="Historical record of all salary changes with before/after values and change reasons"
       filters={filters}
       onFiltersChange={setFilters}
-      data={data}
+      data={displayData}
       columns={changeColumns}
       isLoading={isLoading}
       onRefresh={() => refetch()}
       exportFormats={['excel', 'csv']}
       companyName={settings?.name}
     >
+      <div className="mb-4">
+        <CurrencyViewToggle
+          mode={viewMode}
+          onModeChange={setViewMode}
+          reportingCurrency={reportingCurrency}
+          fxRateInfo={fxRateInfo}
+          missingRateCurrencies={missingRates}
+        />
+      </div>
+
       {error && (
         <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 mb-4">
           <p className="text-destructive font-medium">Error loading salary change history:</p>
@@ -219,7 +283,7 @@ export function SalaryChangeHistoryReport() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.map((row, idx) => (
+            {displayData.map((row, idx) => (
               <TableRow key={`${row.employeeId}-${row.effectiveDate}-${idx}`}>
                 <TableCell>{row.employeeCode}</TableCell>
                 <TableCell>{row.employeeName}</TableCell>
@@ -237,7 +301,7 @@ export function SalaryChangeHistoryReport() {
                 <TableCell className="capitalize">{row.changeType?.replace('_', ' ') || '-'}</TableCell>
               </TableRow>
             ))}
-            {data.length === 0 && !isLoading && (
+            {displayData.length === 0 && !isLoading && (
               <TableRow>
                 <TableCell colSpan={changeColumns.length} className="h-24 text-center text-muted-foreground">
                   No salary changes found.
