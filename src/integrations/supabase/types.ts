@@ -2173,6 +2173,7 @@ export type Database = {
           leave_type_id: string
           reason: string | null
           rejection_reason: string | null
+          results_in_negative_balance: boolean | null
           reviewed_at: string | null
           reviewed_by: string | null
           start_date: string
@@ -2190,6 +2191,7 @@ export type Database = {
           leave_type_id: string
           reason?: string | null
           rejection_reason?: string | null
+          results_in_negative_balance?: boolean | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           start_date: string
@@ -2207,6 +2209,7 @@ export type Database = {
           leave_type_id?: string
           reason?: string | null
           rejection_reason?: string | null
+          results_in_negative_balance?: boolean | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           start_date?: string

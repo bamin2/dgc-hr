@@ -18,6 +18,7 @@ export interface LeaveRequest {
   reviewed_by: string | null;
   reviewed_at: string | null;
   rejection_reason: string | null;
+  results_in_negative_balance?: boolean;
   created_at: string;
   updated_at: string;
   employee?: {
