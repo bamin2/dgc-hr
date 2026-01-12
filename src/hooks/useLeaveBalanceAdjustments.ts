@@ -107,6 +107,7 @@ export function useCreateLeaveBalanceAdjustment() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['leave-balance-adjustments'] });
       queryClient.invalidateQueries({ queryKey: queryKeys.leave.balances.all });
+      queryClient.invalidateQueries({ queryKey: ['all-employee-balances'] });
       toast.success('Balance adjustment created successfully');
     },
     onError: (error) => {
