@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { useLeaveTypes } from "@/hooks/useLeaveTypes";
 import { useCreateLeaveRequest } from "@/hooks/useLeaveRequests";
@@ -42,6 +43,7 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [note, setNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isHalfDay, setIsHalfDay] = useState(false);
 
   const { data: leaveTypes, isLoading: typesLoading } = useLeaveTypes();
   const createRequest = useCreateLeaveRequest();
@@ -53,8 +55,16 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
       setLeaveTypeId("");
       setDateRange(undefined);
       setNote("");
+      setIsHalfDay(false);
     }
   }, [open]);
+
+  // Reset half-day when date range is selected (multi-day)
+  useEffect(() => {
+    if (dateRange?.to) {
+      setIsHalfDay(false);
+    }
+  }, [dateRange?.to]);
 
   // Set default leave type when types are loaded
   useEffect(() => {
@@ -94,9 +104,11 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
       const endDate = dateRange.to 
         ? format(dateRange.to, 'yyyy-MM-dd') 
         : startDate;
-      const daysCount = dateRange.to 
-        ? differenceInCalendarDays(dateRange.to, dateRange.from) + 1 
-        : 1;
+      const daysCount = isHalfDay 
+        ? 0.5 
+        : dateRange.to 
+          ? differenceInCalendarDays(dateRange.to, dateRange.from) + 1 
+          : 1;
 
       const result = await createRequest.mutateAsync({
         employee_id: profile.employee_id,
@@ -104,6 +116,7 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
         start_date: startDate,
         end_date: endDate,
         days_count: daysCount,
+        is_half_day: isHalfDay,
         reason: note || undefined,
       });
 
@@ -130,9 +143,11 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
   };
 
   const daysCount = dateRange?.from
-    ? dateRange.to
-      ? differenceInCalendarDays(dateRange.to, dateRange.from) + 1
-      : 1
+    ? isHalfDay
+      ? 0.5
+      : dateRange.to
+        ? differenceInCalendarDays(dateRange.to, dateRange.from) + 1
+        : 1
     : 0;
 
   const selectedLeaveType = leaveTypes?.find(t => t.id === leaveTypeId);
@@ -229,6 +244,26 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
               You can select one day or a range of days.
             </p>
           </div>
+
+          {/* Half Day Option - only show for single day */}
+          {dateRange?.from && !dateRange.to && (
+            <div className="flex items-start space-x-3">
+              <Checkbox
+                id="halfDay"
+                checked={isHalfDay}
+                onCheckedChange={(checked) => setIsHalfDay(checked === true)}
+                className="mt-0.5"
+              />
+              <div className="space-y-0.5">
+                <Label htmlFor="halfDay" className="font-normal cursor-pointer">
+                  Half day
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Request only half a day (0.5 days will be deducted)
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Note */}
           <div className="space-y-2">
