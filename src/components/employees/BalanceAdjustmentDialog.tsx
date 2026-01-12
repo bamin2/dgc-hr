@@ -86,7 +86,7 @@ export function BalanceAdjustmentDialog({
       case 'add':
         return currentTotal + days;
       case 'subtract':
-        return Math.max(0, currentTotal - days);
+        return currentTotal - days;
       case 'set':
         return days;
       default:
@@ -177,6 +177,9 @@ export function BalanceAdjustmentDialog({
                   </FormControl>
                   <FormDescription>
                     New total will be: <strong>{getNewTotal()}</strong> days
+                    {getNewTotal() < 0 && (
+                      <span className="text-amber-600 ml-1">(negative balance)</span>
+                    )}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
