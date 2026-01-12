@@ -15,7 +15,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { format } from 'date-fns';
-import { Wallet, TrendingDown, Clock, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Wallet, TrendingDown, Clock, CheckCircle } from 'lucide-react';
+import { CurrencyViewToggle, CurrencyViewMode } from '../CurrencyViewToggle';
+import { useFxRatesForCurrencies, convertToBaseCurrency, getMissingRateCurrencies } from '@/hooks/useFxRates';
 
 const columns: ReportColumn<LoanSummaryRecord>[] = [
   { key: 'employeeCode', header: 'Emp Code' },
@@ -47,22 +49,78 @@ function getStatusBadge(status: string) {
 
 export function LoanSummaryReport() {
   const [filters, setFilters] = useState<ReportFilters>({});
+  const [viewMode, setViewMode] = useState<CurrencyViewMode>('local');
   const { data = [], isLoading, refetch } = useLoanSummaryReport(filters);
   const { settings } = useCompanySettings();
 
-  // Check if there are mixed currencies in totals
+  const reportingCurrency = settings?.branding?.reportingCurrency || 'BHD';
+
+  // Get unique currencies from data (excluding reporting currency)
+  const currencies = useMemo(() => {
+    const uniqueCurrencies = [...new Set(data.map(r => r.currencyCode))];
+    return uniqueCurrencies.filter(c => c && c !== reportingCurrency);
+  }, [data, reportingCurrency]);
+
+  // Fetch FX rates for all currencies
+  const { data: fxRatesMap } = useFxRatesForCurrencies(currencies);
+
+  // Check for missing rates
+  const missingRates = useMemo(() => {
+    if (!fxRatesMap) return currencies;
+    return getMissingRateCurrencies(currencies, fxRatesMap);
+  }, [currencies, fxRatesMap]);
+
+  // Get the FX rate info for display
+  const fxRateInfo = useMemo(() => {
+    if (!fxRatesMap || currencies.length === 0) return null;
+    const firstCurrency = currencies[0];
+    const rateInfo = fxRatesMap.get(firstCurrency);
+    if (!rateInfo) return null;
+    return {
+      currency: firstCurrency,
+      rate: rateInfo.rate,
+      effectiveDate: rateInfo.effectiveDate,
+    };
+  }, [fxRatesMap, currencies]);
+
+  // Convert data to reporting currency if needed
+  const displayData = useMemo(() => {
+    if (viewMode === 'local' || !fxRatesMap) return data;
+
+    return data.map(row => {
+      if (row.currencyCode === reportingCurrency) return row;
+
+      const originalConv = convertToBaseCurrency(row.originalAmount, row.currencyCode, fxRatesMap);
+      if (!originalConv) return row;
+
+      const outstandingConv = convertToBaseCurrency(row.outstandingBalance, row.currencyCode, fxRatesMap);
+      const installmentConv = convertToBaseCurrency(row.installmentAmount, row.currencyCode, fxRatesMap);
+
+      return {
+        ...row,
+        originalAmount: originalConv.convertedAmount,
+        outstandingBalance: outstandingConv?.convertedAmount ?? row.outstandingBalance,
+        installmentAmount: installmentConv?.convertedAmount ?? row.installmentAmount,
+        currencyCode: reportingCurrency,
+      };
+    });
+  }, [data, viewMode, fxRatesMap, reportingCurrency]);
+
+  // Check if there are mixed currencies in totals (only in local mode)
   const hasMixedCurrencies = useMemo(() => {
+    if (viewMode === 'reporting') return false;
     const currencies = new Set(data.map(r => r.currencyCode));
     return currencies.size > 1;
-  }, [data]);
+  }, [data, viewMode]);
 
   // Get single currency for display if all same
   const singleCurrency = useMemo(() => {
+    if (viewMode === 'reporting') return reportingCurrency;
     if (hasMixedCurrencies) return null;
     return data.length > 0 ? data[0].currencyCode : 'BHD';
-  }, [data, hasMixedCurrencies]);
+  }, [data, hasMixedCurrencies, viewMode, reportingCurrency]);
 
-  const totals = data.reduce(
+  const totals = displayData.reduce(
     (acc, row) => ({
       originalAmount: acc.originalAmount + row.originalAmount,
       outstanding: acc.outstanding + row.outstandingBalance,
@@ -94,12 +152,6 @@ export function LoanSummaryReport() {
             <div>
               <p className="text-sm text-muted-foreground">Total Disbursed</p>
               <p className="text-2xl font-bold">{formatTotalAmount(totals.originalAmount)}</p>
-              {hasMixedCurrencies && (
-                <Badge variant="outline" className="text-xs mt-1">
-                  <AlertTriangle className="h-3 w-3 mr-1" />
-                  Mixed Currencies
-                </Badge>
-              )}
             </div>
           </div>
         </CardContent>
@@ -152,7 +204,7 @@ export function LoanSummaryReport() {
       description="Overview of all employee loans with original amounts, outstanding balances, and payment status"
       filters={filters}
       onFiltersChange={setFilters}
-      data={data}
+      data={displayData}
       columns={columns}
       isLoading={isLoading}
       onRefresh={() => refetch()}
@@ -160,6 +212,16 @@ export function LoanSummaryReport() {
       exportFormats={['excel', 'csv']}
       companyName={settings?.name}
     >
+      <div className="mb-4">
+        <CurrencyViewToggle
+          mode={viewMode}
+          onModeChange={setViewMode}
+          reportingCurrency={reportingCurrency}
+          fxRateInfo={fxRateInfo}
+          missingRateCurrencies={missingRates}
+        />
+      </div>
+
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
@@ -172,7 +234,7 @@ export function LoanSummaryReport() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.map((row) => (
+            {displayData.map((row) => (
               <TableRow key={row.loanId}>
                 <TableCell>{row.employeeCode}</TableCell>
                 <TableCell>{row.employeeName}</TableCell>
@@ -187,7 +249,7 @@ export function LoanSummaryReport() {
                 <TableCell>{format(new Date(row.startDate), 'MMM d, yyyy')}</TableCell>
               </TableRow>
             ))}
-            {data.length === 0 && !isLoading && (
+            {displayData.length === 0 && !isLoading && (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
                   No loans found.

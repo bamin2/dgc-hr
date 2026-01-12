@@ -5,7 +5,6 @@ import { ReportFilters, ReportColumn, GosiContributionRecord } from '@/types/rep
 import { useGosiContributionReport } from '@/hooks/reports';
 import { useCompanySettings } from '@/contexts/CompanySettingsContext';
 import { formatCurrencyWithCode } from '@/lib/salaryUtils';
-import { Badge } from '@/components/ui/badge';
 import {
   Table,
   TableBody,
@@ -14,7 +13,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Users, DollarSign, Building2, Percent, AlertTriangle } from 'lucide-react';
+import { Users, DollarSign, Building2, Percent } from 'lucide-react';
+import { CurrencyViewToggle, CurrencyViewMode } from '../CurrencyViewToggle';
+import { useFxRatesForCurrencies, convertToBaseCurrency, getMissingRateCurrencies } from '@/hooks/useFxRates';
 
 const columns: ReportColumn<GosiContributionRecord>[] = [
   { key: 'employeeCode', header: 'Emp Code' },
@@ -32,22 +33,80 @@ const columns: ReportColumn<GosiContributionRecord>[] = [
 
 export function GosiContributionReport() {
   const [filters, setFilters] = useState<ReportFilters>({});
+  const [viewMode, setViewMode] = useState<CurrencyViewMode>('local');
   const { data = [], isLoading, refetch } = useGosiContributionReport(filters);
   const { settings } = useCompanySettings();
 
-  // Check if there are mixed currencies in totals
+  const reportingCurrency = settings?.branding?.reportingCurrency || 'BHD';
+
+  // Get unique currencies from data (excluding reporting currency)
+  const currencies = useMemo(() => {
+    const uniqueCurrencies = [...new Set(data.map(r => r.currencyCode))];
+    return uniqueCurrencies.filter(c => c && c !== reportingCurrency);
+  }, [data, reportingCurrency]);
+
+  // Fetch FX rates for all currencies
+  const { data: fxRatesMap } = useFxRatesForCurrencies(currencies);
+
+  // Check for missing rates
+  const missingRates = useMemo(() => {
+    if (!fxRatesMap) return currencies;
+    return getMissingRateCurrencies(currencies, fxRatesMap);
+  }, [currencies, fxRatesMap]);
+
+  // Get the FX rate info for display
+  const fxRateInfo = useMemo(() => {
+    if (!fxRatesMap || currencies.length === 0) return null;
+    const firstCurrency = currencies[0];
+    const rateInfo = fxRatesMap.get(firstCurrency);
+    if (!rateInfo) return null;
+    return {
+      currency: firstCurrency,
+      rate: rateInfo.rate,
+      effectiveDate: rateInfo.effectiveDate,
+    };
+  }, [fxRatesMap, currencies]);
+
+  // Convert data to reporting currency if needed
+  const displayData = useMemo(() => {
+    if (viewMode === 'local' || !fxRatesMap) return data;
+
+    return data.map(row => {
+      if (row.currencyCode === reportingCurrency) return row;
+
+      const gosiSalaryConv = convertToBaseCurrency(row.gosiRegisteredSalary, row.currencyCode, fxRatesMap);
+      if (!gosiSalaryConv) return row;
+
+      const empContribConv = convertToBaseCurrency(row.employeeContribution, row.currencyCode, fxRatesMap);
+      const emprContribConv = convertToBaseCurrency(row.employerContribution, row.currencyCode, fxRatesMap);
+      const totalContribConv = convertToBaseCurrency(row.totalContribution, row.currencyCode, fxRatesMap);
+
+      return {
+        ...row,
+        gosiRegisteredSalary: gosiSalaryConv.convertedAmount,
+        employeeContribution: empContribConv?.convertedAmount ?? row.employeeContribution,
+        employerContribution: emprContribConv?.convertedAmount ?? row.employerContribution,
+        totalContribution: totalContribConv?.convertedAmount ?? row.totalContribution,
+        currencyCode: reportingCurrency,
+      };
+    });
+  }, [data, viewMode, fxRatesMap, reportingCurrency]);
+
+  // Check if there are mixed currencies in totals (only in local mode)
   const hasMixedCurrencies = useMemo(() => {
+    if (viewMode === 'reporting') return false;
     const currencies = new Set(data.map(r => r.currencyCode));
     return currencies.size > 1;
-  }, [data]);
+  }, [data, viewMode]);
 
   // Get single currency for display if all same
   const singleCurrency = useMemo(() => {
+    if (viewMode === 'reporting') return reportingCurrency;
     if (hasMixedCurrencies) return null;
     return data.length > 0 ? data[0].currencyCode : 'BHD';
-  }, [data, hasMixedCurrencies]);
+  }, [data, hasMixedCurrencies, viewMode, reportingCurrency]);
 
-  const totals = data.reduce(
+  const totals = displayData.reduce(
     (acc, row) => ({
       employees: acc.employees + 1,
       gosiSalary: acc.gosiSalary + row.gosiRegisteredSalary,
@@ -93,12 +152,6 @@ export function GosiContributionReport() {
             <div>
               <p className="text-sm text-muted-foreground">Employee Contributions</p>
               <p className="text-2xl font-bold">{formatTotalAmount(totals.employeeContrib)}</p>
-              {hasMixedCurrencies && (
-                <Badge variant="outline" className="text-xs mt-1">
-                  <AlertTriangle className="h-3 w-3 mr-1" />
-                  Mixed Currencies
-                </Badge>
-              )}
             </div>
           </div>
         </CardContent>
@@ -138,7 +191,7 @@ export function GosiContributionReport() {
       description="Employee and employer GOSI contributions by nationality and location"
       filters={filters}
       onFiltersChange={setFilters}
-      data={data}
+      data={displayData}
       columns={columns}
       isLoading={isLoading}
       onRefresh={() => refetch()}
@@ -146,6 +199,16 @@ export function GosiContributionReport() {
       exportFormats={['excel', 'csv', 'pdf']}
       companyName={settings?.name}
     >
+      <div className="mb-4">
+        <CurrencyViewToggle
+          mode={viewMode}
+          onModeChange={setViewMode}
+          reportingCurrency={reportingCurrency}
+          fxRateInfo={fxRateInfo}
+          missingRateCurrencies={missingRates}
+        />
+      </div>
+
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
@@ -158,7 +221,7 @@ export function GosiContributionReport() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.map((row) => (
+            {displayData.map((row) => (
               <TableRow key={row.employeeId}>
                 <TableCell>{row.employeeCode}</TableCell>
                 <TableCell>{row.employeeName}</TableCell>
@@ -173,7 +236,7 @@ export function GosiContributionReport() {
                 <TableCell className="text-right font-medium">{formatAmount(row.totalContribution, row.currencyCode)}</TableCell>
               </TableRow>
             ))}
-            {data.length === 0 && !isLoading && (
+            {displayData.length === 0 && !isLoading && (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
                   No GOSI records found.
