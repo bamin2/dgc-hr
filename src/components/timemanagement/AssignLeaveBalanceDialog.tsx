@@ -21,12 +21,12 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertTriangle } from "lucide-react";
 import { useCreateLeaveBalance } from "@/hooks/useLeaveBalanceAdjustments";
 import { LeaveType } from "@/hooks/useLeaveTypes";
 
 const formSchema = z.object({
-  total_days: z.coerce.number().min(0, "Must be 0 or greater"),
+  total_days: z.coerce.number(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -113,12 +113,17 @@ export function AssignLeaveBalanceDialog({
                     <FormControl>
                       <Input
                         type="number"
-                        min="0"
                         step="0.5"
                         placeholder="Enter total days"
                         {...field}
                       />
                     </FormControl>
+                    {field.value < 0 && (
+                      <div className="flex items-center gap-2 p-2 bg-amber-50 border border-amber-200 rounded text-amber-700 text-sm">
+                        <AlertTriangle className="h-4 w-4 shrink-0" />
+                        Employee will start with a negative balance
+                      </div>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
