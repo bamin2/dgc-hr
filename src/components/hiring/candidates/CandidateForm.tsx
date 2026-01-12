@@ -6,8 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { CountrySelect } from "@/components/ui/country-select";
-import { useCreateCandidate } from "@/hooks/useCandidates";
-import { getCountryByCode } from "@/data/countries";
+import { useCreateCandidate, useUpdateCandidate, type Candidate } from "@/hooks/useCandidates";
+import { getCountryByCode, countries } from "@/data/countries";
 
 const schema = z.object({
   first_name: z.string().min(1, "First name is required"),
@@ -22,18 +22,43 @@ type FormData = z.infer<typeof schema>;
 
 interface CandidateFormProps {
   onSuccess: () => void;
+  candidate?: Candidate | null;
 }
 
-export function CandidateForm({ onSuccess }: CandidateFormProps) {
+// Parse phone number like "+966 123456789" to extract country code and number
+function parsePhoneNumber(phone: string | null | undefined): { countryCode: string; number: string } {
+  if (!phone) return { countryCode: 'SA', number: '' };
+  const match = phone.match(/^(\+\d+(?:-\d+)?)\s*(.*)$/);
+  if (match) {
+    const dialCode = match[1];
+    const country = countries.find(c => c.dialCode === dialCode);
+    return { countryCode: country?.code || 'SA', number: match[2] };
+  }
+  return { countryCode: 'SA', number: phone };
+}
+
+export function CandidateForm({ onSuccess, candidate }: CandidateFormProps) {
   const createCandidate = useCreateCandidate();
+  const updateCandidate = useUpdateCandidate();
+  const isEditMode = !!candidate;
+
+  const parsedPhone = parsePhoneNumber(candidate?.phone);
 
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { phone_country_code: 'SA' },
+    defaultValues: candidate ? {
+      first_name: candidate.first_name,
+      last_name: candidate.last_name,
+      email: candidate.email,
+      phone: parsedPhone.number,
+      phone_country_code: parsedPhone.countryCode,
+      nationality: candidate.nationality || '',
+    } : { 
+      phone_country_code: 'SA' 
+    },
   });
 
   const onSubmit = async (data: FormData) => {
-    // Combine country dial code with phone number for storage
     const countryCode = data.phone_country_code || 'SA';
     const country = getCountryByCode(countryCode);
     const fullPhone = data.phone && country ? `${country.dialCode} ${data.phone}` : data.phone;
@@ -45,9 +70,16 @@ export function CandidateForm({ onSuccess }: CandidateFormProps) {
       phone: fullPhone,
       nationality: data.nationality,
     };
-    await createCandidate.mutateAsync({ ...candidateData, phone: fullPhone });
+
+    if (isEditMode && candidate) {
+      await updateCandidate.mutateAsync({ id: candidate.id, data: candidateData });
+    } else {
+      await createCandidate.mutateAsync(candidateData);
+    }
     onSuccess();
   };
+
+  const isPending = createCandidate.isPending || updateCandidate.isPending;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-6">
@@ -90,8 +122,11 @@ export function CandidateForm({ onSuccess }: CandidateFormProps) {
       </div>
 
       <div className="flex justify-end gap-2 pt-4">
-        <Button type="submit" disabled={createCandidate.isPending}>
-          {createCandidate.isPending ? "Creating..." : "Create Candidate"}
+        <Button type="submit" disabled={isPending}>
+          {isEditMode 
+            ? (updateCandidate.isPending ? "Saving..." : "Save Changes")
+            : (createCandidate.isPending ? "Creating..." : "Create Candidate")
+          }
         </Button>
       </div>
     </form>
