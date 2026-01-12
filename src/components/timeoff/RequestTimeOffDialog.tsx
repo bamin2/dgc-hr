@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { format, differenceInCalendarDays } from "date-fns";
 import { DateRange } from "react-day-picker";
-import { Calendar as CalendarIcon, Clock, Paperclip, Upload, X, Folder } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, Paperclip, Upload, X, Folder, AlertTriangle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -26,9 +26,11 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 import { useLeaveTypes } from "@/hooks/useLeaveTypes";
 import { useCreateLeaveRequest } from "@/hooks/useLeaveRequests";
+import { useMyLeaveBalances } from "@/hooks/useLeaveBalances";
 import { useInitiateApproval } from "@/hooks/useApprovalEngine";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -46,6 +48,7 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
   const [isHalfDay, setIsHalfDay] = useState(false);
 
   const { data: leaveTypes, isLoading: typesLoading } = useLeaveTypes();
+  const { data: myBalances } = useMyLeaveBalances();
   const createRequest = useCreateLeaveRequest();
   const initiateApproval = useInitiateApproval();
 
@@ -118,6 +121,7 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
         days_count: daysCount,
         is_half_day: isHalfDay,
         reason: note || undefined,
+        results_in_negative_balance: balanceInfo?.wouldBeNegative || false,
       });
 
       // Initiate the approval workflow
@@ -151,6 +155,24 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
     : 0;
 
   const selectedLeaveType = leaveTypes?.find(t => t.id === leaveTypeId);
+  
+  // Calculate if the request would result in negative balance
+  const balanceInfo = useMemo(() => {
+    if (!leaveTypeId || !myBalances) return null;
+    const selectedBalance = myBalances.find(b => b.leave_type_id === leaveTypeId);
+    if (!selectedBalance) return null;
+    
+    const remaining = selectedBalance.total_days - (selectedBalance.used_days || 0) - (selectedBalance.pending_days || 0);
+    const wouldBeNegative = daysCount > remaining;
+    const resultingBalance = remaining - daysCount;
+    
+    return {
+      remaining,
+      wouldBeNegative,
+      resultingBalance,
+      leaveTypeName: selectedBalance.leave_type?.name || selectedLeaveType?.name || 'Leave',
+    };
+  }, [leaveTypeId, myBalances, daysCount, selectedLeaveType]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -300,13 +322,26 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
             </div>
           </div>
 
+          {/* Negative Balance Warning */}
+          {balanceInfo?.wouldBeNegative && (
+            <Alert className="border-amber-500 bg-amber-50 dark:bg-amber-950/30">
+              <AlertTriangle className="h-4 w-4 text-amber-600" />
+              <AlertTitle className="text-amber-800 dark:text-amber-200">Insufficient Balance</AlertTitle>
+              <AlertDescription className="text-amber-700 dark:text-amber-300">
+                This request will result in a negative balance of {balanceInfo.resultingBalance.toFixed(1)} days 
+                for {balanceInfo.leaveTypeName}. It will require HR approval.
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Summary */}
           <div className="flex items-center gap-4 text-sm">
             <span>Request: <strong>{daysCount} day{daysCount !== 1 ? "s" : ""}</strong>.</span>
-            <button className="flex items-center gap-1 text-primary hover:underline">
-              <Clock className="w-4 h-4" />
-              Edit hours
-            </button>
+            {balanceInfo && (
+              <span className="text-muted-foreground">
+                (Balance: {balanceInfo.remaining.toFixed(1)} days remaining)
+              </span>
+            )}
           </div>
 
           {/* Actions */}

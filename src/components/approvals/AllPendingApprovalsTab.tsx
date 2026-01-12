@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar, Clock, AlertCircle } from "lucide-react";
+import { Calendar, Clock, AlertCircle, AlertTriangle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -227,6 +227,16 @@ function LeaveRequestCard({ request, onApprove, onReject }: LeaveRequestCardProp
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Negative Balance Warning */}
+        {(request as any).results_in_negative_balance && (
+          <div className="flex items-center gap-2 px-3 py-2 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg">
+            <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
+            <span className="text-sm text-red-700 dark:text-red-300 font-medium">
+              This request will result in negative leave balance
+            </span>
+          </div>
+        )}
+
         {/* Leave Details */}
         <div className="flex flex-wrap gap-4 text-sm">
           <div className="flex items-center gap-2">
