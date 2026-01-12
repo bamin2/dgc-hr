@@ -15,6 +15,7 @@ interface LeaveBalanceRow {
     first_name: string;
     last_name: string;
     employee_code: string | null;
+    join_date: string | null;
     departments: { name: string } | null;
   } | null;
   leave_types: { name: string } | null;
@@ -58,6 +59,7 @@ async function fetchLeaveBalances(filters: ReportFilters): Promise<LeaveBalanceR
         first_name,
         last_name,
         employee_code,
+        join_date,
         departments!department_id (name)
       ),
       leave_types (name)
@@ -67,6 +69,12 @@ async function fetchLeaveBalances(filters: ReportFilters): Promise<LeaveBalanceR
   if (error) throw error;
   
   let records = data || [];
+  
+  // Filter out employees who joined after the year started
+  const yearEnd = `${year}-12-31`;
+  records = records.filter((r: LeaveBalanceRow) => 
+    !r.employees?.join_date || r.employees.join_date <= yearEnd
+  );
   
   // Apply employee filter
   if (filters.employeeId) {
@@ -128,7 +136,7 @@ async function fetchLeaveRequests(filters: ReportFilters): Promise<LeaveRequestR
   const empIds = [...new Set((data || []).map(r => r.employee_id))];
   const { data: employees } = await supabase
     .from('employees')
-    .select('id, first_name, last_name, employee_code, departments!department_id(name)')
+    .select('id, first_name, last_name, employee_code, join_date, departments!department_id(name)')
     .in('id', empIds);
   
   const empMap = new Map((employees || []).map(e => [e.id, e]));
@@ -146,10 +154,15 @@ async function fetchLeaveRequests(filters: ReportFilters): Promise<LeaveRequestR
   
   // Apply date filter
   if (filters.dateRange) {
-    records = records.filter(r => 
-      r.start_date >= filters.dateRange!.start && 
-      r.start_date <= filters.dateRange!.end
-    );
+    records = records.filter(r => {
+      const emp = empMap.get(r.employee_id);
+      // Exclude employees who joined after the date range
+      if (emp?.join_date && emp.join_date > filters.dateRange!.end) {
+        return false;
+      }
+      return r.start_date >= filters.dateRange!.start && 
+        r.start_date <= filters.dateRange!.end;
+    });
   }
   
   // Apply status filter

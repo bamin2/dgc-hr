@@ -14,6 +14,7 @@ interface EmployeeGosi {
   salary: number | null;
   salary_currency_code: string | null;
   is_subject_to_gosi: boolean | null;
+  join_date: string | null;
 }
 
 interface WorkLocationGosi {
@@ -64,7 +65,7 @@ async function fetchGosiContributions(filters: ReportFilters): Promise<GosiContr
   // Fetch employees subject to GOSI
   const { data: employees, error: empError } = await supabase
     .from('employees')
-    .select('id, first_name, last_name, employee_code, nationality, work_location_id, gosi_registered_salary, salary, salary_currency_code, is_subject_to_gosi')
+    .select('id, first_name, last_name, employee_code, nationality, work_location_id, gosi_registered_salary, salary, salary_currency_code, is_subject_to_gosi, join_date')
     .eq('status', 'active');
   
   if (empError) throw empError;
@@ -89,6 +90,11 @@ async function fetchGosiContributions(filters: ReportFilters): Promise<GosiContr
   });
   
   let records = (employees || []).filter((e: EmployeeGosi) => e.is_subject_to_gosi);
+  
+  // Filter by join date if date range specified
+  if (filters.dateRange) {
+    records = records.filter(e => !e.join_date || e.join_date <= filters.dateRange!.end);
+  }
   
   // Apply location filter
   if (filters.locationId) {

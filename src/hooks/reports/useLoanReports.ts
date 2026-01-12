@@ -15,7 +15,7 @@ async function fetchLoanSummary(filters: ReportFilters): Promise<LoanSummaryReco
   const empIds = [...new Set((loans || []).map(l => l.employee_id))];
   const { data: employees } = await supabase
     .from('employees')
-    .select('id, first_name, last_name, employee_code, salary_currency_code, departments!department_id(name), work_locations!work_location_id(currency)')
+    .select('id, first_name, last_name, employee_code, join_date, salary_currency_code, departments!department_id(name), work_locations!work_location_id(currency)')
     .in('id', empIds);
   
   const empMap = new Map((employees || []).map(e => [e.id, e]));
@@ -43,6 +43,15 @@ async function fetchLoanSummary(filters: ReportFilters): Promise<LoanSummaryReco
   });
   
   let records = loans || [];
+  
+  // Filter by employee join date - exclude loans for employees who joined after the loan start date
+  records = records.filter(l => {
+    const emp = empMap.get(l.employee_id) as { join_date?: string | null } | undefined;
+    if (emp?.join_date && emp.join_date > l.start_date) {
+      return false;
+    }
+    return true;
+  });
   
   if (filters.status) {
     records = records.filter(l => l.status === filters.status);

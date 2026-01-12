@@ -68,6 +68,7 @@ export function useEmployeeActions(
           address: data.address || null,
           nationality: data.nationality || null,
           avatar_url: data.avatar || null,
+          join_date: data.joinDate || null,
         });
         toast({
           title: "Employee updated",

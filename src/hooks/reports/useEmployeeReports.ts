@@ -44,6 +44,11 @@ async function fetchEmployeeMaster(filters: ReportFilters): Promise<EmployeeMast
   
   let records = employees || [];
   
+  // Apply join date filter - exclude employees who joined after the report date range
+  if (filters.dateRange) {
+    records = records.filter(e => !e.join_date || e.join_date <= filters.dateRange!.end);
+  }
+  
   // Apply status filter
   if (filters.status) {
     records = records.filter(e => e.status === filters.status);

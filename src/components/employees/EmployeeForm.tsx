@@ -63,6 +63,7 @@ interface FormData {
   gosiRegisteredSalary: string;
   passportNumber: string;
   cprNumber: string;
+  joinDate: string;
 }
 
 export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeFormProps) {
@@ -100,6 +101,7 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
     gosiRegisteredSalary: '',
     passportNumber: '',
     cprNumber: '',
+    joinDate: '',
   });
 
   // Filter potential managers - exclude inactive, self, and employees that would create circular reference
@@ -134,6 +136,7 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
         gosiRegisteredSalary: employee.gosiRegisteredSalary?.toString() || '',
         passportNumber: employee.passportNumber || '',
         cprNumber: employee.cprNumber || '',
+        joinDate: employee.joinDate || '',
       });
     } else {
       setFormData({
@@ -157,6 +160,7 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
         gosiRegisteredSalary: '',
         passportNumber: '',
         cprNumber: '',
+        joinDate: '',
       });
     }
   }, [employee, open]);
@@ -545,6 +549,15 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="joinDate">Hiring Date</Label>
+                  <Input
+                    id="joinDate"
+                    type="date"
+                    value={formData.joinDate}
+                    onChange={(e) => handleChange('joinDate', e.target.value)}
+                  />
                 </div>
               </div>
             </div>

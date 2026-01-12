@@ -5,6 +5,7 @@ import { calculateAllEmployeesGrossPay, EmployeeGrossPay } from '@/lib/salaryUti
 
 interface EmployeeWithDetails {
   id: string;
+  join_date: string | null;
   department_id: string | null;
   work_location_id: string | null;
   departments: { name: string } | null;
@@ -48,6 +49,7 @@ async function fetchSalaryDistribution(filters: ReportFilters): Promise<SalaryDi
     .from('employees')
     .select(`
       id,
+      join_date,
       department_id,
       work_location_id,
       departments!department_id (name),
@@ -65,7 +67,15 @@ async function fetchSalaryDistribution(filters: ReportFilters): Promise<SalaryDi
     grossPays: number[] 
   }>();
   
-  (employees || []).forEach((emp: EmployeeWithDetails) => {
+  // Filter employees by join date if date range specified
+  const filteredEmps = (employees || []).filter((emp: EmployeeWithDetails) => {
+    if (filters.dateRange && emp.join_date && emp.join_date > filters.dateRange.end) {
+      return false;
+    }
+    return true;
+  });
+  
+  filteredEmps.forEach((emp: EmployeeWithDetails) => {
     const grossPayInfo = grossPayMap.get(emp.id);
     if (!grossPayInfo || grossPayInfo.grossPay <= 0) return;
     
