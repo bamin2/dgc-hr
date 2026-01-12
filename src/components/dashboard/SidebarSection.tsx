@@ -1,5 +1,6 @@
 import { LucideIcon } from "lucide-react";
-import { NavLink, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import { PrefetchNavLink } from "@/components/PrefetchNavLink";
 import { cn } from "@/lib/utils";
 
 interface MenuItem {
@@ -59,7 +60,7 @@ export function SidebarSection({ label, items, collapsed }: SidebarSectionProps)
 
           return (
             <li key={item.path}>
-              <NavLink
+              <PrefetchNavLink
                 to={item.path}
                 className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 relative",
@@ -92,7 +93,7 @@ export function SidebarSection({ label, items, collapsed }: SidebarSectionProps)
                     {item.badge > 9 ? "9+" : item.badge}
                   </span>
                 )}
-              </NavLink>
+              </PrefetchNavLink>
             </li>
           );
         })}
