@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Search, Loader2, Plus, Sparkles, RotateCcw } from "lucide-react";
+import { Search, Loader2, Plus, Sparkles, RotateCcw, ArrowUpDown } from "lucide-react";
 import { useAllEmployeeBalances, AllEmployeeBalance } from "@/hooks/useLeaveBalanceAdjustments";
 import { useLeaveTypes, LeaveType } from "@/hooks/useLeaveTypes";
 import { BalanceAdjustmentDialog } from "./BalanceAdjustmentDialog";
@@ -41,6 +41,7 @@ export function EmployeeBalancesTab() {
   } | null>(null);
   const [showInitialize, setShowInitialize] = useState(false);
   const [showRollover, setShowRollover] = useState(false);
+  const [sortOrder, setSortOrder] = useState<'name-asc' | 'name-desc' | 'department'>('name-asc');
 
   const { data: employees, isLoading } = useAllEmployeeBalances(year);
   const { data: leaveTypes } = useLeaveTypes();
@@ -57,6 +58,23 @@ export function EmployeeBalancesTab() {
       departmentFilter === "all" || emp.department === departmentFilter;
     return matchesSearch && matchesDepartment;
   });
+
+  const sortedEmployees = useMemo(() => {
+    if (!filteredEmployees) return [];
+    
+    return [...filteredEmployees].sort((a, b) => {
+      switch (sortOrder) {
+        case 'name-asc':
+          return a.employee_name.localeCompare(b.employee_name);
+        case 'name-desc':
+          return b.employee_name.localeCompare(a.employee_name);
+        case 'department':
+          return (a.department || '').localeCompare(b.department || '');
+        default:
+          return 0;
+      }
+    });
+  }, [filteredEmployees, sortOrder]);
 
   const handleAdjustBalance = (employee: AllEmployeeBalance, balanceIndex: number) => {
     setSelectedBalance({ employee, balanceIndex });
@@ -111,6 +129,18 @@ export function EmployeeBalancesTab() {
           </SelectContent>
         </Select>
 
+        <Select value={sortOrder} onValueChange={(v) => setSortOrder(v as typeof sortOrder)}>
+          <SelectTrigger className="w-[150px]">
+            <ArrowUpDown className="w-4 h-4 mr-2" />
+            <SelectValue placeholder="Sort by" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="name-asc">Name A-Z</SelectItem>
+            <SelectItem value="name-desc">Name Z-A</SelectItem>
+            <SelectItem value="department">Department</SelectItem>
+          </SelectContent>
+        </Select>
+
         <div className="flex-1" />
 
         <Button
@@ -133,7 +163,7 @@ export function EmployeeBalancesTab() {
       </div>
 
       {/* Table */}
-      {filteredEmployees?.length === 0 ? (
+      {sortedEmployees.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
           <p>No employee balances found.</p>
         </div>
@@ -158,7 +188,7 @@ export function EmployeeBalancesTab() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredEmployees?.map((employee) => (
+              {sortedEmployees.map((employee) => (
                 <TableRow key={employee.employee_id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
