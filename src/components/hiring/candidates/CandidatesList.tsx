@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Search, MoreHorizontal, FileText, Archive, Trash2 } from "lucide-react";
+import { Plus, Search, MoreHorizontal, FileText, Archive, Trash2, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -24,6 +24,7 @@ export function CandidatesList() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
   const [candidateToDelete, setCandidateToDelete] = useState<Candidate | null>(null);
+  const [candidateToEdit, setCandidateToEdit] = useState<Candidate | null>(null);
 
   const { data: candidates, isLoading } = useCandidates({
     search,
@@ -144,6 +145,10 @@ export function CandidatesList() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => setCandidateToEdit(candidate)}>
+                            <Pencil className="h-4 w-4 mr-2" />
+                            Edit
+                          </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleCreateOffer(candidate)}
                             disabled={candidate.status === 'archived' || candidate.status === 'offer_accepted'}
@@ -199,6 +204,19 @@ export function CandidatesList() {
               onCancel={() => setSelectedCandidate(null)}
             />
           )}
+        </SheetContent>
+      </Sheet>
+
+      {/* Edit Candidate Sheet */}
+      <Sheet open={!!candidateToEdit} onOpenChange={(open) => !open && setCandidateToEdit(null)}>
+        <SheetContent className="sm:max-w-lg overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Edit Candidate</SheetTitle>
+          </SheetHeader>
+          <CandidateForm 
+            candidate={candidateToEdit} 
+            onSuccess={() => setCandidateToEdit(null)} 
+          />
         </SheetContent>
       </Sheet>
 
