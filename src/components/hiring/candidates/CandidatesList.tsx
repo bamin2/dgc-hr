@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Search, MoreHorizontal, FileText, Archive } from "lucide-react";
+import { Plus, Search, MoreHorizontal, FileText, Archive, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -7,7 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { useCandidates, useArchiveCandidate, type CandidateStatus, type Candidate } from "@/hooks/useCandidates";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { useCandidates, useArchiveCandidate, useDeleteCandidate, type CandidateStatus, type Candidate } from "@/hooks/useCandidates";
 import { useDepartmentsManagement } from "@/hooks/useDepartmentsManagement";
 import { CandidateStatusBadge } from "./CandidateStatusBadge";
 import { CandidateForm } from "./CandidateForm";
@@ -22,6 +23,7 @@ export function CandidatesList() {
   const [departmentFilter, setDepartmentFilter] = useState<string>("all");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
+  const [candidateToDelete, setCandidateToDelete] = useState<Candidate | null>(null);
 
   const { data: candidates, isLoading } = useCandidates({
     search,
@@ -30,6 +32,7 @@ export function CandidatesList() {
   });
   const { data: departments } = useDepartmentsManagement();
   const archiveCandidate = useArchiveCandidate();
+  const deleteCandidate = useDeleteCandidate();
 
   const handleCreateOffer = (candidate: Candidate) => {
     setSelectedCandidate(candidate);
@@ -155,6 +158,13 @@ export function CandidatesList() {
                             <Archive className="h-4 w-4 mr-2" />
                             Archive
                           </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => setCandidateToDelete(candidate)}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -191,6 +201,32 @@ export function CandidatesList() {
           )}
         </SheetContent>
       </Sheet>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!candidateToDelete} onOpenChange={(open) => !open && setCandidateToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Candidate?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete {candidateToDelete?.first_name} {candidateToDelete?.last_name} and all associated offers. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (candidateToDelete) {
+                  deleteCandidate.mutate(candidateToDelete.id);
+                  setCandidateToDelete(null);
+                }
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

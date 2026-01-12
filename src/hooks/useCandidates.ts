@@ -186,3 +186,25 @@ export function useArchiveCandidate() {
     },
   });
 }
+
+export function useDeleteCandidate() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("candidates")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["candidates"] });
+      toast.success("Candidate deleted successfully");
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to delete candidate: ${error.message}`);
+    },
+  });
+}
