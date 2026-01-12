@@ -44,6 +44,7 @@ const Directory = lazy(() => import("./pages/Directory"));
 const Loans = lazy(() => import("./pages/Loans"));
 const Approvals = lazy(() => import("./pages/Approvals"));
 const MyProfile = lazy(() => import("./pages/MyProfile"));
+const MyPayslip = lazy(() => import("./pages/MyPayslip"));
 const AuditTrail = lazy(() => import("./pages/AuditTrail"));
 const Hiring = lazy(() => import("./pages/Hiring"));
 const CandidateDetail = lazy(() => import("./pages/CandidateDetail"));
@@ -97,6 +98,7 @@ const App = () => (
                 <Route path="/benefits/claims/new" element={<ProtectedRoute><DashboardLazyPage><ClaimSubmission /></DashboardLazyPage></ProtectedRoute>} />
                 <Route path="/notifications" element={<ProtectedRoute><DashboardLazyPage><Notifications /></DashboardLazyPage></ProtectedRoute>} />
                 <Route path="/my-profile" element={<ProtectedRoute><DashboardLazyPage><MyProfile /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/my-profile/payslip/:id" element={<ProtectedRoute><DashboardLazyPage><MyPayslip /></DashboardLazyPage></ProtectedRoute>} />
                 
                 {/* Protected routes - HR & Admin */}
                 <Route path="/employees" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><Employees /></DashboardLazyPage></ProtectedRoute>} />
