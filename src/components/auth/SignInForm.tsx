@@ -14,13 +14,26 @@ const signInSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 
+// Microsoft logo SVG component
+function MicrosoftLogo({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="1" y="1" width="9" height="9" fill="#F25022"/>
+      <rect x="11" y="1" width="9" height="9" fill="#7FBA00"/>
+      <rect x="1" y="11" width="9" height="9" fill="#00A4EF"/>
+      <rect x="11" y="11" width="9" height="9" fill="#FFB900"/>
+    </svg>
+  );
+}
+
 export function SignInForm() {
   const navigate = useNavigate();
-  const { signIn } = useAuth();
+  const { signIn, signInWithAzure } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingMicrosoft, setLoadingMicrosoft] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -58,6 +71,21 @@ export function SignInForm() {
       description: "You have successfully signed in.",
     });
     navigate("/");
+  };
+
+  const handleMicrosoftSignIn = async () => {
+    setLoadingMicrosoft(true);
+    const { error } = await signInWithAzure();
+    
+    if (error) {
+      setLoadingMicrosoft(false);
+      toast({
+        title: "Sign in failed",
+        description: error.message || "Could not sign in with Microsoft. Please try again.",
+        variant: "destructive",
+      });
+    }
+    // Note: Don't set loadingMicrosoft to false on success - the page will redirect
   };
 
   return (
@@ -196,11 +224,43 @@ export function SignInForm() {
                 backgroundColor: '#C8A14A',
                 color: '#1A1A1A'
               }}
-              disabled={loading}
+              disabled={loading || loadingMicrosoft}
             >
               {loading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
+
+          {/* Divider */}
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" style={{ borderColor: '#E6E8E3' }} />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span 
+                className="px-2"
+                style={{ backgroundColor: '#F7F8F6', color: '#6B7280' }}
+              >
+                or
+              </span>
+            </div>
+          </div>
+
+          {/* Microsoft Sign In Button */}
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full h-11 text-base font-medium transition-all"
+            style={{ 
+              backgroundColor: '#FFFFFF',
+              borderColor: '#E6E8E3',
+              color: '#1A1A1A'
+            }}
+            onClick={handleMicrosoftSignIn}
+            disabled={loading || loadingMicrosoft}
+          >
+            <MicrosoftLogo className="mr-2 h-5 w-5" />
+            {loadingMicrosoft ? "Redirecting..." : "Sign in with Microsoft"}
+          </Button>
         </div>
       </div>
 
