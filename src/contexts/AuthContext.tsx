@@ -17,6 +17,7 @@ interface AuthContextType {
   profile: Profile | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signInWithAzure: () => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: Error | null }>;
   updatePassword: (newPassword: string) => Promise<{ error: Error | null }>;
@@ -99,6 +100,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error: error as Error | null };
   }, []);
 
+  const signInWithAzure = useCallback(async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'azure',
+      options: {
+        scopes: 'email profile openid',
+        redirectTo: window.location.origin,
+      },
+    });
+    return { error: error as Error | null };
+  }, []);
+
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
     setProfile(null);
@@ -126,10 +138,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     profile,
     loading,
     signIn,
+    signInWithAzure,
     signOut,
     resetPassword,
     updatePassword,
-  }), [user, session, profile, loading, signIn, signOut, resetPassword, updatePassword]);
+  }), [user, session, profile, loading, signIn, signInWithAzure, signOut, resetPassword, updatePassword]);
 
   return (
     <AuthContext.Provider value={contextValue}>
