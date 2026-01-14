@@ -135,8 +135,8 @@ export function EmployeeImportDialog({ open, onOpenChange }: EmployeeImportDialo
     // Map existing employees to the format needed for manager lookup
     const employeesForLookup = existingEmployees.map(e => ({
       id: e.id,
-      first_name: e.firstName,
-      last_name: e.lastName,
+      first_name: e.first_name,
+      last_name: e.last_name,
     }));
 
     const dbRecords = validRows

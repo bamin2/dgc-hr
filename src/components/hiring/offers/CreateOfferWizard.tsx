@@ -189,7 +189,7 @@ export function CreateOfferWizard({ candidate, onSuccess, onCancel }: CreateOffe
   const getPositionName = () => positions?.find(p => p.id === formData.position_id)?.title || "-";
   const getManagerName = () => {
     const mgr = employees?.find(e => e.id === formData.manager_employee_id);
-    return mgr ? `${mgr.firstName} ${mgr.lastName}` : "-";
+    return mgr ? `${mgr.first_name} ${mgr.last_name}` : "-";
   };
 
   const getAllowanceName = (allowance: AllowanceEntry) => {
@@ -316,7 +316,7 @@ export function CreateOfferWizard({ candidate, onSuccess, onCancel }: CreateOffe
                 </SelectTrigger>
                 <SelectContent>
                   {employees?.map((e) => (
-                    <SelectItem key={e.id} value={e.id}>{e.firstName} {e.lastName}</SelectItem>
+                    <SelectItem key={e.id} value={e.id}>{e.first_name} {e.last_name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

@@ -172,7 +172,7 @@ export function CreateLoanDialog({
                     <SelectContent>
                       {activeEmployees.map((emp) => (
                         <SelectItem key={emp.id} value={emp.id}>
-                          {emp.fullName || `${emp.firstName} ${emp.lastName}`}
+                          {emp.full_name || `${emp.first_name} ${emp.last_name}`}
                         </SelectItem>
                       ))}
                     </SelectContent>

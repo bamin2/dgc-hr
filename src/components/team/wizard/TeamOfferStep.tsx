@@ -129,7 +129,7 @@ export function TeamOfferStep({
       const companyFullAddress = addressParts.join(', ');
 
       // Build manager full name
-      const managerFullName = manager ? `${manager.firstName} ${manager.lastName}`.trim() : '';
+      const managerFullName = manager ? `${manager.first_name} ${manager.last_name}`.trim() : '';
 
       // DocxTemplateData keys must match smart tag names exactly (without << >>)
       const docxData: DocxTemplateData = {
@@ -143,7 +143,7 @@ export function TeamOfferStep({
         
         // Employment fields
         "Job Title": position?.title,
-        "Job Description": position?.job_description,
+        "Job Description": (position as any)?.job_description,
         "Department": department?.name,
         "Start Date": roleData.startDate ? format(roleData.startDate, 'MMMM d, yyyy') : '',
         "Work Location": workLocation?.name,
@@ -303,15 +303,15 @@ export function TeamOfferStep({
         net_salary: totalNetPay,
         join_date: roleData.startDate?.toISOString(),
       },
-      position: position ? { title: position.title, job_description: position.job_description } : undefined,
+306:       position: position ? { title: position.title, job_description: (position as any)?.job_description } : undefined,
       department: department ? { name: department.name } : undefined,
       workLocation: workLocation ? { 
         name: workLocation.name, 
         currency: workLocation.currency || compensationData.currency 
       } : { currency: compensationData.currency },
       manager: manager ? { 
-        first_name: manager.firstName, 
-        last_name: manager.lastName 
+        first_name: manager.first_name, 
+        last_name: manager.last_name 
       } : undefined,
       company: companySettings ? {
         name: companySettings.name,

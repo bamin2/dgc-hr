@@ -38,7 +38,7 @@ export function useEmployeeActions(
         onDeleteSuccess?.(employee.id);
         toast({
           title: "Employee deleted",
-          description: `${employee.firstName} ${employee.lastName} has been removed.`,
+          description: `${employee.first_name} ${employee.last_name} has been removed.`,
         });
       } catch (err) {
         toast({
@@ -56,23 +56,25 @@ export function useEmployeeActions(
       try {
         await updateEmployee.mutateAsync({
           id: employee.id,
-          first_name: data.firstName,
-          last_name: data.lastName,
-          email: data.email,
-          phone: data.phone,
-          department_id: data.departmentId || null,
-          position_id: data.positionId || null,
-          status: data.status as any,
-          date_of_birth: data.dateOfBirth || null,
-          gender: data.gender as any || null,
-          address: data.address || null,
-          nationality: data.nationality || null,
-          avatar_url: data.avatar || null,
-          join_date: data.joinDate || null,
+          updates: {
+            first_name: data.first_name,
+            last_name: data.last_name,
+            email: data.email,
+            phone: data.phone,
+            department_id: data.department_id || null,
+            position_id: data.position_id || null,
+            status: data.status,
+            date_of_birth: data.date_of_birth || null,
+            gender: data.gender || null,
+            address: data.address || null,
+            nationality: data.nationality || null,
+            avatar_url: data.avatar_url || null,
+            join_date: data.join_date || null,
+          },
         });
         toast({
           title: "Employee updated",
-          description: `${data.firstName} ${data.lastName}'s information has been updated.`,
+          description: `${data.first_name} ${data.last_name}'s information has been updated.`,
         });
       } catch (err) {
         toast({
@@ -95,12 +97,12 @@ export function useEmployeeActions(
       try {
         await updateEmployee.mutateAsync({
           id: employeeId,
-          manager_id: newManagerId,
+          updates: { manager_id: newManagerId },
         });
 
         toast({
           title: "Manager reassigned",
-          description: `${employee.firstName} ${employee.lastName} now reports to ${newManager.firstName} ${newManager.lastName}.`,
+          description: `${employee.first_name} ${employee.last_name} now reports to ${newManager.first_name} ${newManager.last_name}.`,
         });
       } catch (err) {
         toast({
@@ -120,7 +122,7 @@ export function useEmployeeActions(
           assignments.map(({ employeeId, managerId }) =>
             updateEmployee.mutateAsync({
               id: employeeId,
-              manager_id: managerId,
+              updates: { manager_id: managerId },
             })
           )
         );

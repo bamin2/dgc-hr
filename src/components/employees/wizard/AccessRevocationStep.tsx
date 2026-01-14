@@ -77,7 +77,7 @@ export function AccessRevocationStep({
   const [newSystemType, setNewSystemType] = useState<AccessSystemType>("cloud");
   const { data: employees = [] } = useEmployees();
 
-  const itEmployees = employees.filter((emp) => emp.department === "Engineering");
+  const itEmployees = employees.filter((emp) => emp.department?.name === "Engineering");
 
   const updateSystem = (id: string, field: keyof AccessSystem, value: string) => {
     onSystemsChange(
@@ -151,7 +151,7 @@ export function AccessRevocationStep({
                 <SelectContent>
                   {itEmployees.map((emp) => (
                     <SelectItem key={emp.id} value={emp.id}>
-                      {emp.firstName} {emp.lastName}
+                      {emp.first_name} {emp.last_name}
                     </SelectItem>
                   ))}
                   {itEmployees.length === 0 && (
