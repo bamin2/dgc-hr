@@ -246,3 +246,37 @@ export function useDeleteEmployee() {
     },
   });
 }
+
+// Departments query - for dropdowns/filters
+export function useDepartments() {
+  return useQuery({
+    queryKey: ["departments"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("departments")
+        .select("id, name")
+        .order("name");
+
+      if (error) throw error;
+      return data;
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+// Positions query - for dropdowns/filters
+export function usePositions() {
+  return useQuery({
+    queryKey: ["positions"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("positions")
+        .select("id, title")
+        .order("title");
+
+      if (error) throw error;
+      return data;
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+}

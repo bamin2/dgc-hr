@@ -27,8 +27,8 @@ interface BankDetailsDialogProps {
 }
 
 export function BankDetailsDialog({ open, onOpenChange, employee }: BankDetailsDialogProps) {
-  const [bankName, setBankName] = useState(employee.bankName || "");
-  const [accountNumber, setAccountNumber] = useState(employee.bankAccountNumber || "");
+  const [bankName, setBankName] = useState(employee.bank_name || "");
+  const [accountNumber, setAccountNumber] = useState(employee.bank_account_number || "");
   const [iban, setIban] = useState(employee.iban || "");
   const updateEmployee = useUpdateEmployee();
   const { data: banks } = useBanks();
@@ -37,8 +37,8 @@ export function BankDetailsDialog({ open, onOpenChange, employee }: BankDetailsD
 
   useEffect(() => {
     if (open) {
-      setBankName(employee.bankName || "");
-      setAccountNumber(employee.bankAccountNumber || "");
+      setBankName(employee.bank_name || "");
+      setAccountNumber(employee.bank_account_number || "");
       setIban(employee.iban || "");
     }
   }, [open, employee]);
@@ -56,9 +56,11 @@ export function BankDetailsDialog({ open, onOpenChange, employee }: BankDetailsD
     updateEmployee.mutate(
       {
         id: employee.id,
-        bank_name: bankName || null,
-        bank_account_number: accountNumber || null,
-        iban: iban || null,
+        updates: {
+          bank_name: bankName || null,
+          bank_account_number: accountNumber || null,
+          iban: iban || null,
+        },
       },
       {
         onSuccess: () => {

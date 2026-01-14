@@ -255,7 +255,7 @@ export function CreateEventDialog({ open, onOpenChange }: CreateEventDialogProps
               <SelectContent>
                 {employees.map((emp) => (
                   <SelectItem key={emp.id} value={emp.id}>
-                    {emp.firstName} {emp.lastName}
+                    {emp.first_name} {emp.last_name}
                   </SelectItem>
                 ))}
               </SelectContent>
