@@ -61,25 +61,25 @@ export default function BusinessTrips() {
           </TabsList>
 
           <TabsContent value="my-trips" className="mt-6">
-            <MyTripsTab />
+            {activeTab === 'my-trips' && <MyTripsTab />}
           </TabsContent>
 
           {(isManager || isHROrAdmin) && (
             <TabsContent value="approvals" className="mt-6">
-              <TripApprovalsTab />
+              {activeTab === 'approvals' && <TripApprovalsTab />}
             </TabsContent>
           )}
 
           {isHROrAdmin && (
             <>
               <TabsContent value="all-trips" className="mt-6">
-                <AllTripsTab />
+                {activeTab === 'all-trips' && <AllTripsTab />}
               </TabsContent>
               <TabsContent value="reports" className="mt-6">
-                <TripReportsTab />
+                {activeTab === 'reports' && <TripReportsTab />}
               </TabsContent>
               <TabsContent value="settings" className="mt-6">
-                <TripSettingsTab />
+                {activeTab === 'settings' && <TripSettingsTab />}
               </TabsContent>
             </>
           )}

@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { queryKeys } from '@/lib/queryKeys';
+import { queryPresets, paginatedListOptions } from '@/lib/queryOptions';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -77,6 +78,7 @@ export function useMyBusinessTrips() {
       return data as unknown as BusinessTrip[];
     },
     enabled: !!user,
+    ...queryPresets.userData,
   });
 }
 
@@ -125,6 +127,8 @@ export function useAllBusinessTrips(filters?: {
       if (error) throw error;
       return data as unknown as BusinessTrip[];
     },
+    ...queryPresets.userData,
+    ...paginatedListOptions,
   });
 }
 
@@ -167,6 +171,7 @@ export function useTeamTripApprovals() {
       return data as unknown as BusinessTrip[];
     },
     enabled: !!user,
+    ...queryPresets.liveData,
   });
 }
 
@@ -193,6 +198,70 @@ export function useHRTripApprovals() {
       if (error) throw error;
       return data as unknown as BusinessTrip[];
     },
+    ...queryPresets.liveData,
+  });
+}
+
+// Fetch pending approvals for approval tab (consolidated query)
+export function usePendingTripApprovals(isHROrAdmin: boolean) {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: queryKeys.businessTrips.pendingApprovals(isHROrAdmin),
+    queryFn: async () => {
+      if (isHROrAdmin) {
+        // HR sees both submitted and manager_approved trips
+        const { data, error } = await supabase
+          .from('business_trips')
+          .select(`
+            *,
+            destination:business_trip_destinations(*),
+            origin_location:work_locations(id, name),
+            employee:employees(
+              id, first_name, last_name, full_name, avatar_url,
+              department:departments(id, name),
+              work_location:work_locations(id, name)
+            )
+          `)
+          .in('status', ['submitted', 'manager_approved'])
+          .order('submitted_at', { ascending: true });
+
+        if (error) throw error;
+        return data as unknown as BusinessTrip[];
+      } else {
+        // Managers see only submitted trips from their team
+        if (!user) return [];
+
+        const { data: manager } = await supabase
+          .from('employees')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
+
+        if (!manager) return [];
+
+        const { data, error } = await supabase
+          .from('business_trips')
+          .select(`
+            *,
+            destination:business_trip_destinations(*),
+            origin_location:work_locations(id, name),
+            employee:employees!inner(
+              id, first_name, last_name, full_name, avatar_url,
+              department:departments(id, name),
+              work_location:work_locations(id, name)
+            )
+          `)
+          .eq('status', 'submitted')
+          .eq('employee.manager_id', manager.id)
+          .order('submitted_at', { ascending: true });
+
+        if (error) throw error;
+        return data as unknown as BusinessTrip[];
+      }
+    },
+    enabled: isHROrAdmin || !!user,
+    ...queryPresets.liveData,
   });
 }
 
@@ -222,6 +291,7 @@ export function useBusinessTrip(tripId: string | undefined) {
       return data as unknown as BusinessTrip;
     },
     enabled: !!tripId,
+    ...queryPresets.userData,
   });
 }
 
@@ -439,6 +509,7 @@ export function useApproveBusinessTrip() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.businessTrips.teamApprovals });
       queryClient.invalidateQueries({ queryKey: queryKeys.businessTrips.hrApprovals });
+      queryClient.invalidateQueries({ queryKey: ['business-trips', 'pending-approvals'] });
       queryClient.invalidateQueries({ queryKey: queryKeys.businessTrips.all() });
       toast({
         title: 'Trip approved',
@@ -477,6 +548,7 @@ export function useRejectBusinessTrip() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.businessTrips.teamApprovals });
       queryClient.invalidateQueries({ queryKey: queryKeys.businessTrips.hrApprovals });
+      queryClient.invalidateQueries({ queryKey: ['business-trips', 'pending-approvals'] });
       queryClient.invalidateQueries({ queryKey: queryKeys.businessTrips.all() });
       toast({
         title: 'Trip rejected',

@@ -14,8 +14,8 @@ import {
 import { useMyBusinessTrips } from '@/hooks/useBusinessTrips';
 import { TripCard } from './TripCard';
 import { CreateTripDialog } from './CreateTripDialog';
+import { TripCardSkeleton } from './TripCardSkeleton';
 import { TRIP_STATUS_LABELS, TripStatus } from '@/types/businessTrips';
-import { Loader2 } from 'lucide-react';
 
 export function MyTripsTab() {
   const navigate = useNavigate();
@@ -56,8 +56,10 @@ export function MyTripsTab() {
 
       {/* Trips List */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3].map((i) => (
+            <TripCardSkeleton key={i} />
+          ))}
         </div>
       ) : filteredTrips.length === 0 ? (
         <Card className="p-12 text-center">
