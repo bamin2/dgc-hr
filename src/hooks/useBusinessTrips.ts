@@ -335,7 +335,13 @@ export function useCreateBusinessTrip() {
       return data;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.businessTrips.my });
+      // Force immediate refetch to show new trip
+      queryClient.invalidateQueries({ 
+        queryKey: queryKeys.businessTrips.my,
+        refetchType: 'active'
+      });
+      // Also invalidate all trips if HR/Admin might be viewing
+      queryClient.invalidateQueries({ queryKey: queryKeys.businessTrips.all() });
       toast({
         title: variables.status === 'submitted' ? 'Trip submitted' : 'Trip saved as draft',
         description: variables.status === 'submitted' 
