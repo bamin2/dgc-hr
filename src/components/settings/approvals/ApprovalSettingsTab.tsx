@@ -12,6 +12,7 @@ const REQUEST_TYPE_LABELS: Record<RequestType, string> = {
   time_off: "Time Off Requests",
   loan: "Loan Requests",
   hr_letter: "HR Letter Requests",
+  business_trip: "Business Trip Requests",
 };
 
 export function ApprovalSettingsTab() {

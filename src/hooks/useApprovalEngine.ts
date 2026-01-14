@@ -72,6 +72,11 @@ export function useInitiateApproval() {
             .from("leave_requests")
             .update({ status: "approved" })
             .eq("id", requestId);
+        } else if (requestType === "business_trip") {
+          await supabase
+            .from("business_trips")
+            .update({ status: "hr_approved" })
+            .eq("id", requestId);
         }
         return { autoApproved: true };
       }
@@ -83,6 +88,11 @@ export function useInitiateApproval() {
           await supabase
             .from("leave_requests")
             .update({ status: "approved" })
+            .eq("id", requestId);
+        } else if (requestType === "business_trip") {
+          await supabase
+            .from("business_trips")
+            .update({ status: "hr_approved" })
             .eq("id", requestId);
         }
         return { autoApproved: true };
@@ -144,6 +154,11 @@ export function useInitiateApproval() {
             .from("leave_requests")
             .update({ status: "approved" })
             .eq("id", requestId);
+        } else if (requestType === "business_trip") {
+          await supabase
+            .from("business_trips")
+            .update({ status: "hr_approved" })
+            .eq("id", requestId);
         }
         return { autoApproved: true };
       }
@@ -157,15 +172,28 @@ export function useInitiateApproval() {
             submitted_at: new Date().toISOString(),
           })
           .eq("id", requestId);
+      } else if (requestType === "business_trip") {
+        await supabase
+          .from("business_trips")
+          .update({
+            status: "submitted",
+            submitted_at: new Date().toISOString(),
+          })
+          .eq("id", requestId);
       }
 
       return { autoApproved: false };
     },
-    onSuccess: (result) => {
+    onSuccess: (result, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.leave.requests.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.approvals.pending });
       queryClient.invalidateQueries({ queryKey: queryKeys.approvals.pendingCount });
       queryClient.invalidateQueries({ queryKey: queryKeys.approvals.myRequests });
+      
+      // Also invalidate business trips queries if relevant
+      if (variables.requestType === "business_trip") {
+        queryClient.invalidateQueries({ queryKey: ['business-trips'] });
+      }
       
       if (result.autoApproved) {
         toast.success("Request auto-approved (no approval workflow configured)");
