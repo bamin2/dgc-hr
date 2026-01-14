@@ -266,6 +266,7 @@ export const queryKeys = {
     detail: (id: string) => ['business-trips', id] as const,
     teamApprovals: ['business-trips', 'team-approvals'] as const,
     hrApprovals: ['business-trips', 'hr-approvals'] as const,
+    pendingApprovals: (isHROrAdmin: boolean) => ['business-trips', 'pending-approvals', isHROrAdmin] as const,
     destinations: ['business-trip-destinations'] as const,
     allDestinations: ['business-trip-destinations', 'all'] as const,
     expenses: (tripId: string) => ['business-trip-expenses', tripId] as const,

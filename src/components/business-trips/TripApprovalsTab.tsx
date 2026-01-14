@@ -2,9 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Loader2, CheckCircle, XCircle } from 'lucide-react';
-import { useAllBusinessTrips, useApproveBusinessTrip, useRejectBusinessTrip } from '@/hooks/useBusinessTrips';
+import { usePendingTripApprovals, useApproveBusinessTrip, useRejectBusinessTrip } from '@/hooks/useBusinessTrips';
 import { useRole } from '@/contexts/RoleContext';
 import { TripCard } from './TripCard';
 import {
@@ -16,6 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { TripCardSkeleton } from './TripCardSkeleton';
 
 export function TripApprovalsTab() {
   const navigate = useNavigate();
@@ -29,20 +29,8 @@ export function TripApprovalsTab() {
   const approveTrip = useApproveBusinessTrip();
   const rejectTrip = useRejectBusinessTrip();
 
-  // Fetch trips pending approval
-  const { data: pendingTrips = [], isLoading } = useAllBusinessTrips({
-    status: isHROrAdmin ? 'manager_approved' : 'submitted',
-  });
-
-  // Also fetch submitted trips for HR (in case employee has no manager)
-  const { data: submittedTrips = [] } = useAllBusinessTrips({
-    status: 'submitted',
-  });
-
-  // Combine for HR/Admin view
-  const allPendingTrips = isHROrAdmin 
-    ? [...(pendingTrips || []), ...(submittedTrips || [])]
-    : pendingTrips || [];
+  // Single consolidated query for pending approvals
+  const { data: pendingTrips = [], isLoading } = usePendingTripApprovals(isHROrAdmin);
 
   const handleApprove = async (tripId: string) => {
     await approveTrip.mutateAsync({ tripId, asHR: isHROrAdmin });
@@ -64,13 +52,20 @@ export function TripApprovalsTab() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="h-6 w-48 bg-muted rounded animate-pulse" />
+        </div>
+        <div className="grid gap-4">
+          {[1, 2, 3].map((i) => (
+            <TripCardSkeleton key={i} />
+          ))}
+        </div>
       </div>
     );
   }
 
-  if (allPendingTrips.length === 0) {
+  if (pendingTrips.length === 0) {
     return (
       <Card className="p-12 text-center">
         <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
@@ -84,12 +79,12 @@ export function TripApprovalsTab() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">
-          Pending Approvals ({allPendingTrips.length})
+          Pending Approvals ({pendingTrips.length})
         </h2>
       </div>
 
       <div className="grid gap-4">
-        {allPendingTrips.map(trip => (
+        {pendingTrips.map(trip => (
           <Card key={trip.id} className="p-4">
             <div className="flex flex-col md:flex-row md:items-center gap-4">
               <div className="flex-1">
