@@ -185,12 +185,15 @@ export async function fetchEmployeeWithLocation(employeeId: string) {
 }
 
 /**
- * Fetch user profile to get employee ID
+ * Fetch user's employee ID (single source of truth: employees.user_id)
  */
 export async function fetchUserProfile(userId: string) {
-  return supabase
-    .from('profiles')
-    .select('employee_id')
-    .eq('id', userId)
-    .single();
+  const { data, error } = await supabase
+    .from('employees')
+    .select('id')
+    .eq('user_id', userId)
+    .maybeSingle();
+  
+  // Return in the same shape as before for backward compatibility
+  return { data: data ? { employee_id: data.id } : null, error };
 }

@@ -21,19 +21,19 @@ export function useRoleManagement(
 
   const updateEmployeeRole = useCallback(
     async (employeeId: string, newRole: AppRole): Promise<{ error?: string }> => {
-      // First, find the user_id associated with this employee
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('employee_id', employeeId)
+      // Find the user_id associated with this employee from employees table (single source of truth)
+      const { data: employeeData, error: employeeError } = await supabase
+        .from('employees')
+        .select('user_id')
+        .eq('id', employeeId)
         .single();
 
-      if (profileError || !profileData) {
-        console.error('No user account linked to this employee:', profileError);
+      if (employeeError || !employeeData?.user_id) {
+        console.error('No user account linked to this employee:', employeeError);
         return { error: 'No user account linked to this employee. Create a login first.' };
       }
 
-      const userId = profileData.id;
+      const userId = employeeData.user_id;
 
       // Delete existing roles for this user first, then insert the new one
       await supabase

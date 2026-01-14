@@ -31,16 +31,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Fetch user profile
+  // Fetch user profile and employee_id
   const fetchProfile = async (userId: string) => {
-    const { data, error } = await supabase
+    // Fetch profile data
+    const { data: profileData, error: profileError } = await supabase
       .from('profiles')
-      .select('*')
+      .select('id, first_name, last_name, email, avatar_url')
       .eq('id', userId)
       .single();
     
-    if (!error && data) {
-      setProfile(data);
+    // Fetch employee_id from employees table (single source of truth)
+    const { data: employeeData } = await supabase
+      .from('employees')
+      .select('id')
+      .eq('user_id', userId)
+      .maybeSingle();
+    
+    if (!profileError && profileData) {
+      setProfile({
+        ...profileData,
+        employee_id: employeeData?.id ?? null
+      });
     }
   };
 

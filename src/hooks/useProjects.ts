@@ -212,14 +212,14 @@ export function useProjects() {
       dueDate?: Date;
       assigneeIds?: string[];
     }) => {
-      // Get current user's employee ID
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('employee_id')
-        .eq('id', user?.id)
-        .single();
+      // Get current user's employee ID from employees table (single source of truth)
+      const { data: employee } = await supabase
+        .from('employees')
+        .select('id')
+        .eq('user_id', user?.id)
+        .maybeSingle();
 
-      const ownerId = profile?.employee_id;
+      const ownerId = employee?.id;
 
       // Create project
       const { data: project, error: projectError } = await supabase
@@ -319,12 +319,12 @@ export function useProjects() {
 
   const updateProjectStatusMutation = useMutation({
     mutationFn: async (data: { projectId: string; newStatus: ProjectStatus; oldStatus: ProjectStatus }) => {
-      // Get current user's employee ID
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('employee_id')
-        .eq('id', user?.id)
-        .single();
+      // Get current user's employee ID from employees table (single source of truth)
+      const { data: employee } = await supabase
+        .from('employees')
+        .select('id')
+        .eq('user_id', user?.id)
+        .maybeSingle();
 
       // Update project status
       const { error: updateError } = await supabase
@@ -335,12 +335,12 @@ export function useProjects() {
       if (updateError) throw updateError;
 
       // Add status change activity
-      if (profile?.employee_id && data.oldStatus !== data.newStatus) {
+      if (employee?.id && data.oldStatus !== data.newStatus) {
         await supabase
           .from('project_activities')
           .insert({
             project_id: data.projectId,
-            actor_id: profile.employee_id,
+            actor_id: employee.id,
             activity_type: 'status_change',
             old_status: data.oldStatus,
             new_status: data.newStatus,
@@ -368,20 +368,20 @@ export function useProjects() {
 
   const addCommentMutation = useMutation({
     mutationFn: async (data: { projectId: string; comment: string; mentionedUserIds?: string[] }) => {
-      // Get current user's employee ID
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('employee_id')
-        .eq('id', user?.id)
-        .single();
+      // Get current user's employee ID from employees table (single source of truth)
+      const { data: employee } = await supabase
+        .from('employees')
+        .select('id')
+        .eq('user_id', user?.id)
+        .maybeSingle();
 
-      if (!profile?.employee_id) throw new Error('No employee profile');
+      if (!employee?.id) throw new Error('No employee profile');
 
       const { error } = await supabase
         .from('project_activities')
         .insert({
           project_id: data.projectId,
-          actor_id: profile.employee_id,
+          actor_id: employee.id,
           activity_type: 'comment',
           comment: data.comment,
           mentioned_employee_ids: data.mentionedUserIds,
