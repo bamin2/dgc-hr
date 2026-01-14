@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { BusinessTrip, TRIP_STATUS_LABELS, TRIP_STATUS_COLORS, TRAVEL_MODE_LABELS } from '@/types/businessTrips';
 import { useRole } from '@/contexts/RoleContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useSubmitBusinessTrip, useCancelBusinessTrip, useCloseBusinessTrip } from '@/hooks/useBusinessTrips';
 import { TripExpensesSection } from './TripExpensesSection';
 import { TripAmendmentDialog } from './TripAmendmentDialog';
@@ -21,8 +22,9 @@ interface TripDetailViewProps {
 
 export function TripDetailView({ trip }: TripDetailViewProps) {
   const { currentUser } = useRole();
+  const { profile } = useAuth();
   const isHROrAdmin = currentUser.role === 'hr' || currentUser.role === 'admin';
-  const isOwner = trip.employee_id === currentUser.employeeId;
+  const isOwner = trip.employee_id === profile?.employee_id;
   
   const [amendmentDialogOpen, setAmendmentDialogOpen] = useState(false);
   

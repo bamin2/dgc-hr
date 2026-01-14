@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
-import { useBusinessTrips } from '@/hooks/useBusinessTrips';
+import { useAllBusinessTrips } from '@/hooks/useBusinessTrips';
 import { TRIP_STATUS_LABELS, TRIP_STATUS_COLORS, TripStatus } from '@/types/businessTrips';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -31,17 +31,17 @@ export function AllTripsTab() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const { data: trips, isLoading } = useBusinessTrips(
+  const { data: trips = [], isLoading } = useAllBusinessTrips(
     statusFilter !== 'all' ? { status: statusFilter as TripStatus } : {}
   );
 
-  const filteredTrips = trips?.filter(trip => {
+  const filteredTrips = trips.filter(trip => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
     const employeeName = `${trip.employee?.first_name} ${trip.employee?.last_name}`.toLowerCase();
     const destination = trip.destination?.name?.toLowerCase() || '';
     return employeeName.includes(query) || destination.includes(query);
-  }) || [];
+  });
 
   const handleExport = () => {
     if (!filteredTrips.length) return;

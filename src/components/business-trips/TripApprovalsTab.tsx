@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, CheckCircle, XCircle } from 'lucide-react';
-import { useBusinessTrips, useApproveBusinessTrip, useRejectBusinessTrip } from '@/hooks/useBusinessTrips';
+import { useAllBusinessTrips, useApproveBusinessTrip, useRejectBusinessTrip } from '@/hooks/useBusinessTrips';
 import { useRole } from '@/contexts/RoleContext';
 import { TripCard } from './TripCard';
 import {
@@ -30,12 +30,12 @@ export function TripApprovalsTab() {
   const rejectTrip = useRejectBusinessTrip();
 
   // Fetch trips pending approval
-  const { data: pendingTrips, isLoading } = useBusinessTrips({
+  const { data: pendingTrips = [], isLoading } = useAllBusinessTrips({
     status: isHROrAdmin ? 'manager_approved' : 'submitted',
   });
 
   // Also fetch submitted trips for HR (in case employee has no manager)
-  const { data: submittedTrips } = useBusinessTrips({
+  const { data: submittedTrips = [] } = useAllBusinessTrips({
     status: 'submitted',
   });
 

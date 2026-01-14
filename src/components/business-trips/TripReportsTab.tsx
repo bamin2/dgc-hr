@@ -3,12 +3,11 @@ import { Download, FileSpreadsheet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { format } from 'date-fns';
-import { useBusinessTrips } from '@/hooks/useBusinessTrips';
-import { useTripExpenses } from '@/hooks/useBusinessTripExpenses';
+import { useAllBusinessTrips } from '@/hooks/useBusinessTrips';
 import { TRIP_STATUS_LABELS } from '@/types/businessTrips';
 
 export function TripReportsTab() {
-  const { data: allTrips } = useBusinessTrips({});
+  const { data: allTrips = [] } = useAllBusinessTrips({});
 
   const handleExportSummary = () => {
     if (!allTrips?.length) return;

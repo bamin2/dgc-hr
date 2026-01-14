@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { queryKeys } from '@/lib/queryKeys';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import type { Json } from '@/integrations/supabase/types';
 import {
   BusinessTripAmendment,
   CreateAmendmentInput,
@@ -35,18 +36,16 @@ export function useRequestAmendment() {
 
   return useMutation({
     mutationFn: async (input: CreateAmendmentInput) => {
-      const insertData = {
-        trip_id: input.trip_id,
-        change_type: input.change_type,
-        proposed_values: input.proposed_values,
-        original_values: input.original_values,
-        reason: input.reason,
-        status: 'pending',
-      };
-
       const { data, error } = await supabase
         .from('business_trip_amendments')
-        .insert(insertData)
+        .insert({
+          trip_id: input.trip_id,
+          change_type: input.change_type,
+          proposed_values: input.proposed_values as Json,
+          original_values: input.original_values as Json,
+          reason: input.reason,
+          status: 'pending',
+        })
         .select()
         .single();
 

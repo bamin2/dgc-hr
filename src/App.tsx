@@ -49,6 +49,8 @@ const AuditTrail = lazy(() => import("./pages/AuditTrail"));
 const Hiring = lazy(() => import("./pages/Hiring"));
 const CandidateDetail = lazy(() => import("./pages/CandidateDetail"));
 const OfferDetail = lazy(() => import("./pages/OfferDetail"));
+const BusinessTrips = lazy(() => import("./pages/BusinessTrips"));
+const BusinessTripDetail = lazy(() => import("./pages/BusinessTripDetail"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -91,6 +93,8 @@ const App = () => (
                 <Route path="/projects" element={<ProtectedRoute><DashboardLazyPage><Projects /></DashboardLazyPage></ProtectedRoute>} />
                 <Route path="/attendance" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><TimeManagement /></DashboardLazyPage></ProtectedRoute>} />
                 <Route path="/time-off" element={<ProtectedRoute><DashboardLazyPage><TimeOff /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/business-trips" element={<ProtectedRoute><DashboardLazyPage><BusinessTrips /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/business-trips/:id" element={<ProtectedRoute><DashboardLazyPage><BusinessTripDetail /></DashboardLazyPage></ProtectedRoute>} />
                 <Route path="/approvals" element={<ProtectedRoute><DashboardLazyPage><Approvals /></DashboardLazyPage></ProtectedRoute>} />
                 <Route path="/benefits" element={<ProtectedRoute><DashboardLazyPage><Benefits /></DashboardLazyPage></ProtectedRoute>} />
                 <Route path="/benefits/plans/:id" element={<ProtectedRoute><DashboardLazyPage><BenefitDetail /></DashboardLazyPage></ProtectedRoute>} />
