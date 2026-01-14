@@ -15,8 +15,8 @@ export function calculatePerDiem(
   nights: number,
   perDiemRate: number,
   travelMode: 'plane' | 'car',
-  carUpliftPerNight: number,
-  corporateCardUsed: boolean
+  corporateCardUsed: boolean,
+  carUpliftPerNight: number
 ) {
   const carUpliftTotal = travelMode === 'car' ? nights * carUpliftPerNight : 0;
   const perDiemBudget = (nights * perDiemRate) + carUpliftTotal;

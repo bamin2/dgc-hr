@@ -24,7 +24,7 @@ import {
   useBusinessTripDestinations,
   useCreateDestination,
   useUpdateDestination,
-  useDeactivateDestination,
+  useDeleteDestination,
 } from '@/hooks/useBusinessTripDestinations';
 import { BusinessTripDestination } from '@/types/businessTrips';
 
@@ -32,7 +32,7 @@ export function DestinationsManager() {
   const { data: destinations, isLoading } = useBusinessTripDestinations();
   const createDestination = useCreateDestination();
   const updateDestination = useUpdateDestination();
-  const deactivateDestination = useDeactivateDestination();
+  const deactivateDestination = useDeleteDestination();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingDestination, setEditingDestination] = useState<BusinessTripDestination | null>(null);

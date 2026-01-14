@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { format, differenceInCalendarDays } from 'date-fns';
+import { format } from 'date-fns';
 import {
   Dialog,
   DialogContent,
@@ -31,14 +30,13 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { DatePickerWithRange } from '@/components/ui/date-range-picker';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Loader2, Calculator } from 'lucide-react';
 import { useBusinessTripDestinations } from '@/hooks/useBusinessTripDestinations';
 import { useBusinessTripSettings } from '@/hooks/useBusinessTripSettings';
 import { useCreateBusinessTrip, calculateNights, calculatePerDiem } from '@/hooks/useBusinessTrips';
-import { useRole } from '@/contexts/RoleContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 
 const tripFormSchema = z.object({
@@ -62,7 +60,7 @@ interface CreateTripDialogProps {
 }
 
 export function CreateTripDialog({ open, onOpenChange }: CreateTripDialogProps) {
-  const { currentUser } = useRole();
+  const { profile } = useAuth();
   const { data: destinations, isLoading: loadingDestinations } = useBusinessTripDestinations();
   const { data: settings } = useBusinessTripSettings();
   const createTrip = useCreateBusinessTrip();
@@ -87,13 +85,17 @@ export function CreateTripDialog({ open, onOpenChange }: CreateTripDialogProps) 
   const perDiemRate = selectedDestination?.per_diem_rate_bhd || 0;
   const carUplift = settings?.car_uplift_per_night_bhd || 20;
 
-  const { budget, payable, carUpliftTotal } = calculatePerDiem(
+  const perDiemCalc = calculatePerDiem(
     nights,
     perDiemRate,
     watchedValues.travel_mode,
     watchedValues.corporate_card_used,
     carUplift
   );
+  
+  const budget = perDiemCalc.per_diem_budget_bhd;
+  const payable = perDiemCalc.per_diem_payable_bhd;
+  const carUpliftTotal = perDiemCalc.car_uplift_total_bhd;
 
   const handleSubmit = async (values: TripFormValues, asDraft: boolean) => {
     if (!selectedDestination) {
@@ -105,23 +107,31 @@ export function CreateTripDialog({ open, onOpenChange }: CreateTripDialogProps) 
       return;
     }
 
+    if (!profile?.employee_id) {
+      toast({
+        title: 'Error',
+        description: 'Unable to find your employee profile',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     try {
       await createTrip.mutateAsync({
-        employee_id: currentUser.employeeId,
+        employee_id: profile.employee_id,
         destination_id: values.destination_id,
-        origin_location_id: values.origin_location_id || null,
         start_date: format(values.start_date, 'yyyy-MM-dd'),
         end_date: format(values.end_date, 'yyyy-MM-dd'),
-        nights_count: nights,
         travel_mode: values.travel_mode,
         corporate_card_used: values.corporate_card_used,
+        flight_details: values.flight_details,
+        status: asDraft ? 'draft' : 'submitted',
+        nights_count: nights,
         per_diem_rate_bhd: perDiemRate,
-        car_uplift_per_night_bhd: values.travel_mode === 'car' ? carUplift : 0,
+        car_uplift_per_night_bhd: perDiemCalc.car_uplift_per_night_bhd,
         car_uplift_total_bhd: carUpliftTotal,
         per_diem_budget_bhd: budget,
         per_diem_payable_bhd: payable,
-        flight_details: values.flight_details || null,
-        status: asDraft ? 'draft' : 'submitted',
       });
       
       onOpenChange(false);

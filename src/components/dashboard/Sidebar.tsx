@@ -24,6 +24,7 @@ import {
   UserCircle,
   History,
   UserPlus,
+  Plane,
   icons,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -80,6 +81,7 @@ export function Sidebar() {
     { icon: Calendar, label: "Calendar", path: "/calendar" },
     { icon: Briefcase, label: "Projects", path: "/projects" },
     { icon: Clock, label: "Time Off", path: "/time-off" },
+    { icon: Plane, label: "Business Trips", path: "/business-trips" },
     { icon: CheckSquare, label: "Approvals", path: "/approvals", badge: pendingCount },
   ], [pendingCount]);
 

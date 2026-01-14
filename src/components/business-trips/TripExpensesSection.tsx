@@ -29,7 +29,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Plus, Receipt, Loader2, CheckCircle, XCircle } from 'lucide-react';
-import { useTripExpenses, useAddExpense, useReviewExpense } from '@/hooks/useBusinessTripExpenses';
+import { useBusinessTripExpenses, useAddExpense, useReviewExpense } from '@/hooks/useBusinessTripExpenses';
 import { EXPENSE_CATEGORY_LABELS, ExpenseCategory, ExpenseHRStatus } from '@/types/businessTrips';
 import { cn } from '@/lib/utils';
 
@@ -54,7 +54,7 @@ const HR_STATUS_LABELS: Record<ExpenseHRStatus, string> = {
 };
 
 export function TripExpensesSection({ tripId, canAddExpenses, isHROrAdmin }: TripExpensesSectionProps) {
-  const { data: expenses, isLoading } = useTripExpenses(tripId);
+  const { data: expenses, isLoading } = useBusinessTripExpenses(tripId);
   const addExpense = useAddExpense();
   const reviewExpense = useReviewExpense();
 
@@ -92,10 +92,10 @@ export function TripExpensesSection({ tripId, canAddExpenses, isHROrAdmin }: Tri
   const handleReviewExpense = async () => {
     if (!selectedExpenseId) return;
     await reviewExpense.mutateAsync({
-      expenseId: selectedExpenseId,
-      status: reviewData.status,
-      notes: reviewData.notes,
-      approved_amount: reviewData.status === 'partially_approved' ? reviewData.approved_amount : undefined,
+      id: selectedExpenseId,
+      hr_status: reviewData.status,
+      hr_notes: reviewData.notes,
+      hr_approved_amount_bhd: reviewData.status === 'partially_approved' ? reviewData.approved_amount : undefined,
     });
     setReviewDialogOpen(false);
     setSelectedExpenseId(null);
