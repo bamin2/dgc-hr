@@ -93,15 +93,15 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Get the user_id from the profiles table using the employee_id
-    const { data: profile, error: profileError } = await supabaseAdmin
-      .from('profiles')
-      .select('id')
-      .eq('employee_id', employeeId)
+    // Get the user_id from the employees table (single source of truth: employees.user_id)
+    const { data: employee, error: employeeError } = await supabaseAdmin
+      .from('employees')
+      .select('user_id')
+      .eq('id', employeeId)
       .single()
 
-    if (profileError || !profile) {
-      console.error('Profile lookup error:', profileError)
+    if (employeeError || !employee?.user_id) {
+      console.error('Employee lookup error:', employeeError)
       return new Response(
         JSON.stringify({ error: 'Employee does not have an associated user account' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -110,7 +110,7 @@ Deno.serve(async (req) => {
 
     // Update the user's password using the Admin API
     const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-      profile.id,
+      employee.user_id,
       { password }
     )
 

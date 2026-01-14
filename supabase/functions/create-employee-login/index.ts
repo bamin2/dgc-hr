@@ -95,22 +95,22 @@ Deno.serve(async (req) => {
 
     console.log('Creating login for employee:', employeeId, 'with email:', email)
 
-    // Check if employee already has a user account linked
-    const { data: existingProfile, error: profileError } = await supabaseAdmin
-      .from('profiles')
-      .select('id')
-      .eq('employee_id', employeeId)
-      .maybeSingle()
+    // Check if employee already has a user account linked (single source of truth: employees.user_id)
+    const { data: existingEmployee, error: employeeCheckError } = await supabaseAdmin
+      .from('employees')
+      .select('user_id')
+      .eq('id', employeeId)
+      .single()
 
-    if (profileError) {
-      console.error('Error checking existing profile:', profileError)
+    if (employeeCheckError) {
+      console.error('Error checking employee:', employeeCheckError)
       return new Response(
-        JSON.stringify({ error: 'Failed to check existing account' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Employee not found' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    if (existingProfile) {
+    if (existingEmployee?.user_id) {
       return new Response(
         JSON.stringify({ error: 'This employee already has a login account' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -138,14 +138,14 @@ Deno.serve(async (req) => {
 
     console.log('User created with ID:', newUser.user.id)
 
-    // Link the profile to the employee
+    // Link the employee to the user (single source of truth: employees.user_id)
     const { error: updateError } = await supabaseAdmin
-      .from('profiles')
-      .update({ employee_id: employeeId })
-      .eq('id', newUser.user.id)
+      .from('employees')
+      .update({ user_id: newUser.user.id })
+      .eq('id', employeeId)
 
     if (updateError) {
-      console.error('Error linking profile to employee:', updateError)
+      console.error('Error linking employee to user:', updateError)
       // Try to clean up the created user
       await supabaseAdmin.auth.admin.deleteUser(newUser.user.id)
       return new Response(

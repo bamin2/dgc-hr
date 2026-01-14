@@ -13,11 +13,11 @@ export function useAllUserRolesQuery(user: User | null): UseAllUserRolesQueryRes
   const { data: userRoles = [], isLoading } = useQuery({
     queryKey: queryKeys.roles.allUserRoles,
     queryFn: async (): Promise<UserRole[]> => {
-      // Only fetch roles and profiles when actually needed (for role management)
-      // This is a lazy query that's only used by HR/Admin for role management
-      const [rolesResult, profilesResult] = await Promise.all([
+      // Fetch user_roles and employees separately, then merge
+      // employees.user_id is now the single source of truth for user-employee linkage
+      const [rolesResult, employeesResult] = await Promise.all([
         supabase.from('user_roles').select('id, user_id, role'),
-        supabase.from('profiles').select('id, employee_id'),
+        supabase.from('employees').select('id, user_id'),
       ]);
 
       if (rolesResult.error || !rolesResult.data) {
@@ -25,18 +25,18 @@ export function useAllUserRolesQuery(user: User | null): UseAllUserRolesQueryRes
       }
 
       // Build a map of user_id -> employee_id
-      const profilesMap = new Map<string, string>();
-      if (!profilesResult.error && profilesResult.data) {
-        profilesResult.data.forEach(p => {
-          if (p.employee_id) {
-            profilesMap.set(p.id, p.employee_id);
+      const employeesMap = new Map<string, string>();
+      if (!employeesResult.error && employeesResult.data) {
+        employeesResult.data.forEach(e => {
+          if (e.user_id) {
+            employeesMap.set(e.user_id, e.id);
           }
         });
       }
 
       return rolesResult.data.map(r => ({
         id: r.id,
-        userId: profilesMap.get(r.user_id) || r.user_id,
+        userId: employeesMap.get(r.user_id) || r.user_id,
         role: r.role,
       }));
     },

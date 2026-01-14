@@ -22,26 +22,27 @@ export function useAllUserRoles(user: User | null): UseAllUserRolesResult {
 
       setIsLoading(true);
 
-      // Fetch user_roles and profiles separately, then merge
-      const [rolesResult, profilesResult] = await Promise.all([
+      // Fetch user_roles and employees separately, then merge
+      // employees.user_id is now the single source of truth for user-employee linkage
+      const [rolesResult, employeesResult] = await Promise.all([
         supabase.from('user_roles').select('id, user_id, role'),
-        supabase.from('profiles').select('id, employee_id'),
+        supabase.from('employees').select('id, user_id'),
       ]);
 
       if (!rolesResult.error && rolesResult.data) {
         // Build a map of user_id -> employee_id
-        const profilesMap = new Map<string, string>();
-        if (!profilesResult.error && profilesResult.data) {
-          profilesResult.data.forEach(p => {
-            if (p.employee_id) {
-              profilesMap.set(p.id, p.employee_id);
+        const employeesMap = new Map<string, string>();
+        if (!employeesResult.error && employeesResult.data) {
+          employeesResult.data.forEach(e => {
+            if (e.user_id) {
+              employeesMap.set(e.user_id, e.id);
             }
           });
         }
 
         setUserRoles(rolesResult.data.map(r => ({
           id: r.id,
-          userId: profilesMap.get(r.user_id) || r.user_id,
+          userId: employeesMap.get(r.user_id) || r.user_id,
           role: r.role,
         })));
       }

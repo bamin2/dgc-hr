@@ -3954,7 +3954,6 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           email: string | null
-          employee_id: string | null
           first_name: string | null
           id: string
           job_title: string | null
@@ -3966,7 +3965,6 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           email?: string | null
-          employee_id?: string | null
           first_name?: string | null
           id: string
           job_title?: string | null
@@ -3978,7 +3976,6 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           email?: string | null
-          employee_id?: string | null
           first_name?: string | null
           id?: string
           job_title?: string | null
@@ -3986,15 +3983,7 @@ export type Database = {
           phone?: string | null
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       project_activities: {
         Row: {
@@ -4698,6 +4687,7 @@ export type Database = {
         Args: { p_attendance_limit?: number; p_team_limit?: number }
         Returns: Json
       }
+      get_my_employee_id: { Args: never; Returns: string }
       get_reports_overview: {
         Args: { p_end_date: string; p_start_date: string }
         Returns: Json

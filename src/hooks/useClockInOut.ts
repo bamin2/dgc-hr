@@ -10,24 +10,24 @@ export function useClockInOut() {
   const queryClient = useQueryClient();
   const today = format(new Date(), "yyyy-MM-dd");
 
-  // Fetch current user's employee_id from profile
-  const { data: profile } = useQuery({
-    queryKey: ["user-profile", user?.id],
+  // Fetch current user's employee_id from employees table (single source of truth)
+  const { data: employeeRecord } = useQuery({
+    queryKey: ["user-employee", user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
       const { data, error } = await supabase
-        .from("profiles")
-        .select("employee_id")
-        .eq("id", user.id)
-        .single();
+        .from("employees")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle();
       if (error) throw error;
       return data;
     },
     enabled: !!user?.id,
-    staleTime: 1000 * 60 * 10, // 10 minutes - profile rarely changes
+    staleTime: 1000 * 60 * 10, // 10 minutes - employee rarely changes
   });
 
-  const employeeId = profile?.employee_id;
+  const employeeId = employeeRecord?.id;
 
   // Fetch today's attendance record
   const {

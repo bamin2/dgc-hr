@@ -48,13 +48,14 @@ export function useMyLeaveBalances(year?: number) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('employee_id')
-        .eq('id', user.id)
-        .single();
+      // Fetch employee_id from employees table (single source of truth)
+      const { data: employee } = await supabase
+        .from('employees')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-      if (!profile?.employee_id) {
+      if (!employee?.id) {
         return [];
       }
 
@@ -70,7 +71,7 @@ export function useMyLeaveBalances(year?: number) {
             visible_to_employees
           )
         `)
-        .eq('employee_id', profile.employee_id)
+        .eq('employee_id', employee.id)
         .eq('year', currentYear)
         .eq('leave_type.visible_to_employees', true);
 

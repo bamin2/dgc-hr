@@ -92,13 +92,14 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
         return;
       }
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('employee_id')
-        .eq('id', user.id)
-        .single();
+      // Get the current user's employee_id from employees table (single source of truth)
+      const { data: employee } = await supabase
+        .from('employees')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-      if (!profile?.employee_id) {
+      if (!employee?.id) {
         toast.error("Your profile is not linked to an employee record");
         return;
       }
@@ -114,7 +115,7 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
           : 1;
 
       const result = await createRequest.mutateAsync({
-        employee_id: profile.employee_id,
+        employee_id: employee.id,
         leave_type_id: leaveTypeId,
         start_date: startDate,
         end_date: endDate,
@@ -129,7 +130,7 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
         await initiateApproval.mutateAsync({
           requestId: result.id,
           requestType: "time_off",
-          employeeId: profile.employee_id,
+          employeeId: employee.id,
         });
       }
 

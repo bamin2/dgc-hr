@@ -272,14 +272,14 @@ export function useMyRequests() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
-      // Get employee ID for current user
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("employee_id")
-        .eq("id", user.id)
-        .single();
+      // Get employee ID for current user from employees table (single source of truth)
+      const { data: employee } = await supabase
+        .from("employees")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle();
 
-      if (!profile?.employee_id) return [];
+      if (!employee?.id) return [];
 
       // Get leave requests for this employee
       const { data: leaveRequests, error } = await supabase
@@ -288,7 +288,7 @@ export function useMyRequests() {
           *,
           leave_type:leave_types(id, name, color)
         `)
-        .eq("employee_id", profile.employee_id)
+        .eq("employee_id", employee.id)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -335,20 +335,20 @@ export function useTeamRequests() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
-      // Get employee ID for current user (the manager)
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("employee_id")
-        .eq("id", user.id)
-        .single();
+      // Get employee ID for current user (the manager) from employees table (single source of truth)
+      const { data: employee } = await supabase
+        .from("employees")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle();
 
-      if (!profile?.employee_id) return [];
+      if (!employee?.id) return [];
 
       // Get employees who report to this manager
       const { data: directReports, error: reportsError } = await supabase
         .from("employees")
         .select("id")
-        .eq("manager_id", profile.employee_id);
+        .eq("manager_id", employee.id);
 
       if (reportsError) throw reportsError;
       if (!directReports || directReports.length === 0) return [];
