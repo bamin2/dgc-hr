@@ -261,7 +261,7 @@ export const queryKeys = {
   
   // Business Trips queries
   businessTrips: {
-    my: ['business-trips', 'my'] as const,
+    my: (employeeId?: string) => ['business-trips', 'my', employeeId ?? 'self'] as const,
     all: (filters?: Record<string, unknown>) => ['business-trips', 'all', filters] as const,
     detail: (id: string) => ['business-trips', id] as const,
     teamApprovals: ['business-trips', 'team-approvals'] as const,

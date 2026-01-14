@@ -42,22 +42,16 @@ export function calculateNights(startDate: string, endDate: string): number {
 }
 
 // Fetch my trips (employee's own trips)
-export function useMyBusinessTrips() {
-  const { user } = useAuth();
+export function useMyBusinessTrips(employeeId?: string | null) {
+  const { user, profile } = useAuth();
+  
+  // Resolve employee ID: passed param > profile.employee_id
+  const resolvedEmployeeId = employeeId || profile?.employee_id;
 
   return useQuery({
-    queryKey: queryKeys.businessTrips.my,
+    queryKey: queryKeys.businessTrips.my(resolvedEmployeeId ?? undefined),
     queryFn: async () => {
-      if (!user) return [];
-
-      // First get the employee ID for the current user
-      const { data: employee } = await supabase
-        .from('employees')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (!employee) return [];
+      if (!resolvedEmployeeId) return [];
 
       const { data, error } = await supabase
         .from('business_trips')
@@ -71,13 +65,13 @@ export function useMyBusinessTrips() {
             work_location:work_locations(id, name)
           )
         `)
-        .eq('employee_id', employee.id)
+        .eq('employee_id', resolvedEmployeeId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       return data as unknown as BusinessTrip[];
     },
-    enabled: !!user,
+    enabled: !!user && !!resolvedEmployeeId,
     ...queryPresets.userData,
   });
 }
@@ -335,10 +329,10 @@ export function useCreateBusinessTrip() {
       if (error) throw error;
       return data;
     },
-    onSuccess: (_, variables) => {
-      // Force immediate refetch to show new trip
+    onSuccess: (data, variables) => {
+      // Force immediate refetch to show new trip - invalidate broadly
       queryClient.invalidateQueries({ 
-        queryKey: queryKeys.businessTrips.my,
+        queryKey: ['business-trips', 'my'],
         refetchType: 'active'
       });
       // Also invalidate all trips if HR/Admin might be viewing
@@ -391,7 +385,7 @@ export function useUpdateBusinessTrip() {
       return data;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.businessTrips.my });
+      queryClient.invalidateQueries({ queryKey: ['business-trips', 'my'] });
       queryClient.invalidateQueries({ queryKey: queryKeys.businessTrips.detail(data.id) });
       queryClient.invalidateQueries({ queryKey: queryKeys.businessTrips.all() });
     },
@@ -425,7 +419,7 @@ export function useSubmitBusinessTrip() {
       return data;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.businessTrips.my });
+      queryClient.invalidateQueries({ queryKey: ['business-trips', 'my'] });
       queryClient.invalidateQueries({ queryKey: queryKeys.businessTrips.detail(data.id) });
       toast({
         title: 'Trip submitted',
@@ -459,7 +453,7 @@ export function useCancelBusinessTrip() {
       return data;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.businessTrips.my });
+      queryClient.invalidateQueries({ queryKey: ['business-trips', 'my'] });
       queryClient.invalidateQueries({ queryKey: queryKeys.businessTrips.detail(data.id) });
       toast({
         title: 'Trip cancelled',
@@ -625,7 +619,7 @@ export function useDeleteBusinessTrip() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.businessTrips.my });
+      queryClient.invalidateQueries({ queryKey: ['business-trips', 'my'] });
       toast({
         title: 'Trip deleted',
         description: 'The draft business trip has been deleted.',
