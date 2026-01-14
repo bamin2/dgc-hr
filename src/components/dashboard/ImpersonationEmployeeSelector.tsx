@@ -33,20 +33,22 @@ export function ImpersonationEmployeeSelector({
     const searchLower = search.toLowerCase();
     return employees
       .filter(emp => emp.status === "active")
-      .filter(emp => 
-        emp.fullName.toLowerCase().includes(searchLower) ||
-        emp.department.toLowerCase().includes(searchLower) ||
-        emp.position.toLowerCase().includes(searchLower)
-      );
+      .filter(emp => {
+        const fullName = emp.full_name || `${emp.first_name} ${emp.last_name}`;
+        return fullName.toLowerCase().includes(searchLower) ||
+          emp.department?.name?.toLowerCase().includes(searchLower) ||
+          emp.position?.title?.toLowerCase().includes(searchLower);
+      });
   }, [employees, search]);
 
   const handleSelect = (emp: typeof filteredEmployees[0]) => {
+    const fullName = emp.full_name || `${emp.first_name} ${emp.last_name}`;
     onSelectEmployee({
       id: emp.id,
-      name: emp.fullName,
-      avatar: emp.avatar,
-      department: emp.department,
-      position: emp.position,
+      name: fullName,
+      avatar: emp.avatar_url || undefined,
+      department: emp.department?.name || '',
+      position: emp.position?.title || '',
     });
     onOpenChange(false);
     setSearch("");
@@ -91,7 +93,8 @@ export function ImpersonationEmployeeSelector({
             ) : (
               <div className="space-y-1">
                 {filteredEmployees.map((emp) => {
-                  const initials = emp.fullName
+                  const fullName = emp.full_name || `${emp.first_name} ${emp.last_name}`;
+                  const initials = fullName
                     .split(" ")
                     .map(n => n[0])
                     .join("")
@@ -105,15 +108,15 @@ export function ImpersonationEmployeeSelector({
                       className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors text-left"
                     >
                       <Avatar className="w-10 h-10">
-                        <AvatarImage src={emp.avatar} />
+                        <AvatarImage src={emp.avatar_url || undefined} />
                         <AvatarFallback className="bg-primary/10 text-primary text-sm">
                           {initials}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">{emp.fullName}</p>
+                        <p className="font-medium text-sm truncate">{fullName}</p>
                         <p className="text-xs text-muted-foreground truncate">
-                          {emp.position} • {emp.department}
+                          {emp.position?.title} • {emp.department?.name}
                         </p>
                       </div>
                     </button>

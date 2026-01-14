@@ -63,13 +63,13 @@ export function ProjectEvaluation() {
   // Get employee avatars for assignees
   const getEmployeeAvatar = (employeeId: string) => {
     const employee = (employees || []).find(e => e.id === employeeId);
-    return employee?.avatar || null;
+    return employee?.avatar_url || null;
   };
 
   const getEmployeeInitials = (employeeId: string) => {
     const employee = (employees || []).find(e => e.id === employeeId);
     if (!employee) return '??';
-    return `${employee.firstName?.[0] || ''}${employee.lastName?.[0] || ''}`;
+    return `${employee.first_name?.[0] || ''}${employee.last_name?.[0] || ''}`;
   };
 
   // Calculate progress based on status

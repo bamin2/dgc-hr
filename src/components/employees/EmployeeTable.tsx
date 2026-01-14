@@ -74,13 +74,13 @@ export function EmployeeTable({
       cell: (employee, initials) => (
         <div className="flex items-center gap-3">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={employee.avatar} alt={`${employee.firstName} ${employee.lastName}`} />
+            <AvatarImage src={employee.avatar_url || undefined} alt={`${employee.first_name} ${employee.last_name}`} />
             <AvatarFallback className="bg-primary/10 text-primary text-xs">
               {initials}
             </AvatarFallback>
           </Avatar>
           <span className="font-medium text-foreground">
-            {employee.firstName} {employee.lastName}
+            {employee.first_name} {employee.last_name}
           </span>
         </div>
       ),
@@ -91,17 +91,17 @@ export function EmployeeTable({
     },
     department: {
       header: 'Department',
-      cell: (employee) => <span className="text-muted-foreground">{employee.department}</span>,
+      cell: (employee) => <span className="text-muted-foreground">{employee.department?.name}</span>,
     },
     jobTitle: {
       header: 'Job Title',
-      cell: (employee) => <span className="text-muted-foreground">{employee.position}</span>,
+      cell: (employee) => <span className="text-muted-foreground">{employee.position?.title}</span>,
     },
     joinDate: {
       header: 'Joined Date',
       cell: (employee) => (
         <span className="text-muted-foreground">
-          {format(new Date(employee.joinDate), 'MMM d, yyyy')}
+          {employee.join_date ? format(new Date(employee.join_date), 'MMM d, yyyy') : 'N/A'}
         </span>
       ),
     },
@@ -137,7 +137,7 @@ export function EmployeeTable({
         </TableHeader>
         <TableBody>
           {employees.map((employee) => {
-            const initials = `${employee.firstName[0]}${employee.lastName[0]}`;
+            const initials = `${employee.first_name[0]}${employee.last_name[0]}`;
             const isSelected = selectedEmployees.includes(employee.id);
             
             return (
