@@ -40,6 +40,7 @@ import { Loader2, Calculator } from 'lucide-react';
 import { useBusinessTripDestinations } from '@/hooks/useBusinessTripDestinations';
 import { useBusinessTripSettings } from '@/hooks/useBusinessTripSettings';
 import { useCreateBusinessTrip, calculateNights, calculatePerDiem } from '@/hooks/useBusinessTrips';
+import { useWorkLocations } from '@/hooks/useWorkLocations';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 
@@ -66,6 +67,7 @@ interface CreateTripDialogProps {
 export function CreateTripDialog({ open, onOpenChange }: CreateTripDialogProps) {
   const { profile } = useAuth();
   const { data: destinations, isLoading: loadingDestinations } = useBusinessTripDestinations();
+  const { data: workLocations, isLoading: loadingWorkLocations } = useWorkLocations();
   const { data: settings } = useBusinessTripSettings();
   const createTrip = useCreateBusinessTrip();
 
@@ -124,6 +126,7 @@ export function CreateTripDialog({ open, onOpenChange }: CreateTripDialogProps) 
       await createTrip.mutateAsync({
         employee_id: profile.employee_id,
         destination_id: values.destination_id,
+        origin_location_id: values.origin_location_id,
         start_date: format(values.start_date, 'yyyy-MM-dd'),
         end_date: format(values.end_date, 'yyyy-MM-dd'),
         travel_mode: values.travel_mode,
@@ -180,6 +183,38 @@ export function CreateTripDialog({ open, onOpenChange }: CreateTripDialogProps) 
                         destinations?.map(dest => (
                           <SelectItem key={dest.id} value={dest.id}>
                             {dest.name} ({dest.country}) - BHD {dest.per_diem_rate_bhd}/night
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Origin Location */}
+            <FormField
+              control={form.control}
+              name="origin_location_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Origin Location</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select departure location" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {loadingWorkLocations ? (
+                        <div className="p-2 text-center">
+                          <Loader2 className="h-4 w-4 animate-spin mx-auto" />
+                        </div>
+                      ) : (
+                        workLocations?.map(location => (
+                          <SelectItem key={location.id} value={location.id}>
+                            {location.name}
                           </SelectItem>
                         ))
                       )}
