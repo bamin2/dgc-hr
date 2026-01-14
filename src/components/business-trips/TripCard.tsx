@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { MapPin, Calendar, CreditCard, Car, Plane } from 'lucide-react';
 import { BusinessTrip, TRIP_STATUS_LABELS, TRIP_STATUS_COLORS, TRAVEL_MODE_LABELS } from '@/types/businessTrips';
 import { cn } from '@/lib/utils';
+import { getCountryByName } from '@/data/countries';
 
 interface TripCardProps {
   trip: BusinessTrip;
@@ -48,11 +49,14 @@ export function TripCard({ trip, onClick, showEmployee = false }: TripCardProps)
         </div>
 
         {/* Origin */}
-        {trip.origin_location && (
+        {trip.origin_country && (
           <div className="flex items-center gap-2 text-sm">
             <MapPin className="h-4 w-4 text-muted-foreground" />
             <span className="text-muted-foreground">From:</span>
-            <span>{trip.origin_location.name}</span>
+            <span className="flex items-center gap-1">
+              {getCountryByName(trip.origin_country)?.flag}
+              <span>{trip.origin_country}{trip.origin_city && `, ${trip.origin_city}`}</span>
+            </span>
           </div>
         )}
 
