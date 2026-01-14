@@ -52,6 +52,8 @@ export interface BusinessTrip {
   id: string;
   employee_id: string;
   origin_location_id: string | null;
+  origin_country: string | null;
+  origin_city: string | null;
   destination_id: string | null;
   start_date: string;
   end_date: string;
@@ -132,6 +134,8 @@ export interface BusinessTripAttachment {
 export interface CreateBusinessTripInput {
   employee_id: string;
   origin_location_id?: string;
+  origin_country?: string;
+  origin_city?: string;
   destination_id: string;
   start_date: string;
   end_date: string;

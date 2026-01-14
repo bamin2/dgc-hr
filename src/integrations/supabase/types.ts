@@ -835,6 +835,8 @@ export type Database = {
           flight_details: string | null
           id: string
           nights_count: number
+          origin_city: string | null
+          origin_country: string | null
           origin_location_id: string | null
           per_diem_budget_bhd: number
           per_diem_payable_bhd: number
@@ -860,6 +862,8 @@ export type Database = {
           flight_details?: string | null
           id?: string
           nights_count: number
+          origin_city?: string | null
+          origin_country?: string | null
           origin_location_id?: string | null
           per_diem_budget_bhd?: number
           per_diem_payable_bhd?: number
@@ -885,6 +889,8 @@ export type Database = {
           flight_details?: string | null
           id?: string
           nights_count?: number
+          origin_city?: string | null
+          origin_country?: string | null
           origin_location_id?: string | null
           per_diem_budget_bhd?: number
           per_diem_payable_bhd?: number

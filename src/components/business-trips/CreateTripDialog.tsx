@@ -40,13 +40,14 @@ import { Loader2, Calculator } from 'lucide-react';
 import { useBusinessTripDestinations } from '@/hooks/useBusinessTripDestinations';
 import { useBusinessTripSettings } from '@/hooks/useBusinessTripSettings';
 import { useCreateBusinessTrip, calculateNights, calculatePerDiem } from '@/hooks/useBusinessTrips';
-import { useWorkLocations } from '@/hooks/useWorkLocations';
+import { CountrySelect } from '@/components/ui/country-select';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 
 const tripFormSchema = z.object({
   destination_id: z.string().min(1, 'Destination is required'),
-  origin_location_id: z.string().optional(),
+  origin_country: z.string().optional(),
+  origin_city: z.string().optional(),
   start_date: z.date({ required_error: 'Start date is required' }),
   end_date: z.date({ required_error: 'End date is required' }),
   travel_mode: z.enum(['plane', 'car']),
@@ -67,7 +68,7 @@ interface CreateTripDialogProps {
 export function CreateTripDialog({ open, onOpenChange }: CreateTripDialogProps) {
   const { profile } = useAuth();
   const { data: destinations, isLoading: loadingDestinations } = useBusinessTripDestinations();
-  const { data: workLocations, isLoading: loadingWorkLocations } = useWorkLocations();
+  
   const { data: settings } = useBusinessTripSettings();
   const createTrip = useCreateBusinessTrip();
 
@@ -126,7 +127,8 @@ export function CreateTripDialog({ open, onOpenChange }: CreateTripDialogProps) 
       await createTrip.mutateAsync({
         employee_id: profile.employee_id,
         destination_id: values.destination_id,
-        origin_location_id: values.origin_location_id,
+        origin_country: values.origin_country,
+        origin_city: values.origin_city,
         start_date: format(values.start_date, 'yyyy-MM-dd'),
         end_date: format(values.end_date, 'yyyy-MM-dd'),
         travel_mode: values.travel_mode,
@@ -193,33 +195,39 @@ export function CreateTripDialog({ open, onOpenChange }: CreateTripDialogProps) 
               )}
             />
 
-            {/* Origin Location */}
+            {/* Origin Country */}
             <FormField
               control={form.control}
-              name="origin_location_id"
+              name="origin_country"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Origin Location</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select departure location" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {loadingWorkLocations ? (
-                        <div className="p-2 text-center">
-                          <Loader2 className="h-4 w-4 animate-spin mx-auto" />
-                        </div>
-                      ) : (
-                        workLocations?.map(location => (
-                          <SelectItem key={location.id} value={location.id}>
-                            {location.name}
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
+                  <FormLabel>Origin Country</FormLabel>
+                  <FormControl>
+                    <CountrySelect
+                      value={field.value || ''}
+                      onValueChange={field.onChange}
+                      placeholder="Select departure country"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Origin City */}
+            <FormField
+              control={form.control}
+              name="origin_city"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Origin City (Optional)</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="e.g., Manama"
+                      value={field.value || ''}
+                      onChange={field.onChange}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

@@ -312,7 +312,8 @@ export function useCreateBusinessTrip() {
         .from('business_trips')
         .insert({
           employee_id: input.employee_id,
-          origin_location_id: input.origin_location_id,
+          origin_country: input.origin_country,
+          origin_city: input.origin_city,
           destination_id: input.destination_id,
           start_date: input.start_date,
           end_date: input.end_date,
