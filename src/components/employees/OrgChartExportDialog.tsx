@@ -165,7 +165,7 @@ export function OrgChartExportDialog({
                   <div className="h-px bg-border my-1" />
                   {startingEmployeeOptions.map((emp) => (
                     <SelectItem key={emp.id} value={emp.id}>
-                      {emp.firstName} {emp.lastName} ({emp.position})
+                      {emp.first_name} {emp.last_name} ({emp.position?.title})
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -174,7 +174,7 @@ export function OrgChartExportDialog({
                 {startingEmployeeId === FULL_COMPANY_VALUE
                   ? "Export will include all employees and organizational relationships."
                   : selectedEmployee
-                  ? `Export will include ${selectedEmployee.firstName}'s team and all subordinates.`
+                  ? `Export will include ${selectedEmployee.first_name}'s team and all subordinates.`
                   : "Select an option to preview."}
               </p>
             </div>

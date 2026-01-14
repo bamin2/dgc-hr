@@ -48,7 +48,7 @@ export function ExitInterviewStep({
   };
 
   const hrEmployees = employees.filter(
-    (emp) => emp.department === "Human Resources"
+    (emp) => emp.department?.name === "Human Resources"
   );
 
   const formatIcons: Record<InterviewFormat, React.ReactNode> = {
@@ -182,7 +182,7 @@ export function ExitInterviewStep({
               <SelectContent>
                 {hrEmployees.map((emp) => (
                   <SelectItem key={emp.id} value={emp.id}>
-                    {emp.firstName} {emp.lastName}
+                    {emp.first_name} {emp.last_name}
                   </SelectItem>
                 ))}
                 {hrEmployees.length === 0 && (

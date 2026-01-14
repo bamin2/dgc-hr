@@ -47,8 +47,8 @@ export function OfferLetterPreview({ version, candidate }: OfferLetterPreviewPro
 
   // Build current user info for smart tags (signature, etc.)
   const currentUser = currentUserEmployee ? {
-    name: `${currentUserEmployee.firstName} ${currentUserEmployee.lastName}`,
-    position: currentUserEmployee.position || null
+    name: `${currentUserEmployee.first_name} ${currentUserEmployee.last_name}`,
+    position: currentUserEmployee.position?.title || null
   } : undefined;
 
   const selectedTemplate = templates?.find(t => t.id === selectedTemplateId);

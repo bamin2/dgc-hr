@@ -36,8 +36,8 @@ export function MyProfilePersonalTab({ employee }: MyProfilePersonalTabProps) {
     }
   };
 
-  const dateOfBirth = employee.dateOfBirth 
-    ? formatLongDate(employee.dateOfBirth)
+  const dateOfBirth = employee.date_of_birth 
+    ? formatLongDate(employee.date_of_birth)
     : '';
 
   return (
@@ -149,14 +149,14 @@ export function MyProfilePersonalTab({ employee }: MyProfilePersonalTabProps) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <EditableField
               label="Contact Name"
-              value={employee.emergencyContact?.name || ''}
+              value={employee.emergency_contact_name || ''}
               onSave={(value) => handleSaveField('emergencyContactName', value)}
               placeholder="Enter emergency contact name"
             />
             
             <EditableField
               label="Contact Phone"
-              value={employee.emergencyContact?.phone || ''}
+              value={employee.emergency_contact_phone || ''}
               onSave={(value) => handleSaveField('emergencyContactPhone', value)}
               placeholder="Enter emergency contact phone"
             />
@@ -164,7 +164,7 @@ export function MyProfilePersonalTab({ employee }: MyProfilePersonalTabProps) {
           
           <EditableField
             label="Relationship"
-            value={employee.emergencyContact?.relationship || ''}
+            value={employee.emergency_contact_relationship || ''}
             onSave={(value) => handleSaveField('emergencyContactRelationship', value)}
             placeholder="e.g., Spouse, Parent, Sibling"
           />

@@ -90,17 +90,17 @@ export function MyProfileCompensationTab({
 
   // Fetch work location for GOSI rates
   const { data: workLocation, isLoading: loadingWorkLocation } = useQuery({
-    queryKey: ['work-location', employee.workLocationId],
+    queryKey: ['work-location', employee.work_location_id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('work_locations')
         .select('id, name, gosi_enabled, gosi_nationality_rates')
-        .eq('id', employee.workLocationId!)
+        .eq('id', employee.work_location_id!)
         .single();
       if (error) throw error;
       return data;
     },
-    enabled: !!employee.workLocationId && !!employee.isSubjectToGosi,
+    enabled: !!employee.work_location_id && !!employee.is_subject_to_gosi,
   });
 
   const currency = settings?.branding?.currency || 'USD';
@@ -162,14 +162,14 @@ export function MyProfileCompensationTab({
 
   // Calculate GOSI deduction with location-specific nationality rates
   const gosiDeduction = useMemo(() => {
-    if (!employee.isSubjectToGosi) return 0;
+    if (!employee.is_subject_to_gosi) return 0;
     
     // Check if work location has GOSI enabled
     const gosiEnabled = workLocation?.gosi_enabled;
     if (!gosiEnabled) return 0;
     
     // Get GOSI base (registered salary or fall back to base salary)
-    const gosiBase = employee.gosiRegisteredSalary || baseSalary;
+    const gosiBase = employee.gosi_registered_salary || baseSalary;
     if (!gosiBase) return 0;
     
     // Get nationality-specific rate from work location settings
@@ -184,7 +184,7 @@ export function MyProfileCompensationTab({
     }
     
     return 0;
-  }, [employee.isSubjectToGosi, employee.gosiRegisteredSalary, employee.nationality, baseSalary, workLocation]);
+  }, [employee.is_subject_to_gosi, employee.gosi_registered_salary, employee.nationality, baseSalary, workLocation]);
 
   const grossPay = baseSalary + totalAllowances;
   const netPay = grossPay - totalDeductions - gosiDeduction;
@@ -335,13 +335,13 @@ export function MyProfileCompensationTab({
               <div className="flex items-center gap-2">
                 <Building2 className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm font-medium">
-                  {employee.bankName || 'Not set'}
+                  {employee.bank_name || 'Not set'}
                 </span>
               </div>
             </div>
             <MaskedValue 
               label="Account Number" 
-              value={employee.bankAccountNumber || ''} 
+              value={employee.bank_account_number || ''} 
             />
             <MaskedValue 
               label="IBAN" 

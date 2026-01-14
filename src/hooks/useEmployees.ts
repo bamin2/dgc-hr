@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-export type EmployeeStatus = 'active' | 'inactive' | 'on_leave' | 'terminated';
+export type EmployeeStatus = 'active' | 'inactive' | 'on_leave' | 'on_boarding' | 'probation' | 'resigned' | 'terminated';
 export type WorkerType = 'employee' | 'contractor';
 export type EmploymentType = 'full_time' | 'part_time' | 'contract';
 export type PayFrequency = 'week' | 'biweek' | 'month';
@@ -55,7 +55,8 @@ export interface Employee {
   salary_currency_code: string | null;
   department?: { id: string; name: string } | null;
   position?: { id: string; title: string } | null;
-  manager?: { id: string; first_name: string; last_name: string; full_name: string } | null;
+  manager?: { id: string; first_name: string; last_name: string; full_name: string } | { id: string; first_name: string; last_name: string; full_name: string }[] | null;
+  work_location?: { id: string; name: string } | null;
 }
 
 // ORIGINAL: Full employee query (for employee management pages)
@@ -69,12 +70,13 @@ export function useEmployees() {
           *,
           department:departments!employees_department_id_fkey(id, name),
           position:positions!employees_position_id_fkey(id, title),
-          manager:employees!employees_manager_id_fkey(id, first_name, last_name, full_name)
+          manager:employees!employees_manager_id_fkey(id, first_name, last_name, full_name),
+          work_location:work_locations!employees_work_location_id_fkey(id, name)
         `)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as Employee[];
+      return data as unknown as Employee[];
     },
     staleTime: 1000 * 60 * 2, // 2 minutes (database is optimized now!)
   });
@@ -134,7 +136,7 @@ export function useEmployeesList(options?: {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as Employee[];
+      return data as unknown as Employee[];
     },
     staleTime: 1000 * 60 * 2,
   });
@@ -153,13 +155,14 @@ export function useEmployee(id: string | undefined) {
           *,
           department:departments!employees_department_id_fkey(id, name),
           position:positions!employees_position_id_fkey(id, title),
-          manager:employees!employees_manager_id_fkey(id, first_name, last_name, full_name)
+          manager:employees!employees_manager_id_fkey(id, first_name, last_name, full_name),
+          work_location:work_locations!employees_work_location_id_fkey(id, name)
         `)
         .eq("id", id)
         .single();
 
       if (error) throw error;
-      return data as Employee;
+      return data as unknown as Employee;
     },
     enabled: !!id,
     staleTime: 1000 * 60 * 2,
@@ -171,8 +174,15 @@ export function useUpdateEmployee() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Partial<Employee> }) => {
-      const { data, error } = await supabase
+    mutationFn: async (data: { id: string; updates: Partial<Employee> } | Record<string, any>) => {
+      // Support both old format ({ id, ...fields }) and new format ({ id, updates })
+      const id = data.id;
+      const updates = 'updates' in data ? data.updates : (() => {
+        const { id: _, ...rest } = data;
+        return rest;
+      })();
+      
+      const { data: result, error } = await supabase
         .from("employees")
         .update(updates)
         .eq("id", id)
@@ -180,11 +190,11 @@ export function useUpdateEmployee() {
         .single();
 
       if (error) throw error;
-      return data;
+      return result;
     },
-    onSuccess: (data) => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["employees"] });
-      queryClient.invalidateQueries({ queryKey: ["employee", data.id] });
+      queryClient.invalidateQueries({ queryKey: ["employee", result.id] });
       toast.success("Employee updated successfully");
     },
     onError: (error: Error) => {

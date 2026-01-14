@@ -181,14 +181,14 @@ export function TeamFinalizeStep({
             {manager ? (
               <div className="flex items-center gap-2 mt-1">
                 <Avatar className="h-6 w-6">
-                  <AvatarImage src={manager.avatar} />
+                  <AvatarImage src={manager.avatar_url || undefined} />
                   <AvatarFallback className="text-xs">
-                    {manager.firstName[0]}
-                    {manager.lastName[0]}
+                    {manager.first_name[0]}
+                    {manager.last_name[0]}
                   </AvatarFallback>
                 </Avatar>
                 <span className="font-medium">
-                  {manager.firstName} {manager.lastName}
+                  {manager.first_name} {manager.last_name}
                 </span>
               </div>
             ) : (

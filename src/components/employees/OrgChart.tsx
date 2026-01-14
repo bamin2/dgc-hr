@@ -52,7 +52,7 @@ export function OrgChart({ employees, onView, onEdit, onReassign, onBulkReassign
 
   // Count unassigned employees (excluding top-level positions)
   const unassignedCount = useMemo(() => 
-    employees.filter(e => !e.managerId && !isTopLevelPosition(e)).length,
+    employees.filter(e => !e.manager_id && !isTopLevelPosition({ position: e.position?.title })).length,
     [employees]
   );
 
@@ -106,9 +106,9 @@ export function OrgChart({ employees, onView, onEdit, onReassign, onBulkReassign
     // Show confirmation dialog
     setPendingReassignment({
       employeeId: draggedId,
-      employeeName: `${draggedEmp.firstName} ${draggedEmp.lastName}`,
+      employeeName: `${draggedEmp.first_name} ${draggedEmp.last_name}`,
       newManagerId: targetId,
-      newManagerName: `${targetEmp.firstName} ${targetEmp.lastName}`,
+      newManagerName: `${targetEmp.first_name} ${targetEmp.last_name}`,
     });
     setShowConfirmDialog(true);
     handleDragEnd();
