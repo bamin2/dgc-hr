@@ -27,6 +27,8 @@ import {
   useDeleteDestination,
 } from '@/hooks/useBusinessTripDestinations';
 import { BusinessTripDestination } from '@/types/businessTrips';
+import { CountrySelect } from '@/components/ui/country-select';
+import { getCountryByName } from '@/data/countries';
 
 export function DestinationsManager() {
   const { data: destinations, isLoading } = useBusinessTripDestinations();
@@ -117,7 +119,14 @@ export function DestinationsManager() {
               {destinations.map((dest) => (
                 <TableRow key={dest.id}>
                   <TableCell className="font-medium">{dest.name}</TableCell>
-                  <TableCell>{dest.country || '-'}</TableCell>
+                  <TableCell>
+                    {dest.country ? (
+                      <span className="flex items-center gap-2">
+                        <span className="text-lg">{getCountryByName(dest.country)?.flag}</span>
+                        <span>{dest.country}</span>
+                      </span>
+                    ) : '-'}
+                  </TableCell>
                   <TableCell>{dest.city || '-'}</TableCell>
                   <TableCell className="text-right">{dest.per_diem_rate_bhd.toFixed(3)}</TableCell>
                   <TableCell>
@@ -172,12 +181,11 @@ export function DestinationsManager() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="country">Country</Label>
-                <Input
-                  id="country"
+                <Label>Country</Label>
+                <CountrySelect
                   value={formData.country}
-                  onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                  placeholder="e.g., UAE"
+                  onValueChange={(value) => setFormData({ ...formData, country: value })}
+                  placeholder="Select country"
                 />
               </div>
               <div className="space-y-2">
