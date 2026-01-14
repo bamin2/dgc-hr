@@ -61,7 +61,7 @@ export function useMyBusinessTrips(employeeId?: string | null) {
           origin_location:work_locations(id, name),
           employee:employees(
             id, first_name, last_name, full_name, avatar_url,
-            department:departments(id, name),
+            department:departments!employees_department_id_fkey(id, name),
             work_location:work_locations(id, name)
           )
         `)
@@ -95,7 +95,7 @@ export function useAllBusinessTrips(filters?: {
           origin_location:work_locations(id, name),
           employee:employees(
             id, first_name, last_name, full_name, avatar_url,
-            department:departments(id, name),
+            department:departments!employees_department_id_fkey(id, name),
             work_location:work_locations(id, name)
           )
         `)
@@ -153,7 +153,7 @@ export function useTeamTripApprovals() {
           origin_location:work_locations(id, name),
           employee:employees!inner(
             id, first_name, last_name, full_name, avatar_url,
-            department:departments(id, name),
+            department:departments!employees_department_id_fkey(id, name),
             work_location:work_locations(id, name)
           )
         `)
@@ -180,11 +180,11 @@ export function useHRTripApprovals() {
           *,
           destination:business_trip_destinations(*),
           origin_location:work_locations(id, name),
-          employee:employees(
-            id, first_name, last_name, full_name, avatar_url,
-            department:departments(id, name),
-            work_location:work_locations(id, name)
-          )
+            employee:employees(
+              id, first_name, last_name, full_name, avatar_url,
+              department:departments!employees_department_id_fkey(id, name),
+              work_location:work_locations(id, name)
+            )
         `)
         .in('status', ['submitted', 'manager_approved'])
         .order('submitted_at', { ascending: true });
@@ -213,7 +213,7 @@ export function usePendingTripApprovals(isHROrAdmin: boolean) {
             origin_location:work_locations(id, name),
             employee:employees(
               id, first_name, last_name, full_name, avatar_url,
-              department:departments(id, name),
+              department:departments!employees_department_id_fkey(id, name),
               work_location:work_locations(id, name)
             )
           `)
@@ -242,7 +242,7 @@ export function usePendingTripApprovals(isHROrAdmin: boolean) {
             origin_location:work_locations(id, name),
             employee:employees!inner(
               id, first_name, last_name, full_name, avatar_url,
-              department:departments(id, name),
+              department:departments!employees_department_id_fkey(id, name),
               work_location:work_locations(id, name)
             )
           `)
@@ -274,7 +274,7 @@ export function useBusinessTrip(tripId: string | undefined) {
           origin_location:work_locations(id, name),
           employee:employees(
             id, first_name, last_name, full_name, avatar_url,
-            department:departments(id, name),
+            department:departments!employees_department_id_fkey(id, name),
             work_location:work_locations(id, name)
           )
         `)
