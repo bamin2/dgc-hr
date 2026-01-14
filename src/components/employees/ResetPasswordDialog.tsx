@@ -81,7 +81,7 @@ export function ResetPasswordDialog({
         return;
       }
 
-      toast.success(`Password reset for ${employee.firstName} ${employee.lastName}`);
+      toast.success(`Password reset for ${employee.first_name} ${employee.last_name}`);
       setPassword("");
       setConfirmPassword("");
       onOpenChange(false);
@@ -106,7 +106,7 @@ export function ResetPasswordDialog({
         <DialogHeader>
           <DialogTitle>Reset Employee Password</DialogTitle>
           <DialogDescription>
-            Set a new password for {employee.firstName} {employee.lastName}
+            Set a new password for {employee.first_name} {employee.last_name}
           </DialogDescription>
         </DialogHeader>
 
@@ -114,7 +114,7 @@ export function ResetPasswordDialog({
           <div className="space-y-2">
             <Label>Employee</Label>
             <Input
-              value={`${employee.firstName} ${employee.lastName}`}
+              value={`${employee.first_name} ${employee.last_name}`}
               disabled
               className="bg-muted"
             />
