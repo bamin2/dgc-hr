@@ -1,4 +1,4 @@
-export type RequestType = 'time_off' | 'loan' | 'hr_letter';
+export type RequestType = 'time_off' | 'loan' | 'hr_letter' | 'business_trip';
 export type ApproverType = 'manager' | 'hr' | 'specific_user';
 export type ApprovalStepStatus = 'queued' | 'pending' | 'approved' | 'rejected' | 'skipped' | 'cancelled';
 
@@ -67,6 +67,30 @@ export interface PendingApproval {
       id: string;
       name: string;
       color: string | null;
+    };
+  };
+  business_trip?: {
+    id: string;
+    employee_id: string;
+    destination_id: string | null;
+    start_date: string;
+    end_date: string;
+    nights_count: number;
+    travel_mode: string;
+    status: string;
+    created_at: string;
+    employee?: {
+      id: string;
+      first_name: string;
+      last_name: string;
+      full_name: string | null;
+      avatar_url: string | null;
+    };
+    destination?: {
+      id: string;
+      name: string;
+      country: string | null;
+      city: string | null;
     };
   };
 }

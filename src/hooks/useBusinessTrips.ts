@@ -405,6 +405,126 @@ export function useSubmitBusinessTrip() {
 
   return useMutation({
     mutationFn: async (tripId: string) => {
+      // Get trip details to get employee_id
+      const { data: trip, error: tripError } = await supabase
+        .from('business_trips')
+        .select('employee_id')
+        .eq('id', tripId)
+        .single();
+
+      if (tripError) throw tripError;
+
+      // Fetch the business_trip workflow
+      const { data: workflow, error: workflowError } = await supabase
+        .from("approval_workflows")
+        .select("*")
+        .eq("request_type", "business_trip")
+        .single();
+
+      if (workflowError) throw workflowError;
+
+      // If workflow is inactive, auto-approve
+      if (!workflow.is_active || !workflow.steps || (workflow.steps as unknown[]).length === 0) {
+        const { data, error } = await supabase
+          .from('business_trips')
+          .update({
+            status: 'hr_approved',
+            submitted_at: new Date().toISOString(),
+          })
+          .eq('id', tripId)
+          .select()
+          .single();
+
+        if (error) throw error;
+        return { trip: data, autoApproved: true };
+      }
+
+      // Get manager user_id for the employee
+      const { data: employee } = await supabase
+        .from("employees")
+        .select("manager_id")
+        .eq("id", trip.employee_id)
+        .single();
+
+      let managerUserId: string | null = null;
+      if (employee?.manager_id) {
+        const { data: manager } = await supabase
+          .from("employees")
+          .select("user_id")
+          .eq("id", employee.manager_id)
+          .single();
+        managerUserId = manager?.user_id || null;
+      }
+
+      // Get default HR approver
+      let defaultHRApprover: string | null = workflow.default_hr_approver_id;
+      if (!defaultHRApprover) {
+        const { data: roleData } = await supabase
+          .from("user_roles")
+          .select("user_id")
+          .in("role", ["hr", "admin"])
+          .limit(1)
+          .single();
+        defaultHRApprover = roleData?.user_id || null;
+      }
+
+      // Create approval steps from workflow
+      const steps = workflow.steps as { step: number; approver: string; fallback?: string; specific_user_id?: string }[];
+      let firstStepCreated = false;
+
+      for (const stepConfig of steps) {
+        let approverUserId: string | null = null;
+        let effectiveApproverType = stepConfig.approver;
+
+        if (stepConfig.approver === "manager") {
+          if (managerUserId) {
+            approverUserId = managerUserId;
+          } else if (stepConfig.fallback === "hr") {
+            approverUserId = defaultHRApprover;
+            effectiveApproverType = "hr";
+          } else {
+            continue;
+          }
+        } else if (stepConfig.approver === "hr") {
+          approverUserId = defaultHRApprover;
+        } else if (stepConfig.approver === "specific_user") {
+          approverUserId = stepConfig.specific_user_id || null;
+        }
+
+        if (!approverUserId) continue;
+
+        const status = !firstStepCreated ? "pending" : "queued";
+        firstStepCreated = true;
+
+        await supabase
+          .from("request_approval_steps")
+          .insert({
+            request_id: tripId,
+            request_type: "business_trip",
+            step_number: stepConfig.step,
+            approver_type: effectiveApproverType,
+            approver_user_id: approverUserId,
+            status,
+          });
+      }
+
+      // If no steps created, auto-approve
+      if (!firstStepCreated) {
+        const { data, error } = await supabase
+          .from('business_trips')
+          .update({
+            status: 'hr_approved',
+            submitted_at: new Date().toISOString(),
+          })
+          .eq('id', tripId)
+          .select()
+          .single();
+
+        if (error) throw error;
+        return { trip: data, autoApproved: true };
+      }
+
+      // Update trip status to submitted
       const { data, error } = await supabase
         .from('business_trips')
         .update({
@@ -416,14 +536,18 @@ export function useSubmitBusinessTrip() {
         .single();
 
       if (error) throw error;
-      return data;
+      return { trip: data, autoApproved: false };
     },
-    onSuccess: (data) => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['business-trips', 'my'] });
-      queryClient.invalidateQueries({ queryKey: queryKeys.businessTrips.detail(data.id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.businessTrips.detail(result.trip.id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.approvals.pending });
+      queryClient.invalidateQueries({ queryKey: queryKeys.approvals.pendingCount });
       toast({
-        title: 'Trip submitted',
-        description: 'Your business trip request has been submitted for approval.',
+        title: result.autoApproved ? 'Trip auto-approved' : 'Trip submitted',
+        description: result.autoApproved 
+          ? 'Your business trip has been auto-approved (no approval workflow configured).'
+          : 'Your business trip request has been submitted for approval.',
       });
     },
     onError: (error) => {

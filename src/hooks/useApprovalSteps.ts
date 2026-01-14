@@ -65,6 +65,45 @@ export function usePendingApprovals() {
         }
       }
 
+      // Fetch business trips for business_trip steps
+      const businessTripSteps = steps.filter((s) => s.request_type === "business_trip");
+      if (businessTripSteps.length > 0) {
+        const requestIds = businessTripSteps.map((s) => s.request_id);
+        const { data: trips, error: tripError } = await supabase
+          .from("business_trips")
+          .select(`
+            *,
+            employee:employees!business_trips_employee_id_fkey(id, first_name, last_name, full_name, avatar_url),
+            destination:business_trip_destinations(id, name, country, city)
+          `)
+          .in("id", requestIds);
+
+        if (tripError) throw tripError;
+
+        const tripMap = new Map(trips?.map((t) => [t.id, t]));
+
+        for (const step of businessTripSteps) {
+          const trip = tripMap.get(step.request_id);
+          if (trip) {
+            pendingApprovals.push({
+              step: {
+                ...step,
+                request_type: step.request_type as RequestType,
+                approver_type: step.approver_type as RequestApprovalStep["approver_type"],
+                status: step.status as ApprovalStepStatus,
+              },
+              request_type: "business_trip",
+              request_id: step.request_id,
+              business_trip: {
+                ...trip,
+                employee: trip.employee as PendingApproval["business_trip"]["employee"],
+                destination: trip.destination as PendingApproval["business_trip"]["destination"],
+              },
+            });
+          }
+        }
+      }
+
       return pendingApprovals;
     },
   });
@@ -175,8 +214,12 @@ export function useApproveStep() {
               reviewed_at: new Date().toISOString(),
             })
             .eq("id", step.request_id);
+        } else if (step.request_type === "business_trip") {
+          await supabase
+            .from("business_trips")
+            .update({ status: "hr_approved" })
+            .eq("id", step.request_id);
         }
-        // Add handling for other request types here
       }
 
       return { step, hasNextStep: !!nextStep };
@@ -186,6 +229,7 @@ export function useApproveStep() {
       queryClient.invalidateQueries({ queryKey: queryKeys.approvals.pendingCount });
       queryClient.invalidateQueries({ queryKey: ['request-approval-steps'] });
       queryClient.invalidateQueries({ queryKey: queryKeys.leave.requests.all });
+      queryClient.invalidateQueries({ queryKey: ['business-trips'] });
       toast.success("Request approved");
     },
     onError: (error) => {
@@ -245,8 +289,15 @@ export function useRejectStep() {
             rejection_reason: comment,
           })
           .eq("id", step.request_id);
+      } else if (step.request_type === "business_trip") {
+        await supabase
+          .from("business_trips")
+          .update({
+            status: "rejected",
+            rejection_reason: comment,
+          })
+          .eq("id", step.request_id);
       }
-      // Add handling for other request types here
 
       return { step };
     },
@@ -255,6 +306,7 @@ export function useRejectStep() {
       queryClient.invalidateQueries({ queryKey: queryKeys.approvals.pendingCount });
       queryClient.invalidateQueries({ queryKey: ['request-approval-steps'] });
       queryClient.invalidateQueries({ queryKey: queryKeys.leave.requests.all });
+      queryClient.invalidateQueries({ queryKey: ['business-trips'] });
       toast.success("Request rejected");
     },
     onError: (error) => {
