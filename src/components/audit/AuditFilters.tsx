@@ -108,7 +108,7 @@ export function AuditFilters({ filters, onFiltersChange }: AuditFiltersProps) {
             <SelectItem value="all">All Employees</SelectItem>
             {employees?.map((emp) => (
               <SelectItem key={emp.id} value={emp.id}>
-                {emp.first_name} {emp.last_name}
+                {emp.firstName} {emp.lastName}
               </SelectItem>
             ))}
           </SelectContent>

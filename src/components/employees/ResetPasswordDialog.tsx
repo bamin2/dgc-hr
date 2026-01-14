@@ -18,8 +18,8 @@ interface ResetPasswordDialogProps {
   onOpenChange: (open: boolean) => void;
   employee: {
     id: string;
-    first_name: string;
-    last_name: string;
+    firstName: string;
+    lastName: string;
     email: string;
   };
   onSuccess?: () => void;
@@ -81,7 +81,7 @@ export function ResetPasswordDialog({
         return;
       }
 
-      toast.success(`Password reset for ${employee.first_name} ${employee.last_name}`);
+      toast.success(`Password reset for ${employee.firstName} ${employee.lastName}`);
       setPassword("");
       setConfirmPassword("");
       onOpenChange(false);
@@ -106,7 +106,7 @@ export function ResetPasswordDialog({
         <DialogHeader>
           <DialogTitle>Reset Employee Password</DialogTitle>
           <DialogDescription>
-            Set a new password for {employee.first_name} {employee.last_name}
+            Set a new password for {employee.firstName} {employee.lastName}
           </DialogDescription>
         </DialogHeader>
 
@@ -114,7 +114,7 @@ export function ResetPasswordDialog({
           <div className="space-y-2">
             <Label>Employee</Label>
             <Input
-              value={`${employee.first_name} ${employee.last_name}`}
+              value={`${employee.firstName} ${employee.lastName}`}
               disabled
               className="bg-muted"
             />

@@ -76,19 +76,19 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
 
   const canAccessAdminPages = canManageRoles;
 
-  const getEmployeeFullName = (first: string, last: string) => {
-    return `${first} ${last}`.trim();
+  const getEmployeeFullName = (firstName: string, lastName: string) => {
+    return `${firstName} ${lastName}`.trim();
   };
 
   const filteredEmployees = employees
     .filter((emp) => emp.status === "active")
     .filter((emp) => {
       const searchLower = search.toLowerCase();
-      const fullName = `${emp.first_name} ${emp.last_name}`;
+      const fullName = getEmployeeFullName(emp.firstName, emp.lastName);
       return (
         fullName.toLowerCase().includes(searchLower) ||
-        emp.department?.name?.toLowerCase().includes(searchLower) ||
-        emp.position?.title?.toLowerCase().includes(searchLower) ||
+        emp.department?.toLowerCase().includes(searchLower) ||
+        emp.position?.toLowerCase().includes(searchLower) ||
         emp.email?.toLowerCase().includes(searchLower)
       );
     })
@@ -132,7 +132,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
         {filteredEmployees.length > 0 && (
           <CommandGroup heading="Employees">
             {filteredEmployees.map((employee) => {
-              const fullName = `${employee.first_name} ${employee.last_name}`;
+              const fullName = getEmployeeFullName(employee.firstName, employee.lastName);
               return (
                 <CommandItem
                   key={employee.id}
@@ -141,15 +141,15 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                   className="flex items-center gap-3"
                 >
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={employee.avatar_url || undefined} alt={fullName} />
+                    <AvatarImage src={employee.avatar} alt={fullName} />
                     <AvatarFallback className="text-xs">
-                      {employee.first_name[0]}{employee.last_name[0]}
+                      {getInitials(employee.firstName, employee.lastName)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col">
                     <span>{fullName}</span>
                     <span className="text-xs text-muted-foreground">
-                      {employee.position?.title} • {employee.department?.name}
+                      {employee.position} • {employee.department}
                     </span>
                   </div>
                 </CommandItem>

@@ -177,7 +177,7 @@ export function OffboardingReviewStep({
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Interviewer</span>
                   <span className="font-medium">
-                    {interviewer ? `${interviewer.first_name} ${interviewer.last_name}` : "Not assigned"}
+                    {interviewer ? `${interviewer.firstName} ${interviewer.lastName}` : "Not assigned"}
                   </span>
                 </div>
               </>

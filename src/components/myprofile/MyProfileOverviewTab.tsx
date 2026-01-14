@@ -45,8 +45,8 @@ function InfoCard({ icon, label, value, className }: InfoCardProps) {
 }
 
 export function MyProfileOverviewTab({ employee }: MyProfileOverviewTabProps) {
-  const joinDate = employee.join_date 
-    ? format(new Date(employee.join_date), 'MMMM d, yyyy')
+  const joinDate = employee.joinDate 
+    ? format(new Date(employee.joinDate), 'MMMM d, yyyy')
     : 'Not set';
 
   const statusVariants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
@@ -78,11 +78,11 @@ export function MyProfileOverviewTab({ employee }: MyProfileOverviewTabProps) {
         <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Full Name</p>
-            <p className="text-sm font-medium">{employee.full_name || `${employee.first_name} ${employee.last_name}`}</p>
+            <p className="text-sm font-medium">{employee.fullName}</p>
           </div>
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Employee ID</p>
-            <p className="text-sm font-medium font-mono">{employee.employee_code}</p>
+            <p className="text-sm font-medium font-mono">{employee.employeeId}</p>
           </div>
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Email</p>
@@ -102,22 +102,22 @@ export function MyProfileOverviewTab({ employee }: MyProfileOverviewTabProps) {
         <InfoCard
           icon={<Building2 className="h-4 w-4 text-primary" />}
           label="Department"
-          value={employee.department?.name}
+          value={employee.department}
         />
         <InfoCard
           icon={<Briefcase className="h-4 w-4 text-primary" />}
           label="Position"
-          value={employee.position?.title}
+          value={employee.position}
         />
         <InfoCard
           icon={<MapPin className="h-4 w-4 text-primary" />}
           label="Work Location"
-          value={employee.work_location?.name || employee.location}
+          value={employee.workLocationName || employee.location}
         />
         <InfoCard
           icon={<Users className="h-4 w-4 text-primary" />}
           label="Manager"
-          value={employee.manager ? `${(employee.manager as any).first_name} ${(employee.manager as any).last_name}` : undefined}
+          value={employee.manager}
         />
         <InfoCard
           icon={<Calendar className="h-4 w-4 text-primary" />}

@@ -79,7 +79,7 @@ export const EnrollmentForm = ({ onSubmit, onCancel }: EnrollmentFormProps) => {
               <SelectContent>
                 {activeEmployees.map((employee) => (
                   <SelectItem key={employee.id} value={employee.id}>
-                    {employee.first_name} {employee.last_name} - {employee.department?.name || 'No department'}
+                    {employee.firstName} {employee.lastName} - {employee.department || 'No department'}
                   </SelectItem>
                 ))}
               </SelectContent>

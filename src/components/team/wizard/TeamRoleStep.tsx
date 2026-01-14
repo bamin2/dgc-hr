@@ -157,14 +157,14 @@ export function TeamRoleStep({ data, onChange }: TeamRoleStepProps) {
               {selectedManager && (
                 <div className="flex items-center gap-2">
                   <Avatar className="h-6 w-6">
-                    <AvatarImage src={selectedManager.avatar_url || undefined} />
+                    <AvatarImage src={selectedManager.avatar} />
                     <AvatarFallback className="text-xs">
-                      {selectedManager.first_name[0]}
-                      {selectedManager.last_name[0]}
+                      {selectedManager.firstName[0]}
+                      {selectedManager.lastName[0]}
                     </AvatarFallback>
                   </Avatar>
                   <span>
-                    {selectedManager.first_name} {selectedManager.last_name}
+                    {selectedManager.firstName} {selectedManager.lastName}
                   </span>
                 </div>
               )}
@@ -175,14 +175,14 @@ export function TeamRoleStep({ data, onChange }: TeamRoleStepProps) {
               <SelectItem key={employee.id} value={employee.id}>
                 <div className="flex items-center gap-2">
                   <Avatar className="h-6 w-6">
-                    <AvatarImage src={employee.avatar_url || undefined} />
+                    <AvatarImage src={employee.avatar} />
                     <AvatarFallback className="text-xs">
-                      {employee.first_name[0]}
-                      {employee.last_name[0]}
+                      {employee.firstName[0]}
+                      {employee.lastName[0]}
                     </AvatarFallback>
                   </Avatar>
                   <span>
-                    {employee.first_name} {employee.last_name}
+                    {employee.firstName} {employee.lastName}
                   </span>
                 </div>
               </SelectItem>

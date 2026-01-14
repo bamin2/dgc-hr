@@ -65,13 +65,6 @@ export type Database = {
             foreignKeyName: "allowance_templates_work_location_id_fkey"
             columns: ["work_location_id"]
             isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["work_location_id"]
-          },
-          {
-            foreignKeyName: "allowance_templates_work_location_id_fkey"
-            columns: ["work_location_id"]
-            isOneToOne: false
             referencedRelation: "work_locations"
             referencedColumns: ["id"]
           },
@@ -186,20 +179,6 @@ export type Database = {
             foreignKeyName: "attendance_corrections_employee_id_fkey"
             columns: ["employee_id"]
             isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "attendance_corrections_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
-          },
-          {
-            foreignKeyName: "attendance_corrections_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
           },
@@ -207,36 +186,8 @@ export type Database = {
             foreignKeyName: "attendance_corrections_hr_reviewer_id_fkey"
             columns: ["hr_reviewer_id"]
             isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "attendance_corrections_hr_reviewer_id_fkey"
-            columns: ["hr_reviewer_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
-          },
-          {
-            foreignKeyName: "attendance_corrections_hr_reviewer_id_fkey"
-            columns: ["hr_reviewer_id"]
-            isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "attendance_corrections_manager_id_fkey"
-            columns: ["manager_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "attendance_corrections_manager_id_fkey"
-            columns: ["manager_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
           },
           {
             foreignKeyName: "attendance_corrections_manager_id_fkey"
@@ -289,20 +240,6 @@ export type Database = {
             foreignKeyName: "attendance_records_employee_id_fkey"
             columns: ["employee_id"]
             isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "attendance_records_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
-          },
-          {
-            foreignKeyName: "attendance_records_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
           },
@@ -349,20 +286,6 @@ export type Database = {
           performed_by?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "audit_logs_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "audit_logs_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
-          },
           {
             foreignKeyName: "audit_logs_employee_id_fkey"
             columns: ["employee_id"]
@@ -503,20 +426,6 @@ export type Database = {
             foreignKeyName: "benefit_claims_employee_id_fkey"
             columns: ["employee_id"]
             isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "benefit_claims_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
-          },
-          {
-            foreignKeyName: "benefit_claims_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
           },
@@ -533,20 +442,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "benefit_plans"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "benefit_claims_reviewed_by_fkey"
-            columns: ["reviewed_by"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "benefit_claims_reviewed_by_fkey"
-            columns: ["reviewed_by"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
           },
           {
             foreignKeyName: "benefit_claims_reviewed_by_fkey"
@@ -642,20 +537,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "benefit_coverage_levels"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "benefit_enrollments_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "benefit_enrollments_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
           },
           {
             foreignKeyName: "benefit_enrollments_employee_id_fkey"
@@ -1034,29 +915,8 @@ export type Database = {
             foreignKeyName: "business_trips_employee_id_fkey"
             columns: ["employee_id"]
             isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "business_trips_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
-          },
-          {
-            foreignKeyName: "business_trips_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "business_trips_origin_location_id_fkey"
-            columns: ["origin_location_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["work_location_id"]
           },
           {
             foreignKeyName: "business_trips_origin_location_id_fkey"
@@ -1117,20 +977,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "calendar_events_organizer_id_fkey"
-            columns: ["organizer_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "calendar_events_organizer_id_fkey"
-            columns: ["organizer_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
-          },
           {
             foreignKeyName: "calendar_events_organizer_id_fkey"
             columns: ["organizer_id"]
@@ -1207,27 +1053,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "candidates_department_id_fkey"
-            columns: ["department_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["department_id"]
-          },
-          {
-            foreignKeyName: "candidates_manager_employee_id_fkey"
-            columns: ["manager_employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "candidates_manager_employee_id_fkey"
-            columns: ["manager_employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
-          },
-          {
             foreignKeyName: "candidates_manager_employee_id_fkey"
             columns: ["manager_employee_id"]
             isOneToOne: false
@@ -1238,22 +1063,8 @@ export type Database = {
             foreignKeyName: "candidates_position_id_fkey"
             columns: ["position_id"]
             isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["position_id"]
-          },
-          {
-            foreignKeyName: "candidates_position_id_fkey"
-            columns: ["position_id"]
-            isOneToOne: false
             referencedRelation: "positions"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "candidates_work_location_id_fkey"
-            columns: ["work_location_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["work_location_id"]
           },
           {
             foreignKeyName: "candidates_work_location_id_fkey"
@@ -1441,13 +1252,6 @@ export type Database = {
             foreignKeyName: "deduction_templates_work_location_id_fkey"
             columns: ["work_location_id"]
             isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["work_location_id"]
-          },
-          {
-            foreignKeyName: "deduction_templates_work_location_id_fkey"
-            columns: ["work_location_id"]
-            isOneToOne: false
             referencedRelation: "work_locations"
             referencedColumns: ["id"]
           },
@@ -1476,20 +1280,6 @@ export type Database = {
           name?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "departments_manager_id_fkey"
-            columns: ["manager_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "departments_manager_id_fkey"
-            columns: ["manager_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
-          },
           {
             foreignKeyName: "departments_manager_id_fkey"
             columns: ["manager_id"]
@@ -1696,20 +1486,6 @@ export type Database = {
             foreignKeyName: "email_logs_employee_id_fkey"
             columns: ["employee_id"]
             isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "email_logs_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
-          },
-          {
-            foreignKeyName: "email_logs_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
           },
@@ -1841,20 +1617,6 @@ export type Database = {
             foreignKeyName: "employee_allowances_employee_id_fkey"
             columns: ["employee_id"]
             isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "employee_allowances_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
-          },
-          {
-            foreignKeyName: "employee_allowances_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
           },
@@ -1895,20 +1657,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "candidates"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "employee_conversion_log_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "employee_conversion_log_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
           },
           {
             foreignKeyName: "employee_conversion_log_employee_id_fkey"
@@ -1971,20 +1719,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "deduction_templates"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "employee_deductions_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "employee_deductions_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
           },
           {
             foreignKeyName: "employee_deductions_employee_id_fkey"
@@ -2057,20 +1791,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "document_types"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "employee_documents_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "employee_documents_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
           },
           {
             foreignKeyName: "employee_documents_employee_id_fkey"
@@ -2161,7 +1881,6 @@ export type Database = {
           preferred_name: string | null
           salary: number | null
           salary_currency_code: string | null
-          search_vector: unknown
           second_name: string | null
           send_offer_letter: boolean | null
           status: Database["public"]["Enums"]["employee_status"]
@@ -2210,7 +1929,6 @@ export type Database = {
             preferred_name: string | null
             salary: number | null
             salary_currency_code: string | null
-            search_vector: unknown
             second_name: string | null
             send_offer_letter: boolean | null
             status: Database["public"]["Enums"]["employee_status"]
@@ -2260,7 +1978,6 @@ export type Database = {
             preferred_name: string | null
             salary: number | null
             salary_currency_code: string | null
-            search_vector: unknown
             second_name: string | null
             send_offer_letter: boolean | null
             status: Database["public"]["Enums"]["employee_status"]
@@ -2311,7 +2028,6 @@ export type Database = {
           preferred_name?: string | null
           salary?: number | null
           salary_currency_code?: string | null
-          search_vector?: unknown
           second_name?: string | null
           send_offer_letter?: boolean | null
           status?: Database["public"]["Enums"]["employee_status"]
@@ -2361,7 +2077,6 @@ export type Database = {
           preferred_name?: string | null
           salary?: number | null
           salary_currency_code?: string | null
-          search_vector?: unknown
           second_name?: string | null
           send_offer_letter?: boolean | null
           status?: Database["public"]["Enums"]["employee_status"]
@@ -2381,32 +2096,11 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "employees_department_id_fkey"
-            columns: ["department_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["department_id"]
-          },
-          {
             foreignKeyName: "employees_import_batch_id_fkey"
             columns: ["import_batch_id"]
             isOneToOne: false
             referencedRelation: "employee_imports"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "employees_manager_id_fkey"
-            columns: ["manager_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "employees_manager_id_fkey"
-            columns: ["manager_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
           },
           {
             foreignKeyName: "employees_manager_id_fkey"
@@ -2419,22 +2113,8 @@ export type Database = {
             foreignKeyName: "employees_position_id_fkey"
             columns: ["position_id"]
             isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["position_id"]
-          },
-          {
-            foreignKeyName: "employees_position_id_fkey"
-            columns: ["position_id"]
-            isOneToOne: false
             referencedRelation: "positions"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "employees_work_location_id_fkey"
-            columns: ["work_location_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["work_location_id"]
           },
           {
             foreignKeyName: "employees_work_location_id_fkey"
@@ -2468,20 +2148,6 @@ export type Database = {
           status?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "event_participants_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "event_participants_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
-          },
           {
             foreignKeyName: "event_participants_employee_id_fkey"
             columns: ["employee_id"]
@@ -2539,20 +2205,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "exit_interviews_interviewer_id_fkey"
-            columns: ["interviewer_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "exit_interviews_interviewer_id_fkey"
-            columns: ["interviewer_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
-          },
           {
             foreignKeyName: "exit_interviews_interviewer_id_fkey"
             columns: ["interviewer_id"]
@@ -2635,36 +2287,8 @@ export type Database = {
             foreignKeyName: "generated_documents_employee_id_fkey"
             columns: ["employee_id"]
             isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "generated_documents_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
-          },
-          {
-            foreignKeyName: "generated_documents_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "generated_documents_generated_by_fkey"
-            columns: ["generated_by"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "generated_documents_generated_by_fkey"
-            columns: ["generated_by"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
           },
           {
             foreignKeyName: "generated_documents_generated_by_fkey"
@@ -2723,20 +2347,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "hr_document_requests_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "hr_document_requests_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
-          },
           {
             foreignKeyName: "hr_document_requests_employee_id_fkey"
             columns: ["employee_id"]
@@ -2813,20 +2423,6 @@ export type Database = {
             foreignKeyName: "leave_balance_adjustments_employee_id_fkey"
             columns: ["employee_id"]
             isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "leave_balance_adjustments_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
-          },
-          {
-            foreignKeyName: "leave_balance_adjustments_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
           },
@@ -2841,13 +2437,6 @@ export type Database = {
             foreignKeyName: "leave_balance_adjustments_leave_type_id_fkey"
             columns: ["leave_type_id"]
             isOneToOne: false
-            referencedRelation: "leave_balance_summary_mv"
-            referencedColumns: ["leave_type_id"]
-          },
-          {
-            foreignKeyName: "leave_balance_adjustments_leave_type_id_fkey"
-            columns: ["leave_type_id"]
-            isOneToOne: false
             referencedRelation: "leave_types"
             referencedColumns: ["id"]
           },
@@ -2855,7 +2444,6 @@ export type Database = {
       }
       leave_balances: {
         Row: {
-          available_days: number | null
           created_at: string | null
           employee_id: string
           id: string
@@ -2867,7 +2455,6 @@ export type Database = {
           year: number
         }
         Insert: {
-          available_days?: number | null
           created_at?: string | null
           employee_id: string
           id?: string
@@ -2879,7 +2466,6 @@ export type Database = {
           year: number
         }
         Update: {
-          available_days?: number | null
           created_at?: string | null
           employee_id?: string
           id?: string
@@ -2895,29 +2481,8 @@ export type Database = {
             foreignKeyName: "leave_balances_employee_id_fkey"
             columns: ["employee_id"]
             isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "leave_balances_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
-          },
-          {
-            foreignKeyName: "leave_balances_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "leave_balances_leave_type_id_fkey"
-            columns: ["leave_type_id"]
-            isOneToOne: false
-            referencedRelation: "leave_balance_summary_mv"
-            referencedColumns: ["leave_type_id"]
           },
           {
             foreignKeyName: "leave_balances_leave_type_id_fkey"
@@ -2988,20 +2553,6 @@ export type Database = {
             foreignKeyName: "leave_requests_employee_id_fkey"
             columns: ["employee_id"]
             isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "leave_requests_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
-          },
-          {
-            foreignKeyName: "leave_requests_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
           },
@@ -3009,29 +2560,8 @@ export type Database = {
             foreignKeyName: "leave_requests_leave_type_id_fkey"
             columns: ["leave_type_id"]
             isOneToOne: false
-            referencedRelation: "leave_balance_summary_mv"
-            referencedColumns: ["leave_type_id"]
-          },
-          {
-            foreignKeyName: "leave_requests_leave_type_id_fkey"
-            columns: ["leave_type_id"]
-            isOneToOne: false
             referencedRelation: "leave_types"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "leave_requests_reviewed_by_fkey"
-            columns: ["reviewed_by"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "leave_requests_reviewed_by_fkey"
-            columns: ["reviewed_by"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
           },
           {
             foreignKeyName: "leave_requests_reviewed_by_fkey"
@@ -3236,13 +2766,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "loan_installments_paid_in_payroll_run_id_fkey"
-            columns: ["paid_in_payroll_run_id"]
-            isOneToOne: false
-            referencedRelation: "payroll_summary_mv"
-            referencedColumns: ["payroll_run_id"]
-          },
-          {
             foreignKeyName: "loan_installments_rescheduled_from_installment_id_fkey"
             columns: ["rescheduled_from_installment_id"]
             isOneToOne: false
@@ -3310,20 +2833,6 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "loans_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "loans_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
-          },
           {
             foreignKeyName: "loans_employee_id_fkey"
             columns: ["employee_id"]
@@ -3499,20 +3008,6 @@ export type Database = {
             foreignKeyName: "offboarding_access_systems_revoked_by_fkey"
             columns: ["revoked_by"]
             isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "offboarding_access_systems_revoked_by_fkey"
-            columns: ["revoked_by"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
-          },
-          {
-            foreignKeyName: "offboarding_access_systems_revoked_by_fkey"
-            columns: ["revoked_by"]
-            isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
           },
@@ -3628,20 +3123,6 @@ export type Database = {
             foreignKeyName: "offboarding_records_employee_id_fkey"
             columns: ["employee_id"]
             isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "offboarding_records_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
-          },
-          {
-            foreignKeyName: "offboarding_records_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
           },
@@ -3649,36 +3130,8 @@ export type Database = {
             foreignKeyName: "offboarding_records_hr_contact_id_fkey"
             columns: ["hr_contact_id"]
             isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "offboarding_records_hr_contact_id_fkey"
-            columns: ["hr_contact_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
-          },
-          {
-            foreignKeyName: "offboarding_records_hr_contact_id_fkey"
-            columns: ["hr_contact_id"]
-            isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "offboarding_records_it_contact_id_fkey"
-            columns: ["it_contact_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "offboarding_records_it_contact_id_fkey"
-            columns: ["it_contact_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
           },
           {
             foreignKeyName: "offboarding_records_it_contact_id_fkey"
@@ -3899,27 +3352,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "offer_versions_department_id_fkey"
-            columns: ["department_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["department_id"]
-          },
-          {
-            foreignKeyName: "offer_versions_manager_employee_id_fkey"
-            columns: ["manager_employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "offer_versions_manager_employee_id_fkey"
-            columns: ["manager_employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
-          },
-          {
             foreignKeyName: "offer_versions_manager_employee_id_fkey"
             columns: ["manager_employee_id"]
             isOneToOne: false
@@ -3937,13 +3369,6 @@ export type Database = {
             foreignKeyName: "offer_versions_position_id_fkey"
             columns: ["position_id"]
             isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["position_id"]
-          },
-          {
-            foreignKeyName: "offer_versions_position_id_fkey"
-            columns: ["position_id"]
-            isOneToOne: false
             referencedRelation: "positions"
             referencedColumns: ["id"]
           },
@@ -3953,13 +3378,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "offer_letter_templates"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "offer_versions_work_location_id_fkey"
-            columns: ["work_location_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["work_location_id"]
           },
           {
             foreignKeyName: "offer_versions_work_location_id_fkey"
@@ -4075,36 +3493,8 @@ export type Database = {
             foreignKeyName: "onboarding_records_buddy_id_fkey"
             columns: ["buddy_id"]
             isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_records_buddy_id_fkey"
-            columns: ["buddy_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
-          },
-          {
-            foreignKeyName: "onboarding_records_buddy_id_fkey"
-            columns: ["buddy_id"]
-            isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_records_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_records_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
           },
           {
             foreignKeyName: "onboarding_records_employee_id_fkey"
@@ -4117,20 +3507,6 @@ export type Database = {
             foreignKeyName: "onboarding_records_hr_contact_id_fkey"
             columns: ["hr_contact_id"]
             isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_records_hr_contact_id_fkey"
-            columns: ["hr_contact_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
-          },
-          {
-            foreignKeyName: "onboarding_records_hr_contact_id_fkey"
-            columns: ["hr_contact_id"]
-            isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
           },
@@ -4138,36 +3514,8 @@ export type Database = {
             foreignKeyName: "onboarding_records_it_contact_id_fkey"
             columns: ["it_contact_id"]
             isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_records_it_contact_id_fkey"
-            columns: ["it_contact_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
-          },
-          {
-            foreignKeyName: "onboarding_records_it_contact_id_fkey"
-            columns: ["it_contact_id"]
-            isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_records_manager_id_fkey"
-            columns: ["manager_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_records_manager_id_fkey"
-            columns: ["manager_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
           },
           {
             foreignKeyName: "onboarding_records_manager_id_fkey"
@@ -4235,20 +3583,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "onboarding_tasks_completed_by_fkey"
-            columns: ["completed_by"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "onboarding_tasks_completed_by_fkey"
-            columns: ["completed_by"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
-          },
           {
             foreignKeyName: "onboarding_tasks_completed_by_fkey"
             columns: ["completed_by"]
@@ -4408,13 +3742,6 @@ export type Database = {
             referencedRelation: "payroll_runs"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "payroll_records_payroll_run_id_fkey"
-            columns: ["payroll_run_id"]
-            isOneToOne: false
-            referencedRelation: "payroll_summary_mv"
-            referencedColumns: ["payroll_run_id"]
-          },
         ]
       }
       payroll_run_adjustments: {
@@ -4453,20 +3780,6 @@ export type Database = {
             foreignKeyName: "payroll_run_adjustments_employee_id_fkey"
             columns: ["employee_id"]
             isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "payroll_run_adjustments_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
-          },
-          {
-            foreignKeyName: "payroll_run_adjustments_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
           },
@@ -4476,13 +3789,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "payroll_runs"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "payroll_run_adjustments_payroll_run_id_fkey"
-            columns: ["payroll_run_id"]
-            isOneToOne: false
-            referencedRelation: "payroll_summary_mv"
-            referencedColumns: ["payroll_run_id"]
           },
         ]
       }
@@ -4549,20 +3855,6 @@ export type Database = {
             foreignKeyName: "payroll_run_employees_employee_id_fkey"
             columns: ["employee_id"]
             isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "payroll_run_employees_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
-          },
-          {
-            foreignKeyName: "payroll_run_employees_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
           },
@@ -4572,13 +3864,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "payroll_runs"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "payroll_run_employees_payroll_run_id_fkey"
-            columns: ["payroll_run_id"]
-            isOneToOne: false
-            referencedRelation: "payroll_summary_mv"
-            referencedColumns: ["payroll_run_id"]
           },
         ]
       }
@@ -4624,13 +3909,6 @@ export type Database = {
             foreignKeyName: "payroll_runs_location_id_fkey"
             columns: ["location_id"]
             isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["work_location_id"]
-          },
-          {
-            foreignKeyName: "payroll_runs_location_id_fkey"
-            columns: ["location_id"]
-            isOneToOne: false
             referencedRelation: "work_locations"
             referencedColumns: ["id"]
           },
@@ -4668,13 +3946,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "departments"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "positions_department_id_fkey"
-            columns: ["department_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["department_id"]
           },
         ]
       }
@@ -4759,20 +4030,6 @@ export type Database = {
             foreignKeyName: "project_activities_actor_id_fkey"
             columns: ["actor_id"]
             isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "project_activities_actor_id_fkey"
-            columns: ["actor_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
-          },
-          {
-            foreignKeyName: "project_activities_actor_id_fkey"
-            columns: ["actor_id"]
-            isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
           },
@@ -4782,20 +4039,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "projects"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "project_activities_target_employee_id_fkey"
-            columns: ["target_employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "project_activities_target_employee_id_fkey"
-            columns: ["target_employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
           },
           {
             foreignKeyName: "project_activities_target_employee_id_fkey"
@@ -4829,20 +4072,6 @@ export type Database = {
           role?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "project_members_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "project_members_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
-          },
           {
             foreignKeyName: "project_members_employee_id_fkey"
             columns: ["employee_id"]
@@ -4912,27 +4141,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "departments"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "projects_department_id_fkey"
-            columns: ["department_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["department_id"]
-          },
-          {
-            foreignKeyName: "projects_owner_id_fkey"
-            columns: ["owner_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "projects_owner_id_fkey"
-            columns: ["owner_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
           },
           {
             foreignKeyName: "projects_owner_id_fkey"
@@ -5072,20 +4280,6 @@ export type Database = {
             foreignKeyName: "salary_history_employee_id_fkey"
             columns: ["employee_id"]
             isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "salary_history_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
-          },
-          {
-            foreignKeyName: "salary_history_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
           },
@@ -5153,20 +4347,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "salary_update_batches"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "salary_update_batch_employees_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "salary_update_batch_employees_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
           },
           {
             foreignKeyName: "salary_update_batch_employees_employee_id_fkey"
@@ -5440,116 +4620,7 @@ export type Database = {
       }
     }
     Views: {
-      employee_summary_mv: {
-        Row: {
-          active_loans_count: number | null
-          avatar_url: string | null
-          department_id: string | null
-          department_name: string | null
-          email: string | null
-          employee_code: string | null
-          full_name: string | null
-          id: string | null
-          join_date: string | null
-          manager_id: string | null
-          manager_name: string | null
-          pending_leave_requests: number | null
-          pending_trips_count: number | null
-          position_id: string | null
-          position_title: string | null
-          status: Database["public"]["Enums"]["employee_status"] | null
-          work_location_id: string | null
-          work_location_name: string | null
-        }
-        Relationships: []
-      }
-      leave_balance_summary_mv: {
-        Row: {
-          available_days: number | null
-          department_id: string | null
-          department_name: string | null
-          employee_id: string | null
-          employee_name: string | null
-          leave_type_color: string | null
-          leave_type_id: string | null
-          leave_type_name: string | null
-          pending_days: number | null
-          total_days: number | null
-          used_days: number | null
-          year: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "employees_department_id_fkey"
-            columns: ["department_id"]
-            isOneToOne: false
-            referencedRelation: "departments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "employees_department_id_fkey"
-            columns: ["department_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["department_id"]
-          },
-          {
-            foreignKeyName: "leave_balances_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "leave_balances_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["manager_id"]
-          },
-          {
-            foreignKeyName: "leave_balances_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      payroll_summary_mv: {
-        Row: {
-          employee_count: number | null
-          location_id: string | null
-          location_name: string | null
-          pay_period_end: string | null
-          pay_period_start: string | null
-          payroll_run_id: string | null
-          status: string | null
-          total_base_salary: number | null
-          total_deductions: number | null
-          total_gosi_deduction: number | null
-          total_gross_pay: number | null
-          total_housing_allowance: number | null
-          total_net_pay: number | null
-          total_transportation_allowance: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "payroll_runs_location_id_fkey"
-            columns: ["location_id"]
-            isOneToOne: false
-            referencedRelation: "employee_summary_mv"
-            referencedColumns: ["work_location_id"]
-          },
-          {
-            foreignKeyName: "payroll_runs_location_id_fkey"
-            columns: ["location_id"]
-            isOneToOne: false
-            referencedRelation: "work_locations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
       direct_reports: {
@@ -5591,7 +4662,6 @@ export type Database = {
           preferred_name: string | null
           salary: number | null
           salary_currency_code: string | null
-          search_vector: unknown
           second_name: string | null
           send_offer_letter: boolean | null
           status: Database["public"]["Enums"]["employee_status"]
@@ -5712,7 +4782,6 @@ export type Database = {
           preferred_name: string | null
           salary: number | null
           salary_currency_code: string | null
-          search_vector: unknown
           second_name: string | null
           send_offer_letter: boolean | null
           status: Database["public"]["Enums"]["employee_status"]
@@ -5730,7 +4799,6 @@ export type Database = {
           isSetofReturn: true
         }
       }
-      refresh_all_materialized_views: { Args: never; Returns: undefined }
     }
     Enums: {
       access_status: "active" | "scheduled" | "revoked"

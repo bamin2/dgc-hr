@@ -119,7 +119,7 @@ export default function EmployeeProfile() {
           if (template.percentage_of === 'base_salary') {
             amount = (baseSalary * template.amount) / 100;
           } else if (template.percentage_of === 'gosi_registered_salary') {
-            amount = ((employee?.gosi_registered_salary || 0) * template.amount) / 100;
+            amount = ((employee?.gosiRegisteredSalary || 0) * template.amount) / 100;
           }
         } else {
           amount = template.amount || 0;
@@ -138,8 +138,8 @@ export default function EmployeeProfile() {
     let employerGosiRate = 0;
     let employeeGosiRate = 0;
     
-    if (employee?.is_subject_to_gosi && employee?.gosi_registered_salary) {
-      const employeeWorkLocation = workLocations?.find(loc => loc.id === employee.work_location_id);
+    if (employee?.isSubjectToGosi && employee?.gosiRegisteredSalary) {
+      const employeeWorkLocation = workLocations?.find(loc => loc.id === employee.workLocationId);
       
       if (employeeWorkLocation?.gosi_enabled) {
         const rates = (employeeWorkLocation.gosi_nationality_rates || []) as Array<{nationality: string; employeeRate?: number; employerRate?: number; percentage?: number}>;
@@ -151,7 +151,7 @@ export default function EmployeeProfile() {
           employeeGosiRate = matchingRate.employeeRate ?? matchingRate.percentage ?? 0;
           employerGosiRate = matchingRate.employerRate ?? 0;
           
-          const gosiAmount = (employee.gosi_registered_salary * employeeGosiRate) / 100;
+          const gosiAmount = (employee.gosiRegisteredSalary * employeeGosiRate) / 100;
           deductionItems.push({
             id: 'gosi-auto',
             name: `GOSI (${employeeGosiRate}%)`,
@@ -159,7 +159,7 @@ export default function EmployeeProfile() {
           });
           
           // Calculate employer contribution for display
-          employerGosiContribution = (employee.gosi_registered_salary * employerGosiRate) / 100;
+          employerGosiContribution = (employee.gosiRegisteredSalary * employerGosiRate) / 100;
         }
       }
     }
@@ -170,7 +170,7 @@ export default function EmployeeProfile() {
     const totalMonthlySalary = grossPay - totalDeductions;
 
     return { baseSalary, allowanceItems, deductionItems, totalAllowances, totalDeductions, grossPay, totalMonthlySalary, employerGosiContribution, employerGosiRate };
-  }, [employee?.salary, employee?.is_subject_to_gosi, employee?.gosi_registered_salary, employee?.work_location_id, employee?.nationality, workLocations, allowances, deductions]);
+  }, [employee?.salary, employee?.isSubjectToGosi, employee?.gosiRegisteredSalary, employee?.workLocationId, employee?.nationality, workLocations, allowances, deductions]);
   
   // Check if viewing own profile
   const isOwnProfile = profile?.employee_id === id;
@@ -204,35 +204,35 @@ export default function EmployeeProfile() {
     );
   }
 
-  const initials = `${employee.first_name[0]}${employee.last_name[0]}`;
+  const initials = `${employee.firstName[0]}${employee.lastName[0]}`;
 
-  const handleSave = (data: any) => {
+  const handleSave = (data: Partial<Employee>) => {
     updateEmployee.mutate({
       id: employee.id,
-      first_name: data.first_name || data.firstName,
-      second_name: data.second_name || data.secondName || null,
-      last_name: data.last_name || data.lastName,
+      first_name: data.firstName,
+      second_name: data.secondName || null,
+      last_name: data.lastName,
       email: data.email,
       phone: data.phone,
-      department_id: data.department_id || data.departmentId || null,
-      position_id: data.position_id || data.positionId || null,
+      department_id: data.departmentId || null,
+      position_id: data.positionId || null,
       status: data.status,
-      join_date: data.join_date || data.joinDate,
-      manager_id: data.manager_id || data.managerId || null,
+      join_date: data.joinDate,
+      manager_id: data.managerId || null,
       location: data.location,
       salary: data.salary,
       address: data.address,
-      date_of_birth: data.date_of_birth || data.dateOfBirth,
+      date_of_birth: data.dateOfBirth,
       gender: data.gender as "male" | "female" | "other" | "prefer_not_to_say" | null,
       nationality: data.nationality,
-      avatar_url: data.avatar_url || data.avatar,
-      emergency_contact_name: data.emergency_contact_name || data.emergencyContact?.name,
-      emergency_contact_phone: data.emergency_contact_phone || data.emergencyContact?.phone,
-      emergency_contact_relationship: data.emergency_contact_relationship || data.emergencyContact?.relationship,
-      is_subject_to_gosi: data.is_subject_to_gosi || data.isSubjectToGosi || false,
-      gosi_registered_salary: data.gosi_registered_salary || data.gosiRegisteredSalary || null,
-      passport_number: data.passport_number || data.passportNumber || null,
-      cpr_number: data.cpr_number || data.cprNumber || null,
+      avatar_url: data.avatar,
+      emergency_contact_name: data.emergencyContact?.name,
+      emergency_contact_phone: data.emergencyContact?.phone,
+      emergency_contact_relationship: data.emergencyContact?.relationship,
+      is_subject_to_gosi: data.isSubjectToGosi || false,
+      gosi_registered_salary: data.gosiRegisteredSalary || null,
+      passport_number: data.passportNumber || null,
+      cpr_number: data.cprNumber || null,
     }, {
       onSuccess: () => {
         toast({
@@ -285,7 +285,7 @@ export default function EmployeeProfile() {
         <CardContent className="p-6">
           <div className="flex flex-col md:flex-row md:items-center gap-6">
             <Avatar className="h-24 w-24 ring-4 ring-background shadow-xl">
-              <AvatarImage src={employee.avatar_url || undefined} alt={employee.full_name || ''} />
+              <AvatarImage src={employee.avatar} alt={employee.fullName} />
               <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-semibold">
                 {initials}
               </AvatarFallback>
@@ -294,25 +294,28 @@ export default function EmployeeProfile() {
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
                 <h1 className="text-2xl font-bold text-foreground">
-                  {employee.full_name}
+                  {employee.fullName}
                 </h1>
                 <StatusBadge status={employee.status} />
                 <RoleBadge role={employeeRole} />
               </div>
-              <p className="text-lg text-muted-foreground mb-1">{employee.position?.title}</p>
+              <p className="text-lg text-muted-foreground mb-1">{employee.position}</p>
               <div className="flex items-center gap-4 text-sm text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <Building2 className="h-4 w-4" />
-                  {employee.department?.name}
+                  {employee.department}
                 </span>
                 <span className="flex items-center gap-1">
                   <Briefcase className="h-4 w-4" />
-                  {employee.employee_code}
+                  {employee.employeeId}
                 </span>
-                {employee.work_location?.name && (
+                {employee.workLocationName && (
                   <span className="flex items-center gap-1">
                     <MapPin className="h-4 w-4" />
-                    {employee.work_location.name}
+                    {employee.workLocationCountry && (
+                      <span>{getCountryByName(employee.workLocationCountry)?.flag}</span>
+                    )}
+                    {employee.workLocationName}
                   </span>
                 )}
               </div>
@@ -386,20 +389,20 @@ export default function EmployeeProfile() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <InfoRow label="First Name" value={employee.first_name} />
-                {employee.second_name && (
-                  <InfoRow label="Second Name" value={employee.second_name} />
+                <InfoRow label="First Name" value={employee.firstName} />
+                {employee.secondName && (
+                  <InfoRow label="Second Name" value={employee.secondName} />
                 )}
-                <InfoRow label="Last Name" value={employee.last_name} />
-                <InfoRow label="Full Name" value={employee.full_name} />
+                <InfoRow label="Last Name" value={employee.lastName} />
+                <InfoRow label="Full Name" value={employee.fullName} />
                 <InfoRow 
                   label="Date of Birth" 
-                  value={employee.date_of_birth ? formatLongDate(employee.date_of_birth) : 'Not specified'} 
+                  value={employee.dateOfBirth ? formatLongDate(employee.dateOfBirth) : 'Not specified'} 
                 />
                 <InfoRow label="Gender" value={employee.gender || 'Not specified'} />
                 <InfoRow label="Nationality" value={employee.nationality || 'Not specified'} />
-                <InfoRow label="Passport Number" value={employee.passport_number} />
-                <InfoRow label="CPR Number" value={employee.cpr_number} />
+                <InfoRow label="Passport Number" value={employee.passportNumber} />
+                <InfoRow label="CPR Number" value={employee.cprNumber} />
               </CardContent>
             </Card>
 
@@ -431,11 +434,11 @@ export default function EmployeeProfile() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {employee.emergency_contact_name ? (
+                {employee.emergencyContact ? (
                   <>
-                    <InfoRow label="Name" value={employee.emergency_contact_name} />
-                    <InfoRow label="Relationship" value={employee.emergency_contact_relationship} />
-                    <InfoRow label="Phone" value={employee.emergency_contact_phone} />
+                    <InfoRow label="Name" value={employee.emergencyContact.name} />
+                    <InfoRow label="Relationship" value={employee.emergencyContact.relationship} />
+                    <InfoRow label="Phone" value={employee.emergencyContact.phone} />
                   </>
                 ) : (
                   <p className="text-sm text-muted-foreground">No emergency contact specified</p>
@@ -456,14 +459,14 @@ export default function EmployeeProfile() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <InfoRow label="Employee ID" value={employee.employee_code} />
-                <InfoRow label="Department" value={employee.department?.name} />
-                <InfoRow label="Position" value={employee.position?.title} />
+                <InfoRow label="Employee ID" value={employee.employeeId} />
+                <InfoRow label="Department" value={employee.department} />
+                <InfoRow label="Position" value={employee.position} />
                 <InfoRow 
                   label="Join Date" 
-                  value={employee.join_date ? formatLongDate(employee.join_date) : 'Not specified'} 
+                  value={employee.joinDate ? formatLongDate(employee.joinDate) : 'Not specified'} 
                 />
-                <InfoRow label="Work Location" value={employee.work_location?.name || 'Not specified'} />
+                <InfoRow label="Work Location" value={employee.workLocationName || 'Not specified'} />
               </CardContent>
             </Card>
 
@@ -543,8 +546,8 @@ export default function EmployeeProfile() {
                   )}
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <InfoRow label="Bank Name" value={employee.bank_name} />
-                  <InfoRow label="Account Number" value={employee.bank_account_number} />
+                  <InfoRow label="Bank Name" value={employee.bankName} />
+                  <InfoRow label="Account Number" value={employee.bankAccountNumber} />
                   <InfoRow label="IBAN" value={employee.iban} />
                 </CardContent>
               </Card>

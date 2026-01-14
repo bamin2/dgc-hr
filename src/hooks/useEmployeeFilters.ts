@@ -64,15 +64,15 @@ export function useEmployeeFilters(
       const query = debouncedSearchQuery.toLowerCase();
       result = result.filter(
         (emp) =>
-          `${emp.first_name} ${emp.last_name}`.toLowerCase().includes(query) ||
+          `${emp.firstName} ${emp.lastName}`.toLowerCase().includes(query) ||
           emp.email.toLowerCase().includes(query) ||
-          (emp.employee_code || '').toLowerCase().includes(query)
+          emp.employeeId.toLowerCase().includes(query)
       );
     }
 
     // Department filter
     if (filters.departmentFilter !== "all") {
-      result = result.filter((emp) => emp.department?.name === filters.departmentFilter);
+      result = result.filter((emp) => emp.department === filters.departmentFilter);
     }
 
     // Status filter
@@ -82,7 +82,7 @@ export function useEmployeeFilters(
 
     // Work location filter
     if (filters.workLocationFilter !== "all") {
-      result = result.filter((emp) => emp.work_location_id === filters.workLocationFilter);
+      result = result.filter((emp) => emp.workLocationId === filters.workLocationFilter);
     }
 
     return result;

@@ -52,36 +52,13 @@ const OfferDetail = lazy(() => import("./pages/OfferDetail"));
 const BusinessTrips = lazy(() => import("./pages/BusinessTrips"));
 const BusinessTripDetail = lazy(() => import("./pages/BusinessTripDetail"));
 
-// OPTIMIZED: Better React Query configuration
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      // Don't refetch on window focus (distracting for users)
       refetchOnWindowFocus: false,
-      
-      // Retry failed queries once
       retry: 1,
-      
-      // OPTIMIZED: Increased from 30s to 2min
-      // Your database is now optimized with indexes, so queries are fast
-      // We can cache longer without worrying about stale data
-      staleTime: 1000 * 60 * 2, // 2 minutes
-      
-      // OPTIMIZED: Increased from 5min to 10min
-      // Keep data in cache longer to reduce refetches
-      gcTime: 1000 * 60 * 10, // 10 minutes
-      
-      // NEW: Better offline support
-      // Try cache first, then network (better UX on slow connections)
-      networkMode: 'offlineFirst',
-      
-      // NEW: Smart retry delay with exponential backoff
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    },
-    mutations: {
-      // NEW: Retry mutations once (helpful for flaky connections)
-      retry: 1,
-      retryDelay: 1000,
+      staleTime: 1000 * 30,
+      gcTime: 1000 * 60 * 5,
     },
   },
 });
@@ -102,368 +79,64 @@ const App = () => (
         <RoleProvider>
           <TooltipProvider>
             <Toaster />
-            <Sonner position="top-right" />
+            <Sonner />
             <BrowserRouter>
               <Routes>
-                {/* Public Routes */}
-                <Route
-                  path="/auth"
-                  element={
-                    <PublicRoute>
-                      <Auth />
-                    </PublicRoute>
-                  }
-                />
-                <Route
-                  path="/reset-password"
-                  element={
-                    <PublicRoute>
-                      <LazyPage>
-                        <ResetPassword />
-                      </LazyPage>
-                    </PublicRoute>
-                  }
-                />
-
-                {/* Protected Routes */}
-                <Route
-                  path="/"
-                  element={
-                    <ProtectedRoute>
-                      <Index />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/employees"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardLazyPage>
-                        <Employees />
-                      </DashboardLazyPage>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/employees/:id"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardLazyPage>
-                        <EmployeeProfile />
-                      </DashboardLazyPage>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/employees/:id/onboarding"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardLazyPage>
-                        <OnboardingDetail />
-                      </DashboardLazyPage>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/employees/new/onboarding"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardLazyPage>
-                        <NewOnboarding />
-                      </DashboardLazyPage>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/employees/new"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardLazyPage>
-                        <AddTeamMember />
-                      </DashboardLazyPage>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/employees/bulk-salary-update"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardLazyPage>
-                        <BulkSalaryUpdate />
-                      </DashboardLazyPage>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/payroll"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardLazyPage>
-                        <Payroll />
-                      </DashboardLazyPage>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/payroll/:id"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardLazyPage>
-                        <PayrollRun />
-                      </DashboardLazyPage>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/payroll/:id/payslip/:employeeId"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardLazyPage>
-                        <Payslip />
-                      </DashboardLazyPage>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/benefits"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardLazyPage>
-                        <Benefits />
-                      </DashboardLazyPage>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/benefits/:id"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardLazyPage>
-                        <BenefitDetail />
-                      </DashboardLazyPage>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/benefits/:id/enroll"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardLazyPage>
-                        <BenefitEnrollment />
-                      </DashboardLazyPage>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/benefits/:id/claim"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardLazyPage>
-                        <ClaimSubmission />
-                      </DashboardLazyPage>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/reports"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardLazyPage>
-                        <Reports />
-                      </DashboardLazyPage>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/settings"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardLazyPage>
-                        <Settings />
-                      </DashboardLazyPage>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/notifications"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardLazyPage>
-                        <Notifications />
-                      </DashboardLazyPage>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/calendar"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardLazyPage>
-                        <Calendar />
-                      </DashboardLazyPage>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/projects"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardLazyPage>
-                        <Projects />
-                      </DashboardLazyPage>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/time-off"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardLazyPage>
-                        <TimeOff />
-                      </DashboardLazyPage>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/time-management"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardLazyPage>
-                        <TimeManagement />
-                      </DashboardLazyPage>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/documents"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardLazyPage>
-                        <Documents />
-                      </DashboardLazyPage>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/directory"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardLazyPage>
-                        <Directory />
-                      </DashboardLazyPage>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/loans"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardLazyPage>
-                        <Loans />
-                      </DashboardLazyPage>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/approvals"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardLazyPage>
-                        <Approvals />
-                      </DashboardLazyPage>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/my-profile"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardLazyPage>
-                        <MyProfile />
-                      </DashboardLazyPage>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/my-payslip"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardLazyPage>
-                        <MyPayslip />
-                      </DashboardLazyPage>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/audit-trail"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardLazyPage>
-                        <AuditTrail />
-                      </DashboardLazyPage>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/hiring"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardLazyPage>
-                        <Hiring />
-                      </DashboardLazyPage>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/hiring/candidates/:id"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardLazyPage>
-                        <CandidateDetail />
-                      </DashboardLazyPage>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/hiring/offers/:id"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardLazyPage>
-                        <OfferDetail />
-                      </DashboardLazyPage>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/business-trips"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardLazyPage>
-                        <BusinessTrips />
-                      </DashboardLazyPage>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/business-trips/:id"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardLazyPage>
-                        <BusinessTripDetail />
-                      </DashboardLazyPage>
-                    </ProtectedRoute>
-                  }
-                />
-
-                {/* 404 */}
+                {/* Public routes */}
+                <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
+                <Route path="/auth/reset-password" element={<LazyPage><ResetPassword /></LazyPage>} />
+                
+                {/* Protected routes - All authenticated users */}
+                <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+                <Route path="/directory" element={<ProtectedRoute><DashboardLazyPage><Directory /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/calendar" element={<ProtectedRoute><DashboardLazyPage><Calendar /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/projects" element={<ProtectedRoute><DashboardLazyPage><Projects /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/attendance" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><TimeManagement /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/time-off" element={<ProtectedRoute><DashboardLazyPage><TimeOff /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/business-trips" element={<ProtectedRoute><DashboardLazyPage><BusinessTrips /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/business-trips/:id" element={<ProtectedRoute><DashboardLazyPage><BusinessTripDetail /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/approvals" element={<ProtectedRoute><DashboardLazyPage><Approvals /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/benefits" element={<ProtectedRoute><DashboardLazyPage><Benefits /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/benefits/plans/:id" element={<ProtectedRoute><DashboardLazyPage><BenefitDetail /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/benefits/enroll" element={<ProtectedRoute><DashboardLazyPage><BenefitEnrollment /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/benefits/claims/new" element={<ProtectedRoute><DashboardLazyPage><ClaimSubmission /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/notifications" element={<ProtectedRoute><DashboardLazyPage><Notifications /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/my-profile" element={<ProtectedRoute><DashboardLazyPage><MyProfile /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/my-profile/payslip/:id" element={<ProtectedRoute><DashboardLazyPage><MyPayslip /></DashboardLazyPage></ProtectedRoute>} />
+                
+                {/* Protected routes - HR & Admin */}
+                <Route path="/employees" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><Employees /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/employees/:id" element={<ProtectedRoute requiredRoles={['hr', 'admin', 'manager']}><DashboardLazyPage><EmployeeProfile /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/employees/onboarding/new" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><NewOnboarding /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/employees/onboarding/:id" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><OnboardingDetail /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/payroll" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><Payroll /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/payroll/run" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><PayrollRun /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/payroll/payslip/:id" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><Payslip /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/loans" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><Loans /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/hiring" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><Hiring /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/hiring/candidates/:id" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><CandidateDetail /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/hiring/offers/:id" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><OfferDetail /></DashboardLazyPage></ProtectedRoute>} />
+                
+                {/* Protected routes - Manager, HR & Admin */}
+                <Route path="/team/add" element={<ProtectedRoute requiredRoles={['manager', 'hr', 'admin']}><DashboardLazyPage><AddTeamMember /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/team/bulk-salary-update" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><BulkSalaryUpdate /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/reports" element={<ProtectedRoute requiredRoles={['manager', 'hr', 'admin']}><DashboardLazyPage><Reports /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/time-management" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><TimeManagement /></DashboardLazyPage></ProtectedRoute>} />
+                
+                {/* Protected routes - Admin only */}
+                <Route path="/documents" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><Documents /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/audit-trail" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><AuditTrail /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/settings" element={<ProtectedRoute requiredRoles={['admin']}><DashboardLazyPage><Settings /></DashboardLazyPage></ProtectedRoute>} />
+                
+                {/* Catch-all */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
-            <ReactQueryDevtools initialIsOpen={false} />
           </TooltipProvider>
         </RoleProvider>
       </CompanySettingsProvider>
     </AuthProvider>
+    {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
   </QueryClientProvider>
 );
 

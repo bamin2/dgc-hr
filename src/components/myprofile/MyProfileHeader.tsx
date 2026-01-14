@@ -16,7 +16,7 @@ const statusVariants: Record<string, { label: string; variant: 'default' | 'seco
 };
 
 export function MyProfileHeader({ employee }: MyProfileHeaderProps) {
-  const initials = `${employee.first_name[0]}${employee.last_name[0]}`.toUpperCase();
+  const initials = `${employee.firstName[0]}${employee.lastName[0]}`.toUpperCase();
   const statusInfo = statusVariants[employee.status] || statusVariants.active;
 
   return (
@@ -25,7 +25,7 @@ export function MyProfileHeader({ employee }: MyProfileHeaderProps) {
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
           {/* Avatar */}
           <Avatar className="h-20 w-20 sm:h-24 sm:w-24 border-4 border-background shadow-lg">
-            <AvatarImage src={employee.avatar_url || undefined} alt={employee.full_name || `${employee.first_name} ${employee.last_name}`} />
+            <AvatarImage src={employee.avatar} alt={employee.fullName} />
             <AvatarFallback className="text-xl font-semibold bg-primary text-primary-foreground">
               {initials}
             </AvatarFallback>
@@ -35,7 +35,7 @@ export function MyProfileHeader({ employee }: MyProfileHeaderProps) {
           <div className="flex-1 text-center sm:text-left space-y-2">
             <div className="flex flex-col sm:flex-row sm:items-center gap-2">
               <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">
-                {employee.full_name || `${employee.first_name} ${employee.last_name}`}
+                {employee.fullName}
               </h1>
               <Badge variant={statusInfo.variant} className="w-fit mx-auto sm:mx-0">
                 {statusInfo.label}
@@ -44,15 +44,15 @@ export function MyProfileHeader({ employee }: MyProfileHeaderProps) {
             
             <div className="text-muted-foreground space-y-0.5">
               <p className="text-sm sm:text-base font-medium text-foreground/80">
-                {employee.position?.title}
+                {employee.position}
               </p>
               <p className="text-sm">
-                {employee.department?.name}
+                {employee.department}
               </p>
             </div>
 
             <p className="text-xs text-muted-foreground">
-              Employee ID: {employee.employee_code}
+              Employee ID: {employee.employeeId}
             </p>
           </div>
         </div>

@@ -84,9 +84,9 @@ export function DepartmentsSection() {
   // Map employees to the format needed by the form
   const employeeOptions = (employees || []).map(emp => ({
     id: emp.id,
-    first_name: emp.first_name,
-    last_name: emp.last_name,
-    avatar_url: emp.avatar_url || null,
+    first_name: emp.firstName,
+    last_name: emp.lastName,
+    avatar_url: emp.avatar || null,
   }));
 
   if (isLoading) {

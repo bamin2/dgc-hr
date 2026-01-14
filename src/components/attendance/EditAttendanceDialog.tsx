@@ -187,7 +187,7 @@ export function EditAttendanceDialog({
                       <SelectContent>
                         {employees.map((emp) => (
                           <SelectItem key={emp.id} value={emp.id}>
-                            {emp.first_name} {emp.last_name}
+                            {emp.firstName} {emp.lastName}
                           </SelectItem>
                         ))}
                       </SelectContent>

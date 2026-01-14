@@ -26,10 +26,10 @@ export default function Directory() {
   const filteredEmployees = useMemo(() => {
     return activeEmployees.filter(employee => {
       const matchesSearch = search === "" || 
-        `${employee.first_name} ${employee.last_name}`.toLowerCase().includes(search.toLowerCase());
+        `${employee.firstName} ${employee.lastName}`.toLowerCase().includes(search.toLowerCase());
       
       const matchesDepartment = departmentFilter === "all" || 
-        employee.department?.name === departmentFilter;
+        employee.department === departmentFilter;
       
       return matchesSearch && matchesDepartment;
     });

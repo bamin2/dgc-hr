@@ -120,27 +120,27 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
   useEffect(() => {
     if (employee) {
       setFormData({
-        firstName: employee.first_name || '',
-        secondName: employee.second_name || '',
-        lastName: employee.last_name || '',
+        firstName: employee.firstName || '',
+        secondName: employee.secondName || '',
+        lastName: employee.lastName || '',
         email: employee.email || '',
         phone: employee.phone || '',
-        department: employee.department?.name || '',
-        departmentId: employee.department_id || '',
-        position: employee.position?.title || '',
-        positionId: employee.position_id || '',
+        department: employee.department || '',
+        departmentId: employee.departmentId || '',
+        position: employee.position || '',
+        positionId: employee.positionId || '',
         status: employee.status || 'active',
-        dateOfBirth: employee.date_of_birth || '',
+        dateOfBirth: employee.dateOfBirth || '',
         gender: employee.gender || '',
         address: employee.address || '',
         nationality: employee.nationality || '',
-        avatar: employee.avatar_url || '',
-        managerId: employee.manager_id || '',
-        isSubjectToGosi: employee.is_subject_to_gosi || false,
-        gosiRegisteredSalary: employee.gosi_registered_salary?.toString() || '',
-        passportNumber: employee.passport_number || '',
-        cprNumber: employee.cpr_number || '',
-        joinDate: employee.join_date || '',
+        avatar: employee.avatar || '',
+        managerId: employee.managerId || '',
+        isSubjectToGosi: employee.isSubjectToGosi || false,
+        gosiRegisteredSalary: employee.gosiRegisteredSalary?.toString() || '',
+        passportNumber: employee.passportNumber || '',
+        cprNumber: employee.cprNumber || '',
+        joinDate: employee.joinDate || '',
       });
     } else {
       setFormData({
@@ -177,30 +177,10 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
       ? parseFloat(formData.gosiRegisteredSalary) 
       : undefined;
     
-    // Map form data to Employee type structure
-    const employeeData: Partial<Employee> = {
-      first_name: formData.firstName,
-      second_name: formData.secondName || null,
-      last_name: formData.lastName,
-      email: formData.email,
-      phone: formData.phone || null,
-      department_id: formData.departmentId || null,
-      position_id: formData.positionId || null,
-      status: formData.status,
-      date_of_birth: formData.dateOfBirth || null,
-      gender: formData.gender || null,
-      address: formData.address || null,
-      nationality: formData.nationality || null,
-      avatar_url: formData.avatar || null,
-      manager_id: formData.managerId || null,
-      is_subject_to_gosi: formData.isSubjectToGosi,
-      gosi_registered_salary: gosiSalary ?? null,
-      passport_number: formData.passportNumber || null,
-      cpr_number: formData.cprNumber || null,
-      join_date: formData.joinDate || null,
-    };
-
-    onSave(employeeData);
+    onSave({
+      ...formData,
+      gosiRegisteredSalary: gosiSalary,
+    } as Partial<Employee>);
     onOpenChange(false);
   };
 
@@ -580,12 +560,12 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
                         <SelectItem key={emp.id} value={emp.id}>
                           <div className="flex items-center gap-2">
                             <Avatar className="h-5 w-5">
-                              <AvatarImage src={emp.avatar_url || undefined} />
+                              <AvatarImage src={emp.avatar} />
                               <AvatarFallback className="text-[10px]">
-                                {emp.first_name[0]}{emp.last_name[0]}
+                                {emp.firstName[0]}{emp.lastName[0]}
                               </AvatarFallback>
                             </Avatar>
-                            <span>{emp.first_name} {emp.last_name}</span>
+                            <span>{emp.firstName} {emp.lastName}</span>
                           </div>
                         </SelectItem>
                       ))}

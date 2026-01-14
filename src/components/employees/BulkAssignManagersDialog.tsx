@@ -20,19 +20,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Users, UserPlus } from "lucide-react";
 import { Employee } from "@/hooks/useEmployees";
-
-// Helper functions for org hierarchy (inline to avoid type issues)
-const TOP_LEVEL_POSITIONS = ['ceo', 'chief executive officer', 'president', 'managing director', 'chairman', 'founder'];
-const INACTIVE_STATUSES = ['terminated', 'resigned', 'inactive'];
-
-const isTopLevelPosition = (employee: Employee): boolean => {
-  const position = employee.position?.title?.toLowerCase() || '';
-  return TOP_LEVEL_POSITIONS.some(p => position.includes(p));
-};
-
-const isInactiveEmployee = (employee: Employee): boolean => {
-  return INACTIVE_STATUSES.includes(employee.status);
-};
+import { isTopLevelPosition, isInactiveEmployee } from "@/utils/orgHierarchy";
 
 interface BulkAssignManagersDialogProps {
   open: boolean;
@@ -55,17 +43,17 @@ export function BulkAssignManagersDialog({
 
   // Get unassigned employees (excluding top-level positions and inactive employees)
   const unassignedEmployees = useMemo(() => 
-    employees.filter(e => !e.manager_id && !isTopLevelPosition(e) && !isInactiveEmployee(e)),
+    employees.filter(e => !e.managerId && !isTopLevelPosition(e) && !isInactiveEmployee(e)),
     [employees]
   );
 
   // Get potential managers (active employees who have a position or are top-level)
   const potentialManagers = useMemo(() => 
     employees
-      .filter(e => !isInactiveEmployee(e) && (e.position?.title || isTopLevelPosition(e)))
+      .filter(e => !isInactiveEmployee(e) && (e.position || isTopLevelPosition(e)))
       .sort((a, b) => {
-        const nameA = `${a.first_name} ${a.last_name}`;
-        const nameB = `${b.first_name} ${b.last_name}`;
+        const nameA = `${a.firstName} ${a.lastName}`;
+        const nameB = `${b.firstName} ${b.lastName}`;
         return nameA.localeCompare(nameB);
       }),
     [employees]
@@ -73,14 +61,14 @@ export function BulkAssignManagersDialog({
 
   // Get unique departments
   const departments = useMemo(() => {
-    const depts = new Set(unassignedEmployees.map(e => e.department?.name).filter(Boolean));
+    const depts = new Set(unassignedEmployees.map(e => e.department).filter(Boolean));
     return Array.from(depts).sort();
   }, [unassignedEmployees]);
 
   // Filter employees by department
   const filteredEmployees = useMemo(() => {
     if (departmentFilter === "all") return unassignedEmployees;
-    return unassignedEmployees.filter(e => e.department?.name === departmentFilter);
+    return unassignedEmployees.filter(e => e.department === departmentFilter);
   }, [unassignedEmployees, departmentFilter]);
 
   // Count pending assignments
@@ -216,9 +204,9 @@ export function BulkAssignManagersDialog({
                     onCheckedChange={(checked) => handleSelectEmployee(employee.id, checked as boolean)}
                   />
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium truncate">{employee.first_name} {employee.last_name}</div>
+                    <div className="font-medium truncate">{employee.firstName} {employee.lastName}</div>
                     <div className="text-sm text-muted-foreground truncate">
-                      {employee.position?.title || 'No position'} • {employee.department?.name || 'No department'}
+                      {employee.position || 'No position'} • {employee.department || 'No department'}
                     </div>
                   </div>
                   <Select 
@@ -233,10 +221,10 @@ export function BulkAssignManagersDialog({
                         .filter(m => m.id !== employee.id)
                         .map(manager => (
                           <SelectItem key={manager.id} value={manager.id}>
-                            {manager.first_name} {manager.last_name}
-                            {manager.position?.title && (
+                            {manager.firstName} {manager.lastName}
+                            {manager.position && (
                               <span className="text-muted-foreground ml-1">
-                                ({manager.position.title})
+                                ({manager.position})
                               </span>
                             )}
                           </SelectItem>
@@ -262,10 +250,10 @@ export function BulkAssignManagersDialog({
             <SelectContent>
               {potentialManagers.map(manager => (
                 <SelectItem key={manager.id} value={manager.id}>
-                  {manager.first_name} {manager.last_name}
-                  {manager.position?.title && (
+                  {manager.firstName} {manager.lastName}
+                  {manager.position && (
                     <span className="text-muted-foreground ml-1">
-                      ({manager.position.title})
+                      ({manager.position})
                     </span>
                   )}
                 </SelectItem>

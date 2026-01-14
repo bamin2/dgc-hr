@@ -74,7 +74,7 @@ export function ReviewStep({
 
   const getEmployeeName = (id: string) => {
     const emp = employees.find((e) => e.id === id);
-    return emp ? `${emp.first_name} ${emp.last_name}` : "Not assigned";
+    return emp ? `${emp.firstName} ${emp.lastName}` : "Not assigned";
   };
 
   const enabledTasks = customizedTasks.filter((t) => t.status !== "skipped");

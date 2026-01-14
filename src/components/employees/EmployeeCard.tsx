@@ -19,14 +19,14 @@ interface EmployeeCardProps {
 }
 
 export function EmployeeCard({ employee, onView, onEdit, onDelete }: EmployeeCardProps) {
-  const initials = `${employee.first_name[0]}${employee.last_name[0]}`;
+  const initials = `${employee.firstName[0]}${employee.lastName[0]}`;
 
   return (
     <Card className="group hover:shadow-lg transition-shadow duration-200">
       <CardContent className="p-5">
         <div className="flex items-start justify-between mb-4">
           <Avatar className="h-14 w-14 ring-2 ring-background shadow-md">
-            <AvatarImage src={employee.avatar_url || undefined} alt={`${employee.first_name} ${employee.last_name}`} />
+            <AvatarImage src={employee.avatar} alt={`${employee.firstName} ${employee.lastName}`} />
             <AvatarFallback className="bg-primary/10 text-primary font-semibold">
               {initials}
             </AvatarFallback>
@@ -60,12 +60,12 @@ export function EmployeeCard({ employee, onView, onEdit, onDelete }: EmployeeCar
         
         <div className="space-y-2 mb-4">
           <h3 className="font-semibold text-foreground">
-            {employee.first_name} {employee.last_name}
+            {employee.firstName} {employee.lastName}
           </h3>
-          <p className="text-sm text-muted-foreground">{employee.position?.title}</p>
+          <p className="text-sm text-muted-foreground">{employee.position}</p>
           <div className="flex items-center gap-2">
             <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-md font-medium">
-              {employee.department?.name}
+              {employee.department}
             </span>
             <StatusBadge status={employee.status} />
           </div>

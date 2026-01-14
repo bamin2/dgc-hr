@@ -92,10 +92,10 @@ export default function PayrollRun() {
         return {
           payroll_run_id: "", // Will be set by the hook
           employee_id: e.id,
-          employee_name: `${e.first_name} ${e.last_name}`,
-          employee_code: e.employee_code,
-          department: e.department?.name || '',
-          position: e.position?.title || '',
+          employee_name: `${e.firstName} ${e.lastName}`,
+          employee_code: e.employeeId,
+          department: e.department,
+          position: e.position,
           base_salary: baseSalary,
           housing_allowance: 0,
           transportation_allowance: 0,
@@ -262,17 +262,17 @@ export default function PayrollRun() {
                         onCheckedChange={() => toggleEmployee(employee.id)}
                       />
                       <Avatar className="w-9 h-9">
-                        <AvatarImage src={employee.avatar_url || undefined} />
+                        <AvatarImage src={employee.avatar} />
                         <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                          {employee.first_name[0]}{employee.last_name[0]}
+                          {employee.firstName[0]}{employee.lastName[0]}
                         </AvatarFallback>
                       </Avatar>
                       <div>
                         <p className="font-medium text-foreground text-sm">
-                          {employee.first_name} {employee.last_name}
+                          {employee.firstName} {employee.lastName}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {employee.department?.name}
+                          {employee.department}
                         </p>
                       </div>
                     </div>
@@ -324,17 +324,17 @@ export default function PayrollRun() {
                       {/* Employee Header */}
                       <div className="flex items-center gap-3">
                         <Avatar className="w-9 h-9">
-                          <AvatarImage src={employee.avatar_url || undefined} />
+                          <AvatarImage src={employee.avatar} />
                           <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                            {employee.first_name[0]}{employee.last_name[0]}
+                            {employee.firstName[0]}{employee.lastName[0]}
                           </AvatarFallback>
                         </Avatar>
                         <div>
                           <p className="font-medium text-sm text-foreground">
-                            {employee.first_name} {employee.last_name}
+                            {employee.firstName} {employee.lastName}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {employee.department?.name}
+                            {employee.department}
                           </p>
                         </div>
                       </div>
