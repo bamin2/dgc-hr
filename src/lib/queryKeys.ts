@@ -258,6 +258,21 @@ export const queryKeys = {
     departments: ['departments-management'] as const,
     positions: ['positions-management'] as const,
   },
+  
+  // Business Trips queries
+  businessTrips: {
+    my: ['business-trips', 'my'] as const,
+    all: (filters?: Record<string, unknown>) => ['business-trips', 'all', filters] as const,
+    detail: (id: string) => ['business-trips', id] as const,
+    teamApprovals: ['business-trips', 'team-approvals'] as const,
+    hrApprovals: ['business-trips', 'hr-approvals'] as const,
+    destinations: ['business-trip-destinations'] as const,
+    allDestinations: ['business-trip-destinations', 'all'] as const,
+    expenses: (tripId: string) => ['business-trip-expenses', tripId] as const,
+    amendments: (tripId: string) => ['business-trip-amendments', tripId] as const,
+    attachments: (tripId: string) => ['business-trip-attachments', tripId] as const,
+    settings: ['business-trip-settings'] as const,
+  },
 } as const;
 
 // Type helpers for query key types

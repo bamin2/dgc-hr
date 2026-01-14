@@ -596,6 +596,331 @@ export type Database = {
         }
         Relationships: []
       }
+      business_trip_amendments: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          change_type: string
+          created_at: string | null
+          id: string
+          original_values: Json
+          proposed_values: Json
+          reason: string
+          rejection_reason: string | null
+          status: string | null
+          trip_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          change_type: string
+          created_at?: string | null
+          id?: string
+          original_values: Json
+          proposed_values: Json
+          reason: string
+          rejection_reason?: string | null
+          status?: string | null
+          trip_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          change_type?: string
+          created_at?: string | null
+          id?: string
+          original_values?: Json
+          proposed_values?: Json
+          reason?: string
+          rejection_reason?: string | null
+          status?: string | null
+          trip_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_trip_amendments_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "business_trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      business_trip_attachments: {
+        Row: {
+          created_at: string | null
+          file_name: string
+          file_size: number | null
+          file_url: string
+          id: string
+          mime_type: string | null
+          trip_id: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          file_name: string
+          file_size?: number | null
+          file_url: string
+          id?: string
+          mime_type?: string | null
+          trip_id: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          file_name?: string
+          file_size?: number | null
+          file_url?: string
+          id?: string
+          mime_type?: string | null
+          trip_id?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_trip_attachments_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "business_trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      business_trip_destinations: {
+        Row: {
+          city: string | null
+          country: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          per_diem_rate_bhd: number
+          updated_at: string | null
+        }
+        Insert: {
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          per_diem_rate_bhd?: number
+          updated_at?: string | null
+        }
+        Update: {
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          per_diem_rate_bhd?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      business_trip_expenses: {
+        Row: {
+          amount_bhd: number
+          category: string
+          created_at: string | null
+          description: string | null
+          expense_date: string
+          hr_approved_amount_bhd: number | null
+          hr_notes: string | null
+          hr_status: string | null
+          id: string
+          receipt_url: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          trip_id: string
+        }
+        Insert: {
+          amount_bhd: number
+          category: string
+          created_at?: string | null
+          description?: string | null
+          expense_date: string
+          hr_approved_amount_bhd?: number | null
+          hr_notes?: string | null
+          hr_status?: string | null
+          id?: string
+          receipt_url?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          trip_id: string
+        }
+        Update: {
+          amount_bhd?: number
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          expense_date?: string
+          hr_approved_amount_bhd?: number | null
+          hr_notes?: string | null
+          hr_status?: string | null
+          id?: string
+          receipt_url?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          trip_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_trip_expenses_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "business_trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      business_trip_settings: {
+        Row: {
+          allow_cancellation_after_submit: boolean | null
+          allow_edit_after_submit: boolean | null
+          car_uplift_per_night_bhd: number | null
+          email_notifications_enabled: boolean | null
+          id: string
+          inapp_notifications_enabled: boolean | null
+          max_nights_without_override: number | null
+          module_enabled: boolean | null
+          require_receipts: boolean | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          allow_cancellation_after_submit?: boolean | null
+          allow_edit_after_submit?: boolean | null
+          car_uplift_per_night_bhd?: number | null
+          email_notifications_enabled?: boolean | null
+          id?: string
+          inapp_notifications_enabled?: boolean | null
+          max_nights_without_override?: number | null
+          module_enabled?: boolean | null
+          require_receipts?: boolean | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          allow_cancellation_after_submit?: boolean | null
+          allow_edit_after_submit?: boolean | null
+          car_uplift_per_night_bhd?: number | null
+          email_notifications_enabled?: boolean | null
+          id?: string
+          inapp_notifications_enabled?: boolean | null
+          max_nights_without_override?: number | null
+          module_enabled?: boolean | null
+          require_receipts?: boolean | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      business_trips: {
+        Row: {
+          car_uplift_per_night_bhd: number | null
+          car_uplift_total_bhd: number | null
+          closed_at: string | null
+          closed_by: string | null
+          corporate_card_used: boolean | null
+          created_at: string | null
+          destination_id: string | null
+          employee_id: string
+          end_date: string
+          flight_details: string | null
+          id: string
+          nights_count: number
+          origin_location_id: string | null
+          per_diem_budget_bhd: number
+          per_diem_payable_bhd: number
+          per_diem_rate_bhd: number
+          rejection_reason: string | null
+          start_date: string
+          status: string
+          submitted_at: string | null
+          travel_mode: string
+          updated_at: string | null
+          version: number | null
+        }
+        Insert: {
+          car_uplift_per_night_bhd?: number | null
+          car_uplift_total_bhd?: number | null
+          closed_at?: string | null
+          closed_by?: string | null
+          corporate_card_used?: boolean | null
+          created_at?: string | null
+          destination_id?: string | null
+          employee_id: string
+          end_date: string
+          flight_details?: string | null
+          id?: string
+          nights_count: number
+          origin_location_id?: string | null
+          per_diem_budget_bhd?: number
+          per_diem_payable_bhd?: number
+          per_diem_rate_bhd?: number
+          rejection_reason?: string | null
+          start_date: string
+          status?: string
+          submitted_at?: string | null
+          travel_mode?: string
+          updated_at?: string | null
+          version?: number | null
+        }
+        Update: {
+          car_uplift_per_night_bhd?: number | null
+          car_uplift_total_bhd?: number | null
+          closed_at?: string | null
+          closed_by?: string | null
+          corporate_card_used?: boolean | null
+          created_at?: string | null
+          destination_id?: string | null
+          employee_id?: string
+          end_date?: string
+          flight_details?: string | null
+          id?: string
+          nights_count?: number
+          origin_location_id?: string | null
+          per_diem_budget_bhd?: number
+          per_diem_payable_bhd?: number
+          per_diem_rate_bhd?: number
+          rejection_reason?: string | null
+          start_date?: string
+          status?: string
+          submitted_at?: string | null
+          travel_mode?: string
+          updated_at?: string | null
+          version?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_trips_destination_id_fkey"
+            columns: ["destination_id"]
+            isOneToOne: false
+            referencedRelation: "business_trip_destinations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_trips_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_trips_origin_location_id_fkey"
+            columns: ["origin_location_id"]
+            isOneToOne: false
+            referencedRelation: "work_locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       calendar_events: {
         Row: {
           color: Database["public"]["Enums"]["event_color"]
