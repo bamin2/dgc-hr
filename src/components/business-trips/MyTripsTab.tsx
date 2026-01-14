@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Filter } from 'lucide-react';
+import { Plus, Filter, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -11,7 +10,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useMyBusinessTrips } from '@/hooks/useBusinessTrips';
+import { useRole } from '@/contexts/RoleContext';
 import { TripCard } from './TripCard';
 import { CreateTripDialog } from './CreateTripDialog';
 import { TripCardSkeleton } from './TripCardSkeleton';
@@ -19,10 +20,11 @@ import { TRIP_STATUS_LABELS, TripStatus } from '@/types/businessTrips';
 
 export function MyTripsTab() {
   const navigate = useNavigate();
+  const { effectiveEmployeeId } = useRole();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   
-  const { data: trips, isLoading } = useMyBusinessTrips();
+  const { data: trips, isLoading, isError, error, refetch } = useMyBusinessTrips(effectiveEmployeeId);
 
   const filteredTrips = trips?.filter(trip => {
     if (statusFilter === 'all') return true;
@@ -53,6 +55,19 @@ export function MyTripsTab() {
           New Trip Request
         </Button>
       </div>
+
+      {/* Error State */}
+      {isError && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription className="flex items-center justify-between">
+            <span>Failed to load trips: {error?.message || 'Unknown error'}</span>
+            <Button variant="outline" size="sm" onClick={() => refetch()}>
+              Retry
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Trips List */}
       {isLoading ? (
