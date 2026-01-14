@@ -133,7 +133,7 @@ const ClaimSubmission = () => {
                     <SelectContent>
                       {activeEmployees.map((employee) => (
                         <SelectItem key={employee.id} value={employee.id}>
-                          {employee.firstName} {employee.lastName} - {employee.department || 'No department'}
+                          {employee.first_name} {employee.last_name} - {employee.department?.name || 'No department'}
                         </SelectItem>
                       ))}
                     </SelectContent>

@@ -7,16 +7,16 @@ export function exportEmployeesToCSV(employees: Employee[], filename: string) {
   ];
   
   const rows = employees.map(emp => [
-    emp.employeeId,
-    emp.firstName,
-    emp.lastName,
+    emp.employee_code || '',
+    emp.first_name,
+    emp.last_name,
     emp.email,
     emp.phone || '',
-    emp.department,
-    emp.position,
+    emp.department?.name || '',
+    emp.position?.title || '',
     emp.status,
-    emp.joinDate,
-    emp.manager || '',
+    emp.join_date || '',
+    emp.manager ? (Array.isArray(emp.manager) ? emp.manager[0]?.full_name : emp.manager.full_name) : '',
     emp.location || ''
   ]);
 
@@ -78,10 +78,10 @@ export async function exportEmployeesToPDF(employees: Employee[], filename: stri
     }
     
     const row = [
-      `${emp.firstName} ${emp.lastName}`.slice(0, 18),
+      `${emp.first_name} ${emp.last_name}`.slice(0, 18),
       emp.email.slice(0, 22),
-      emp.department.slice(0, 14),
-      emp.position.slice(0, 14),
+      (emp.department?.name || '').slice(0, 14),
+      (emp.position?.title || '').slice(0, 14),
       emp.status
     ];
     

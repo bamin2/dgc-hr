@@ -37,7 +37,6 @@ export interface Employee {
   country: string | null;
   employment_type: EmploymentType | null;
   pay_frequency: PayFrequency | null;
-  work_location: string | null;
   work_location_id: string | null;
   tax_exemption_status: string | null;
   send_offer_letter: boolean | null;
@@ -120,7 +119,7 @@ export function useEmployeesList(options?: {
         `);
 
       if (options?.status) {
-        query = query.eq("status", options.status);
+        query = query.eq("status", options.status as any);
       }
       if (options?.department) {
         query = query.eq("department_id", options.department);
@@ -213,7 +212,7 @@ export function useCreateEmployee() {
     mutationFn: async (employee: Partial<Employee>) => {
       const { data, error } = await supabase
         .from("employees")
-        .insert(employee)
+        .insert(employee as any)
         .select()
         .single();
 

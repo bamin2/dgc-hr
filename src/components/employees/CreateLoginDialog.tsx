@@ -18,8 +18,8 @@ interface CreateLoginDialogProps {
   onOpenChange: (open: boolean) => void;
   employee: {
     id: string;
-    firstName: string;
-    lastName: string;
+    first_name: string;
+    last_name: string;
     email: string;
   };
   onSuccess?: () => void;
@@ -65,8 +65,8 @@ export function CreateLoginDialog({
         employeeId: employee.id,
         email: employee.email,
         password,
-        firstName: employee.firstName,
-        lastName: employee.lastName,
+        firstName: employee.first_name,
+        lastName: employee.last_name,
       },
       headers: {
         Authorization: `Bearer ${session.access_token}`,
@@ -84,7 +84,7 @@ export function CreateLoginDialog({
         return;
       }
 
-      toast.success(`Login created for ${employee.firstName} ${employee.lastName}`);
+      toast.success(`Login created for ${employee.first_name} ${employee.last_name}`);
       setPassword("");
       setConfirmPassword("");
       onOpenChange(false);
@@ -109,7 +109,7 @@ export function CreateLoginDialog({
         <DialogHeader>
           <DialogTitle>Create Employee Login</DialogTitle>
           <DialogDescription>
-            Create login credentials for {employee.firstName} {employee.lastName}
+            Create login credentials for {employee.first_name} {employee.last_name}
           </DialogDescription>
         </DialogHeader>
 
@@ -117,7 +117,7 @@ export function CreateLoginDialog({
           <div className="space-y-2">
             <Label>Employee</Label>
             <Input
-              value={`${employee.firstName} ${employee.lastName}`}
+              value={`${employee.first_name} ${employee.last_name}`}
               disabled
               className="bg-muted"
             />

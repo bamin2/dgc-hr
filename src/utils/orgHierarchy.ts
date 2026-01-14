@@ -35,11 +35,11 @@ export function filterActiveEmployees<T extends { status?: string | null }>(empl
 export function employeeToOrgEmployee(employee: Employee): OrgEmployee {
   return {
     id: employee.id,
-    name: `${employee.firstName} ${employee.lastName}`,
-    position: employee.position,
-    department: employee.department,
+    name: `${employee.first_name} ${employee.last_name}`,
+    position: employee.position?.title || '',
+    department: employee.department?.name || '',
     location: employee.location || "Boston HQ",
-    avatar: employee.avatar,
+    avatar: employee.avatar_url || undefined,
     children: [],
   };
 }
@@ -47,9 +47,12 @@ export function employeeToOrgEmployee(employee: Employee): OrgEmployee {
 /**
  * Check if a position is a top-level executive position
  */
-export function isTopLevelPosition(employee: { position?: string | null }): boolean {
+export function isTopLevelPosition(employee: { position?: { title: string } | string | null }): boolean {
   if (!employee.position) return false;
-  const normalizedPosition = employee.position.toLowerCase().trim();
+  const positionTitle = typeof employee.position === 'string' 
+    ? employee.position 
+    : employee.position.title;
+  const normalizedPosition = positionTitle.toLowerCase().trim();
   return TOP_LEVEL_POSITIONS.some(
     (topPos) =>
       normalizedPosition === topPos || normalizedPosition.includes(topPos)
@@ -62,7 +65,7 @@ export function isTopLevelPosition(employee: { position?: string | null }): bool
 export function findRootEmployees(employees: Employee[]): Employee[] {
   // First, find employees without a manager AND with top-level positions
   const topLevelRoots = employees.filter(
-    (emp) => !emp.managerId && isTopLevelPosition(emp)
+    (emp) => !emp.manager_id && isTopLevelPosition(emp)
   );
 
   // If we found top-level executives, return them
@@ -71,7 +74,7 @@ export function findRootEmployees(employees: Employee[]): Employee[] {
   }
 
   // Fallback: find the first employee without a manager
-  const rootWithoutManager = employees.find((emp) => !emp.managerId);
+  const rootWithoutManager = employees.find((emp) => !emp.manager_id);
   return rootWithoutManager ? [rootWithoutManager] : [];
 }
 
@@ -88,7 +91,7 @@ export function findRootEmployee(employees: Employee[]): Employee | undefined {
  * Get direct reports for a given employee
  */
 export function getDirectReports(employees: Employee[], managerId: string): Employee[] {
-  return employees.filter((emp) => emp.managerId === managerId);
+  return employees.filter((emp) => emp.manager_id === managerId);
 }
 
 /**
@@ -177,7 +180,7 @@ export function buildOrgTreeFromEmployee(
  */
 export function getEmployeesWithReports(employees: Employee[]): Employee[] {
   const managerIds = new Set(
-    employees.filter((e) => e.managerId).map((e) => e.managerId)
+    employees.filter((e) => e.manager_id).map((e) => e.manager_id)
   );
-  return employees.filter((e) => managerIds.has(e.id) || !e.managerId);
+  return employees.filter((e) => managerIds.has(e.id) || !e.manager_id);
 }
