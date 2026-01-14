@@ -120,3 +120,34 @@ export function createPerfMarker(label: string): { end: () => number } {
     }
   };
 }
+
+/**
+ * Measure API call with response metadata
+ * 
+ * @example
+ * const start = performance.now();
+ * const response = await fetch(url);
+ * measureApiCall('fetchUsers', response, start);
+ */
+export function measureApiCall(label: string, response: Response, startTime: number): void {
+  if (!isPerfDebugEnabled()) return;
+  
+  const duration = performance.now() - startTime;
+  const size = response.headers.get('content-length');
+  const sizeStr = size ? `${(+size / 1024).toFixed(1)}KB` : 'unknown size';
+  console.log(`🌐 [API] ${label}: ${duration.toFixed(0)}ms, ${sizeStr}`);
+}
+
+/**
+ * Utility to get optimized avatar URL with Supabase image transformations
+ * 
+ * @example
+ * const optimizedUrl = getOptimizedAvatarUrl(avatarUrl, 80);
+ */
+export function getOptimizedAvatarUrl(url: string | null | undefined, size: number = 80): string | undefined {
+  if (!url) return undefined;
+  if (!url.includes('supabase')) return url;
+  
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}width=${size}&height=${size}&quality=80`;
+}
