@@ -35,16 +35,18 @@ export function useRequestAmendment() {
 
   return useMutation({
     mutationFn: async (input: CreateAmendmentInput) => {
+      const insertData = {
+        trip_id: input.trip_id,
+        change_type: input.change_type,
+        proposed_values: input.proposed_values,
+        original_values: input.original_values,
+        reason: input.reason,
+        status: 'pending',
+      };
+
       const { data, error } = await supabase
         .from('business_trip_amendments')
-        .insert({
-          trip_id: input.trip_id,
-          change_type: input.change_type,
-          proposed_values: input.proposed_values,
-          original_values: input.original_values,
-          reason: input.reason,
-          status: 'pending',
-        })
+        .insert(insertData)
         .select()
         .single();
 
