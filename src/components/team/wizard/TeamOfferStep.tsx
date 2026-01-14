@@ -303,7 +303,7 @@ export function TeamOfferStep({
         net_salary: totalNetPay,
         join_date: roleData.startDate?.toISOString(),
       },
-306:       position: position ? { title: position.title, job_description: (position as any)?.job_description } : undefined,
+position: position ? { title: position.title, job_description: (position as any)?.job_description } : undefined,
       department: department ? { name: department.name } : undefined,
       workLocation: workLocation ? { 
         name: workLocation.name, 

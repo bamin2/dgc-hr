@@ -18,8 +18,8 @@ interface ResetPasswordDialogProps {
   onOpenChange: (open: boolean) => void;
   employee: {
     id: string;
-    firstName: string;
-    lastName: string;
+    first_name: string;
+    last_name: string;
     email: string;
   };
   onSuccess?: () => void;
