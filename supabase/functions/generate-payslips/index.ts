@@ -54,20 +54,45 @@ async function processDocxTemplate(
 ): Promise<Uint8Array> {
   const zip = new PizZip(templateBuffer);
   
-  const doc = new Docxtemplater(zip, {
-    delimiters: { start: '<<', end: '>>' },
-    paragraphLoop: true,
-    linebreaks: true,
-  });
-  
-  doc.render(tagData);
-  
-  const output = doc.getZip().generate({
-    type: "uint8array",
-    mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  });
-  
-  return output;
+  try {
+    const doc = new Docxtemplater(zip, {
+      // Use {{ }} delimiters to avoid conflicts with XML < > characters
+      delimiters: { start: '{{', end: '}}' },
+      paragraphLoop: true,
+      linebreaks: true,
+    });
+    
+    doc.render(tagData);
+    
+    const output = doc.getZip().generate({
+      type: "uint8array",
+      mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    });
+    
+    return output;
+  } catch (error: any) {
+    // Provide detailed error messages for template issues
+    if (error.properties && error.properties.errors) {
+      const errorDetails = error.properties.errors.map((e: any) => ({
+        message: e.message,
+        id: e.properties?.id,
+        context: e.properties?.context,
+        offset: e.properties?.offset,
+        file: e.properties?.file,
+        explanation: e.properties?.explanation,
+      }));
+      console.error(JSON.stringify({ error: errorDetails }, null, 2));
+      
+      const firstError = errorDetails[0];
+      throw new Error(
+        `Template error: ${firstError.message}. ` +
+        `${firstError.explanation || ''} ` +
+        `(file: ${firstError.file || 'unknown'}, offset: ${firstError.offset || 'unknown'}). ` +
+        `Make sure placeholders use {{ }} delimiters (e.g., {{NET_PAY}}).`
+      );
+    }
+    throw error;
+  }
 }
 
 // Convert DOCX to PDF using CloudConvert API
