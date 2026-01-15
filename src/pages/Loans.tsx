@@ -54,12 +54,23 @@ export default function Loans() {
 
   const { formatCurrency } = useCompanySettings();
 
-  // Calculate metrics
+  // Calculate metrics - include both active and approved loans
   const activeLoans = allLoans.filter(l => l.status === "active");
-  const totalOutstanding = activeLoans.reduce(
+  const approvedLoans = allLoans.filter(l => l.status === "approved");
+
+  // Active loans: sum of unpaid installments
+  const activeOutstanding = activeLoans.reduce(
     (sum, l) => sum + calculateOutstandingBalance(l.loan_installments || []),
     0
   );
+
+  // Approved loans (pending disbursement): full principal amount
+  const approvedOutstanding = approvedLoans.reduce(
+    (sum, l) => sum + l.principal_amount,
+    0
+  );
+
+  const totalOutstanding = activeOutstanding + approvedOutstanding;
   const pendingCount = pendingLoans.length;
 
   return (
