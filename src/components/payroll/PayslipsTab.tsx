@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { usePayslipDocuments, downloadPayslipPDF } from "@/hooks/usePayslipDocuments";
 import { useActivePayslipTemplates } from "@/hooks/usePayslipTemplates";
+import { useIssuePayslips } from "@/hooks/usePayrollRunsV2";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -57,6 +58,7 @@ export function PayslipsTab({ payrollRunId, payrollRun, employees }: PayslipsTab
   const queryClient = useQueryClient();
   const { data: payslipDocuments = [], isLoading: loadingDocuments } = usePayslipDocuments(payrollRunId);
   const { data: templates = [] } = useActivePayslipTemplates();
+  const issuePayslips = useIssuePayslips();
   const [generating, setGenerating] = useState(false);
   const [downloadingAll, setDownloadingAll] = useState(false);
 
@@ -92,6 +94,12 @@ export function PayslipsTab({ payrollRunId, payrollRun, employees }: PayslipsTab
       
       const successCount = data.results?.filter((r: any) => r.success).length || 0;
       const failCount = data.results?.filter((r: any) => !r.success).length || 0;
+      
+      // If all payslips generated successfully, update status to payslips_issued
+      if (successCount > 0 && failCount === 0 && payrollRun.status === 'finalized') {
+        await issuePayslips.mutateAsync({ runId: payrollRunId, sendEmails: false });
+        await queryClient.invalidateQueries({ queryKey: ['payroll-runs'] });
+      }
       
       if (failCount > 0) {
         toast.warning(`Generated ${successCount} payslips, ${failCount} failed`);
