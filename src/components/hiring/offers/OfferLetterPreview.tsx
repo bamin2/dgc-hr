@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { FileText, Download, FileType, Send } from "lucide-react";
+import DOMPurify from "dompurify";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -245,7 +246,7 @@ export function OfferLetterPreview({ version, candidate }: OfferLetterPreviewPro
                   <ScrollArea className="h-[400px] w-full rounded-md border p-4 bg-white">
                     <div 
                       className="prose prose-sm max-w-none"
-                      dangerouslySetInnerHTML={{ __html: renderTemplate(selectedTemplate.body_template || "") }}
+                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(renderTemplate(selectedTemplate.body_template || "")) }}
                     />
                   </ScrollArea>
                 </div>
