@@ -84,12 +84,12 @@ export function CompanySettingsProvider({ children }: { children: ReactNode }) {
   // Memoize settings to prevent object recreation on every render
   const settings = useMemo(() => dbSettings || defaultSettings, [dbSettings]);
 
-  // Apply brand color when settings change
+  // Apply brand color only after DB settings are loaded to prevent flash
   React.useEffect(() => {
-    if (settings.branding.primaryColor) {
+    if (!isLoading && settings.branding.primaryColor) {
       applyBrandColor(settings.branding.primaryColor);
     }
-  }, [settings.branding.primaryColor]);
+  }, [settings.branding.primaryColor, isLoading]);
 
   const updateSettings = useCallback(async (newSettings: Partial<CompanySettings>) => {
     await updateDbSettings(newSettings);

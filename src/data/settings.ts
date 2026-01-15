@@ -175,7 +175,7 @@ export const companySettings: CompanySettings = {
     documentLogoUrl: '',
     dashboardDisplayType: 'logo',
     dashboardIconName: 'Building2',
-    primaryColor: '#804EEC',
+    primaryColor: '#C6A45E',
     timezone: 'America/Los_Angeles',
     dateFormat: 'MM/DD/YYYY',
     currency: 'USD',
