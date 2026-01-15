@@ -159,7 +159,7 @@ export function usePayrollRunEmployees(runId: string | null) {
       const workLocation = emp.work_location as { 
         id: string; 
         gosi_enabled: boolean | null; 
-        gosi_nationality_rates: Array<{nationality: string; percentage: number}> | null;
+        gosi_nationality_rates: Array<{nationality: string; employeeRate: number; employerRate: number}> | null;
         gosi_base_calculation: string | null;
       } | null;
       
@@ -178,7 +178,7 @@ export function usePayrollRunEmployees(runId: string | null) {
         );
         
         if (matchingRate) {
-          gosiDeduction = (gosiBase * matchingRate.percentage) / 100;
+          gosiDeduction = (gosiBase * (matchingRate.employeeRate ?? 0)) / 100;
         } else if (rates.length > 0) {
           console.warn(`GOSI: No matching rate for nationality "${emp.nationality}" (code: ${nationalityCode}) in location ${workLocation.id}`);
         }

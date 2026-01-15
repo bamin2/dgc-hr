@@ -90,12 +90,12 @@ export function useEmployeesWithCompensation(locationId?: string) {
           const workLocation = emp.work_location as any;
           if (emp.is_subject_to_gosi && workLocation?.gosi_enabled) {
             const gosiBase = emp.gosi_registered_salary || baseSalary;
-            const rates = (workLocation.gosi_nationality_rates || []) as Array<{nationality: string; percentage: number}>;
+            const rates = (workLocation.gosi_nationality_rates || []) as Array<{nationality: string; employeeRate: number; employerRate: number}>;
             const nationalityCode = getCountryCodeByName(emp.nationality || '');
             const matchingRate = rates.find(r => r.nationality === nationalityCode);
             
             if (matchingRate) {
-              gosiDeduction = (gosiBase * matchingRate.percentage) / 100;
+              gosiDeduction = (gosiBase * (matchingRate.employeeRate ?? 0)) / 100;
             }
           }
 
