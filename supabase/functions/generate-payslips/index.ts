@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import PizZip from "npm:pizzip@3.2.0";
+import Docxtemplater from "npm:docxtemplater@3.67.6";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -9,8 +11,8 @@ const corsHeaders = {
 
 interface GeneratePayslipsRequest {
   payroll_run_id: string;
-  employee_ids?: string[]; // Optional: specific employees, if not provided generate for all
-  template_id?: string; // Optional: specific template, if not provided use default
+  employee_ids?: string[];
+  template_id?: string;
 }
 
 interface PayslipGenerationResult {
@@ -22,8 +24,176 @@ interface PayslipGenerationResult {
   error?: string;
 }
 
+// Format currency with proper decimal places
+function formatCurrency(amount: number | null | undefined, currency: string): string {
+  const value = amount || 0;
+  return `${currency} ${value.toFixed(2)}`;
+}
+
+// Format date as readable string
+function formatDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function formatMonthYear(dateStr: string): string {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+}
+
+// Process DOCX template with smart tags
+async function processDocxTemplate(
+  templateBuffer: ArrayBuffer,
+  tagData: Record<string, string>
+): Promise<Uint8Array> {
+  const zip = new PizZip(templateBuffer);
+  
+  const doc = new Docxtemplater(zip, {
+    delimiters: { start: '<<', end: '>>' },
+    paragraphLoop: true,
+    linebreaks: true,
+  });
+  
+  doc.render(tagData);
+  
+  const output = doc.getZip().generate({
+    type: "uint8array",
+    mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  });
+  
+  return output;
+}
+
+// Convert DOCX to PDF using CloudConvert API
+async function convertDocxToPdf(docxContent: Uint8Array, filename: string): Promise<Uint8Array> {
+  const cloudConvertApiKey = Deno.env.get("CLOUDCONVERT_API_KEY");
+  
+  if (!cloudConvertApiKey) {
+    throw new Error("CLOUDCONVERT_API_KEY is not configured");
+  }
+
+  console.log("Creating CloudConvert job...");
+  
+  // Step 1: Create a job with import/upload, convert, and export tasks
+  const jobResponse = await fetch("https://api.cloudconvert.com/v2/jobs", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${cloudConvertApiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      tasks: {
+        "import-docx": {
+          operation: "import/upload",
+        },
+        "convert-to-pdf": {
+          operation: "convert",
+          input: "import-docx",
+          input_format: "docx",
+          output_format: "pdf",
+        },
+        "export-pdf": {
+          operation: "export/url",
+          input: "convert-to-pdf",
+        },
+      },
+    }),
+  });
+
+  if (!jobResponse.ok) {
+    const errorText = await jobResponse.text();
+    console.error("CloudConvert job creation failed:", errorText);
+    throw new Error(`CloudConvert job creation failed: ${jobResponse.status}`);
+  }
+
+  const jobData = await jobResponse.json();
+  const jobId = jobData.data.id;
+  const uploadTask = jobData.data.tasks.find((t: any) => t.name === "import-docx");
+  
+  if (!uploadTask?.result?.form) {
+    console.error("No upload form in response:", JSON.stringify(jobData));
+    throw new Error("CloudConvert did not provide upload form");
+  }
+
+  console.log("Uploading DOCX to CloudConvert...");
+  
+  // Step 2: Upload the DOCX file
+  const formData = new FormData();
+  for (const [key, value] of Object.entries(uploadTask.result.form.parameters)) {
+    formData.append(key, value as string);
+  }
+  // Create a proper ArrayBuffer from Uint8Array for Blob compatibility
+  const docxArrayBuffer = new ArrayBuffer(docxContent.byteLength);
+  new Uint8Array(docxArrayBuffer).set(docxContent);
+  formData.append("file", new Blob([docxArrayBuffer], { 
+    type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" 
+  }), filename);
+  const uploadResponse = await fetch(uploadTask.result.form.url, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!uploadResponse.ok) {
+    const errorText = await uploadResponse.text();
+    console.error("CloudConvert upload failed:", errorText);
+    throw new Error(`CloudConvert upload failed: ${uploadResponse.status}`);
+  }
+
+  console.log("Waiting for CloudConvert conversion...");
+  
+  // Step 3: Poll for job completion
+  let attempts = 0;
+  const maxAttempts = 60; // 60 seconds timeout
+  let exportUrl: string | null = null;
+
+  while (attempts < maxAttempts) {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    
+    const statusResponse = await fetch(`https://api.cloudconvert.com/v2/jobs/${jobId}`, {
+      headers: {
+        "Authorization": `Bearer ${cloudConvertApiKey}`,
+      },
+    });
+
+    if (!statusResponse.ok) {
+      throw new Error(`Failed to check job status: ${statusResponse.status}`);
+    }
+
+    const statusData = await statusResponse.json();
+    const job = statusData.data;
+
+    if (job.status === "finished") {
+      const exportTask = job.tasks.find((t: any) => t.name === "export-pdf");
+      if (exportTask?.result?.files?.[0]?.url) {
+        exportUrl = exportTask.result.files[0].url;
+        break;
+      }
+    } else if (job.status === "error") {
+      const errorTask = job.tasks.find((t: any) => t.status === "error");
+      console.error("CloudConvert job failed:", JSON.stringify(errorTask));
+      throw new Error(`CloudConvert conversion failed: ${errorTask?.message || "Unknown error"}`);
+    }
+
+    attempts++;
+  }
+
+  if (!exportUrl) {
+    throw new Error("CloudConvert conversion timed out");
+  }
+
+  console.log("Downloading converted PDF...");
+  
+  // Step 4: Download the converted PDF
+  const pdfResponse = await fetch(exportUrl);
+  if (!pdfResponse.ok) {
+    throw new Error(`Failed to download PDF: ${pdfResponse.status}`);
+  }
+
+  const pdfBuffer = await pdfResponse.arrayBuffer();
+  return new Uint8Array(pdfBuffer);
+}
+
 const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -128,6 +298,32 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    // Check if template has a DOCX file
+    if (!selectedTemplate.docx_storage_path) {
+      return new Response(
+        JSON.stringify({ error: "Template does not have a DOCX file uploaded" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    console.log(`Using template: ${selectedTemplate.name}, DOCX path: ${selectedTemplate.docx_storage_path}`);
+
+    // Download the DOCX template from storage
+    const { data: templateFile, error: downloadError } = await supabaseClient.storage
+      .from("payslip-templates")
+      .download(selectedTemplate.docx_storage_path);
+
+    if (downloadError || !templateFile) {
+      console.error("Error downloading template:", downloadError);
+      return new Response(
+        JSON.stringify({ error: `Failed to download template: ${downloadError?.message}` }),
+        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    const templateBuffer = await templateFile.arrayBuffer();
+    console.log(`Template downloaded, size: ${templateBuffer.byteLength} bytes`);
+
     // Get company settings
     const { data: companySettings } = await supabaseClient
       .from("company_settings")
@@ -145,24 +341,70 @@ const handler = async (req: Request): Promise<Response> => {
       const employeeName = `${emp.first_name} ${emp.last_name}`;
       
       try {
-        // Generate simple PDF placeholder
-        // In production, this would use DOCX template processing
-        const pdfContent = generateSimplePDF({
-          employee: emp,
-          payrollData: {
-            base_salary: payrollEmployee.base_salary,
-            housing_allowance: payrollEmployee.housing_allowance || 0,
-            transportation_allowance: payrollEmployee.transportation_allowance || 0,
-            gross_pay: payrollEmployee.gross_pay,
-            gosi_deduction: payrollEmployee.gosi_deduction || 0,
-            total_deductions: payrollEmployee.total_deductions,
-            net_pay: payrollEmployee.net_pay,
-          },
-          periodStart,
-          periodEnd,
-          company: companySettings,
-          currency: currencyCode,
-        });
+        console.log(`Processing payslip for ${employeeName}...`);
+
+        // Build tag data for template replacement
+        const tagData: Record<string, string> = {
+          // Employee info
+          EMPLOYEE_FULL_NAME: employeeName,
+          EMPLOYEE_FIRST_NAME: emp.first_name || '',
+          EMPLOYEE_LAST_NAME: emp.last_name || '',
+          EMPLOYEE_CODE: emp.employee_code || '',
+          EMPLOYEE_EMAIL: emp.email || '',
+          DEPARTMENT: emp.department?.name || '',
+          POSITION: emp.position?.title || '',
+          
+          // Company info
+          COMPANY_NAME: companySettings?.name || '',
+          COMPANY_LEGAL_NAME: companySettings?.legal_name || companySettings?.name || '',
+          COMPANY_ADDRESS: [
+            companySettings?.address_street,
+            companySettings?.address_city,
+            companySettings?.address_state,
+            companySettings?.address_country
+          ].filter(Boolean).join(', ') || '',
+          
+          // Pay period
+          PAY_PERIOD_START: formatDate(periodStart),
+          PAY_PERIOD_END: formatDate(periodEnd),
+          PAY_PERIOD: `${formatDate(periodStart)} - ${formatDate(periodEnd)}`,
+          PAY_MONTH_YEAR: formatMonthYear(periodStart),
+          
+          // Earnings - raw amounts
+          BASE_SALARY: formatCurrency(payrollEmployee.base_salary, currencyCode),
+          HOUSING_ALLOWANCE: formatCurrency(payrollEmployee.housing_allowance, currencyCode),
+          TRANSPORTATION_ALLOWANCE: formatCurrency(payrollEmployee.transportation_allowance, currencyCode),
+          OTHER_ALLOWANCES: formatCurrency(payrollEmployee.other_allowances, currencyCode),
+          GROSS_PAY: formatCurrency(payrollEmployee.gross_pay, currencyCode),
+          TOTAL_EARNINGS: formatCurrency(payrollEmployee.gross_pay, currencyCode),
+          
+          // Deductions
+          GOSI_DEDUCTION: formatCurrency(payrollEmployee.gosi_deduction, currencyCode),
+          OTHER_DEDUCTIONS: formatCurrency(payrollEmployee.other_deductions, currencyCode),
+          LOAN_DEDUCTION: formatCurrency(payrollEmployee.loan_deduction, currencyCode),
+          TOTAL_DEDUCTIONS: formatCurrency(payrollEmployee.total_deductions, currencyCode),
+          
+          // Net pay
+          NET_PAY: formatCurrency(payrollEmployee.net_pay, currencyCode),
+          
+          // Currency
+          CURRENCY: currencyCode,
+          
+          // Metadata
+          GENERATED_DATE: formatDate(new Date().toISOString()),
+          PAYSLIP_ID: payrollEmployee.id || '',
+        };
+
+        // Process DOCX template with tag data
+        const filledDocx = await processDocxTemplate(templateBuffer, tagData);
+        console.log(`Template filled, size: ${filledDocx.byteLength} bytes`);
+
+        // Convert DOCX to PDF using CloudConvert
+        const pdfContent = await convertDocxToPdf(
+          filledDocx, 
+          `payslip_${emp.employee_code || emp.id}_${periodStart}.docx`
+        );
+        console.log(`PDF generated, size: ${pdfContent.byteLength} bytes`);
 
         // Generate storage path
         const year = new Date(periodStart).getFullYear();
@@ -194,7 +436,6 @@ const handler = async (req: Request): Promise<Response> => {
         let payslipDocId: string;
 
         if (existingDoc) {
-          // Update existing
           const { data: updated, error: updateError } = await supabaseClient
             .from("payslip_documents")
             .update({
@@ -210,7 +451,6 @@ const handler = async (req: Request): Promise<Response> => {
           if (updateError) throw updateError;
           payslipDocId = updated.id;
         } else {
-          // Create new
           const { data: created, error: createError } = await supabaseClient
             .from("payslip_documents")
             .insert({
@@ -253,6 +493,8 @@ const handler = async (req: Request): Promise<Response> => {
           pdf_storage_path: storagePath,
           payslip_document_id: payslipDocId,
         });
+
+        console.log(`Successfully generated payslip for ${employeeName}`);
       } catch (error) {
         console.error(`Error generating payslip for ${employeeName}:`, error);
         results.push({
@@ -293,123 +535,5 @@ const handler = async (req: Request): Promise<Response> => {
     );
   }
 };
-
-// Simple PDF generation (placeholder - in production use proper PDF library)
-function generateSimplePDF(data: {
-  employee: any;
-  payrollData: any;
-  periodStart: string;
-  periodEnd: string;
-  company: any;
-  currency: string;
-}): Uint8Array {
-  // This is a minimal PDF structure
-  // In production, you would use a proper PDF library or DOCX-to-PDF conversion
-  const employeeName = `${data.employee.first_name} ${data.employee.last_name}`;
-  const content = `
-PAYSLIP
-${data.company?.name || 'Company Name'}
-
-Employee: ${employeeName}
-Employee ID: ${data.employee.employee_code || 'N/A'}
-Department: ${data.employee.department?.name || 'N/A'}
-Position: ${data.employee.position?.title || 'N/A'}
-
-Pay Period: ${data.periodStart} to ${data.periodEnd}
-
-EARNINGS
-Base Salary: ${data.currency} ${data.payrollData.base_salary?.toFixed(2) || '0.00'}
-Housing Allowance: ${data.currency} ${data.payrollData.housing_allowance?.toFixed(2) || '0.00'}
-Transport Allowance: ${data.currency} ${data.payrollData.transportation_allowance?.toFixed(2) || '0.00'}
-Gross Pay: ${data.currency} ${data.payrollData.gross_pay?.toFixed(2) || '0.00'}
-
-DEDUCTIONS
-GOSI: ${data.currency} ${data.payrollData.gosi_deduction?.toFixed(2) || '0.00'}
-Total Deductions: ${data.currency} ${data.payrollData.total_deductions?.toFixed(2) || '0.00'}
-
-NET PAY: ${data.currency} ${data.payrollData.net_pay?.toFixed(2) || '0.00'}
-
-Generated: ${new Date().toISOString()}
-This is a computer-generated document.
-  `.trim();
-
-  // Create a simple PDF
-  const pdf = `%PDF-1.4
-1 0 obj
-<<
-/Type /Catalog
-/Pages 2 0 R
->>
-endobj
-
-2 0 obj
-<<
-/Type /Pages
-/Kids [3 0 R]
-/Count 1
->>
-endobj
-
-3 0 obj
-<<
-/Type /Page
-/Parent 2 0 R
-/MediaBox [0 0 595 842]
-/Contents 4 0 R
-/Resources <<
-/Font <<
-/F1 5 0 R
->>
->>
->>
-endobj
-
-4 0 obj
-<<
-/Length ${content.length + 100}
->>
-stream
-BT
-/F1 10 Tf
-50 780 Td
-12 TL
-${content.split('\n').map(line => `(${line.replace(/[()\\]/g, '\\$&')}) '`).join('\n')}
-ET
-endstream
-endobj
-
-5 0 obj
-<<
-/Type /Font
-/Subtype /Type1
-/BaseFont /Helvetica
->>
-endobj
-
-xref
-0 6
-0000000000 65535 f 
-0000000009 00000 n 
-0000000058 00000 n 
-0000000115 00000 n 
-0000000266 00000 n 
-0000000${(366 + content.length).toString().padStart(3, '0')} 00000 n 
-
-trailer
-<<
-/Size 6
-/Root 1 0 R
->>
-startxref
-${416 + content.length}
-%%EOF`;
-
-  return new TextEncoder().encode(pdf);
-}
-
-function formatMonthYear(dateStr: string): string {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-}
 
 serve(handler);
