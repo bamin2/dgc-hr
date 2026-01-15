@@ -4,11 +4,8 @@ import { LocationSelector } from "./LocationSelector";
 import { PayrollRunsList } from "./PayrollRunsList";
 import { PayrollRunWizard } from "./PayrollRunWizard";
 import { PayrollRegister } from "./PayrollRegister";
-import { IssuePayslipsDialog } from "./IssuePayslipsDialog";
 import { DeletePayrollRunDialog } from "./DeletePayrollRunDialog";
 import { usePayrollRunsByLocation, useDraftCountsByLocation } from "@/hooks/usePayrollRunsV2";
-import { usePayrollRunEmployees } from "@/hooks/usePayrollRunEmployees";
-import { usePayrollRunAdjustments } from "@/hooks/usePayrollRunAdjustments";
 import { format } from "date-fns";
 
 type View = 'locations' | 'runs' | 'wizard' | 'register';
@@ -23,7 +20,7 @@ export function PayrollRunsTab({ autoStartWizard, onWizardStarted }: PayrollRuns
   const [selectedLocation, setSelectedLocation] = useState<WorkLocation | null>(null);
   const [editingRunId, setEditingRunId] = useState<string | null>(null);
   const [viewingRunId, setViewingRunId] = useState<string | null>(null);
-  const [issuingPayslipsRunId, setIssuingPayslipsRunId] = useState<string | null>(null);
+  const [initialTab, setInitialTab] = useState<string>("register");
   const [deletingRunId, setDeletingRunId] = useState<string | null>(null);
 
   const { data: draftCounts = {} } = useDraftCountsByLocation();
@@ -31,15 +28,7 @@ export function PayrollRunsTab({ autoStartWizard, onWizardStarted }: PayrollRuns
     selectedLocation?.id || null
   );
 
-  // Data for issue payslips dialog
-  const { data: payslipEmployees = [] } = usePayrollRunEmployees(issuingPayslipsRunId);
-  const { data: payslipAdjustments = [] } = usePayrollRunAdjustments(issuingPayslipsRunId);
-
   // Find the run data for dialogs
-  const issuingRun = useMemo(() => 
-    runs.find(r => r.id === issuingPayslipsRunId), 
-    [runs, issuingPayslipsRunId]
-  );
   const deletingRun = useMemo(() => 
     runs.find(r => r.id === deletingRunId), 
     [runs, deletingRunId]
@@ -76,11 +65,14 @@ export function PayrollRunsTab({ autoStartWizard, onWizardStarted }: PayrollRuns
 
   const handleViewRun = (runId: string) => {
     setViewingRunId(runId);
+    setInitialTab("register");
     setView('register');
   };
 
   const handleIssuePayslips = (runId: string) => {
-    setIssuingPayslipsRunId(runId);
+    setViewingRunId(runId);
+    setInitialTab("payslips");
+    setView('register');
   };
 
   const handleDeleteRun = (runId: string) => {
@@ -99,6 +91,7 @@ export function PayrollRunsTab({ autoStartWizard, onWizardStarted }: PayrollRuns
 
   const handleBackToRuns = () => {
     setViewingRunId(null);
+    setInitialTab("register");
     setView('runs');
   };
 
@@ -108,7 +101,7 @@ export function PayrollRunsTab({ autoStartWizard, onWizardStarted }: PayrollRuns
         run={viewingRun}
         location={selectedLocation}
         onBack={handleBackToRuns}
-        onIssuePayslips={() => setIssuingPayslipsRunId(viewingRun.id)}
+        initialTab={initialTab}
       />
     );
   }
@@ -138,18 +131,6 @@ export function PayrollRunsTab({ autoStartWizard, onWizardStarted }: PayrollRuns
           onIssuePayslips={handleIssuePayslips}
           onDeleteRun={handleDeleteRun}
         />
-        {issuingRun && (
-          <IssuePayslipsDialog
-            open={!!issuingPayslipsRunId}
-            onOpenChange={(open) => !open && setIssuingPayslipsRunId(null)}
-            runId={issuingRun.id}
-            employees={payslipEmployees}
-            adjustments={payslipAdjustments}
-            location={{ name: selectedLocation.name, currency: selectedLocation.currency }}
-            payPeriod={{ start: issuingRun.payPeriodStart, end: issuingRun.payPeriodEnd }}
-            onComplete={() => setIssuingPayslipsRunId(null)}
-          />
-        )}
         {deletingRun && (
           <DeletePayrollRunDialog
             open={!!deletingRunId}

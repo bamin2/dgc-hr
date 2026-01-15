@@ -12,5 +12,5 @@ export { LocationSelector } from './LocationSelector';
 export { PayrollRunCard } from './PayrollRunCard';
 export { PayrollRunsList } from './PayrollRunsList';
 export { PayrollRegister } from './PayrollRegister';
-export { IssuePayslipsDialog } from './IssuePayslipsDialog';
+
 export { DeletePayrollRunDialog } from './DeletePayrollRunDialog';
