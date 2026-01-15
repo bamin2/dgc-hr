@@ -5,10 +5,19 @@ import { DashboardLayout } from "@/components/dashboard";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PayslipCard } from "@/components/payroll";
+import { PayslipPdfViewer } from "@/components/payroll/PayslipPdfViewer";
 import { PayslipData } from "@/types/payslip";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyEmployee } from "@/hooks/useMyEmployee";
+
+interface PayslipDocument {
+  id: string;
+  pdf_storage_path: string;
+  period_start: string;
+  period_end: string;
+  status: string;
+}
 
 export default function MyPayslip() {
   const { id } = useParams();
@@ -16,7 +25,42 @@ export default function MyPayslip() {
   const { user } = useAuth();
   const { data: myEmployee } = useMyEmployee();
 
-  const { data: payslip, isLoading } = useQuery({
+  // First, check if there's a generated PDF for this payroll run employee
+  const { data: payslipDocument, isLoading: isLoadingDocument } = useQuery({
+    queryKey: ["payslip-document", id, myEmployee?.id],
+    queryFn: async (): Promise<PayslipDocument | null> => {
+      if (!id || !myEmployee?.id) return null;
+
+      // Get the payroll_run_id from payroll_run_employees first
+      const { data: payrollRunEmployee, error: preError } = await supabase
+        .from("payroll_run_employees")
+        .select("payroll_run_id, employee_id")
+        .eq("id", id)
+        .eq("employee_id", myEmployee.id)
+        .maybeSingle();
+
+      if (preError || !payrollRunEmployee) return null;
+
+      // Now check for a generated payslip document
+      const { data, error } = await supabase
+        .from("payslip_documents")
+        .select("id, pdf_storage_path, period_start, period_end, status")
+        .eq("payroll_run_id", payrollRunEmployee.payroll_run_id)
+        .eq("employee_id", myEmployee.id)
+        .eq("status", "generated")
+        .maybeSingle();
+
+      if (error) {
+        console.error("Error fetching payslip document:", error);
+        return null;
+      }
+
+      return data;
+    },
+    enabled: !!id && !!myEmployee?.id,
+  });
+
+  const { data: payslip, isLoading: isLoadingPayslip } = useQuery({
     queryKey: ["my-payslip", id, myEmployee?.id],
     queryFn: async (): Promise<PayslipData | null> => {
       if (!id || !myEmployee?.id) return null;
@@ -32,13 +76,12 @@ export default function MyPayslip() {
           )
         `)
         .eq("id", id)
-        .eq("employee_id", myEmployee.id) // Ensure employee can only view their own payslips
+        .eq("employee_id", myEmployee.id)
         .maybeSingle();
 
       if (error) throw error;
       if (!record) return null;
 
-      // Only show payslips that have been issued
       const payrollRun = record.payroll_run as { 
         pay_period_start: string; 
         pay_period_end: string; 
@@ -113,6 +156,8 @@ export default function MyPayslip() {
     enabled: !!id && !!myEmployee?.id,
   });
 
+  const isLoading = isLoadingDocument || isLoadingPayslip;
+
   if (isLoading) {
     return (
       <DashboardLayout>
@@ -130,7 +175,7 @@ export default function MyPayslip() {
     );
   }
 
-  if (!payslip) {
+  if (!payslip && !payslipDocument) {
     return (
       <DashboardLayout>
         <div className="flex-1 flex items-center justify-center">
@@ -144,6 +189,9 @@ export default function MyPayslip() {
     );
   }
 
+  const periodStart = payslipDocument?.period_start || payslip?.payPeriod.startDate || "";
+  const periodEnd = payslipDocument?.period_end || payslip?.payPeriod.endDate || "";
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -153,13 +201,24 @@ export default function MyPayslip() {
           </Button>
           <div>
             <h1 className="text-2xl font-bold text-foreground">My Payslip</h1>
-            <p className="text-muted-foreground">{payslip.payPeriod.startDate && payslip.payPeriod.endDate ? 
-              `${new Date(payslip.payPeriod.startDate).toLocaleDateString()} - ${new Date(payslip.payPeriod.endDate).toLocaleDateString()}` : 
-              payslip.id.slice(0, 8)
-            }</p>
+            <p className="text-muted-foreground">
+              {periodStart && periodEnd
+                ? `${new Date(periodStart).toLocaleDateString()} - ${new Date(periodEnd).toLocaleDateString()}`
+                : payslip?.id.slice(0, 8)}
+            </p>
           </div>
         </div>
-        <PayslipCard payslip={payslip} />
+
+        {/* If there's a generated PDF, show the PDF viewer; otherwise show PayslipCard */}
+        {payslipDocument?.pdf_storage_path ? (
+          <PayslipPdfViewer
+            pdfStoragePath={payslipDocument.pdf_storage_path}
+            periodStart={periodStart}
+            periodEnd={periodEnd}
+          />
+        ) : payslip ? (
+          <PayslipCard payslip={payslip} />
+        ) : null}
       </div>
     </DashboardLayout>
   );
