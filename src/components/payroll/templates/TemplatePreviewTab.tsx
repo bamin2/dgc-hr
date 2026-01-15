@@ -103,23 +103,31 @@ export function TemplatePreviewTab({ settings, docxStoragePath, templateId }: Te
 
     setIsDownloading(true);
     try {
-      const response = await supabase.functions.invoke('preview-payslip-template', {
-        body: {
-          template_id: templateId,
-          payroll_run_id: selectedPayrollRun,
-          employee_id: selectedEmployee,
-        },
-      });
+      // Use fetch directly for binary response handling (supabase.functions.invoke doesn't handle binary properly)
+      const response = await fetch(
+        `https://dzohlljggpxmitgwzcwc.supabase.co/functions/v1/preview-payslip-template`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR6b2hsbGpnZ3B4bWl0Z3d6Y3djIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc2MDQ4NzAsImV4cCI6MjA4MzE4MDg3MH0.kO9i2keYmojqpwscbAmAGtRp5LELQE3XlWlmsWWH3Fo`,
+            'apikey': `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR6b2hsbGpnZ3B4bWl0Z3d6Y3djIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc2MDQ4NzAsImV4cCI6MjA4MzE4MDg3MH0.kO9i2keYmojqpwscbAmAGtRp5LELQE3XlWlmsWWH3Fo`,
+          },
+          body: JSON.stringify({
+            template_id: templateId,
+            payroll_run_id: selectedPayrollRun,
+            employee_id: selectedEmployee,
+          }),
+        }
+      );
 
-      if (response.error) {
-        throw new Error(response.error.message || 'Failed to generate preview');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to generate preview');
       }
 
-      // The response.data should be a Blob
-      const blob = response.data;
-      if (!(blob instanceof Blob)) {
-        throw new Error('Invalid response format');
-      }
+      // Get the binary response as a Blob
+      const blob = await response.blob();
 
       // Create download link
       const url = URL.createObjectURL(blob);
