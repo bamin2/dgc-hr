@@ -65,7 +65,7 @@ const handler = async (req: Request): Promise<Response> => {
         *,
         employee:employees(
           id, first_name, last_name, employee_code, email,
-          department:departments(name),
+          department:departments!employees_department_id_fkey(name),
           position:positions(title),
           work_location_id
         )
