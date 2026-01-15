@@ -29,6 +29,11 @@ export interface Loan {
     avatar_url: string | null;
     department_id: string | null;
   };
+  loan_installments?: Array<{
+    id: string;
+    amount: number;
+    status: string;
+  }>;
 }
 
 export interface LoanInstallment {
@@ -56,7 +61,8 @@ export function useLoans(filters?: { status?: string; employeeId?: string }) {
         .from("loans")
         .select(`
           *,
-          employee:employees(id, first_name, last_name, full_name, avatar_url, department_id)
+          employee:employees(id, first_name, last_name, full_name, avatar_url, department_id),
+          loan_installments(id, amount, status)
         `)
         .order("created_at", { ascending: false });
 

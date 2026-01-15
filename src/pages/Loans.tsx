@@ -13,6 +13,7 @@ import {
 import { useLoans, Loan, useDisburseLoan } from "@/hooks/useLoans";
 import { toast } from "sonner";
 import { useCompanySettings } from "@/contexts/CompanySettingsContext";
+import { calculateOutstandingBalance } from "@/lib/dashboard/utils";
 
 export default function Loans() {
   const [activeTab, setActiveTab] = useState("all");
@@ -55,7 +56,10 @@ export default function Loans() {
 
   // Calculate metrics
   const activeLoans = allLoans.filter(l => l.status === "active");
-  const totalDisbursed = activeLoans.reduce((sum, l) => sum + l.principal_amount, 0);
+  const totalOutstanding = activeLoans.reduce(
+    (sum, l) => sum + calculateOutstandingBalance(l.loan_installments || []),
+    0
+  );
   const pendingCount = pendingLoans.length;
 
   return (
@@ -95,9 +99,9 @@ export default function Loans() {
               <CheckCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(totalDisbursed)}</div>
+              <div className="text-2xl font-bold">{formatCurrency(totalOutstanding)}</div>
               <p className="text-xs text-muted-foreground">
-                Principal amount disbursed
+                Remaining balance to be repaid
               </p>
             </CardContent>
           </Card>
