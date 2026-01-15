@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import { ArrowLeft, Save, Loader2, Check } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,12 +8,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { usePayslipTemplate, useCreatePayslipTemplate, useUpdatePayslipTemplate } from "@/hooks/usePayslipTemplates";
 import { TemplateFileTab } from "@/components/payroll/templates/TemplateFileTab";
 import { TemplateSettingsTab } from "@/components/payroll/templates/TemplateSettingsTab";
 import { SmartTagsTab } from "@/components/payroll/templates/SmartTagsTab";
 import { TemplatePreviewTab } from "@/components/payroll/templates/TemplatePreviewTab";
-import type { PayslipTemplateSettings, PayslipTemplateInsert, PayslipTemplateUpdate } from "@/types/payslip-template";
+import type { PayslipTemplateSettings, PayslipTemplateInsert, PayslipTemplateUpdate, PayslipTemplateStatus } from "@/types/payslip-template";
 import { DEFAULT_PAYSLIP_TEMPLATE_SETTINGS } from "@/types/payslip-template";
 
 export default function PayslipTemplateEditor() {
@@ -32,6 +35,8 @@ export default function PayslipTemplateEditor() {
   const [originalFilename, setOriginalFilename] = useState("");
   const [settings, setSettings] = useState<PayslipTemplateSettings>(DEFAULT_PAYSLIP_TEMPLATE_SETTINGS);
   const [workLocationId, setWorkLocationId] = useState<string | null>(null);
+  const [status, setStatus] = useState<PayslipTemplateStatus>("draft");
+  const [isDefault, setIsDefault] = useState(false);
 
   // Load template data when editing
   useEffect(() => {
@@ -42,6 +47,8 @@ export default function PayslipTemplateEditor() {
       setOriginalFilename(template.original_filename || "");
       setSettings(template.settings);
       setWorkLocationId(template.work_location_id);
+      setStatus(template.status);
+      setIsDefault(template.is_default);
     }
   }, [template]);
 
@@ -61,6 +68,8 @@ export default function PayslipTemplateEditor() {
         original_filename: originalFilename || null,
         settings,
         work_location_id: workLocationId,
+        status,
+        is_default: isDefault,
       };
       createMutation.mutate(data, {
         onSuccess: (result) => {
@@ -73,6 +82,8 @@ export default function PayslipTemplateEditor() {
         description: description.trim() || null,
         settings,
         work_location_id: workLocationId,
+        status,
+        is_default: isDefault,
       };
       if (docxStoragePath && docxStoragePath !== template?.docx_storage_path) {
         updates.docx_storage_path = docxStoragePath;
@@ -131,8 +142,8 @@ export default function PayslipTemplateEditor() {
           </Button>
         </div>
 
-        {/* Name & Description */}
-        <div className="grid gap-4 sm:grid-cols-2">
+        {/* Name, Description & Status */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-2">
             <Label htmlFor="name">Template Name *</Label>
             <Input
@@ -151,6 +162,56 @@ export default function PayslipTemplateEditor() {
               placeholder="Optional description..."
               rows={1}
             />
+          </div>
+          <div className="space-y-2">
+            <Label>Status</Label>
+            <Select value={status} onValueChange={(value: PayslipTemplateStatus) => setStatus(value)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="draft">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="text-xs">Draft</Badge>
+                  </div>
+                </SelectItem>
+                <SelectItem value="active">
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-green-500 text-xs">Active</Badge>
+                  </div>
+                </SelectItem>
+                <SelectItem value="archived">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="text-xs">Archived</Badge>
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Only active templates are used for payslip generation
+            </p>
+          </div>
+          <div className="space-y-2">
+            <Label>Default Template</Label>
+            <div className="flex items-center gap-3 pt-2">
+              <Switch
+                id="is-default"
+                checked={isDefault}
+                onCheckedChange={setIsDefault}
+              />
+              <Label htmlFor="is-default" className="text-sm font-normal cursor-pointer">
+                {isDefault ? (
+                  <span className="flex items-center gap-1 text-green-600">
+                    <Check className="h-4 w-4" /> Default
+                  </span>
+                ) : (
+                  "Set as default"
+                )}
+              </Label>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Default template is used when no location-specific template exists
+            </p>
           </div>
         </div>
 
