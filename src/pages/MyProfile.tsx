@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { DashboardLayout } from '@/components/dashboard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -26,9 +27,18 @@ const MyProfileSkeleton = () => (
 );
 
 const MyProfilePage = () => {
-  const [activeTab, setActiveTab] = useState('overview');
+  const [searchParams] = useSearchParams();
+  const tabFromUrl = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState(tabFromUrl || 'overview');
   const { data: employee, isLoading, error } = useMyEmployee();
   const { settings, isLoading: settingsLoading } = useCompanySettings();
+
+  // Update active tab when URL parameter changes
+  useEffect(() => {
+    if (tabFromUrl) {
+      setActiveTab(tabFromUrl);
+    }
+  }, [tabFromUrl]);
 
   // Get compensation visibility settings
   const canViewCompensation = settings?.employeeCanViewCompensation ?? true;

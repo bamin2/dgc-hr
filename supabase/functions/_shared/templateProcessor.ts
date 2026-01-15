@@ -76,6 +76,7 @@ export interface TemplateData {
   system?: {
     current_date?: string;
     current_year?: string;
+    portal_link?: string;
   };
 }
 
@@ -134,6 +135,7 @@ const TAG_MAPPINGS: Record<string, (data: TemplateData) => string | undefined> =
   // System fields
   "<<Current Date>>": (d) => d.system?.current_date || formatDate(new Date().toISOString()),
   "<<Current Year>>": (d) => d.system?.current_year || new Date().getFullYear().toString(),
+  "<<Portal Link>>": (d) => d.system?.portal_link,
 };
 
 // Legacy Handlebars-style tag mappings for backward compatibility with seeded templates
@@ -164,7 +166,7 @@ const LEGACY_TAG_MAPPINGS: Record<string, (data: TemplateData) => string | undef
   "{{companyEmail}}": (d) => d.company?.email,
   
   // System/misc
-  "{{portalLink}}": () => "#",
+  "{{portalLink}}": (d) => d.system?.portal_link || "#",
 };
 
 /**
