@@ -16,6 +16,9 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const BRAND_PRIMARY = "#C6A45E";
 const BRAND_PRIMARY_DARK = "#B8934D";
 
+// Portal URL for employee access
+const PORTAL_BASE_URL = "https://id-preview--87a2f9c6-37a0-4f1c-85df-84b46780269e.lovable.app";
+
 interface SendPayslipRequest {
   payrollRunId: string;
   employeeIds?: string[];
@@ -250,6 +253,7 @@ serve(async (req: Request): Promise<Response> => {
           system: {
             current_date: new Date().toISOString(),
             current_year: new Date().getFullYear().toString(),
+            portal_link: `${PORTAL_BASE_URL}/my-profile?tab=documents`,
           },
         };
 
