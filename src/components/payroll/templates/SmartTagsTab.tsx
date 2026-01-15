@@ -9,20 +9,49 @@ import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 
-// Additional payroll-specific tags that may not be in the smart_tags table
+// Payroll smart tags matching the generate-payslips edge function
 const PAYROLL_SMART_TAGS = [
-  { tag: "Base Salary", category: "Payroll", description: "Employee's base monthly salary" },
-  { tag: "Gross Pay", category: "Payroll", description: "Total earnings before deductions" },
-  { tag: "Net Pay", category: "Payroll", description: "Final amount after all deductions" },
-  { tag: "Total Allowances", category: "Payroll", description: "Sum of all allowances" },
-  { tag: "Total Deductions", category: "Payroll", description: "Sum of all deductions" },
-  { tag: "Housing Allowance", category: "Payroll", description: "Housing allowance amount" },
-  { tag: "Transport Allowance", category: "Payroll", description: "Transportation allowance amount" },
-  { tag: "GOSI Employee", category: "Payroll", description: "GOSI employee contribution" },
-  { tag: "GOSI Employer", category: "Payroll", description: "GOSI employer contribution" },
-  { tag: "Pay Period Start", category: "Payroll", description: "Start date of pay period" },
-  { tag: "Pay Period End", category: "Payroll", description: "End date of pay period" },
-  { tag: "Payment Date", category: "Payroll", description: "Date of payment" },
+  // Employee Info
+  { tag: "EMPLOYEE_FULL_NAME", category: "Employee", description: "Full name (first + last)" },
+  { tag: "EMPLOYEE_FIRST_NAME", category: "Employee", description: "First name" },
+  { tag: "EMPLOYEE_LAST_NAME", category: "Employee", description: "Last name" },
+  { tag: "EMPLOYEE_CODE", category: "Employee", description: "Employee ID/code" },
+  { tag: "EMPLOYEE_EMAIL", category: "Employee", description: "Email address" },
+  { tag: "DEPARTMENT", category: "Employee", description: "Department name" },
+  { tag: "POSITION", category: "Employee", description: "Job title" },
+  
+  // Company Info
+  { tag: "COMPANY_NAME", category: "Company", description: "Company display name" },
+  { tag: "COMPANY_LEGAL_NAME", category: "Company", description: "Registered legal name" },
+  { tag: "COMPANY_ADDRESS", category: "Company", description: "Full company address" },
+  
+  // Pay Period
+  { tag: "PAY_PERIOD_START", category: "Pay Period", description: "Start date of pay period" },
+  { tag: "PAY_PERIOD_END", category: "Pay Period", description: "End date of pay period" },
+  { tag: "PAY_PERIOD", category: "Pay Period", description: "Full period range (start - end)" },
+  { tag: "PAY_MONTH_YEAR", category: "Pay Period", description: "Month and year (e.g., January 2025)" },
+  
+  // Earnings
+  { tag: "BASE_SALARY", category: "Earnings", description: "Base monthly salary" },
+  { tag: "HOUSING_ALLOWANCE", category: "Earnings", description: "Housing allowance amount" },
+  { tag: "TRANSPORTATION_ALLOWANCE", category: "Earnings", description: "Transport allowance amount" },
+  { tag: "OTHER_ALLOWANCES", category: "Earnings", description: "Sum of other allowances" },
+  { tag: "GROSS_PAY", category: "Earnings", description: "Total earnings before deductions" },
+  { tag: "TOTAL_EARNINGS", category: "Earnings", description: "Same as gross pay" },
+  
+  // Deductions
+  { tag: "GOSI_DEDUCTION", category: "Deductions", description: "GOSI employee contribution" },
+  { tag: "OTHER_DEDUCTIONS", category: "Deductions", description: "Sum of other deductions" },
+  { tag: "LOAN_DEDUCTION", category: "Deductions", description: "Loan deduction amount" },
+  { tag: "TOTAL_DEDUCTIONS", category: "Deductions", description: "Sum of all deductions" },
+  
+  // Net Pay
+  { tag: "NET_PAY", category: "Net Pay", description: "Final take-home amount" },
+  { tag: "CURRENCY", category: "Net Pay", description: "Currency code (e.g., BHD)" },
+  
+  // Metadata
+  { tag: "GENERATED_DATE", category: "Metadata", description: "Date payslip was generated" },
+  { tag: "PAYSLIP_ID", category: "Metadata", description: "Unique payslip identifier" },
 ];
 
 interface SmartTagsTabProps {
@@ -61,7 +90,7 @@ export function SmartTagsTab({ docxStoragePath }: SmartTagsTabProps) {
   }, {} as Record<string, typeof filteredTags>);
 
   const copyTag = (tagName: string) => {
-    const formattedTag = `<<${tagName}>>`;
+    const formattedTag = `{{${tagName}}}`;
     navigator.clipboard.writeText(formattedTag);
     setCopiedTag(tagName);
     toast.success(`Copied: ${formattedTag}`);
@@ -69,9 +98,13 @@ export function SmartTagsTab({ docxStoragePath }: SmartTagsTabProps) {
   };
 
   const sortedCategories = Object.keys(groupedTags).sort((a, b) => {
-    // Put Payroll first, then alphabetically
-    if (a === "Payroll") return -1;
-    if (b === "Payroll") return 1;
+    // Priority order for categories
+    const order = ["Employee", "Company", "Pay Period", "Earnings", "Deductions", "Net Pay", "Metadata"];
+    const aIndex = order.indexOf(a);
+    const bIndex = order.indexOf(b);
+    if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+    if (aIndex !== -1) return -1;
+    if (bIndex !== -1) return 1;
     return a.localeCompare(b);
   });
 
@@ -90,7 +123,7 @@ export function SmartTagsTab({ docxStoragePath }: SmartTagsTabProps) {
         <CardHeader>
           <CardTitle>Available Smart Tags</CardTitle>
           <CardDescription>
-            Use these tags in your DOCX template. They will be replaced with actual data when generating payslips.
+            Use these tags in your DOCX template with double curly braces. They will be replaced with actual data when generating payslips.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -120,7 +153,7 @@ export function SmartTagsTab({ docxStoragePath }: SmartTagsTabProps) {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <code className="text-sm font-mono bg-muted px-2 py-0.5 rounded">
-                              {`<<${tagItem.tag}>>`}
+                              {`{{${tagItem.tag}}}`}
                             </code>
                           </div>
                           {tagItem.description && (
