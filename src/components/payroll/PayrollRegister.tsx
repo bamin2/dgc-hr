@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, FileText } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { formatMonthYear } from "@/lib/dateUtils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,16 +24,16 @@ interface PayrollRegisterProps {
   run: PayrollRunData;
   location: WorkLocation;
   onBack: () => void;
-  onIssuePayslips?: () => void;
+  initialTab?: string;
 }
 
 export function PayrollRegister({
   run,
   location,
   onBack,
-  onIssuePayslips,
+  initialTab = "register",
 }: PayrollRegisterProps) {
-  const [activeTab, setActiveTab] = useState<string>("register");
+  const [activeTab, setActiveTab] = useState<string>(initialTab);
   const { data: employees = [], isLoading: employeesLoading } = usePayrollRunEmployees(run.id);
   const { data: adjustments = [] } = usePayrollRunAdjustments(run.id);
 
@@ -125,14 +125,6 @@ export function PayrollRegister({
               {location.name} • {employees.length} employees
             </p>
           </div>
-        </div>
-        <div className="flex gap-2">
-          {run.status === "finalized" && onIssuePayslips && activeTab === "register" && (
-            <Button onClick={onIssuePayslips} className="gap-2">
-              <FileText className="h-4 w-4" />
-              Issue Payslips
-            </Button>
-          )}
         </div>
       </div>
 
