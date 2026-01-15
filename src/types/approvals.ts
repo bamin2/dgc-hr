@@ -93,4 +93,22 @@ export interface PendingApproval {
       city: string | null;
     };
   };
+  loan?: {
+    id: string;
+    employee_id: string;
+    principal_amount: number;
+    duration_months: number | null;
+    installment_amount: number | null;
+    start_date: string;
+    status: string;
+    notes: string | null;
+    created_at: string;
+    employee?: {
+      id: string;
+      first_name: string;
+      last_name: string;
+      full_name: string | null;
+      avatar_url: string | null;
+    };
+  };
 }

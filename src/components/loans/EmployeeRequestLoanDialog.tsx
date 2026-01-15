@@ -33,6 +33,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { useRequestLoan } from "@/hooks/useLoans";
+import { useInitiateApproval } from "@/hooks/useApprovalEngine";
 import { useCompanySettings } from "@/contexts/CompanySettingsContext";
 import { toast } from "sonner";
 
@@ -65,6 +66,7 @@ interface EmployeeRequestLoanDialogProps {
 
 export function EmployeeRequestLoanDialog({ open, onOpenChange }: EmployeeRequestLoanDialogProps) {
   const requestLoan = useRequestLoan();
+  const initiateApproval = useInitiateApproval();
   const { getCurrencySymbol } = useCompanySettings();
 
   const form = useForm<FormData>({
@@ -91,7 +93,7 @@ export function EmployeeRequestLoanDialog({ open, onOpenChange }: EmployeeReques
 
   const onSubmit = async (data: FormData) => {
     try {
-      await requestLoan.mutateAsync({
+      const loan = await requestLoan.mutateAsync({
         principal_amount: data.principal_amount,
         duration_months: data.repayment_method === "duration" ? data.duration_months : undefined,
         installment_amount: data.repayment_method === "installment" ? data.installment_amount : undefined,
@@ -99,6 +101,16 @@ export function EmployeeRequestLoanDialog({ open, onOpenChange }: EmployeeReques
         deduct_from_payroll: true, // Default, HR will set the actual value
         notes: data.notes,
       });
+
+      // Initiate approval workflow
+      if (loan?.id && loan?.employee_id) {
+        await initiateApproval.mutateAsync({
+          requestId: loan.id,
+          requestType: "loan",
+          employeeId: loan.employee_id,
+        });
+      }
+
       toast.success("Loan request submitted successfully");
       onOpenChange(false);
       form.reset();

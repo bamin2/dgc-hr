@@ -189,11 +189,11 @@ export function useRequestLoan() {
           notes: params.notes,
           status: "requested",
         })
-        .select()
+        .select("id, employee_id")
         .single();
 
       if (error) throw error;
-      return data;
+      return data as { id: string; employee_id: string };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.loans.all });
