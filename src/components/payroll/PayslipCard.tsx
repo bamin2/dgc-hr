@@ -1,16 +1,20 @@
+import { useState } from "react";
 import { formatDisplayDate } from "@/lib/dateUtils";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { Download, Printer, Building2 } from "lucide-react";
+import { Download, Printer, Building2, Loader2 } from "lucide-react";
 import { PayslipData } from "@/types/payslip";
+import { downloadPayslipFromCard } from "@/utils/payslipGenerator";
+import { toast } from "sonner";
 
 interface PayslipCardProps {
   payslip: PayslipData;
 }
 
 export function PayslipCard({ payslip }: PayslipCardProps) {
+  const [isDownloading, setIsDownloading] = useState(false);
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "decimal",
@@ -37,9 +41,17 @@ export function PayslipCard({ payslip }: PayslipCardProps) {
     window.print();
   };
 
-  const handleDownload = () => {
-    // TODO: Implement PDF download
-    console.log("Download payslip");
+  const handleDownload = async () => {
+    setIsDownloading(true);
+    try {
+      await downloadPayslipFromCard(payslip);
+      toast.success("Payslip downloaded successfully");
+    } catch (error) {
+      console.error("Failed to download payslip:", error);
+      toast.error("Failed to download payslip");
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   return (
@@ -69,9 +81,13 @@ export function PayslipCard({ payslip }: PayslipCardProps) {
             </div>
           </div>
           <div className="flex gap-2 print:hidden">
-            <Button variant="outline" size="sm" onClick={handleDownload}>
-              <Download className="h-4 w-4 mr-1" />
-              Download
+            <Button variant="outline" size="sm" onClick={handleDownload} disabled={isDownloading}>
+              {isDownloading ? (
+                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+              ) : (
+                <Download className="h-4 w-4 mr-1" />
+              )}
+              {isDownloading ? "Downloading..." : "Download"}
             </Button>
             <Button variant="outline" size="sm" onClick={handlePrint}>
               <Printer className="h-4 w-4 mr-1" />

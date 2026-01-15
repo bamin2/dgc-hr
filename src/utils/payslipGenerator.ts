@@ -1,8 +1,9 @@
 import { PayrollRunEmployee } from "@/hooks/usePayrollRunEmployees";
 import { PayrollRunAdjustment } from "@/hooks/usePayrollRunAdjustments";
+import { PayslipData } from "@/types/payslip";
 import { format } from "date-fns";
 
-interface PayslipData {
+interface PayslipGeneratorData {
   employee: PayrollRunEmployee;
   adjustments: PayrollRunAdjustment[];
   location: { name: string; currency: string };
@@ -12,7 +13,7 @@ interface PayslipData {
 }
 
 // Dynamic import of jsPDF for reduced initial bundle
-export async function generatePayslipPDF(data: PayslipData): Promise<InstanceType<typeof import('jspdf').default>> {
+export async function generatePayslipPDF(data: PayslipGeneratorData): Promise<InstanceType<typeof import('jspdf').default>> {
   const { default: jsPDF } = await import('jspdf');
   const doc = new jsPDF();
   const { employee, adjustments, location, payPeriod, companyName, companyAddress } = data;
@@ -248,5 +249,164 @@ export async function downloadPayslip(
   });
 
   const filename = `payslip_${employee.employeeName.replace(/\s+/g, "_")}_${format(new Date(payPeriod.start), "MMM_yyyy")}.pdf`;
+  doc.save(filename);
+}
+
+/**
+ * Downloads a payslip PDF from PayslipData (used in My Profile → Documents)
+ */
+export async function downloadPayslipFromCard(payslip: PayslipData): Promise<void> {
+  const { default: jsPDF } = await import('jspdf');
+  const doc = new jsPDF();
+  
+  const margin = 20;
+  let y = margin;
+
+  const formatCurrency = (amount: number) => 
+    `${payslip.currency} ${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+  const addLine = (label: string, value: string, isDeduction = false, isTotal = false) => {
+    if (isTotal) {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+    } else {
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+    }
+    
+    doc.text(label, margin + 5, y);
+    doc.text(value, 190 - margin, y, { align: "right" });
+    y += 7;
+    
+    if (isTotal) {
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+    }
+  };
+
+  const addSection = (title: string) => {
+    y += 5;
+    doc.setFillColor(245, 245, 245);
+    doc.rect(margin, y - 5, 170, 8, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.text(title, margin + 3, y);
+    y += 10;
+    doc.setFont("helvetica", "normal");
+  };
+
+  // Company Header
+  doc.setFillColor(59, 130, 246);
+  doc.rect(0, 0, 210, 40, "F");
+  
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(20);
+  doc.setFont("helvetica", "bold");
+  doc.text(payslip.company.name, margin, 20);
+  
+  if (payslip.company.address) {
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(payslip.company.address, margin, 30);
+  }
+
+  // Payslip Title
+  doc.setFontSize(12);
+  doc.text("PAYSLIP", 190 - margin, 25, { align: "right" });
+
+  y = 55;
+  doc.setTextColor(0, 0, 0);
+
+  // Employee Info Section
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "bold");
+  doc.text(payslip.employee.name, margin, y);
+  y += 6;
+  
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(100, 100, 100);
+  if (payslip.employee.position) doc.text(payslip.employee.position, margin, y);
+  y += 5;
+  if (payslip.employee.department) doc.text(payslip.employee.department, margin, y);
+  y += 5;
+  if (payslip.employee.code) doc.text(`Employee ID: ${payslip.employee.code}`, margin, y);
+  
+  // Pay Period (right aligned)
+  doc.setTextColor(0, 0, 0);
+  doc.setFontSize(9);
+  const periodText = `Pay Period: ${format(new Date(payslip.payPeriod.startDate), "MMM d")} - ${format(new Date(payslip.payPeriod.endDate), "MMM d, yyyy")}`;
+  doc.text(periodText, 190 - margin, 55, { align: "right" });
+
+  y = 85;
+
+  // Separator line
+  doc.setDrawColor(200, 200, 200);
+  doc.line(margin, y - 5, 190 - margin, y - 5);
+
+  // Earnings Section
+  addSection("EARNINGS");
+  
+  addLine("Base Salary", formatCurrency(payslip.earnings.baseSalary));
+  
+  if (payslip.earnings.housingAllowance > 0) {
+    addLine("Housing Allowance", formatCurrency(payslip.earnings.housingAllowance));
+  }
+  
+  if (payslip.earnings.transportationAllowance > 0) {
+    addLine("Transportation Allowance", formatCurrency(payslip.earnings.transportationAllowance));
+  }
+  
+  payslip.earnings.otherAllowances.forEach((allowance) => {
+    addLine(allowance.name, formatCurrency(allowance.amount));
+  });
+
+  y += 3;
+  doc.setDrawColor(220, 220, 220);
+  doc.line(margin + 5, y - 5, 190 - margin, y - 5);
+  addLine("Total Earnings", formatCurrency(payslip.earnings.grossPay), false, true);
+
+  // Deductions Section
+  addSection("DEDUCTIONS");
+  
+  if (payslip.deductions.gosiContribution > 0) {
+    addLine("GOSI Contribution", `-${formatCurrency(payslip.deductions.gosiContribution)}`, true);
+  }
+  
+  payslip.deductions.otherDeductions.forEach((deduction) => {
+    addLine(deduction.name, `-${formatCurrency(deduction.amount)}`, true);
+  });
+
+  if (payslip.deductions.totalDeductions > 0) {
+    y += 3;
+    doc.line(margin + 5, y - 5, 190 - margin, y - 5);
+    doc.setTextColor(220, 38, 38);
+    addLine("Total Deductions", `-${formatCurrency(payslip.deductions.totalDeductions)}`, true, true);
+    doc.setTextColor(0, 0, 0);
+  }
+
+  // Net Pay Section
+  y += 10;
+  doc.setFillColor(59, 130, 246);
+  doc.rect(margin, y - 5, 170, 20, "F");
+  
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "bold");
+  doc.text("NET PAY", margin + 5, y + 5);
+  
+  doc.setFontSize(14);
+  doc.text(formatCurrency(payslip.netPay), 190 - margin - 5, y + 5, { align: "right" });
+
+  // Footer
+  y = 270;
+  doc.setTextColor(150, 150, 150);
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "normal");
+  doc.text("This is a computer-generated document. No signature is required.", 105, y, { align: "center" });
+  doc.text(`Generated on ${format(new Date(), "MMM d, yyyy 'at' h:mm a")}`, 105, y + 5, { align: "center" });
+
+  // Save the PDF
+  const filename = `payslip_${payslip.employee.name.replace(/\s+/g, "_")}_${format(new Date(payslip.payPeriod.startDate), "MMM_yyyy")}.pdf`;
   doc.save(filename);
 }
