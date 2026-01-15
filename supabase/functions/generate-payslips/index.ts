@@ -61,11 +61,43 @@ function angularParser(tag: string) {
   };
 }
 
+// Diagnostic: Find which DOCX XML parts contain a specific tag
+function findTagLocations(zip: PizZip, tagName: string): string[] {
+  const locations: string[] = [];
+  const files = zip.files;
+  
+  for (const [filename, file] of Object.entries(files)) {
+    if (file.dir) continue;
+    
+    // Only check XML files within the DOCX
+    if (filename.endsWith('.xml') || filename.endsWith('.xml.rels')) {
+      try {
+        const content = file.asText();
+        if (content.includes(tagName)) {
+          locations.push(filename);
+          
+          // Check if tag appears to be split across XML runs
+          const tagPattern = new RegExp(`\\{\\{\\s*${tagName}\\s*\\}\\}`, 'g');
+          const cleanMatch = content.match(tagPattern);
+          if (!cleanMatch) {
+            // Tag name found but not as a clean {{TAG}} - likely split
+            console.log(`WARNING: ${tagName} found in ${filename} but appears to be split across XML runs`);
+          }
+        }
+      } catch (e) {
+        // Skip binary files
+      }
+    }
+  }
+  
+  return locations;
+}
+
 // Process DOCX template with smart tags
 async function processDocxTemplate(
   templateBuffer: ArrayBuffer,
   tagData: Record<string, string>
-): Promise<Uint8Array> {
+): Promise<{ filledDocx: Uint8Array; diagnostics: Record<string, unknown> }> {
   const zip = new PizZip(templateBuffer);
   
   // Log key tag values for debugging
@@ -75,6 +107,39 @@ async function processDocxTemplate(
     PAY_PERIOD_START: tagData.PAY_PERIOD_START,
     PAY_PERIOD_END: tagData.PAY_PERIOD_END,
   });
+  
+  // DIAGNOSTIC: Find where PAY_MONTH_YEAR and PAY_PERIOD tags are located
+  const payMonthYearLocations = findTagLocations(zip, 'PAY_MONTH_YEAR');
+  const payPeriodLocations = findTagLocations(zip, 'PAY_PERIOD');
+  
+  console.log('=== TAG LOCATION DIAGNOSTICS ===');
+  console.log('PAY_MONTH_YEAR found in:', payMonthYearLocations.length > 0 ? payMonthYearLocations : 'NOT FOUND');
+  console.log('PAY_PERIOD found in:', payPeriodLocations.length > 0 ? payPeriodLocations : 'NOT FOUND');
+  
+  // Check for problematic locations
+  const isInTextBox = payMonthYearLocations.some(loc => 
+    loc.includes('drawing') || loc.includes('chart') || loc.includes('diagrams')
+  );
+  const isInHeader = payMonthYearLocations.some(loc => loc.includes('header'));
+  const isInFooter = payMonthYearLocations.some(loc => loc.includes('footer'));
+  
+  if (isInTextBox) {
+    console.log('WARNING: PAY_MONTH_YEAR is in a text box/drawing - templating may not work correctly!');
+  }
+  if (isInHeader) {
+    console.log('INFO: PAY_MONTH_YEAR is in a header XML file');
+  }
+  if (isInFooter) {
+    console.log('INFO: PAY_MONTH_YEAR is in a footer XML file');
+  }
+  
+  const diagnostics = {
+    payMonthYearLocations,
+    payPeriodLocations,
+    isInTextBox,
+    isInHeader,
+    isInFooter,
+  };
   
   try {
     const doc = new Docxtemplater(zip, {
@@ -93,7 +158,7 @@ async function processDocxTemplate(
       mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     });
     
-    return output;
+    return { filledDocx: output, diagnostics };
   } catch (error: any) {
     // Provide detailed error messages for template issues
     if (error.properties && error.properties.errors) {
@@ -454,8 +519,24 @@ const handler = async (req: Request): Promise<Response> => {
         };
 
         // Process DOCX template with tag data
-        const filledDocx = await processDocxTemplate(templateBuffer, tagData);
+        const { filledDocx, diagnostics } = await processDocxTemplate(templateBuffer, tagData);
         console.log(`Template filled, size: ${filledDocx.byteLength} bytes`);
+        console.log('Template diagnostics:', JSON.stringify(diagnostics, null, 2));
+
+        // DEBUG: Upload filled DOCX to storage for inspection
+        const debugDocxPath = `debug/${new Date().toISOString().replace(/[:.]/g, '-')}_${emp.employee_code || emp.id}_filled.docx`;
+        const { error: debugUploadError } = await supabaseClient.storage
+          .from("payslips")
+          .upload(debugDocxPath, filledDocx, {
+            contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            upsert: true,
+          });
+        
+        if (debugUploadError) {
+          console.log(`Debug DOCX upload failed: ${debugUploadError.message}`);
+        } else {
+          console.log(`DEBUG: Filled DOCX saved to payslips/${debugDocxPath} - download to verify templating`);
+        }
 
         // Convert DOCX to PDF using CloudConvert
         const pdfContent = await convertDocxToPdf(
