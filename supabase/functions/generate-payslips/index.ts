@@ -25,9 +25,15 @@ interface PayslipGenerationResult {
 }
 
 // Format currency with proper decimal places
-function formatCurrency(amount: number | null | undefined, currency: string): string {
-  const value = amount || 0;
+function formatCurrency(amount: number | string | null | undefined, currency: string): string {
+  const value = Number(amount) || 0;
   return `${currency} ${value.toFixed(2)}`;
+}
+
+// Sum amounts from array fields (other_allowances, other_deductions)
+function sumArrayField(items: Array<{amount: number; name?: string}> | null | undefined): number {
+  if (!Array.isArray(items)) return 0;
+  return items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
 }
 
 // Format date as readable string
@@ -374,14 +380,14 @@ const handler = async (req: Request): Promise<Response> => {
           BASE_SALARY: formatCurrency(payrollEmployee.base_salary, currencyCode),
           HOUSING_ALLOWANCE: formatCurrency(payrollEmployee.housing_allowance, currencyCode),
           TRANSPORTATION_ALLOWANCE: formatCurrency(payrollEmployee.transportation_allowance, currencyCode),
-          OTHER_ALLOWANCES: formatCurrency(payrollEmployee.other_allowances, currencyCode),
+          OTHER_ALLOWANCES: formatCurrency(sumArrayField(payrollEmployee.other_allowances), currencyCode),
           GROSS_PAY: formatCurrency(payrollEmployee.gross_pay, currencyCode),
           TOTAL_EARNINGS: formatCurrency(payrollEmployee.gross_pay, currencyCode),
           
           // Deductions
           GOSI_DEDUCTION: formatCurrency(payrollEmployee.gosi_deduction, currencyCode),
-          OTHER_DEDUCTIONS: formatCurrency(payrollEmployee.other_deductions, currencyCode),
-          LOAN_DEDUCTION: formatCurrency(payrollEmployee.loan_deduction, currencyCode),
+          OTHER_DEDUCTIONS: formatCurrency(sumArrayField(payrollEmployee.other_deductions), currencyCode),
+          LOAN_DEDUCTION: formatCurrency(payrollEmployee.loan_deduction ?? 0, currencyCode),
           TOTAL_DEDUCTIONS: formatCurrency(payrollEmployee.total_deductions, currencyCode),
           
           // Net pay
