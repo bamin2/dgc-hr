@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { format } from "date-fns";
+import DOMPurify from "dompurify";
 import { Eye, Upload, FileText, X, FileType, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -392,7 +393,7 @@ export function TemplateEditor({ templateId, onSuccess }: TemplateEditorProps) {
                   <ScrollArea className="h-[400px] border rounded-md p-4 bg-background">
                     <div 
                       className="prose prose-sm max-w-none"
-                      dangerouslySetInnerHTML={{ __html: renderPreview(watch("body_template") || "") }}
+                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(renderPreview(watch("body_template") || "")) }}
                     />
                   </ScrollArea>
                 </div>

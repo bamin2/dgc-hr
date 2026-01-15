@@ -156,7 +156,44 @@ serve(async (req: Request): Promise<Response> => {
       throw new Error("RESEND_API_KEY is not configured");
     }
 
+    // Verify authentication
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    // Verify the caller's JWT
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: "Invalid or expired token" }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    // Check if caller has Admin role (send-test-email should be admin only)
+    const { data: roleData, error: roleError } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .in("role", ["hr", "admin"])
+      .limit(1)
+      .maybeSingle();
+
+    if (roleError || !roleData) {
+      return new Response(
+        JSON.stringify({ error: "Forbidden: HR or Admin role required" }),
+        { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
     const { subject, bodyContent, recipientEmail }: TestEmailRequest = await req.json();
 
     if (!subject || !bodyContent || !recipientEmail) {

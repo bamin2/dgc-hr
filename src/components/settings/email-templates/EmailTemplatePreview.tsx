@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import DOMPurify from "dompurify";
 import { useCompanySettings } from "@/contexts/CompanySettingsContext";
 import { useActiveSmartTags } from "@/hooks/useSmartTags";
 import { renderTemplate, RenderData } from "@/utils/templateRenderer";
@@ -182,7 +183,7 @@ export function EmailTemplatePreview({ templateType, subject, bodyContent }: Ema
           {/* Email Body */}
           <div 
             className="bg-white p-6"
-            dangerouslySetInnerHTML={{ __html: processedBody }}
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(processedBody) }}
           />
 
           {/* Email Footer */}
