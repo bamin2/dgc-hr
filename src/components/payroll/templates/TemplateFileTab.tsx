@@ -226,7 +226,7 @@ export function TemplateFileTab({
       <Alert>
         <AlertCircle className="h-4 w-4" />
         <AlertDescription>
-          Use smart tags like <code className="bg-muted px-1 rounded">{"<<Employee Name>>"}</code> in your template. 
+          Use smart tags like <code className="bg-muted px-1 rounded">{`{{EMPLOYEE_FULL_NAME}}`}</code> or <code className="bg-muted px-1 rounded">{`{{NET_PAY}}`}</code> in your template. 
           These will be replaced with actual employee data when generating payslips. 
           See the "Smart Tags" tab for a complete list of available tags.
         </AlertDescription>
