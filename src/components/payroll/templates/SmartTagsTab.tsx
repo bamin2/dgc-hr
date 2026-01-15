@@ -19,6 +19,11 @@ const PAYROLL_SMART_TAGS = [
   { tag: "EMPLOYEE_EMAIL", category: "Employee", description: "Email address" },
   { tag: "DEPARTMENT", category: "Employee", description: "Department name" },
   { tag: "POSITION", category: "Employee", description: "Job title" },
+  { tag: "START_DATE", category: "Employee", description: "Employee's start/join date" },
+  { tag: "JOIN_DATE", category: "Employee", description: "Same as START_DATE" },
+  
+  // GOSI
+  { tag: "GOSI_REGISTERED_SALARY", category: "GOSI", description: "GOSI registered salary amount" },
   
   // Company Info
   { tag: "COMPANY_NAME", category: "Company", description: "Company display name" },

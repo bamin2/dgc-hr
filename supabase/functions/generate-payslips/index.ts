@@ -265,7 +265,7 @@ const handler = async (req: Request): Promise<Response> => {
       .select(`
         *,
         employee:employees(
-          id, first_name, last_name, employee_code, email,
+          id, first_name, last_name, employee_code, email, join_date, gosi_registered_salary,
           department:departments!employees_department_id_fkey(name),
           position:positions(title),
           work_location_id
@@ -384,6 +384,9 @@ const handler = async (req: Request): Promise<Response> => {
           EMPLOYEE_EMAIL: emp.email || '',
           DEPARTMENT: emp.department?.name || '',
           POSITION: emp.position?.title || '',
+          START_DATE: emp.join_date ? formatDate(emp.join_date) : '',
+          JOIN_DATE: emp.join_date ? formatDate(emp.join_date) : '',
+          GOSI_REGISTERED_SALARY: formatCurrency(emp.gosi_registered_salary, currencyCode),
           
           // Company info
           COMPANY_NAME: companySettings?.name || '',
