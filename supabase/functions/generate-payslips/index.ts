@@ -47,6 +47,20 @@ function formatMonthYear(dateStr: string): string {
   return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 }
 
+// Custom angular expression parser for docxtemplater
+// This handles tags that may be split across XML elements in Word
+function angularParser(tag: string) {
+  tag = tag.replace(/^\s+|\s+$/g, ""); // Trim whitespace
+  return {
+    get: function (scope: Record<string, string>) {
+      if (tag === ".") {
+        return scope;
+      }
+      return scope[tag] ?? "";
+    },
+  };
+}
+
 // Process DOCX template with smart tags
 async function processDocxTemplate(
   templateBuffer: ArrayBuffer,
@@ -54,12 +68,22 @@ async function processDocxTemplate(
 ): Promise<Uint8Array> {
   const zip = new PizZip(templateBuffer);
   
+  // Log key tag values for debugging
+  console.log('Tag values being used:', {
+    PAY_MONTH_YEAR: tagData.PAY_MONTH_YEAR,
+    PAY_PERIOD: tagData.PAY_PERIOD,
+    PAY_PERIOD_START: tagData.PAY_PERIOD_START,
+    PAY_PERIOD_END: tagData.PAY_PERIOD_END,
+  });
+  
   try {
     const doc = new Docxtemplater(zip, {
       // Use {{ }} delimiters to avoid conflicts with XML < > characters
       delimiters: { start: '{{', end: '}}' },
       paragraphLoop: true,
       linebreaks: true,
+      // Use custom parser to handle tags that may be split across XML runs
+      parser: angularParser,
     });
     
     doc.render(tagData);
