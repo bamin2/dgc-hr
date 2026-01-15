@@ -25,8 +25,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { usePayslipDocuments, downloadPayslipPDF } from "@/hooks/usePayslipDocuments";
 import { useActivePayslipTemplates } from "@/hooks/usePayslipTemplates";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { useQueryClient } from "@tanstack/react-query";
 import type { PayslipDocument } from "@/types/payslip-template";
 
 interface PayslipsTabProps {
@@ -52,6 +54,7 @@ interface PayslipsTabProps {
 }
 
 export function PayslipsTab({ payrollRunId, payrollRun, employees }: PayslipsTabProps) {
+  const queryClient = useQueryClient();
   const { data: payslipDocuments = [], isLoading: loadingDocuments } = usePayslipDocuments(payrollRunId);
   const { data: templates = [] } = useActivePayslipTemplates();
   const [generating, setGenerating] = useState(false);
@@ -77,14 +80,25 @@ export function PayslipsTab({ payrollRunId, payrollRun, employees }: PayslipsTab
 
     setGenerating(true);
     try {
-      // TODO: Implement batch generation logic
-      // This will be connected to an edge function or utility
-      toast.info("Payslip generation is being implemented...");
+      const { data, error } = await supabase.functions.invoke('generate-payslips', {
+        body: { payroll_run_id: payrollRunId },
+      });
+
+      if (error) throw error;
+
+      // Invalidate queries to refresh the list
+      queryClient.invalidateQueries({ queryKey: ['payslip-documents', 'run', payrollRunId] });
       
-      // For now, show a placeholder message
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      toast.success(`Generated payslips for ${employees.length} employees`);
+      const successCount = data.results?.filter((r: any) => r.success).length || 0;
+      const failCount = data.results?.filter((r: any) => !r.success).length || 0;
+      
+      if (failCount > 0) {
+        toast.warning(`Generated ${successCount} payslips, ${failCount} failed`);
+      } else {
+        toast.success(`Generated ${successCount} payslips successfully`);
+      }
     } catch (error) {
+      console.error("Error generating payslips:", error);
       toast.error("Failed to generate payslips");
     } finally {
       setGenerating(false);
@@ -289,9 +303,23 @@ export function PayslipsTab({ payrollRunId, payrollRun, employees }: PayslipsTab
                           variant="ghost"
                           size="sm"
                           disabled={generating}
-                          onClick={() => {
-                            // TODO: Implement single regeneration
-                            toast.info("Single regeneration coming soon");
+                          onClick={async () => {
+                            setGenerating(true);
+                            try {
+                              const { data, error } = await supabase.functions.invoke('generate-payslips', {
+                                body: { 
+                                  payroll_run_id: payrollRunId,
+                                  employee_ids: [emp.employee_id],
+                                },
+                              });
+                              if (error) throw error;
+                              queryClient.invalidateQueries({ queryKey: ['payslip-documents', 'run', payrollRunId] });
+                              toast.success(`Payslip ${isGenerated ? 'regenerated' : 'generated'} for ${emp.employee.first_name} ${emp.employee.last_name}`);
+                            } catch (error) {
+                              toast.error("Failed to generate payslip");
+                            } finally {
+                              setGenerating(false);
+                            }
                           }}
                         >
                           <RefreshCw className="h-4 w-4 mr-1" />
