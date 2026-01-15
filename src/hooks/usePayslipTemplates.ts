@@ -134,6 +134,11 @@ export function useCreatePayslipTemplate() {
       const { data, error } = await supabase
         .from("payslip_templates")
         .insert(insertData)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data as unknown as PayslipTemplate;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: payslipTemplateKeys.all });

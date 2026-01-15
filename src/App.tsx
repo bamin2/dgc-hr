@@ -27,6 +27,8 @@ const AddTeamMember = lazy(() => import("./pages/AddTeamMember"));
 const BulkSalaryUpdate = lazy(() => import("./pages/BulkSalaryUpdate"));
 const Payroll = lazy(() => import("./pages/Payroll"));
 const PayrollRun = lazy(() => import("./pages/PayrollRun"));
+const PayslipTemplates = lazy(() => import("./pages/PayslipTemplates"));
+const PayslipTemplateEditor = lazy(() => import("./pages/PayslipTemplateEditor"));
 const Payslip = lazy(() => import("./pages/Payslip"));
 const Benefits = lazy(() => import("./pages/Benefits"));
 const BenefitDetail = lazy(() => import("./pages/BenefitDetail"));
@@ -111,6 +113,9 @@ const App = () => (
                 <Route path="/employees/onboarding/:id" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><OnboardingDetail /></DashboardLazyPage></ProtectedRoute>} />
                 <Route path="/payroll" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><Payroll /></DashboardLazyPage></ProtectedRoute>} />
                 <Route path="/payroll/run" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><PayrollRun /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/payroll/templates" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><PayslipTemplates /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/payroll/templates/new" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><PayslipTemplateEditor /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/payroll/templates/:id" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><PayslipTemplateEditor /></DashboardLazyPage></ProtectedRoute>} />
                 <Route path="/payroll/payslip/:id" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><Payslip /></DashboardLazyPage></ProtectedRoute>} />
                 <Route path="/loans" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><Loans /></DashboardLazyPage></ProtectedRoute>} />
                 <Route path="/hiring" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><Hiring /></DashboardLazyPage></ProtectedRoute>} />

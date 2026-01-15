@@ -44,7 +44,15 @@ const managementMenuItems = [
   { icon: UserPlus, label: "Hiring", path: "/hiring" },
   { icon: Clock, label: "Time Management", path: "/time-management" },
   { icon: FileText, label: "Reports", path: "/reports" },
-  { icon: Wallet, label: "Payrolls", path: "/payroll" },
+  { 
+    icon: Wallet, 
+    label: "Payrolls", 
+    path: "/payroll",
+    subItems: [
+      { label: "Payroll Runs", path: "/payroll" },
+      { label: "Payslip Templates", path: "/payroll/templates" },
+    ],
+  },
   { icon: HandCoins, label: "Loans", path: "/loans" },
   { icon: Gift, label: "Benefits", path: "/benefits" },
 ];
