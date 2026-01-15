@@ -88,22 +88,10 @@ export function LoanDetailSheet({ loanId, open, onOpenChange }: LoanDetailSheetP
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
         <SheetHeader>
-          <div className="flex items-center justify-between">
-            <SheetTitle className="flex items-center gap-2">
-              <Banknote className="h-5 w-5" />
-              Loan Details
-            </SheetTitle>
-            {loan && !["closed"].includes(loan.status) && (
-              <Button 
-                variant="ghost" 
-                size="icon"
-                className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                onClick={() => setDeleteDialogOpen(true)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
+          <SheetTitle className="flex items-center gap-2">
+            <Banknote className="h-5 w-5" />
+            Loan Details
+          </SheetTitle>
           <SheetDescription>
             View and manage loan information
           </SheetDescription>
@@ -275,6 +263,28 @@ export function LoanDetailSheet({ loanId, open, onOpenChange }: LoanDetailSheetP
                   <LoanEventsTimeline loanId={loan.id} />
                 </TabsContent>
               </Tabs>
+            )}
+
+            {/* Danger Zone - Delete Loan */}
+            {loan && !["closed"].includes(loan.status) && (
+              <div className="mt-6 pt-6 border-t border-destructive/20">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-destructive">Delete Loan</p>
+                    <p className="text-sm text-muted-foreground">
+                      Permanently remove this loan record
+                    </p>
+                  </div>
+                  <Button 
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => setDeleteDialogOpen(true)}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete
+                  </Button>
+                </div>
+              </div>
             )}
           </div>
         ) : null}
