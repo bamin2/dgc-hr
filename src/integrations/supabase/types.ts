@@ -4636,6 +4636,160 @@ export type Database = {
           },
         ]
       }
+      payslip_documents: {
+        Row: {
+          currency_code: string
+          employee_id: string
+          generated_at: string
+          generated_by: string | null
+          id: string
+          metadata: Json
+          payroll_run_id: string
+          pdf_storage_path: string
+          period_end: string
+          period_start: string
+          status: string
+          template_id: string
+        }
+        Insert: {
+          currency_code?: string
+          employee_id: string
+          generated_at?: string
+          generated_by?: string | null
+          id?: string
+          metadata?: Json
+          payroll_run_id: string
+          pdf_storage_path: string
+          period_end: string
+          period_start: string
+          status?: string
+          template_id: string
+        }
+        Update: {
+          currency_code?: string
+          employee_id?: string
+          generated_at?: string
+          generated_by?: string | null
+          id?: string
+          metadata?: Json
+          payroll_run_id?: string
+          pdf_storage_path?: string
+          period_end?: string
+          period_start?: string
+          status?: string
+          template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payslip_documents_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employee_summary_mv"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payslip_documents_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employee_summary_mv"
+            referencedColumns: ["manager_id"]
+          },
+          {
+            foreignKeyName: "payslip_documents_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payslip_documents_payroll_run_id_fkey"
+            columns: ["payroll_run_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payslip_documents_payroll_run_id_fkey"
+            columns: ["payroll_run_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_summary_mv"
+            referencedColumns: ["payroll_run_id"]
+          },
+          {
+            foreignKeyName: "payslip_documents_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "payslip_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payslip_templates: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          docx_storage_path: string
+          effective_from: string | null
+          id: string
+          is_default: boolean
+          name: string
+          original_filename: string | null
+          settings: Json
+          status: string
+          updated_at: string
+          version_number: number
+          work_location_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          docx_storage_path: string
+          effective_from?: string | null
+          id?: string
+          is_default?: boolean
+          name: string
+          original_filename?: string | null
+          settings?: Json
+          status?: string
+          updated_at?: string
+          version_number?: number
+          work_location_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          docx_storage_path?: string
+          effective_from?: string | null
+          id?: string
+          is_default?: boolean
+          name?: string
+          original_filename?: string | null
+          settings?: Json
+          status?: string
+          updated_at?: string
+          version_number?: number
+          work_location_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payslip_templates_work_location_id_fkey"
+            columns: ["work_location_id"]
+            isOneToOne: false
+            referencedRelation: "employee_summary_mv"
+            referencedColumns: ["work_location_id"]
+          },
+          {
+            foreignKeyName: "payslip_templates_work_location_id_fkey"
+            columns: ["work_location_id"]
+            isOneToOne: false
+            referencedRelation: "work_locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       positions: {
         Row: {
           created_at: string
