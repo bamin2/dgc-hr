@@ -169,7 +169,7 @@ export default function PayslipTemplateEditor() {
               originalFilename={originalFilename}
               onFileUploaded={handleFileUploaded}
               workLocationId={workLocationId}
-              onWorkLocationChange={setWorkLocationId}
+              onWorkLocationChange={(id) => setWorkLocationId(id)}
             />
           </TabsContent>
 
