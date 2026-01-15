@@ -1,9 +1,20 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
+
+// Input validation schema
+const ResetPasswordSchema = z.object({
+  employeeId: z.string().uuid({ message: 'Invalid employee ID format' }),
+  password: z.string()
+    .min(8, { message: 'Password must be at least 8 characters' })
+    .max(128, { message: 'Password too long' })
+    .regex(/[A-Za-z]/, { message: 'Password must contain letters' })
+    .regex(/[0-9]/, { message: 'Password must contain numbers' }),
+})
 
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
@@ -68,30 +79,26 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Parse the request body
-    const { employeeId, password } = await req.json()
-
-    if (!employeeId || !password) {
+    // Parse and validate request body
+    let body: z.infer<typeof ResetPasswordSchema>;
+    try {
+      const rawBody = await req.json()
+      body = ResetPasswordSchema.parse(rawBody)
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const message = error.errors.map(e => e.message).join(', ')
+        return new Response(
+          JSON.stringify({ error: message }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
       return new Response(
-        JSON.stringify({ error: 'Employee ID and password are required' }),
+        JSON.stringify({ error: 'Invalid request body' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Validate password requirements
-    if (password.length < 8) {
-      return new Response(
-        JSON.stringify({ error: 'Password must be at least 8 characters' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    if (!/[a-zA-Z]/.test(password) || !/\d/.test(password)) {
-      return new Response(
-        JSON.stringify({ error: 'Password must contain both letters and numbers' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
+    const { employeeId, password } = body
 
     // Get the user_id from the employees table (single source of truth: employees.user_id)
     const { data: employee, error: employeeError } = await supabaseAdmin

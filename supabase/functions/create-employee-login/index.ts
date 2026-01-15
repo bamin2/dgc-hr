@@ -1,9 +1,24 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
+
+// Input validation schema
+const CreateLoginSchema = z.object({
+  employeeId: z.string().uuid({ message: 'Invalid employee ID format' }),
+  email: z.string().email({ message: 'Invalid email format' }).max(255, { message: 'Email too long' }),
+  password: z.string()
+    .min(8, { message: 'Password must be at least 8 characters' })
+    .max(128, { message: 'Password too long' })
+    .regex(/[A-Z]/, { message: 'Password must contain at least one uppercase letter' })
+    .regex(/[a-z]/, { message: 'Password must contain at least one lowercase letter' })
+    .regex(/[0-9]/, { message: 'Password must contain at least one number' }),
+  firstName: z.string().max(100, { message: 'First name too long' }).regex(/^[a-zA-Z\s'-]+$/, { message: 'First name contains invalid characters' }).optional(),
+  lastName: z.string().max(100, { message: 'Last name too long' }).regex(/^[a-zA-Z\s'-]+$/, { message: 'Last name contains invalid characters' }).optional(),
+})
 
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
@@ -75,23 +90,26 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Parse request body
-    const { employeeId, email, password, firstName, lastName } = await req.json()
-
-    if (!employeeId || !email || !password) {
+    // Parse and validate request body
+    let body: z.infer<typeof CreateLoginSchema>;
+    try {
+      const rawBody = await req.json()
+      body = CreateLoginSchema.parse(rawBody)
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const message = error.errors.map(e => e.message).join(', ')
+        return new Response(
+          JSON.stringify({ error: message }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
       return new Response(
-        JSON.stringify({ error: 'Missing required fields: employeeId, email, password' }),
+        JSON.stringify({ error: 'Invalid request body' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Validate password
-    if (password.length < 8) {
-      return new Response(
-        JSON.stringify({ error: 'Password must be at least 8 characters' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
+    const { employeeId, email, password, firstName, lastName } = body
 
     console.log('Creating login for employee:', employeeId, 'with email:', email)
 
