@@ -1,7 +1,9 @@
-import { ArrowLeft, Download, FileText } from "lucide-react";
+import { useState } from "react";
+import { ArrowLeft, FileText } from "lucide-react";
 import { formatMonthYear } from "@/lib/dateUtils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -14,8 +16,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { WorkLocation } from "@/hooks/useWorkLocations";
 import { PayrollRunData } from "./PayrollRunCard";
 import { PayrollRunStatusBadge } from "./PayrollRunStatusBadge";
+import { PayslipsTab } from "./PayslipsTab";
 import { usePayrollRunEmployees, PayrollRunEmployee } from "@/hooks/usePayrollRunEmployees";
-import { usePayrollRunAdjustments, PayrollRunAdjustment } from "@/hooks/usePayrollRunAdjustments";
+import { usePayrollRunAdjustments } from "@/hooks/usePayrollRunAdjustments";
 
 interface PayrollRegisterProps {
   run: PayrollRunData;
@@ -30,8 +33,23 @@ export function PayrollRegister({
   onBack,
   onIssuePayslips,
 }: PayrollRegisterProps) {
+  const [activeTab, setActiveTab] = useState<string>("register");
   const { data: employees = [], isLoading: employeesLoading } = usePayrollRunEmployees(run.id);
   const { data: adjustments = [] } = usePayrollRunAdjustments(run.id);
+
+  // Map employees to the format expected by PayslipsTab
+  const payslipEmployees = employees.map(emp => ({
+    id: emp.id,
+    employee_id: emp.employeeId,
+    employee: {
+      id: emp.employeeId,
+      first_name: emp.employeeName.split(' ')[0] || '',
+      last_name: emp.employeeName.split(' ').slice(1).join(' ') || '',
+      employee_code: emp.employeeCode || null,
+      avatar_url: null,
+      work_location_id: location.id,
+    },
+  }));
 
   const formatCurrency = (amount: number) =>
     `${location.currency} ${amount.toLocaleString(undefined, {
@@ -99,7 +117,7 @@ export function PayrollRegister({
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-lg font-semibold text-foreground">
-                Payroll Register - {periodLabel}
+                Payroll - {periodLabel}
               </h2>
               <PayrollRunStatusBadge status={run.status} />
             </div>
@@ -109,7 +127,7 @@ export function PayrollRegister({
           </div>
         </div>
         <div className="flex gap-2">
-          {run.status === "finalized" && onIssuePayslips && (
+          {run.status === "finalized" && onIssuePayslips && activeTab === "register" && (
             <Button onClick={onIssuePayslips} className="gap-2">
               <FileText className="h-4 w-4" />
               Issue Payslips
@@ -118,198 +136,221 @@ export function PayrollRegister({
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Gross Pay
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold text-foreground">
-              {formatCurrency(totals.grossPay)}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Deductions
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold text-destructive">
-              {formatCurrency(totals.totalDeductions)}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Net Pay
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold text-primary">
-              {formatCurrency(totals.netPay)}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="register">Register</TabsTrigger>
+          <TabsTrigger value="payslips">Payslips</TabsTrigger>
+        </TabsList>
 
-      {/* Employee Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Employee Breakdown</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {employeesLoading ? (
-            <div className="space-y-2">
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-12" />
-              ))}
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Employee</TableHead>
-                    <TableHead className="text-right">Base Salary</TableHead>
-                    <TableHead className="text-right">Allowances</TableHead>
-                    <TableHead className="text-right">Gross Pay</TableHead>
-                    <TableHead className="text-right">GOSI</TableHead>
-                    <TableHead className="text-right">Other Ded.</TableHead>
-                    <TableHead className="text-right">Net Pay</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {employees.map((emp) => {
-                    const adjusted = getAdjustedTotals(emp);
-                    const totalAllowances =
-                      emp.housingAllowance +
-                      emp.transportationAllowance +
-                      emp.otherAllowances.reduce((s, a) => s + a.amount, 0);
-                    const otherDed = emp.otherDeductions.reduce((s, d) => s + d.amount, 0);
+        <TabsContent value="register" className="mt-6 space-y-6">
+          {/* Summary Cards */}
+          <div className="grid grid-cols-3 gap-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Total Gross Pay
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold text-foreground">
+                  {formatCurrency(totals.grossPay)}
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Total Deductions
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold text-destructive">
+                  {formatCurrency(totals.totalDeductions)}
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Total Net Pay
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold text-primary">
+                  {formatCurrency(totals.netPay)}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
 
-                    return (
-                      <TableRow key={emp.id}>
-                        <TableCell>
-                          <div>
-                            <p className="font-medium">{emp.employeeName}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {emp.department || "No department"}
-                            </p>
-                          </div>
+          {/* Employee Table */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Employee Breakdown</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {employeesLoading ? (
+                <div className="space-y-2">
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="h-12" />
+                  ))}
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Employee</TableHead>
+                        <TableHead className="text-right">Base Salary</TableHead>
+                        <TableHead className="text-right">Allowances</TableHead>
+                        <TableHead className="text-right">Gross Pay</TableHead>
+                        <TableHead className="text-right">GOSI</TableHead>
+                        <TableHead className="text-right">Other Ded.</TableHead>
+                        <TableHead className="text-right">Net Pay</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {employees.map((emp) => {
+                        const adjusted = getAdjustedTotals(emp);
+                        const totalAllowances =
+                          emp.housingAllowance +
+                          emp.transportationAllowance +
+                          emp.otherAllowances.reduce((s, a) => s + a.amount, 0);
+                        const otherDed = emp.otherDeductions.reduce((s, d) => s + d.amount, 0);
+
+                        return (
+                          <TableRow key={emp.id}>
+                            <TableCell>
+                              <div>
+                                <p className="font-medium">{emp.employeeName}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {emp.department || "No department"}
+                                </p>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {formatCurrency(emp.baseSalary)}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {formatCurrency(totalAllowances)}
+                            </TableCell>
+                            <TableCell className="text-right font-medium">
+                              {formatCurrency(adjusted.grossPay)}
+                            </TableCell>
+                            <TableCell className="text-right text-destructive">
+                              {emp.gosiDeduction > 0 ? `-${formatCurrency(emp.gosiDeduction)}` : "-"}
+                            </TableCell>
+                            <TableCell className="text-right text-destructive">
+                              {otherDed > 0 ? `-${formatCurrency(otherDed)}` : "-"}
+                            </TableCell>
+                            <TableCell className="text-right font-bold text-primary">
+                              {formatCurrency(adjusted.netPay)}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                      {/* Totals Row */}
+                      <TableRow className="bg-muted/50 font-medium">
+                        <TableCell>Total ({employees.length} employees)</TableCell>
+                        <TableCell className="text-right">
+                          {formatCurrency(totals.baseSalary)}
                         </TableCell>
                         <TableCell className="text-right">
-                          {formatCurrency(emp.baseSalary)}
+                          {formatCurrency(totals.allowances)}
                         </TableCell>
                         <TableCell className="text-right">
-                          {formatCurrency(totalAllowances)}
-                        </TableCell>
-                        <TableCell className="text-right font-medium">
-                          {formatCurrency(adjusted.grossPay)}
+                          {formatCurrency(totals.grossPay)}
                         </TableCell>
                         <TableCell className="text-right text-destructive">
-                          {emp.gosiDeduction > 0 ? `-${formatCurrency(emp.gosiDeduction)}` : "-"}
+                          -{formatCurrency(totals.gosiDeduction)}
                         </TableCell>
                         <TableCell className="text-right text-destructive">
-                          {otherDed > 0 ? `-${formatCurrency(otherDed)}` : "-"}
+                          -{formatCurrency(totals.otherDeductions)}
                         </TableCell>
                         <TableCell className="text-right font-bold text-primary">
-                          {formatCurrency(adjusted.netPay)}
+                          {formatCurrency(totals.netPay)}
                         </TableCell>
                       </TableRow>
-                    );
-                  })}
-                  {/* Totals Row */}
-                  <TableRow className="bg-muted/50 font-medium">
-                    <TableCell>Total ({employees.length} employees)</TableCell>
-                    <TableCell className="text-right">
-                      {formatCurrency(totals.baseSalary)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {formatCurrency(totals.allowances)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {formatCurrency(totals.grossPay)}
-                    </TableCell>
-                    <TableCell className="text-right text-destructive">
-                      -{formatCurrency(totals.gosiDeduction)}
-                    </TableCell>
-                    <TableCell className="text-right text-destructive">
-                      -{formatCurrency(totals.otherDeductions)}
-                    </TableCell>
-                    <TableCell className="text-right font-bold text-primary">
-                      {formatCurrency(totals.netPay)}
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-      {/* Adjustments Section */}
-      {adjustments.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">
-              One-Time Adjustments ({adjustments.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Employee</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {adjustments.map((adj) => {
-                  const emp = employees.find((e) => e.employeeId === adj.employeeId);
-                  return (
-                    <TableRow key={adj.id}>
-                      <TableCell>{emp?.employeeName || "Unknown"}</TableCell>
-                      <TableCell>
-                        <span
-                          className={`text-xs font-medium px-2 py-1 rounded-full ${
-                            adj.type === "earning"
-                              ? "bg-success/10 text-success"
-                              : "bg-destructive/10 text-destructive"
-                          }`}
-                        >
-                          {adj.type === "earning" ? "Earning" : "Deduction"}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        {adj.name}
-                        {adj.notes && (
-                          <p className="text-xs text-muted-foreground">{adj.notes}</p>
-                        )}
-                      </TableCell>
-                      <TableCell
-                        className={`text-right font-medium ${
-                          adj.type === "earning" ? "text-success" : "text-destructive"
-                        }`}
-                      >
-                        {adj.type === "earning" ? "+" : "-"}
-                        {formatCurrency(adj.amount)}
-                      </TableCell>
+          {/* Adjustments Section */}
+          {adjustments.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">
+                  One-Time Adjustments ({adjustments.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Employee</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead className="text-right">Amount</TableHead>
                     </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      )}
+                  </TableHeader>
+                  <TableBody>
+                    {adjustments.map((adj) => {
+                      const emp = employees.find((e) => e.employeeId === adj.employeeId);
+                      return (
+                        <TableRow key={adj.id}>
+                          <TableCell>{emp?.employeeName || "Unknown"}</TableCell>
+                          <TableCell>
+                            <span
+                              className={`text-xs font-medium px-2 py-1 rounded-full ${
+                                adj.type === "earning"
+                                  ? "bg-success/10 text-success"
+                                  : "bg-destructive/10 text-destructive"
+                              }`}
+                            >
+                              {adj.type === "earning" ? "Earning" : "Deduction"}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            {adj.name}
+                            {adj.notes && (
+                              <p className="text-xs text-muted-foreground">{adj.notes}</p>
+                            )}
+                          </TableCell>
+                          <TableCell
+                            className={`text-right font-medium ${
+                              adj.type === "earning" ? "text-success" : "text-destructive"
+                            }`}
+                          >
+                            {adj.type === "earning" ? "+" : "-"}
+                            {formatCurrency(adj.amount)}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="payslips" className="mt-6">
+          <PayslipsTab
+            payrollRunId={run.id}
+            payrollRun={{
+              id: run.id,
+              period_start: run.payPeriodStart,
+              period_end: run.payPeriodEnd,
+              status: run.status,
+            }}
+            employees={payslipEmployees}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
