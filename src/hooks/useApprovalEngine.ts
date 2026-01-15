@@ -77,6 +77,16 @@ export function useInitiateApproval() {
             .from("business_trips")
             .update({ status: "hr_approved" })
             .eq("id", requestId);
+        } else if (requestType === "loan") {
+          const { data: { user } } = await supabase.auth.getUser();
+          await supabase
+            .from("loans")
+            .update({
+              status: "approved",
+              approved_by: user?.id,
+              approved_at: new Date().toISOString(),
+            })
+            .eq("id", requestId);
         }
         return { autoApproved: true };
       }
@@ -93,6 +103,16 @@ export function useInitiateApproval() {
           await supabase
             .from("business_trips")
             .update({ status: "hr_approved" })
+            .eq("id", requestId);
+        } else if (requestType === "loan") {
+          const { data: { user } } = await supabase.auth.getUser();
+          await supabase
+            .from("loans")
+            .update({
+              status: "approved",
+              approved_by: user?.id,
+              approved_at: new Date().toISOString(),
+            })
             .eq("id", requestId);
         }
         return { autoApproved: true };
@@ -159,6 +179,16 @@ export function useInitiateApproval() {
             .from("business_trips")
             .update({ status: "hr_approved" })
             .eq("id", requestId);
+        } else if (requestType === "loan") {
+          const { data: { user } } = await supabase.auth.getUser();
+          await supabase
+            .from("loans")
+            .update({
+              status: "approved",
+              approved_by: user?.id,
+              approved_at: new Date().toISOString(),
+            })
+            .eq("id", requestId);
         }
         return { autoApproved: true };
       }
@@ -181,6 +211,7 @@ export function useInitiateApproval() {
           })
           .eq("id", requestId);
       }
+      // Loans stay in "requested" status until approved
 
       return { autoApproved: false };
     },
@@ -193,6 +224,11 @@ export function useInitiateApproval() {
       // Also invalidate business trips queries if relevant
       if (variables.requestType === "business_trip") {
         queryClient.invalidateQueries({ queryKey: ['business-trips'] });
+      }
+      
+      // Also invalidate loans queries if relevant
+      if (variables.requestType === "loan") {
+        queryClient.invalidateQueries({ queryKey: queryKeys.loans.all });
       }
       
       if (result.autoApproved) {

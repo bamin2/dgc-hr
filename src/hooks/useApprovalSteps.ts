@@ -104,6 +104,43 @@ export function usePendingApprovals() {
         }
       }
 
+      // Fetch loans for loan steps
+      const loanSteps = steps.filter((s) => s.request_type === "loan");
+      if (loanSteps.length > 0) {
+        const requestIds = loanSteps.map((s) => s.request_id);
+        const { data: loans, error: loanError } = await supabase
+          .from("loans")
+          .select(`
+            *,
+            employee:employees!loans_employee_id_fkey(id, first_name, last_name, full_name, avatar_url)
+          `)
+          .in("id", requestIds);
+
+        if (loanError) throw loanError;
+
+        const loanMap = new Map(loans?.map((l) => [l.id, l]));
+
+        for (const step of loanSteps) {
+          const loan = loanMap.get(step.request_id);
+          if (loan) {
+            pendingApprovals.push({
+              step: {
+                ...step,
+                request_type: step.request_type as RequestType,
+                approver_type: step.approver_type as RequestApprovalStep["approver_type"],
+                status: step.status as ApprovalStepStatus,
+              },
+              request_type: "loan",
+              request_id: step.request_id,
+              loan: {
+                ...loan,
+                employee: loan.employee as PendingApproval["loan"]["employee"],
+              },
+            });
+          }
+        }
+      }
+
       return pendingApprovals;
     },
   });
@@ -219,6 +256,15 @@ export function useApproveStep() {
             .from("business_trips")
             .update({ status: "hr_approved" })
             .eq("id", step.request_id);
+        } else if (step.request_type === "loan") {
+          await supabase
+            .from("loans")
+            .update({
+              status: "approved",
+              approved_by: user.id,
+              approved_at: new Date().toISOString(),
+            })
+            .eq("id", step.request_id);
         }
       }
 
@@ -230,6 +276,7 @@ export function useApproveStep() {
       queryClient.invalidateQueries({ queryKey: ['request-approval-steps'] });
       queryClient.invalidateQueries({ queryKey: queryKeys.leave.requests.all });
       queryClient.invalidateQueries({ queryKey: ['business-trips'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.loans.all });
       toast.success("Request approved");
     },
     onError: (error) => {
@@ -297,6 +344,14 @@ export function useRejectStep() {
             rejection_reason: comment,
           })
           .eq("id", step.request_id);
+      } else if (step.request_type === "loan") {
+        await supabase
+          .from("loans")
+          .update({
+            status: "rejected",
+            notes: comment,
+          })
+          .eq("id", step.request_id);
       }
 
       return { step };
@@ -307,6 +362,7 @@ export function useRejectStep() {
       queryClient.invalidateQueries({ queryKey: ['request-approval-steps'] });
       queryClient.invalidateQueries({ queryKey: queryKeys.leave.requests.all });
       queryClient.invalidateQueries({ queryKey: ['business-trips'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.loans.all });
       toast.success("Request rejected");
     },
     onError: (error) => {
