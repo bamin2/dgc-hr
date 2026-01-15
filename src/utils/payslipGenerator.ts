@@ -12,6 +12,19 @@ interface PayslipGeneratorData {
   companyAddress?: string;
 }
 
+// DGC Brand Colors (RGB values for jsPDF)
+const DGC_COLORS = {
+  deepGreen: { r: 15, g: 42, b: 40 },      // #0F2A28 - Header background
+  gold: { r: 198, g: 164, b: 94 },          // #C6A45E - Accents, Net Pay background
+  offWhite: { r: 247, g: 247, b: 245 },     // #F7F7F5 - Light background
+  darkText: { r: 15, g: 24, b: 18 },        // #0F1812 - Text on gold
+  lightText: { r: 231, g: 226, b: 218 },    // #E7E2DA - Text on green
+  sectionBg: { r: 245, g: 240, b: 230 },    // #F5F0E6 - Section headers
+  mutedRed: { r: 128, g: 64, b: 64 },       // #804040 - Deductions
+  orange: { r: 230, g: 94, b: 41 },         // #E65E29 - Logo accent
+  muted: { r: 120, g: 120, b: 115 },        // Muted text
+};
+
 // Dynamic import of jsPDF for reduced initial bundle
 export async function generatePayslipPDF(data: PayslipGeneratorData): Promise<InstanceType<typeof import('jspdf').default>> {
   const { default: jsPDF } = await import('jspdf');
@@ -31,48 +44,68 @@ export async function generatePayslipPDF(data: PayslipGeneratorData): Promise<In
       doc.setFontSize(10);
     }
     
+    if (isDeduction) {
+      doc.setTextColor(DGC_COLORS.mutedRed.r, DGC_COLORS.mutedRed.g, DGC_COLORS.mutedRed.b);
+    }
+    
     doc.text(label, margin + 5, y);
     doc.text(value, 190 - margin, y, { align: "right" });
     y += 7;
     
-    if (isTotal) {
+    if (isTotal || isDeduction) {
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
+      doc.setTextColor(DGC_COLORS.darkText.r, DGC_COLORS.darkText.g, DGC_COLORS.darkText.b);
     }
   };
 
   const addSection = (title: string) => {
     y += 5;
-    doc.setFillColor(245, 245, 245);
+    // Light gold/cream background for section headers
+    doc.setFillColor(DGC_COLORS.sectionBg.r, DGC_COLORS.sectionBg.g, DGC_COLORS.sectionBg.b);
     doc.rect(margin, y - 5, 170, 8, "F");
+    // Gold underline accent
+    doc.setDrawColor(DGC_COLORS.gold.r, DGC_COLORS.gold.g, DGC_COLORS.gold.b);
+    doc.setLineWidth(0.5);
+    doc.line(margin, y + 3, margin + 40, y + 3);
+    doc.setLineWidth(0.2);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
+    doc.setTextColor(DGC_COLORS.deepGreen.r, DGC_COLORS.deepGreen.g, DGC_COLORS.deepGreen.b);
     doc.text(title, margin + 3, y);
     y += 10;
     doc.setFont("helvetica", "normal");
+    doc.setTextColor(DGC_COLORS.darkText.r, DGC_COLORS.darkText.g, DGC_COLORS.darkText.b);
   };
 
-  // Company Header
-  doc.setFillColor(59, 130, 246); // Primary blue
-  doc.rect(0, 0, 210, 40, "F");
+  // Company Header - Deep Green background
+  doc.setFillColor(DGC_COLORS.deepGreen.r, DGC_COLORS.deepGreen.g, DGC_COLORS.deepGreen.b);
+  doc.rect(0, 0, 210, 45, "F");
   
-  doc.setTextColor(255, 255, 255);
+  // Orange accent slash (brand element)
+  doc.setFillColor(DGC_COLORS.orange.r, DGC_COLORS.orange.g, DGC_COLORS.orange.b);
+  doc.triangle(0, 45, 0, 25, 20, 45, "F");
+  
+  // Company name in off-white
+  doc.setTextColor(DGC_COLORS.lightText.r, DGC_COLORS.lightText.g, DGC_COLORS.lightText.b);
   doc.setFontSize(20);
   doc.setFont("helvetica", "bold");
-  doc.text(companyName, margin, 20);
+  doc.text(companyName, margin, 22);
   
   if (companyAddress) {
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
-    doc.text(companyAddress, margin, 30);
+    doc.text(companyAddress, margin, 32);
   }
 
-  // Payslip Title
+  // Payslip Title with gold accent
+  doc.setTextColor(DGC_COLORS.gold.r, DGC_COLORS.gold.g, DGC_COLORS.gold.b);
   doc.setFontSize(12);
-  doc.text("PAYSLIP", 190 - margin, 25, { align: "right" });
+  doc.setFont("helvetica", "bold");
+  doc.text("PAYSLIP", 190 - margin, 27, { align: "right" });
 
-  y = 55;
-  doc.setTextColor(0, 0, 0);
+  y = 60;
+  doc.setTextColor(DGC_COLORS.darkText.r, DGC_COLORS.darkText.g, DGC_COLORS.darkText.b);
 
   // Employee Info Section
   doc.setFontSize(12);
@@ -82,7 +115,7 @@ export async function generatePayslipPDF(data: PayslipGeneratorData): Promise<In
   
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
-  doc.setTextColor(100, 100, 100);
+  doc.setTextColor(DGC_COLORS.muted.r, DGC_COLORS.muted.g, DGC_COLORS.muted.b);
   if (employee.position) doc.text(employee.position, margin, y);
   y += 5;
   if (employee.department) doc.text(employee.department, margin, y);
@@ -90,16 +123,18 @@ export async function generatePayslipPDF(data: PayslipGeneratorData): Promise<In
   if (employee.employeeCode) doc.text(`Employee ID: ${employee.employeeCode}`, margin, y);
   
   // Pay Period (right aligned)
-  doc.setTextColor(0, 0, 0);
+  doc.setTextColor(DGC_COLORS.darkText.r, DGC_COLORS.darkText.g, DGC_COLORS.darkText.b);
   doc.setFontSize(9);
   const periodText = `Pay Period: ${format(new Date(payPeriod.start), "MMM d")} - ${format(new Date(payPeriod.end), "MMM d, yyyy")}`;
-  doc.text(periodText, 190 - margin, 55, { align: "right" });
+  doc.text(periodText, 190 - margin, 60, { align: "right" });
 
-  y = 85;
+  y = 90;
 
-  // Separator line
-  doc.setDrawColor(200, 200, 200);
+  // Separator line with gold accent
+  doc.setDrawColor(DGC_COLORS.gold.r, DGC_COLORS.gold.g, DGC_COLORS.gold.b);
+  doc.setLineWidth(0.5);
   doc.line(margin, y - 5, 190 - margin, y - 5);
+  doc.setLineWidth(0.2);
 
   // Earnings Section
   addSection("EARNINGS");
@@ -131,7 +166,7 @@ export async function generatePayslipPDF(data: PayslipGeneratorData): Promise<In
   const totalEarnings = employee.grossPay + totalEarningsAdj;
   
   y += 3;
-  doc.setDrawColor(220, 220, 220);
+  doc.setDrawColor(DGC_COLORS.gold.r, DGC_COLORS.gold.g, DGC_COLORS.gold.b);
   doc.line(margin + 5, y - 5, 190 - margin, y - 5);
   addLine("Total Earnings", formatCurrency(totalEarnings), false, true);
 
@@ -156,17 +191,19 @@ export async function generatePayslipPDF(data: PayslipGeneratorData): Promise<In
   const totalDeductions = employee.totalDeductions + totalDeductionsAdj;
   
   y += 3;
+  doc.setDrawColor(DGC_COLORS.gold.r, DGC_COLORS.gold.g, DGC_COLORS.gold.b);
   doc.line(margin + 5, y - 5, 190 - margin, y - 5);
-  doc.setTextColor(220, 38, 38); // Red for deductions
+  doc.setTextColor(DGC_COLORS.mutedRed.r, DGC_COLORS.mutedRed.g, DGC_COLORS.mutedRed.b);
   addLine("Total Deductions", `-${formatCurrency(totalDeductions)}`, true, true);
-  doc.setTextColor(0, 0, 0);
+  doc.setTextColor(DGC_COLORS.darkText.r, DGC_COLORS.darkText.g, DGC_COLORS.darkText.b);
 
-  // Net Pay Section
+  // Net Pay Section - Gold background
   y += 10;
-  doc.setFillColor(59, 130, 246);
+  doc.setFillColor(DGC_COLORS.gold.r, DGC_COLORS.gold.g, DGC_COLORS.gold.b);
   doc.rect(margin, y - 5, 170, 20, "F");
   
-  doc.setTextColor(255, 255, 255);
+  // Dark text on gold for better contrast
+  doc.setTextColor(DGC_COLORS.darkText.r, DGC_COLORS.darkText.g, DGC_COLORS.darkText.b);
   doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
   doc.text("NET PAY", margin + 5, y + 5);
@@ -175,9 +212,15 @@ export async function generatePayslipPDF(data: PayslipGeneratorData): Promise<In
   doc.setFontSize(14);
   doc.text(formatCurrency(netPay), 190 - margin - 5, y + 5, { align: "right" });
 
-  // Footer
-  y = 270;
-  doc.setTextColor(150, 150, 150);
+  // Footer with gold accent line
+  y = 265;
+  doc.setDrawColor(DGC_COLORS.gold.r, DGC_COLORS.gold.g, DGC_COLORS.gold.b);
+  doc.setLineWidth(0.5);
+  doc.line(margin, y, 190 - margin, y);
+  doc.setLineWidth(0.2);
+  
+  y = 272;
+  doc.setTextColor(DGC_COLORS.muted.r, DGC_COLORS.muted.g, DGC_COLORS.muted.b);
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
   doc.text("This is a computer-generated document. No signature is required.", 105, y, { align: "center" });
@@ -254,6 +297,7 @@ export async function downloadPayslip(
 
 /**
  * Downloads a payslip PDF from PayslipData (used in My Profile → Documents)
+ * Uses DGC brand colors and styling
  */
 export async function downloadPayslipFromCard(payslip: PayslipData): Promise<void> {
   const { default: jsPDF } = await import('jspdf');
@@ -274,48 +318,68 @@ export async function downloadPayslipFromCard(payslip: PayslipData): Promise<voi
       doc.setFontSize(10);
     }
     
+    if (isDeduction) {
+      doc.setTextColor(DGC_COLORS.mutedRed.r, DGC_COLORS.mutedRed.g, DGC_COLORS.mutedRed.b);
+    }
+    
     doc.text(label, margin + 5, y);
     doc.text(value, 190 - margin, y, { align: "right" });
     y += 7;
     
-    if (isTotal) {
+    if (isTotal || isDeduction) {
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
+      doc.setTextColor(DGC_COLORS.darkText.r, DGC_COLORS.darkText.g, DGC_COLORS.darkText.b);
     }
   };
 
   const addSection = (title: string) => {
     y += 5;
-    doc.setFillColor(245, 245, 245);
+    // Light gold/cream background for section headers
+    doc.setFillColor(DGC_COLORS.sectionBg.r, DGC_COLORS.sectionBg.g, DGC_COLORS.sectionBg.b);
     doc.rect(margin, y - 5, 170, 8, "F");
+    // Gold underline accent
+    doc.setDrawColor(DGC_COLORS.gold.r, DGC_COLORS.gold.g, DGC_COLORS.gold.b);
+    doc.setLineWidth(0.5);
+    doc.line(margin, y + 3, margin + 40, y + 3);
+    doc.setLineWidth(0.2);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
+    doc.setTextColor(DGC_COLORS.deepGreen.r, DGC_COLORS.deepGreen.g, DGC_COLORS.deepGreen.b);
     doc.text(title, margin + 3, y);
     y += 10;
     doc.setFont("helvetica", "normal");
+    doc.setTextColor(DGC_COLORS.darkText.r, DGC_COLORS.darkText.g, DGC_COLORS.darkText.b);
   };
 
-  // Company Header
-  doc.setFillColor(59, 130, 246);
-  doc.rect(0, 0, 210, 40, "F");
+  // Company Header - Deep Green background
+  doc.setFillColor(DGC_COLORS.deepGreen.r, DGC_COLORS.deepGreen.g, DGC_COLORS.deepGreen.b);
+  doc.rect(0, 0, 210, 45, "F");
   
-  doc.setTextColor(255, 255, 255);
+  // Orange accent slash (brand element)
+  doc.setFillColor(DGC_COLORS.orange.r, DGC_COLORS.orange.g, DGC_COLORS.orange.b);
+  doc.triangle(0, 45, 0, 25, 20, 45, "F");
+  
+  // Company name in off-white
+  doc.setTextColor(DGC_COLORS.lightText.r, DGC_COLORS.lightText.g, DGC_COLORS.lightText.b);
   doc.setFontSize(20);
   doc.setFont("helvetica", "bold");
-  doc.text(payslip.company.name, margin, 20);
+  doc.text(payslip.company.name, margin, 22);
   
   if (payslip.company.address) {
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
-    doc.text(payslip.company.address, margin, 30);
+    doc.text(payslip.company.address, margin, 32);
   }
 
-  // Payslip Title
+  // Payslip Title with gold accent
+  doc.setTextColor(DGC_COLORS.gold.r, DGC_COLORS.gold.g, DGC_COLORS.gold.b);
   doc.setFontSize(12);
-  doc.text("PAYSLIP", 190 - margin, 25, { align: "right" });
+  doc.setFont("helvetica", "bold");
+  doc.text("PAYSLIP", 190 - margin, 27, { align: "right" });
 
-  y = 55;
-  doc.setTextColor(0, 0, 0);
+  y = 60;
+  doc.setTextColor(DGC_COLORS.darkText.r, DGC_COLORS.darkText.g, DGC_COLORS.darkText.b);
 
   // Employee Info Section
   doc.setFontSize(12);
@@ -325,7 +389,7 @@ export async function downloadPayslipFromCard(payslip: PayslipData): Promise<voi
   
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
-  doc.setTextColor(100, 100, 100);
+  doc.setTextColor(DGC_COLORS.muted.r, DGC_COLORS.muted.g, DGC_COLORS.muted.b);
   if (payslip.employee.position) doc.text(payslip.employee.position, margin, y);
   y += 5;
   if (payslip.employee.department) doc.text(payslip.employee.department, margin, y);
@@ -333,16 +397,18 @@ export async function downloadPayslipFromCard(payslip: PayslipData): Promise<voi
   if (payslip.employee.code) doc.text(`Employee ID: ${payslip.employee.code}`, margin, y);
   
   // Pay Period (right aligned)
-  doc.setTextColor(0, 0, 0);
+  doc.setTextColor(DGC_COLORS.darkText.r, DGC_COLORS.darkText.g, DGC_COLORS.darkText.b);
   doc.setFontSize(9);
   const periodText = `Pay Period: ${format(new Date(payslip.payPeriod.startDate), "MMM d")} - ${format(new Date(payslip.payPeriod.endDate), "MMM d, yyyy")}`;
-  doc.text(periodText, 190 - margin, 55, { align: "right" });
+  doc.text(periodText, 190 - margin, 60, { align: "right" });
 
-  y = 85;
+  y = 90;
 
-  // Separator line
-  doc.setDrawColor(200, 200, 200);
+  // Separator line with gold accent
+  doc.setDrawColor(DGC_COLORS.gold.r, DGC_COLORS.gold.g, DGC_COLORS.gold.b);
+  doc.setLineWidth(0.5);
   doc.line(margin, y - 5, 190 - margin, y - 5);
+  doc.setLineWidth(0.2);
 
   // Earnings Section
   addSection("EARNINGS");
@@ -362,7 +428,7 @@ export async function downloadPayslipFromCard(payslip: PayslipData): Promise<voi
   });
 
   y += 3;
-  doc.setDrawColor(220, 220, 220);
+  doc.setDrawColor(DGC_COLORS.gold.r, DGC_COLORS.gold.g, DGC_COLORS.gold.b);
   doc.line(margin + 5, y - 5, 190 - margin, y - 5);
   addLine("Total Earnings", formatCurrency(payslip.earnings.grossPay), false, true);
 
@@ -379,18 +445,20 @@ export async function downloadPayslipFromCard(payslip: PayslipData): Promise<voi
 
   if (payslip.deductions.totalDeductions > 0) {
     y += 3;
+    doc.setDrawColor(DGC_COLORS.gold.r, DGC_COLORS.gold.g, DGC_COLORS.gold.b);
     doc.line(margin + 5, y - 5, 190 - margin, y - 5);
-    doc.setTextColor(220, 38, 38);
+    doc.setTextColor(DGC_COLORS.mutedRed.r, DGC_COLORS.mutedRed.g, DGC_COLORS.mutedRed.b);
     addLine("Total Deductions", `-${formatCurrency(payslip.deductions.totalDeductions)}`, true, true);
-    doc.setTextColor(0, 0, 0);
+    doc.setTextColor(DGC_COLORS.darkText.r, DGC_COLORS.darkText.g, DGC_COLORS.darkText.b);
   }
 
-  // Net Pay Section
+  // Net Pay Section - Gold background
   y += 10;
-  doc.setFillColor(59, 130, 246);
+  doc.setFillColor(DGC_COLORS.gold.r, DGC_COLORS.gold.g, DGC_COLORS.gold.b);
   doc.rect(margin, y - 5, 170, 20, "F");
   
-  doc.setTextColor(255, 255, 255);
+  // Dark text on gold for better contrast
+  doc.setTextColor(DGC_COLORS.darkText.r, DGC_COLORS.darkText.g, DGC_COLORS.darkText.b);
   doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
   doc.text("NET PAY", margin + 5, y + 5);
@@ -398,9 +466,15 @@ export async function downloadPayslipFromCard(payslip: PayslipData): Promise<voi
   doc.setFontSize(14);
   doc.text(formatCurrency(payslip.netPay), 190 - margin - 5, y + 5, { align: "right" });
 
-  // Footer
-  y = 270;
-  doc.setTextColor(150, 150, 150);
+  // Footer with gold accent line
+  y = 265;
+  doc.setDrawColor(DGC_COLORS.gold.r, DGC_COLORS.gold.g, DGC_COLORS.gold.b);
+  doc.setLineWidth(0.5);
+  doc.line(margin, y, 190 - margin, y);
+  doc.setLineWidth(0.2);
+  
+  y = 272;
+  doc.setTextColor(DGC_COLORS.muted.r, DGC_COLORS.muted.g, DGC_COLORS.muted.b);
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
   doc.text("This is a computer-generated document. No signature is required.", 105, y, { align: "center" });
