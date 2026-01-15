@@ -86,8 +86,9 @@ export function PayslipsTab({ payrollRunId, payrollRun, employees }: PayslipsTab
 
       if (error) throw error;
 
-      // Invalidate queries to refresh the list
-      queryClient.invalidateQueries({ queryKey: ['payslip-documents', 'run', payrollRunId] });
+      // Wait for refetch to complete before showing success
+      await queryClient.invalidateQueries({ queryKey: ['payslip-documents', 'run', payrollRunId] });
+      await queryClient.refetchQueries({ queryKey: ['payslip-documents', 'run', payrollRunId] });
       
       const successCount = data.results?.filter((r: any) => r.success).length || 0;
       const failCount = data.results?.filter((r: any) => !r.success).length || 0;
@@ -313,7 +314,11 @@ export function PayslipsTab({ payrollRunId, payrollRun, employees }: PayslipsTab
                                 },
                               });
                               if (error) throw error;
-                              queryClient.invalidateQueries({ queryKey: ['payslip-documents', 'run', payrollRunId] });
+                              
+                              // Wait for refetch to complete before showing success
+                              await queryClient.invalidateQueries({ queryKey: ['payslip-documents', 'run', payrollRunId] });
+                              await queryClient.refetchQueries({ queryKey: ['payslip-documents', 'run', payrollRunId] });
+                              
                               toast.success(`Payslip ${isGenerated ? 'regenerated' : 'generated'} for ${emp.employee.first_name} ${emp.employee.last_name}`);
                             } catch (error) {
                               toast.error("Failed to generate payslip");
