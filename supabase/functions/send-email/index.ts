@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 import { processTemplate, formatDate, formatShortDate, type TemplateData } from "../_shared/templateProcessor.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
@@ -16,10 +17,13 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const BRAND_PRIMARY = "#804EEC";
 const BRAND_PRIMARY_DARK = "#6B3FD4";
 
-interface EmailRequest {
-  type: "leave_request_submitted" | "leave_request_approved" | "leave_request_rejected";
-  leaveRequestId?: string;
-}
+// Input validation schema
+const EmailRequestSchema = z.object({
+  type: z.enum(["leave_request_submitted", "leave_request_approved", "leave_request_rejected"]),
+  leaveRequestId: z.string().uuid({ message: 'Invalid leave request ID format' }).optional(),
+});
+
+type EmailRequest = z.infer<typeof EmailRequestSchema>;
 
 interface ResendResponse {
   id?: string;
@@ -82,7 +86,27 @@ serve(async (req: Request): Promise<Response> => {
 
   try {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-    const { type, leaveRequestId }: EmailRequest = await req.json();
+    
+    // Parse and validate request body
+    let emailRequest: EmailRequest;
+    try {
+      const rawBody = await req.json();
+      emailRequest = EmailRequestSchema.parse(rawBody);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const message = error.errors.map(e => e.message).join(', ');
+        return new Response(
+          JSON.stringify({ error: message }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      return new Response(
+        JSON.stringify({ error: 'Invalid request body' }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    const { type, leaveRequestId } = emailRequest;
 
     // Get company settings with all branding data
     const { data: companySettings } = await supabase
