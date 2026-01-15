@@ -4,13 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { RefreshCw, Eye } from "lucide-react";
+import { Download, FileText, AlertCircle, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PayslipTemplateSettings } from "@/types/payslip-template";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { useCompanySettings } from "@/contexts/CompanySettingsContext";
+import { toast } from "sonner";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface PayrollRun {
   id: string;
@@ -40,11 +42,13 @@ interface PayrollRunEmployee {
 interface TemplatePreviewTabProps {
   settings: PayslipTemplateSettings;
   docxStoragePath: string | null;
+  templateId: string;
 }
 
-export function TemplatePreviewTab({ settings, docxStoragePath }: TemplatePreviewTabProps) {
+export function TemplatePreviewTab({ settings, docxStoragePath, templateId }: TemplatePreviewTabProps) {
   const [selectedPayrollRun, setSelectedPayrollRun] = useState<string>("");
   const [selectedEmployee, setSelectedEmployee] = useState<string>("");
+  const [isDownloading, setIsDownloading] = useState(false);
   const { settings: companySettings } = useCompanySettings();
 
   // Fetch payroll runs
@@ -86,24 +90,80 @@ export function TemplatePreviewTab({ settings, docxStoragePath }: TemplatePrevie
 
   const selectedPayrollRunData = payrollRuns?.find((r) => r.id === selectedPayrollRun);
 
-  const formatCurrency = (amount: number | null, currencyCode: string = 'BHD') => {
-    if (amount === null) return '-';
-    return `${currencyCode} ${amount.toFixed(settings.layout.decimals)}`;
+  const handleDownloadPreview = async () => {
+    if (!selectedPayrollRun || !selectedEmployee || !templateId) {
+      toast.error("Please select a payroll run and employee");
+      return;
+    }
+
+    if (!docxStoragePath) {
+      toast.error("No template file uploaded. Please upload a DOCX template first.");
+      return;
+    }
+
+    setIsDownloading(true);
+    try {
+      const response = await supabase.functions.invoke('preview-payslip-template', {
+        body: {
+          template_id: templateId,
+          payroll_run_id: selectedPayrollRun,
+          employee_id: selectedEmployee,
+        },
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || 'Failed to generate preview');
+      }
+
+      // The response.data should be a Blob
+      const blob = response.data;
+      if (!(blob instanceof Blob)) {
+        throw new Error('Invalid response format');
+      }
+
+      // Create download link
+      const url = URL.createObjectURL(blob);
+      const monthYear = selectedPayrollRunData 
+        ? format(new Date(selectedPayrollRunData.pay_period_start), 'MMMM_yyyy')
+        : 'preview';
+      const filename = `preview_${monthYear}_${selectedEmployeeData?.employee_code || 'employee'}.docx`;
+      
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast.success("Preview downloaded successfully");
+    } catch (error: any) {
+      console.error("Error downloading preview:", error);
+      toast.error(error.message || "Failed to download preview");
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
-  const totalAllowances = selectedEmployeeData 
-    ? (selectedEmployeeData.housing_allowance || 0) + 
-      (selectedEmployeeData.transportation_allowance || 0) + 
-      (selectedEmployeeData.other_allowances || 0)
-    : 0;
+  const hasTemplate = !!docxStoragePath;
 
   return (
     <div className="space-y-6">
+      {!hasTemplate && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>No Template File</AlertTitle>
+          <AlertDescription>
+            Please upload a DOCX template in the "Template File" tab before previewing.
+          </AlertDescription>
+        </Alert>
+      )}
+
       <Card>
         <CardHeader>
-          <CardTitle>Preview Configuration</CardTitle>
+          <CardTitle>Preview & Download</CardTitle>
           <CardDescription>
-            Select a payroll run and employee to preview the payslip
+            Select a payroll run and employee to download a preview of your template filled with actual payroll data
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -153,178 +213,80 @@ export function TemplatePreviewTab({ settings, docxStoragePath }: TemplatePrevie
             </div>
           </div>
 
-          <div className="flex gap-2">
+          <Separator />
+
+          <div className="flex flex-col gap-4">
             <Button
-              variant="outline"
-              disabled={!selectedEmployee}
-              onClick={() => {
-                // Refresh preview
-                setSelectedEmployee(selectedEmployee);
-              }}
+              onClick={handleDownloadPreview}
+              disabled={!selectedEmployee || !hasTemplate || isDownloading}
+              className="w-full sm:w-auto"
             >
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh Preview
+              {isDownloading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Generating Preview...
+                </>
+              ) : (
+                <>
+                  <Download className="h-4 w-4 mr-2" />
+                  Download Preview DOCX
+                </>
+              )}
             </Button>
+            
+            <p className="text-sm text-muted-foreground">
+              Downloads a Word document with your template filled using the selected employee's payroll data. 
+              Open it in Word to verify that all tags (e.g., {"{{NET_PAY}}"}, {"{{EMPLOYEE_FULL_NAME}}"}) are replaced correctly.
+            </p>
           </div>
         </CardContent>
       </Card>
 
-      {/* Payslip Preview */}
+      {/* Preview Info Card */}
       {selectedEmployeeData && selectedPayrollRunData && (
-        <Card className="overflow-hidden">
-          <CardHeader className="bg-[hsl(var(--primary))] text-primary-foreground">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-xl text-primary-foreground">Payslip Preview</CardTitle>
-                <CardDescription className="text-primary-foreground/80">
-                  This is how the payslip will appear
-                </CardDescription>
-              </div>
-              <Eye className="h-8 w-8 opacity-50" />
-            </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Selected Data Preview
+            </CardTitle>
+            <CardDescription>
+              The following data will be used to fill your template
+            </CardDescription>
           </CardHeader>
-          <CardContent className="p-0">
-            <div className="bg-background p-6 space-y-6">
-              {/* Company Header */}
-              {settings.branding.show_logo && (
-                <div className={`text-${settings.branding.logo_alignment}`}>
-                  <h2 className="text-2xl font-bold">{companySettings?.name || 'Company Name'}</h2>
-                  {settings.branding.show_company_address && (
-                    <p className="text-sm text-muted-foreground">
-                      Company Address
-                    </p>
-                  )}
-                </div>
-              )}
-
-              <Separator />
-
-              {/* Employee Details */}
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <h3 className="font-semibold">Employee Details</h3>
-                  <div className="text-sm space-y-1">
-                    <p><span className="text-muted-foreground">Name:</span> {selectedEmployeeData.employee_name}</p>
-                    {settings.visibility.show_employee_id && (
-                      <p><span className="text-muted-foreground">Employee ID:</span> {selectedEmployeeData.employee_code}</p>
-                    )}
-                    {settings.visibility.show_department && selectedEmployeeData.department && (
-                      <p><span className="text-muted-foreground">Department:</span> {selectedEmployeeData.department}</p>
-                    )}
-                    {settings.visibility.show_job_title && selectedEmployeeData.position && (
-                      <p><span className="text-muted-foreground">Position:</span> {selectedEmployeeData.position}</p>
-                    )}
-                  </div>
-                </div>
-
-                {settings.visibility.show_pay_period && (
-                  <div className="space-y-2">
-                    <h3 className="font-semibold">Pay Period</h3>
-                    <div className="text-sm space-y-1">
-                      <p><span className="text-muted-foreground">From:</span> {format(new Date(selectedPayrollRunData.pay_period_start), 'dd MMM yyyy')}</p>
-                      <p><span className="text-muted-foreground">To:</span> {format(new Date(selectedPayrollRunData.pay_period_end), 'dd MMM yyyy')}</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <Separator />
-
-              {/* Earnings */}
-              <div className="space-y-3">
-                <h3 className="font-semibold">Earnings</h3>
-                <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Base Salary</span>
-                    <span className="font-medium">{formatCurrency(selectedEmployeeData.base_salary)}</span>
-                  </div>
-                  {settings.breakdown.earnings_breakdown === 'detailed' ? (
-                    <>
-                      <div className="flex justify-between text-sm text-muted-foreground">
-                        <span className="pl-2">• Housing Allowance</span>
-                        <span>{formatCurrency(selectedEmployeeData.housing_allowance)}</span>
-                      </div>
-                      <div className="flex justify-between text-sm text-muted-foreground">
-                        <span className="pl-2">• Transportation Allowance</span>
-                        <span>{formatCurrency(selectedEmployeeData.transportation_allowance)}</span>
-                      </div>
-                      {selectedEmployeeData.other_allowances > 0 && (
-                        <div className="flex justify-between text-sm text-muted-foreground">
-                          <span className="pl-2">• Other Allowances</span>
-                          <span>{formatCurrency(selectedEmployeeData.other_allowances)}</span>
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <div className="flex justify-between text-sm">
-                      <span>Total Allowances</span>
-                      <span>{formatCurrency(totalAllowances)}</span>
-                    </div>
-                  )}
-                  <Separator />
-                  <div className="flex justify-between font-medium">
-                    <span>Gross Pay</span>
-                    <span>{formatCurrency(selectedEmployeeData.gross_pay)}</span>
-                  </div>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2 text-sm">
+              <div className="space-y-2">
+                <h4 className="font-medium">Employee</h4>
+                <div className="space-y-1 text-muted-foreground">
+                  <p>Name: {selectedEmployeeData.employee_name}</p>
+                  <p>Code: {selectedEmployeeData.employee_code}</p>
+                  {selectedEmployeeData.department && <p>Department: {selectedEmployeeData.department}</p>}
+                  {selectedEmployeeData.position && <p>Position: {selectedEmployeeData.position}</p>}
                 </div>
               </div>
-
-              {/* Deductions */}
-              <div className="space-y-3">
-                <h3 className="font-semibold">Deductions</h3>
-                <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-                  {settings.breakdown.deductions_breakdown === 'detailed' ? (
-                    <>
-                      {settings.breakdown.include_gosi_line && selectedEmployeeData.gosi_deduction > 0 && (
-                        <div className="flex justify-between text-sm text-muted-foreground">
-                          <span className="pl-2">• GOSI Employee Contribution</span>
-                          <span className="text-destructive">-{formatCurrency(selectedEmployeeData.gosi_deduction)}</span>
-                        </div>
-                      )}
-                      {selectedEmployeeData.other_deductions > 0 && (
-                        <div className="flex justify-between text-sm text-muted-foreground">
-                          <span className="pl-2">• Other Deductions</span>
-                          <span className="text-destructive">-{formatCurrency(selectedEmployeeData.other_deductions)}</span>
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <div className="flex justify-between text-sm">
-                      <span>Total Deductions</span>
-                      <span className="text-destructive">-{formatCurrency(selectedEmployeeData.total_deductions)}</span>
-                    </div>
-                  )}
-                  <Separator />
-                  <div className="flex justify-between font-medium">
-                    <span>Total Deductions</span>
-                    <span className="text-destructive">-{formatCurrency(selectedEmployeeData.total_deductions)}</span>
-                  </div>
+              <div className="space-y-2">
+                <h4 className="font-medium">Pay Period</h4>
+                <div className="space-y-1 text-muted-foreground">
+                  <p>From: {format(new Date(selectedPayrollRunData.pay_period_start), 'dd MMM yyyy')}</p>
+                  <p>To: {format(new Date(selectedPayrollRunData.pay_period_end), 'dd MMM yyyy')}</p>
                 </div>
               </div>
-
-              <Separator />
-
-              {/* Net Pay */}
-              <div className="bg-primary/10 rounded-lg p-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-lg font-semibold">Net Pay</span>
-                  <span className="text-2xl font-bold text-primary">
-                    {formatCurrency(selectedEmployeeData.net_pay)}
-                  </span>
+              <div className="space-y-2">
+                <h4 className="font-medium">Earnings</h4>
+                <div className="space-y-1 text-muted-foreground">
+                  <p>Base Salary: {selectedEmployeeData.base_salary?.toFixed(2)}</p>
+                  <p>Gross Pay: {selectedEmployeeData.gross_pay?.toFixed(2)}</p>
                 </div>
               </div>
-
-              {/* Footer */}
-              {(settings.branding.footer_disclaimer_text || settings.branding.show_generated_timestamp) && (
-                <div className="pt-4 border-t text-xs text-muted-foreground text-center space-y-1">
-                  {settings.branding.footer_disclaimer_text && (
-                    <p>{settings.branding.footer_disclaimer_text}</p>
-                  )}
-                  {settings.branding.show_generated_timestamp && (
-                    <p>Generated on: {format(new Date(), 'dd MMM yyyy, HH:mm')}</p>
-                  )}
+              <div className="space-y-2">
+                <h4 className="font-medium">Net Pay</h4>
+                <div className="space-y-1">
+                  <p className="text-lg font-semibold text-primary">
+                    {selectedEmployeeData.net_pay?.toFixed(2)}
+                  </p>
                 </div>
-              )}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -333,8 +295,8 @@ export function TemplatePreviewTab({ settings, docxStoragePath }: TemplatePrevie
       {!selectedEmployee && (
         <Card>
           <CardContent className="py-12 text-center text-muted-foreground">
-            <Eye className="h-12 w-12 mx-auto mb-4 opacity-30" />
-            <p>Select a payroll run and employee to preview the payslip</p>
+            <FileText className="h-12 w-12 mx-auto mb-4 opacity-30" />
+            <p>Select a payroll run and employee to preview the data</p>
           </CardContent>
         </Card>
       )}

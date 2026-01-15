@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.generate-payslips]
 verify_jwt = false
+
+[functions.preview-payslip-template]
+verify_jwt = false

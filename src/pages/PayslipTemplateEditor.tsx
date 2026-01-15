@@ -249,6 +249,7 @@ export default function PayslipTemplateEditor() {
             <TemplatePreviewTab
               settings={settings}
               docxStoragePath={docxStoragePath}
+              templateId={id || ""}
             />
           </TabsContent>
         </Tabs>
