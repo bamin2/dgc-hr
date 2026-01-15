@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Download, FileText, Loader2, RefreshCw, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Download, FileText, Loader2, RefreshCw, AlertCircle, CheckCircle2, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -61,6 +61,7 @@ export function PayslipsTab({ payrollRunId, payrollRun, employees }: PayslipsTab
   const issuePayslips = useIssuePayslips();
   const [generating, setGenerating] = useState(false);
   const [downloadingAll, setDownloadingAll] = useState(false);
+  const [sendingEmails, setSendingEmails] = useState(false);
 
   // Create a map of employee_id to payslip document
   const payslipMap = new Map<string, PayslipDocument>();
@@ -111,6 +112,31 @@ export function PayslipsTab({ payrollRunId, payrollRun, employees }: PayslipsTab
       toast.error("Failed to generate payslips");
     } finally {
       setGenerating(false);
+    }
+  };
+
+  const handleSendEmailNotifications = async () => {
+    setSendingEmails(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-payslip', {
+        body: { payrollRunId: payrollRunId },
+      });
+
+      if (error) throw error;
+
+      const successCount = data.sent || 0;
+      const failCount = data.failed || 0;
+
+      if (failCount > 0) {
+        toast.warning(`Sent ${successCount} emails, ${failCount} failed`);
+      } else {
+        toast.success(`Email notifications sent to ${successCount} employees`);
+      }
+    } catch (error) {
+      console.error("Error sending email notifications:", error);
+      toast.error("Failed to send email notifications");
+    } finally {
+      setSendingEmails(false);
     }
   };
 
@@ -207,19 +233,56 @@ export function PayslipsTab({ payrollRunId, payrollRun, employees }: PayslipsTab
                 </AlertDialogContent>
               </AlertDialog>
 
-              <Button
-                variant="outline"
-                disabled={downloadingAll || generatedCount === 0}
-                onClick={handleDownloadAll}
-                className="gap-2"
-              >
-                {downloadingAll ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Download className="h-4 w-4" />
-                )}
-                Download All
-              </Button>
+              {generatedCount > 0 && (
+                <>
+                  <Button
+                    variant="outline"
+                    disabled={downloadingAll}
+                    onClick={handleDownloadAll}
+                    className="gap-2"
+                  >
+                    {downloadingAll ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Download className="h-4 w-4" />
+                    )}
+                    Download All
+                  </Button>
+
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        disabled={sendingEmails}
+                        className="gap-2"
+                      >
+                        {sendingEmails ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Mail className="h-4 w-4" />
+                        )}
+                        Send Email Notifications
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Send Payslip Notifications?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will send email notifications to all {generatedCount} employees 
+                          informing them that their payslip for {format(new Date(payrollRun.period_start), "MMMM yyyy")} 
+                          is now available. Employees who have disabled email notifications will be skipped.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleSendEmailNotifications}>
+                          Send Notifications
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </>
+              )}
             </div>
           </div>
         </CardHeader>
