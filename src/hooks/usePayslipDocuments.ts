@@ -144,20 +144,30 @@ export function useVoidPayslipDocument() {
 
 export async function downloadPayslipPDF(storagePath: string, filename?: string) {
   try {
-    const { data, error } = await supabase.storage
+    // Create a signed URL with cache-busting parameter
+    const { data: signedData, error: signedError } = await supabase.storage
       .from('payslips')
-      .download(storagePath);
+      .createSignedUrl(storagePath, 60); // 1 minute expiry
 
-    if (error) throw error;
+    if (signedError) throw signedError;
 
-    const url = URL.createObjectURL(data);
+    // Add cache-busting timestamp to bypass browser/CDN cache
+    const url = `${signedData.signedUrl}&t=${Date.now()}`;
+
+    // Download via fetch to ensure fresh content
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Download failed');
+
+    const blob = await response.blob();
+    const downloadUrl = URL.createObjectURL(blob);
+
     const a = document.createElement('a');
-    a.href = url;
+    a.href = downloadUrl;
     a.download = filename || storagePath.split('/').pop() || 'payslip.pdf';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    URL.revokeObjectURL(downloadUrl);
   } catch (error) {
     toast.error("Failed to download payslip");
     throw error;
