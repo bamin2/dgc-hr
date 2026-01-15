@@ -118,14 +118,22 @@ export function useCreatePayslipTemplate() {
 
   return useMutation({
     mutationFn: async (template: PayslipTemplateInsert) => {
+      const insertData = {
+        name: template.name,
+        description: template.description || null,
+        status: template.status || 'draft',
+        version_number: template.version_number || 1,
+        effective_from: template.effective_from || null,
+        is_default: template.is_default || false,
+        work_location_id: template.work_location_id || null,
+        docx_storage_path: template.docx_storage_path,
+        original_filename: template.original_filename || null,
+        settings: template.settings || {},
+      };
+      
       const { data, error } = await supabase
         .from("payslip_templates")
-        .insert(template as unknown as Record<string, unknown>)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data as unknown as PayslipTemplate;
+        .insert(insertData)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: payslipTemplateKeys.all });

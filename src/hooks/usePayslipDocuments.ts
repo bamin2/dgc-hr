@@ -85,14 +85,22 @@ export function useCreatePayslipDocument() {
 
   return useMutation({
     mutationFn: async (document: PayslipDocumentInsert) => {
+      const insertData = {
+        payroll_run_id: document.payroll_run_id,
+        employee_id: document.employee_id,
+        template_id: document.template_id,
+        period_start: document.period_start,
+        period_end: document.period_end,
+        currency_code: document.currency_code || 'BHD',
+        pdf_storage_path: document.pdf_storage_path,
+        generated_by: document.generated_by || null,
+        status: document.status || 'generated',
+        metadata: document.metadata || {},
+      };
+      
       const { data, error } = await supabase
         .from("payslip_documents")
-        .insert(document as unknown as Record<string, unknown>)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data as unknown as PayslipDocument;
+        .insert(insertData)
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: payslipDocumentKeys.byPayrollRun(data.payroll_run_id) });
