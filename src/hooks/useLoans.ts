@@ -427,7 +427,7 @@ export function useMarkInstallmentPaid() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ installmentId, method }: { installmentId: string; method: "payroll" | "manual"; payrollRunId?: string }) => {
+    mutationFn: async ({ installmentId, method, loanId }: { installmentId: string; method: "payroll" | "manual"; loanId?: string; payrollRunId?: string }) => {
       const { error } = await supabase
         .from("loan_installments")
         .update({
@@ -438,9 +438,13 @@ export function useMarkInstallmentPaid() {
         .eq("id", installmentId);
 
       if (error) throw error;
+      return { loanId };
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.loans.all });
+      if (variables.loanId) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.loans.detail(variables.loanId) });
+      }
     },
   });
 }
