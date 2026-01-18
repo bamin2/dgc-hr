@@ -121,6 +121,7 @@ export interface PDFExportConfig<T extends Record<string, unknown>> {
   dateRange?: { start: string; end: string };
   includeTotals?: boolean;
   totals?: Record<string, number>;
+  columnTotals?: Record<string, number>; // Totals row aligned under each column
   orientation?: 'portrait' | 'landscape';
 }
 
@@ -140,6 +141,7 @@ export async function exportToPDF<T extends Record<string, unknown>>(config: PDF
     dateRange,
     includeTotals = false,
     totals,
+    columnTotals,
     orientation = 'landscape',
   } = config;
 
@@ -232,6 +234,49 @@ export async function exportToPDF<T extends Record<string, unknown>>(config: PDF
 
     currentY += 7;
   });
+
+  // Column totals row (aligned under each column)
+  if (columnTotals && Object.keys(columnTotals).length > 0) {
+    // Check if we need a new page for totals
+    if (currentY > pageHeight - 25) {
+      doc.addPage();
+      currentY = margin;
+    }
+
+    // Draw separator line
+    doc.setDrawColor(100, 100, 100);
+    doc.setLineWidth(0.5);
+    doc.line(margin, currentY, pageWidth - margin, currentY);
+    currentY += 3;
+
+    // Totals row background
+    doc.setFillColor(230, 230, 230);
+    doc.rect(margin, currentY - 2, availableWidth, 8, 'F');
+
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+
+    columns.forEach((col, colIndex) => {
+      const x = margin + colIndex * colWidth + 2;
+      const colKey = col.key as string;
+      
+      if (colIndex === 0) {
+        // First column shows "TOTAL"
+        doc.text('TOTAL', x, currentY + 4);
+      } else if (columnTotals[colKey] !== undefined) {
+        // Show the total value for this column
+        const totalValue = columnTotals[colKey];
+        const formatted = formatValue(totalValue, col.format);
+        const maxChars = Math.floor(colWidth / 2);
+        const displayText = formatted.length > maxChars 
+          ? formatted.substring(0, maxChars - 2) + '..' 
+          : formatted;
+        doc.text(displayText, x, currentY + 4);
+      }
+    });
+
+    currentY += 10;
+  }
 
   // Totals section
   if (includeTotals && totals) {
