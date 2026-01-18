@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
-  ArrowLeft,
   Mail,
   Phone,
   MapPin,
@@ -26,6 +25,7 @@ import { useEmployeeAllowances } from "@/hooks/useEmployeeAllowances";
 import { useEmployeeDeductions } from "@/hooks/useEmployeeDeductions";
 import { Separator } from "@/components/ui/separator";
 import { DashboardLayout } from "@/components/dashboard";
+import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -272,15 +272,32 @@ export default function EmployeeProfile() {
 
   return (
     <DashboardLayout>
-      {/* Back Button */}
-      <Button
-        variant="ghost"
-        className="mb-4 gap-2"
-        onClick={() => navigate('/employees')}
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Back to Employees
-      </Button>
+      <PageHeader
+        title={employee.fullName}
+        subtitle={`${employee.position} • ${employee.department}`}
+        breadcrumbs={[
+          { label: "Employees", href: "/employees" },
+          { label: employee.fullName },
+        ]}
+        actions={
+          canEditEmployees && (
+            <div className="flex gap-2">
+              <Button variant="outline" className="gap-2" onClick={() => setFormOpen(true)}>
+                <Pencil className="h-4 w-4" />
+                <span className="hidden sm:inline">Edit</span>
+              </Button>
+              <Button variant="outline" className="gap-2">
+                <MessageSquare className="h-4 w-4" />
+                <span className="hidden sm:inline">Message</span>
+              </Button>
+              <Button variant="outline" className="gap-2 text-destructive hover:text-destructive">
+                <UserX className="h-4 w-4" />
+                <span className="hidden sm:inline">Deactivate</span>
+              </Button>
+            </div>
+          )
+        }
+      />
 
       {/* Profile Header Card */}
       <Card className="mb-6">
@@ -322,23 +339,6 @@ export default function EmployeeProfile() {
                 )}
               </div>
             </div>
-            
-            {canEditEmployees && (
-              <div className="flex gap-2">
-                <Button variant="outline" className="gap-2" onClick={() => setFormOpen(true)}>
-                  <Pencil className="h-4 w-4" />
-                  Edit
-                </Button>
-                <Button variant="outline" className="gap-2">
-                  <MessageSquare className="h-4 w-4" />
-                  Message
-                </Button>
-                <Button variant="outline" className="gap-2 text-destructive hover:text-destructive">
-                  <UserX className="h-4 w-4" />
-                  Deactivate
-                </Button>
-              </div>
-            )}
           </div>
         </CardContent>
       </Card>

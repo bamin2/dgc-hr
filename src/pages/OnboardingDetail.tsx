@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard";
+import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -19,12 +20,10 @@ import {
   OnboardingTaskList,
 } from "@/components/employees";
 import {
-  ArrowLeft,
   CheckCircle2,
   Clock,
   Calendar,
   Send,
-  RotateCcw,
   FileText,
   GraduationCap,
   Settings,
@@ -151,56 +150,41 @@ export default function OnboardingDetail() {
 
   return (
     <DashboardLayout>
-      {/* Header */}
-      <div className="mb-6">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigate("/employees")}
-          className="mb-4"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Employees
-        </Button>
-
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <Avatar className="w-16 h-16">
-              <AvatarImage src={record.employee?.avatar_url || undefined} />
-              <AvatarFallback className="text-lg">
-                {record.employee
-                  ? `${record.employee.first_name[0]}${record.employee.last_name[0]}`
-                  : "?"}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <h1 className="text-2xl font-bold">{employeeName}</h1>
-              <p className="text-muted-foreground">
-                {employeePosition} • {employeeDepartment}
-              </p>
-              <div className="flex items-center gap-2 mt-1">
-                <OnboardingStatusBadge status={record.status} />
-                <span className="text-sm text-muted-foreground">
-                  • {record.workflow_name} Workflow
-                </span>
-              </div>
-            </div>
-          </div>
-
+      <PageHeader
+        title={employeeName}
+        subtitle={`${employeePosition} • ${employeeDepartment} • ${record.workflow_name} Workflow`}
+        breadcrumbs={[
+          { label: "Employees", href: "/employees" },
+          { label: "Onboarding" },
+          { label: employeeName },
+        ]}
+        actions={
           <div className="flex items-center gap-4">
             <div className="text-right">
-              <p className="text-3xl font-bold text-primary">{progress}%</p>
-              <p className="text-sm text-muted-foreground">Complete</p>
+              <p className="text-2xl sm:text-3xl font-bold text-primary">{progress}%</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Complete</p>
             </div>
-            <div className="w-32">
+            <div className="w-24 sm:w-32">
               <Progress value={progress} className="h-3" />
               <p className="text-xs text-muted-foreground mt-1 text-center">
                 {completedTasks} of {totalTasks} tasks
               </p>
             </div>
           </div>
+        }
+      >
+        <div className="flex items-center gap-3">
+          <Avatar className="w-12 h-12 sm:w-16 sm:h-16">
+            <AvatarImage src={record.employee?.avatar_url || undefined} />
+            <AvatarFallback className="text-base sm:text-lg">
+              {record.employee
+                ? `${record.employee.first_name[0]}${record.employee.last_name[0]}`
+                : "?"}
+            </AvatarFallback>
+          </Avatar>
+          <OnboardingStatusBadge status={record.status} />
         </div>
-      </div>
+      </PageHeader>
 
       {/* Main Content */}
       <div className="grid lg:grid-cols-3 gap-6">

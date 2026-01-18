@@ -47,7 +47,7 @@ export const EnrollmentDetailsDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent size="lg">
         <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <DialogTitle>Enrollment Details</DialogTitle>
           {enrollment.status === 'active' && onEdit && (

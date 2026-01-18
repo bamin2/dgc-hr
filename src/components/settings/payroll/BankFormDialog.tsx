@@ -68,7 +68,7 @@ export const BankFormDialog = ({ open, onOpenChange, bank }: BankFormDialogProps
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent size="md">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>{isEditing ? "Edit Bank" : "Add Bank"}</DialogTitle>

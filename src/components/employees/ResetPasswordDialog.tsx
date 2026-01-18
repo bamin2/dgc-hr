@@ -102,7 +102,7 @@ export function ResetPasswordDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent size="md">
         <DialogHeader>
           <DialogTitle>Reset Employee Password</DialogTitle>
           <DialogDescription>

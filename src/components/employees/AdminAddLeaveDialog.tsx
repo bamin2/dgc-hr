@@ -139,7 +139,7 @@ export function AdminAddLeaveDialog({ open, onOpenChange, employeeId }: AdminAdd
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent size="xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Plus className="h-5 w-5" />

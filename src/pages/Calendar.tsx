@@ -1,8 +1,8 @@
 import { useState, useMemo } from "react";
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek } from "date-fns";
 import { DashboardLayout } from "@/components/dashboard";
+import { PageHeader } from "@/components/ui/page-header";
 import {
-  CalendarHeader,
   CalendarFilters,
   WeekView,
   CreateEventDialog,
@@ -16,6 +16,8 @@ import {
   CalendarEvent 
 } from "@/hooks/useCalendarEvents";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { CalendarClock, Plus, ChevronLeft, ChevronRight, Download } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -157,41 +159,69 @@ export default function Calendar() {
     toast.info("Export calendar", { description: "Calendar export will be available with Outlook integration" });
   };
 
+  // Get today's summary for subtitle
+  const getSummary = () => {
+    const meetingsCount = todayEvents.filter((e) => e.type === "meeting").length;
+    const eventsCount = todayEvents.filter((e) => e.type === "event").length;
+    const parts = [];
+    if (meetingsCount > 0) {
+      parts.push(`${meetingsCount} meeting${meetingsCount > 1 ? "s" : ""}`);
+    }
+    if (eventsCount > 0) {
+      parts.push(`${eventsCount} event${eventsCount > 1 ? "s" : ""}`);
+    }
+    if (parts.length === 0) {
+      return "No events scheduled for today";
+    }
+    return `You have ${parts.join(" and ")} today`;
+  };
+
   return (
     <DashboardLayout>
       <div className="flex flex-col h-full">
-        <CalendarHeader
-          currentDate={selectedDate}
-          todayEvents={todayEvents}
-          onScheduleClick={handleScheduleClick}
-          onCreateClick={() => setCreateDialogOpen(true)}
+        <PageHeader
+          title="Calendar"
+          subtitle={getSummary()}
+          actions={
+            <div className="flex items-center gap-2">
+              <Button variant="outline" className="gap-2" onClick={handleScheduleClick}>
+                <CalendarClock className="h-4 w-4" />
+                <span className="hidden sm:inline">Schedule</span>
+              </Button>
+              <Button className="gap-2" onClick={() => setCreateDialogOpen(true)}>
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">Create Event</span>
+              </Button>
+            </div>
+          }
         />
 
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between py-3 border-b border-border gap-3">
           <div className="flex items-center gap-3">
-            <button
+            <Button
+              variant="outline"
+              size="sm"
               onClick={handleToday}
-              className="px-3 py-1.5 text-sm font-medium border border-border rounded-md hover:bg-muted transition-colors"
             >
               Today
-            </button>
+            </Button>
             <div className="flex items-center gap-1">
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
                 onClick={handlePrevious}
-                className="h-8 w-8 flex items-center justify-center rounded-md hover:bg-muted transition-colors"
               >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              <button
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
                 onClick={handleNext}
-                className="h-8 w-8 flex items-center justify-center rounded-md hover:bg-muted transition-colors"
               >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
             </div>
 
             {/* Show week dates only in week view - hidden on mobile */}
@@ -257,15 +287,15 @@ export default function Calendar() {
               filters={filters}
               onFiltersChange={setFilters}
             />
-            <button
+            <Button
+              variant="outline"
+              size="sm"
               onClick={handleExportClick}
-              className="h-8 px-3 flex items-center gap-1.5 text-sm border border-border rounded-md hover:bg-muted transition-colors"
+              className="gap-1.5"
             >
-              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-              Export
-            </button>
+              <Download className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Export</span>
+            </Button>
           </div>
         </div>
 
