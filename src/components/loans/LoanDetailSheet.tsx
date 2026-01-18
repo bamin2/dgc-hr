@@ -57,7 +57,7 @@ export function LoanDetailSheet({ loanId, open, onOpenChange }: LoanDetailSheetP
 
   const handleMarkPaid = async (installmentId: string) => {
     try {
-      await markPaid.mutateAsync({ installmentId, method: "manual" });
+      await markPaid.mutateAsync({ installmentId, method: "manual", loanId: loanId! });
       toast.success("Installment marked as paid");
     } catch (error) {
       toast.error("Failed to mark installment as paid");
