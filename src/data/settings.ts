@@ -129,16 +129,6 @@ export interface NotificationSettings {
   };
 }
 
-// Integration
-export interface Integration {
-  id: string;
-  name: string;
-  category: 'communication' | 'calendar' | 'accounting' | 'payroll' | 'storage';
-  icon: string;
-  description: string;
-  status: 'connected' | 'disconnected';
-  lastSynced?: string;
-}
 
 // Security Session
 export interface SecuritySession {
@@ -238,76 +228,6 @@ export const notificationSettings: NotificationSettings = {
   }
 };
 
-export const integrations: Integration[] = [
-  {
-    id: 'int-1',
-    name: 'Slack',
-    category: 'communication',
-    icon: 'slack',
-    description: 'Team messaging and notifications',
-    status: 'connected',
-    lastSynced: '2024-01-15T10:30:00Z'
-  },
-  {
-    id: 'int-2',
-    name: 'Google Calendar',
-    category: 'calendar',
-    icon: 'calendar',
-    description: 'Sync leave and events',
-    status: 'connected',
-    lastSynced: '2024-01-15T09:00:00Z'
-  },
-  {
-    id: 'int-3',
-    name: 'Microsoft 365',
-    category: 'calendar',
-    icon: 'microsoft',
-    description: 'Email and calendar integration',
-    status: 'disconnected'
-  },
-  {
-    id: 'int-4',
-    name: 'QuickBooks',
-    category: 'accounting',
-    icon: 'calculator',
-    description: 'Accounting and payroll sync',
-    status: 'connected',
-    lastSynced: '2024-01-14T16:00:00Z'
-  },
-  {
-    id: 'int-5',
-    name: 'Xero',
-    category: 'accounting',
-    icon: 'file-spreadsheet',
-    description: 'Alternative accounting platform',
-    status: 'disconnected'
-  },
-  {
-    id: 'int-6',
-    name: 'Google Drive',
-    category: 'storage',
-    icon: 'hard-drive',
-    description: 'Document storage and sharing',
-    status: 'connected',
-    lastSynced: '2024-01-15T11:00:00Z'
-  },
-  {
-    id: 'int-7',
-    name: 'Dropbox',
-    category: 'storage',
-    icon: 'cloud',
-    description: 'File storage and backup',
-    status: 'disconnected'
-  },
-  {
-    id: 'int-8',
-    name: 'ADP',
-    category: 'payroll',
-    icon: 'wallet',
-    description: 'Payroll processing service',
-    status: 'disconnected'
-  }
-];
 
 export const securitySessions: SecuritySession[] = [
   {

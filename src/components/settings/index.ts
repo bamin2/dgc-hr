@@ -6,8 +6,6 @@ export { CompanyProfileForm } from './CompanyProfileForm';
 export { OrganizationSettingsTab } from './organization';
 export { UserPreferencesForm } from './UserPreferencesForm';
 export { NotificationSettingsForm } from './NotificationSettingsForm';
-export { IntegrationCard } from './IntegrationCard';
-export { IntegrationsGrid } from './IntegrationsGrid';
 export { SessionCard } from './SessionCard';
 export { SecuritySettings } from './SecuritySettings';
 export { AuditLogCard } from './AuditLogCard';

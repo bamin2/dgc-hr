@@ -8,7 +8,6 @@ import {
   CompanyProfileForm, 
   UserPreferencesForm, 
   NotificationSettingsForm, 
-  IntegrationsGrid,
   SecuritySettings,
   AuditLogCard,
   OrganizationSettingsTab,
@@ -19,7 +18,6 @@ import { PayrollSettingsTab } from '@/components/settings/payroll';
 import { ApprovalSettingsTab } from '@/components/settings/approvals';
 import { EmailTemplatesTab } from '@/components/settings/email-templates';
 import { 
-  integrations as initialIntegrations,
   CompanySettings,
   UserPreferences,
   NotificationSettings
@@ -29,7 +27,7 @@ import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { useNotificationPreferences } from '@/hooks/useNotificationPreferences';
 import { useUserSessions } from '@/hooks/useUserSessions';
 import { useRole } from '@/contexts/RoleContext';
-import { Settings, Building2, User, Bell, Puzzle, Shield, Save, Wallet, Loader2, Network, LayoutDashboard, GitBranch, UserCircle, Mail } from 'lucide-react';
+import { Settings, Building2, User, Bell, Shield, Save, Wallet, Loader2, Network, LayoutDashboard, GitBranch, UserCircle, Mail } from 'lucide-react';
 import { DashboardCardVisibility, defaultDashboardCardVisibility } from '@/data/settings';
 import { toast } from 'sonner';
 
@@ -64,10 +62,9 @@ const SettingsPage = () => {
   const [companySettings, setCompanySettings] = useState<CompanySettings>(globalSettings);
   const [userPreferences, setUserPreferences] = useState<UserPreferences>(dbUserPreferences);
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>(dbNotificationSettings);
-  const [integrations, setIntegrations] = useState(initialIntegrations);
   const [activeTab, setActiveTab] = useState(() => {
     const tabFromUrl = searchParams.get('tab');
-    const validTabs = ['company', 'organization', 'dashboard', 'selfservice', 'approvals', 'email-templates', 'payroll', 'preferences', 'notifications', 'integrations', 'security'];
+    const validTabs = ['company', 'organization', 'dashboard', 'selfservice', 'approvals', 'email-templates', 'payroll', 'preferences', 'notifications', 'security'];
     if (tabFromUrl && validTabs.includes(tabFromUrl)) {
       return tabFromUrl;
     }
@@ -77,7 +74,7 @@ const SettingsPage = () => {
   // Update active tab when URL changes
   useEffect(() => {
     const tabFromUrl = searchParams.get('tab');
-    const validTabs = ['company', 'organization', 'dashboard', 'selfservice', 'approvals', 'email-templates', 'payroll', 'preferences', 'notifications', 'integrations', 'security'];
+    const validTabs = ['company', 'organization', 'dashboard', 'selfservice', 'approvals', 'email-templates', 'payroll', 'preferences', 'notifications', 'security'];
     if (tabFromUrl && validTabs.includes(tabFromUrl)) {
       setActiveTab(tabFromUrl);
     }
@@ -126,23 +123,6 @@ const SettingsPage = () => {
     setCompanySettings(newSettings);
   };
 
-  const handleConnectIntegration = (id: string) => {
-    setIntegrations(prev => prev.map(int => 
-      int.id === id ? { ...int, status: 'connected' as const, lastSynced: new Date().toISOString() } : int
-    ));
-    toast.success('Integration connected');
-  };
-
-  const handleDisconnectIntegration = (id: string) => {
-    setIntegrations(prev => prev.map(int => 
-      int.id === id ? { ...int, status: 'disconnected' as const, lastSynced: undefined } : int
-    ));
-    toast.success('Integration disconnected');
-  };
-
-  const handleConfigureIntegration = (id: string) => {
-    toast.info('Configuration panel would open here');
-  };
 
   const handleRevokeSession = (id: string) => {
     revokeSession(id);
@@ -164,7 +144,6 @@ const SettingsPage = () => {
     { value: 'payroll', label: 'Payroll', icon: Wallet, requiresAdmin: true },
     { value: 'preferences', label: 'Preferences', icon: User, requiresAdmin: false },
     { value: 'notifications', label: 'Notifications', icon: Bell, requiresAdmin: false },
-    { value: 'integrations', label: 'Integrations', icon: Puzzle, requiresAdmin: false },
     { value: 'security', label: 'Security', icon: Shield, requiresAdmin: false }
   ];
 
@@ -219,15 +198,6 @@ const SettingsPage = () => {
           <NotificationSettingsForm 
             settings={notificationSettings} 
             onChange={setNotificationSettings} 
-          />
-        );
-      case 'integrations':
-        return (
-          <IntegrationsGrid 
-            integrations={integrations}
-            onConnect={handleConnectIntegration}
-            onDisconnect={handleDisconnectIntegration}
-            onConfigure={handleConfigureIntegration}
           />
         );
       case 'security':
