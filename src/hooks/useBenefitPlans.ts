@@ -162,6 +162,76 @@ export function useUpdateBenefitPlan() {
   });
 }
 
+export function useUpdateCoverageLevels() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      planId,
+      coverageLevels,
+      originalLevelIds,
+    }: {
+      planId: string;
+      coverageLevels: Array<{
+        id?: string;
+        name: string;
+        employee_cost: number;
+        employer_cost: number;
+      }>;
+      originalLevelIds: string[];
+    }) => {
+      // Separate existing levels (with id) from new levels (without id)
+      const existingLevels = coverageLevels.filter(cl => cl.id);
+      const newLevels = coverageLevels.filter(cl => !cl.id);
+      
+      // Find levels to delete (in original but not in current)
+      const currentIds = existingLevels.map(cl => cl.id!);
+      const idsToDelete = originalLevelIds.filter(id => !currentIds.includes(id));
+
+      // Delete removed levels
+      if (idsToDelete.length > 0) {
+        const { error: deleteError } = await supabase
+          .from('benefit_coverage_levels')
+          .delete()
+          .in('id', idsToDelete);
+        if (deleteError) throw deleteError;
+      }
+
+      // Update existing levels
+      for (const level of existingLevels) {
+        const { error: updateError } = await supabase
+          .from('benefit_coverage_levels')
+          .update({
+            name: level.name,
+            employee_cost: level.employee_cost,
+            employer_cost: level.employer_cost,
+          })
+          .eq('id', level.id!);
+        if (updateError) throw updateError;
+      }
+
+      // Insert new levels
+      if (newLevels.length > 0) {
+        const { error: insertError } = await supabase
+          .from('benefit_coverage_levels')
+          .insert(
+            newLevels.map(level => ({
+              plan_id: planId,
+              name: level.name,
+              employee_cost: level.employee_cost,
+              employer_cost: level.employer_cost,
+            }))
+          );
+        if (insertError) throw insertError;
+      }
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.benefits.plans.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.benefits.plans.detail(variables.planId) });
+    },
+  });
+}
+
 export function useDeleteBenefitPlan() {
   const queryClient = useQueryClient();
 
