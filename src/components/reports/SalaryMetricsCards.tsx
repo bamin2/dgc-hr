@@ -82,9 +82,11 @@ export function SalaryMetricsCards({ stats, isLoading }: SalaryMetricsCardsProps
               <div className="space-y-1 min-w-0 flex-1 mr-3">
                 <p className="text-sm text-muted-foreground">{metric.label}</p>
                 <p className={cn(
-                  "font-bold break-words",
-                  metric.value.length > 15 ? "text-lg" : "text-2xl",
-                  metric.value.length > 20 ? "text-base" : ""
+                  "font-bold",
+                  metric.value.length <= 10 && "text-2xl",
+                  metric.value.length > 10 && metric.value.length <= 14 && "text-lg",
+                  metric.value.length > 14 && metric.value.length <= 18 && "text-base",
+                  metric.value.length > 18 && "text-sm"
                 )}>{metric.value}</p>
                 <p className="text-xs text-muted-foreground">{metric.subtext}</p>
               </div>
