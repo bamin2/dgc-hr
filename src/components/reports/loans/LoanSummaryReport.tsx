@@ -17,6 +17,7 @@ import {
 import { format } from 'date-fns';
 import { Wallet, TrendingDown, Clock, CheckCircle } from 'lucide-react';
 import { CurrencyViewToggle, CurrencyViewMode } from '../CurrencyViewToggle';
+import { cn, getResponsiveFontSize } from '@/lib/utils';
 import { useFxRatesForCurrencies, convertToBaseCurrency, getMissingRateCurrencies } from '@/hooks/useFxRates';
 
 const columns: ReportColumn<LoanSummaryRecord>[] = [
@@ -151,7 +152,7 @@ export function LoanSummaryReport() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Total Disbursed</p>
-              <p className="text-2xl font-bold">{formatTotalAmount(totals.originalAmount)}</p>
+              <p className={cn("font-bold", getResponsiveFontSize(formatTotalAmount(totals.originalAmount)))}>{formatTotalAmount(totals.originalAmount)}</p>
             </div>
           </div>
         </CardContent>
@@ -164,7 +165,7 @@ export function LoanSummaryReport() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Outstanding Balance</p>
-              <p className="text-2xl font-bold">{formatTotalAmount(totals.outstanding)}</p>
+              <p className={cn("font-bold", getResponsiveFontSize(formatTotalAmount(totals.outstanding)))}>{formatTotalAmount(totals.outstanding)}</p>
             </div>
           </div>
         </CardContent>
@@ -177,7 +178,7 @@ export function LoanSummaryReport() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Active Loans</p>
-              <p className="text-2xl font-bold">{totals.activeLoans}</p>
+              <p className={cn("font-bold", getResponsiveFontSize(totals.activeLoans))}>{totals.activeLoans}</p>
             </div>
           </div>
         </CardContent>
@@ -190,7 +191,7 @@ export function LoanSummaryReport() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Closed Loans</p>
-              <p className="text-2xl font-bold">{totals.closedLoans}</p>
+              <p className={cn("font-bold", getResponsiveFontSize(totals.closedLoans))}>{totals.closedLoans}</p>
             </div>
           </div>
         </CardContent>

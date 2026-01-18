@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/table';
 import { format } from 'date-fns';
 import { CheckCircle, XCircle } from 'lucide-react';
+import { cn, getResponsiveFontSize } from '@/lib/utils';
 
 export function PayslipRegisterReport() {
   const { settings } = useCompanySettings();
@@ -47,25 +48,25 @@ export function PayslipRegisterReport() {
     <>
       <Card>
         <CardContent className="pt-6">
-          <div className="text-2xl font-bold">{totalPayslips}</div>
+          <div className={cn("font-bold", getResponsiveFontSize(totalPayslips))}>{totalPayslips}</div>
           <p className="text-xs text-muted-foreground">Total Payslips</p>
         </CardContent>
       </Card>
       <Card>
         <CardContent className="pt-6">
-          <div className="text-2xl font-bold text-emerald-600">{issuedCount}</div>
+          <div className={cn("font-bold text-emerald-600", getResponsiveFontSize(issuedCount))}>{issuedCount}</div>
           <p className="text-xs text-muted-foreground">Issued</p>
         </CardContent>
       </Card>
       <Card>
         <CardContent className="pt-6">
-          <div className="text-2xl font-bold text-amber-600">{pendingCount}</div>
+          <div className={cn("font-bold text-amber-600", getResponsiveFontSize(pendingCount))}>{pendingCount}</div>
           <p className="text-xs text-muted-foreground">Pending</p>
         </CardContent>
       </Card>
       <Card>
         <CardContent className="pt-6">
-          <div className="text-2xl font-bold">{runGroups.size}</div>
+          <div className={cn("font-bold", getResponsiveFontSize(runGroups.size))}>{runGroups.size}</div>
           <p className="text-xs text-muted-foreground">Payroll Runs</p>
         </CardContent>
       </Card>

@@ -12,7 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { cn } from "@/lib/utils";
+import { cn, getResponsiveFontSize } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { useDepartmentsManagement } from "@/hooks/useDepartmentsManagement";
 import { useWorkLocations, GosiNationalityRate } from "@/hooks/useWorkLocations";
@@ -532,13 +532,13 @@ export function OfferVersionEditor({ version, offerId, candidateId, candidateNat
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="p-4 bg-primary/5 rounded-lg">
               <p className="text-sm text-muted-foreground">Gross Pay Total</p>
-              <p className="text-2xl font-bold text-primary">
+              <p className={cn("font-bold text-primary", getResponsiveFontSize(`${formData.currency_code} ${grossPayTotal.toLocaleString()}`))}>
                 {formData.currency_code} {grossPayTotal.toLocaleString()}
               </p>
             </div>
             <div className="p-4 bg-muted rounded-lg">
               <p className="text-sm text-muted-foreground">Net Pay Estimate</p>
-              <p className="text-2xl font-bold">
+              <p className={cn("font-bold", getResponsiveFontSize(`${formData.currency_code} ${netPayEstimate.toLocaleString()}`))}>
                 {formData.currency_code} {netPayEstimate.toLocaleString()}
               </p>
             </div>
