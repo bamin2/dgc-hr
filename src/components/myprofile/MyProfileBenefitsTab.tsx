@@ -3,7 +3,6 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Shield, 
-  DollarSign, 
   Calendar,
   Inbox,
   Users,
@@ -34,7 +33,6 @@ function EnrollmentCard({ enrollment }: { enrollment: BenefitEnrollment }) {
   const config = statusConfig[enrollment.status] || statusConfig.pending;
   const beneficiaries = enrollment.beneficiaries || [];
   const hasBeneficiaries = beneficiaries.length > 0;
-  const totalCost = enrollment.employee_contribution + enrollment.employer_contribution;
 
   return (
     <Card>
@@ -71,24 +69,6 @@ function EnrollmentCard({ enrollment }: { enrollment: BenefitEnrollment }) {
               <p className="text-sm font-medium">
                 {format(new Date(enrollment.start_date), 'MMM d, yyyy')}
               </p>
-            </div>
-          </div>
-
-          {/* Cost Breakdown */}
-          <div className="bg-muted/50 rounded-lg p-3">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-xs text-muted-foreground">Monthly Cost</span>
-              <span className="text-sm font-semibold">${totalCost.toFixed(2)}</span>
-            </div>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Your contribution</span>
-                <span className="font-medium">${enrollment.employee_contribution.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Employer pays</span>
-                <span className="font-medium text-green-600">${enrollment.employer_contribution.toFixed(2)}</span>
-              </div>
             </div>
           </div>
 
@@ -154,11 +134,6 @@ export function MyProfileBenefitsTab({ employeeId }: MyProfileBenefitsTabProps) 
   const pendingEnrollments = enrollments?.filter(e => e.status === 'pending') || [];
   const otherEnrollments = enrollments?.filter(e => ['cancelled', 'expired'].includes(e.status)) || [];
 
-  const totalMonthlyContribution = activeEnrollments.reduce(
-    (sum, e) => sum + e.employee_contribution, 
-    0
-  );
-
   // Find the next renewal date (earliest end_date among active enrollments)
   const nextRenewal = activeEnrollments
     .filter(e => e.end_date)
@@ -168,7 +143,7 @@ export function MyProfileBenefitsTab({ employeeId }: MyProfileBenefitsTabProps) 
     <div className="space-y-6">
       {/* Summary Cards */}
       {(activeEnrollments.length > 0 || pendingEnrollments.length > 0) && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Card>
             <CardContent className="p-4 flex items-center gap-3">
               <div className="p-2 bg-primary/10 rounded-lg">
@@ -177,17 +152,6 @@ export function MyProfileBenefitsTab({ employeeId }: MyProfileBenefitsTabProps) 
               <div>
                 <p className="text-xs text-muted-foreground">Active Plans</p>
                 <p className="text-xl font-semibold">{activeEnrollments.length}</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2 bg-amber-100 dark:bg-amber-950/30 rounded-lg">
-                <DollarSign className="h-5 w-5 text-amber-600" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Monthly Contribution</p>
-                <p className="text-xl font-semibold">${totalMonthlyContribution.toFixed(2)}</p>
               </div>
             </CardContent>
           </Card>
