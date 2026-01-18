@@ -2,39 +2,51 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { queryKeys } from '@/lib/queryKeys';
+import type { NotificationMetadata, NotificationEntityType } from '@/lib/notificationService';
+
+// Standardized notification types matching DB schema
+export type NotificationType = 'approval' | 'payroll' | 'document' | 'reminder' | 'announcement' | 'system';
+export type NotificationPriority = 'low' | 'medium' | 'high' | 'urgent';
 
 export interface Notification {
   id: string;
   user_id: string;
-  type: 'leave_request' | 'approval' | 'payroll' | 'employee' | 'system' | 'reminder' | 'mention';
+  type: NotificationType;
   title: string;
   message: string;
-  priority: 'low' | 'medium' | 'high';
+  priority: NotificationPriority;
   is_read: boolean;
   action_url: string | null;
   actor_name: string | null;
   actor_avatar: string | null;
-  metadata: Record<string, unknown>;
+  metadata: NotificationMetadata | Record<string, unknown>;
   created_at: string;
 }
 
 // Transformed type for component compatibility
 export interface NotificationDisplay {
   id: string;
-  type: Notification['type'];
+  type: NotificationType;
   title: string;
   message: string;
   timestamp: string;
   isRead: boolean;
-  priority: Notification['priority'];
+  priority: NotificationPriority;
   actionUrl?: string;
   actor?: {
     name: string;
     avatar: string;
   };
+  metadata?: NotificationMetadata | Record<string, unknown>;
+  entityType?: NotificationEntityType;
+  severity?: 'info' | 'success' | 'warning' | 'danger';
+  eventKey?: string;
+  archived?: boolean;
 }
 
 function transformToDisplay(notification: Notification): NotificationDisplay {
+  const metadata = notification.metadata as NotificationMetadata | undefined;
+  
   return {
     id: notification.id,
     type: notification.type,
@@ -48,10 +60,23 @@ function transformToDisplay(notification: Notification): NotificationDisplay {
       name: notification.actor_name,
       avatar: notification.actor_avatar || '',
     } : undefined,
+    metadata: notification.metadata,
+    entityType: metadata?.entity_type,
+    severity: metadata?.severity,
+    eventKey: metadata?.event_key,
+    archived: metadata?.archived,
   };
 }
 
-export function useNotifications() {
+export interface NotificationFilters {
+  type?: NotificationType | 'all';
+  entityType?: NotificationEntityType | 'all';
+  status?: 'all' | 'read' | 'unread';
+  priority?: NotificationPriority | 'all';
+  includeArchived?: boolean;
+}
+
+export function useNotifications(filters?: NotificationFilters) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -65,13 +90,22 @@ export function useNotifications() {
         .from('notifications')
         .select('id, user_id, type, title, message, priority, is_read, action_url, actor_name, actor_avatar, metadata, created_at')
         .eq('user_id', user.id)
+        .order('is_read', { ascending: true }) // Unread first
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return (data as Notification[]).map(transformToDisplay);
+      
+      let notifications = (data as unknown as Notification[]).map(transformToDisplay);
+      
+      // Filter out archived by default
+      if (!filters?.includeArchived) {
+        notifications = notifications.filter(n => !n.archived);
+      }
+
+      return notifications;
     },
     enabled: !!user?.id,
-    retry: 0,  // Don't retry auth-dependent queries
+    retry: 0,
   });
 
   const markAsReadMutation = useMutation({
@@ -86,6 +120,7 @@ export function useNotifications() {
     onSuccess: () => {
       if (user?.id) {
         queryClient.invalidateQueries({ queryKey: queryKeys.notifications.byUser(user.id) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.notifications.unreadCount(user.id) });
       }
     },
   });
@@ -105,6 +140,26 @@ export function useNotifications() {
     onSuccess: () => {
       if (user?.id) {
         queryClient.invalidateQueries({ queryKey: queryKeys.notifications.byUser(user.id) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.notifications.unreadCount(user.id) });
+      }
+    },
+  });
+
+  const markSelectedAsReadMutation = useMutation({
+    mutationFn: async (notificationIds: string[]) => {
+      if (!user?.id || !notificationIds.length) throw new Error('No user or notifications');
+
+      const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .in('id', notificationIds);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      if (user?.id) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.notifications.byUser(user.id) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.notifications.unreadCount(user.id) });
       }
     },
   });
@@ -121,6 +176,7 @@ export function useNotifications() {
     onSuccess: () => {
       if (user?.id) {
         queryClient.invalidateQueries({ queryKey: queryKeys.notifications.byUser(user.id) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.notifications.unreadCount(user.id) });
       }
     },
   });
@@ -140,6 +196,38 @@ export function useNotifications() {
     onSuccess: () => {
       if (user?.id) {
         queryClient.invalidateQueries({ queryKey: queryKeys.notifications.byUser(user.id) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.notifications.unreadCount(user.id) });
+      }
+    },
+  });
+
+  const archiveNotificationMutation = useMutation({
+    mutationFn: async (notificationId: string) => {
+      // Get current metadata
+      const { data: notification, error: fetchError } = await supabase
+        .from('notifications')
+        .select('metadata')
+        .eq('id', notificationId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Update with archived flag
+      const updatedMetadata = {
+        ...(notification?.metadata as Record<string, unknown> || {}),
+        archived: true,
+      };
+
+      const { error } = await supabase
+        .from('notifications')
+        .update({ metadata: updatedMetadata })
+        .eq('id', notificationId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      if (user?.id) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.notifications.byUser(user.id) });
       }
     },
   });
@@ -150,8 +238,10 @@ export function useNotifications() {
     error: query.error,
     markAsRead: markAsReadMutation.mutateAsync,
     markAllAsRead: markAllAsReadMutation.mutateAsync,
+    markSelectedAsRead: markSelectedAsReadMutation.mutateAsync,
     deleteNotification: deleteNotificationMutation.mutateAsync,
     deleteReadNotifications: deleteReadNotificationsMutation.mutateAsync,
+    archiveNotification: archiveNotificationMutation.mutateAsync,
   };
 }
 
@@ -175,6 +265,6 @@ export function useUnreadNotificationsCount() {
       return count || 0;
     },
     enabled: !!user?.id,
-    retry: 0,  // Don't retry auth-dependent queries
+    retry: 0,
   });
 }

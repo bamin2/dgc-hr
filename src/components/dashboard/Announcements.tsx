@@ -1,35 +1,17 @@
-import { Megaphone, Bell, Calendar, AlertCircle, Users, FileText } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Megaphone, ArrowRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useNotifications } from "@/hooks/useNotifications";
 import { formatDistanceToNow } from "date-fns";
-
-const iconMap = {
-  leave_request: Calendar,
-  approval: Bell,
-  payroll: FileText,
-  employee: Users,
-  system: AlertCircle,
-  reminder: Bell,
-  mention: Megaphone,
-};
-
-const iconColors = {
-  leave_request: "bg-info/10 text-info",
-  approval: "bg-success/10 text-success",
-  payroll: "bg-warning/10 text-warning",
-  employee: "bg-primary/10 text-primary",
-  system: "bg-destructive/10 text-destructive",
-  reminder: "bg-warning/10 text-warning",
-  mention: "bg-primary/10 text-primary",
-};
+import { NotificationTypeBadge } from "@/components/notifications/NotificationTypeBadge";
 
 export function Announcements() {
   const { notifications, isLoading } = useNotifications();
 
-  // Get the 3 most recent unread or all notifications
-  const displayNotifications = notifications.slice(0, 3);
+  // Get the 5 most recent notifications (unread first)
+  const displayNotifications = notifications.slice(0, 5);
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   if (isLoading) {
@@ -42,7 +24,7 @@ export function Announcements() {
           </div>
           <Skeleton className="h-4 w-12" />
         </div>
-        <div className="space-y-4">
+        <div className="space-y-3">
           {[...Array(3)].map((_, i) => (
             <div key={i} className="flex items-start gap-3 p-3">
               <Skeleton className="w-9 h-9 rounded-lg" />
@@ -60,55 +42,70 @@ export function Announcements() {
 
   return (
     <Card className="p-6">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Megaphone className="w-5 h-5 text-primary" />
           <h3 className="text-lg font-semibold text-foreground">
-            Announcements
+            Notifications
           </h3>
         </div>
-        <span className="text-xs text-muted-foreground">
-          {unreadCount > 0 ? `${unreadCount} new` : 'All read'}
-        </span>
-      </div>
-
-      <div className="space-y-4">
-        {displayNotifications.length === 0 ? (
-          <p className="text-center text-muted-foreground py-4">
-            No announcements
-          </p>
-        ) : (
-          displayNotifications.map((notification) => {
-            const Icon = iconMap[notification.type] || Bell;
-            const colorClass = iconColors[notification.type] || iconColors.system;
-            
-            return (
-              <div
-                key={notification.id}
-                className={cn(
-                  "flex items-start gap-3 p-3 rounded-xl hover:bg-secondary/30 transition-colors cursor-pointer",
-                  !notification.isRead && "bg-primary/5"
-                )}
-              >
-                <div className={cn("p-2.5 rounded-lg shrink-0", colorClass)}>
-                  <Icon className="w-4 h-4" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-medium text-foreground mb-0.5">
-                    {notification.title}
-                  </h4>
-                  <p className="text-xs text-muted-foreground line-clamp-2">
-                    {notification.message}
-                  </p>
-                  <p className="text-xs text-muted-foreground/60 mt-1">
-                    {formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true })}
-                  </p>
-                </div>
-              </div>
-            );
-          })
+        {unreadCount > 0 && (
+          <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+            {unreadCount} new
+          </span>
         )}
       </div>
+
+      <div className="space-y-1">
+        {displayNotifications.length === 0 ? (
+          <p className="text-center text-muted-foreground py-8">
+            No notifications
+          </p>
+        ) : (
+          displayNotifications.map((notification) => (
+            <Link
+              key={notification.id}
+              to={notification.actionUrl || "/notifications"}
+              className={cn(
+                "flex items-start gap-3 p-3 rounded-xl hover:bg-secondary/50 transition-colors",
+                !notification.isRead && "bg-primary/5"
+              )}
+            >
+              <NotificationTypeBadge 
+                type={notification.type} 
+                entityType={notification.entityType}
+                size="sm"
+              />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <h4 className="text-sm font-medium text-foreground truncate">
+                    {notification.title}
+                  </h4>
+                  {!notification.isRead && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
+                  {notification.message}
+                </p>
+                <p className="text-xs text-muted-foreground/60 mt-1">
+                  {formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true })}
+                </p>
+              </div>
+            </Link>
+          ))
+        )}
+      </div>
+
+      {notifications.length > 0 && (
+        <Link 
+          to="/notifications" 
+          className="flex items-center justify-center gap-1 text-sm text-primary hover:underline mt-4 pt-4 border-t border-border"
+        >
+          View all notifications
+          <ArrowRight className="w-4 h-4" />
+        </Link>
+      )}
     </Card>
   );
 }
