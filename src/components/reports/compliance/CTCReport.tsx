@@ -61,6 +61,18 @@ export function CTCReport() {
 
   const handleExportPDF = async () => {
     if (!data?.records) return;
+    
+    // Calculate column totals
+    const columnTotals: Record<string, number> = {
+      basicSalary: data.records.reduce((sum, r) => sum + r.basicSalary, 0),
+      allowancesTotal: data.records.reduce((sum, r) => sum + r.allowancesTotal, 0),
+      grossPay: data.records.reduce((sum, r) => sum + r.grossPay, 0),
+      employerGosi: data.records.reduce((sum, r) => sum + r.employerGosi, 0),
+      employerBenefitsCost: data.records.reduce((sum, r) => sum + r.employerBenefitsCost, 0),
+      ctcMonthly: data.records.reduce((sum, r) => sum + r.ctcMonthly, 0),
+      ctcYearly: data.records.reduce((sum, r) => sum + r.ctcYearly, 0),
+    };
+
     const columns = [
       { key: 'employeeCode', header: 'Code' },
       { key: 'employeeName', header: 'Name' },
@@ -79,6 +91,7 @@ export function CTCReport() {
       data: data.records as unknown as Record<string, unknown>[],
       columns,
       filename: generateReportFilename('CTC Report', 'pdf'),
+      columnTotals,
     });
   };
 
