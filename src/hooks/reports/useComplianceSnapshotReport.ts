@@ -32,6 +32,9 @@ interface EmployeeDocument {
   expiry_date: string | null;
 }
 
+// GCC nationalities don't require Work Visa, and only need ID Card OR Passport
+const GCC_NATIONALITIES = ['Bahrain', 'Saudi Arabia', 'UAE', 'Kuwait', 'Oman', 'Qatar'];
+
 interface EmployeeInfo {
   id: string;
   employee_code: string | null;
@@ -42,6 +45,7 @@ interface EmployeeInfo {
   is_subject_to_gosi: boolean | null;
   gosi_registered_salary: number | null;
   status: string;
+  nationality: string | null;
   departments?: { name: string } | null;
   work_locations?: { name: string; gosi_enabled: boolean } | null;
 }
@@ -92,6 +96,7 @@ async function fetchComplianceSnapshot(
       is_subject_to_gosi, 
       gosi_registered_salary, 
       status,
+      nationality,
       departments!department_id(name),
       work_locations!work_location_id(name, gosi_enabled)
     `);
@@ -153,23 +158,56 @@ async function fetchComplianceSnapshot(
     }
   });
 
-  // 1. Find missing required documents
+  // Get specific document type IDs for nationality-based logic
+  const idCardDocType = requiredDocTypes.find((dt: DocumentType) => dt.name === 'ID Card');
+  const passportDocType = requiredDocTypes.find((dt: DocumentType) => dt.name === 'Passport');
+  const workVisaDocType = requiredDocTypes.find((dt: DocumentType) => dt.name === 'Work Visa');
+
+  // 1. Find missing required documents based on nationality
   const missingDocs: ComplianceMissingDocRecord[] = [];
   filteredEmployees.forEach(emp => {
     const empDocs = employeeDocsByType.get(emp.id) || new Set();
-    requiredDocTypeIds.forEach(docTypeId => {
-      if (!empDocs.has(docTypeId)) {
+    const isGccNational = emp.nationality && GCC_NATIONALITIES.includes(emp.nationality);
+
+    if (isGccNational) {
+      // GCC nationals: Need ID Card OR Passport (not both, no Work Visa)
+      const hasIdCard = idCardDocType && empDocs.has(idCardDocType.id);
+      const hasPassport = passportDocType && empDocs.has(passportDocType.id);
+
+      if (!hasIdCard && !hasPassport) {
         missingDocs.push({
           employeeId: emp.id,
           employeeCode: emp.employee_code || '',
           employeeName: `${emp.first_name} ${emp.last_name}`,
           department: emp.departments?.name || 'N/A',
           location: emp.work_locations?.name || 'N/A',
-          missingDocumentType: docTypeMap.get(docTypeId) || 'Unknown',
-          documentTypeId: docTypeId,
+          missingDocumentType: 'ID Card or Passport',
+          documentTypeId: idCardDocType?.id || '',
         });
       }
-    });
+      // Note: Work Visa is NOT required for GCC nationals
+    } else {
+      // Non-GCC nationals: Need ID Card AND Passport AND Work Visa
+      const requiredForNonGcc = [
+        idCardDocType,
+        passportDocType,
+        workVisaDocType,
+      ].filter(Boolean) as DocumentType[];
+
+      requiredForNonGcc.forEach(docType => {
+        if (!empDocs.has(docType.id)) {
+          missingDocs.push({
+            employeeId: emp.id,
+            employeeCode: emp.employee_code || '',
+            employeeName: `${emp.first_name} ${emp.last_name}`,
+            department: emp.departments?.name || 'N/A',
+            location: emp.work_locations?.name || 'N/A',
+            missingDocumentType: docType.name,
+            documentTypeId: docType.id,
+          });
+        }
+      });
+    }
   });
 
   // 2. Find expired documents
