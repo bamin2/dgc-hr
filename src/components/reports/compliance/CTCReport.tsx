@@ -1,9 +1,8 @@
-import { useState } from 'react';
+import { useState, Fragment } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { RefreshCw, Download, ChevronDown, ChevronRight, DollarSign, Users, Building2, Briefcase } from 'lucide-react';
 import { useCTCReport, usePayrollRunsForLocation } from '@/hooks/reports/useCostReports';
 import { useWorkLocationsFilter, useDepartmentsFilter } from '@/hooks/reports/useReportFilters';
@@ -255,74 +254,73 @@ export function CTCReport() {
                 </TableHeader>
                 <TableBody>
                   {data?.records?.map((record: CTCRecord) => (
-                    <Collapsible key={record.employeeId} open={expandedRows.has(record.employeeId)} asChild>
-                      <>
-                        <TableRow className="cursor-pointer hover:bg-muted/50">
-                          <TableCell>
-                            <CollapsibleTrigger asChild>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="p-0 h-6 w-6"
-                                onClick={() => toggleRow(record.employeeId)}
-                              >
-                                {expandedRows.has(record.employeeId) ? (
-                                  <ChevronDown className="h-4 w-4" />
-                                ) : (
-                                  <ChevronRight className="h-4 w-4" />
-                                )}
-                              </Button>
-                            </CollapsibleTrigger>
-                          </TableCell>
-                          <TableCell className="font-mono text-sm">{record.employeeCode}</TableCell>
-                          <TableCell className="font-medium">
-                            {record.employeeName}
-                            {record.wasConverted && record.conversionInfo && (
-                              <CurrencyConversionTooltip 
-                                fromCurrency={record.conversionInfo.fromCurrency}
-                                rate={record.conversionInfo.rate}
-                                effectiveDate={record.conversionInfo.effectiveDate}
-                              />
+                    <Fragment key={record.employeeId}>
+                      <TableRow className="cursor-pointer hover:bg-muted/50" onClick={() => toggleRow(record.employeeId)}>
+                        <TableCell>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="p-0 h-6 w-6"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleRow(record.employeeId);
+                            }}
+                          >
+                            {expandedRows.has(record.employeeId) ? (
+                              <ChevronDown className="h-4 w-4" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4" />
                             )}
+                          </Button>
+                        </TableCell>
+                        <TableCell className="font-mono text-sm">{record.employeeCode}</TableCell>
+                        <TableCell className="font-medium">
+                          {record.employeeName}
+                          {record.wasConverted && record.conversionInfo && (
+                            <CurrencyConversionTooltip 
+                              fromCurrency={record.conversionInfo.fromCurrency}
+                              rate={record.conversionInfo.rate}
+                              effectiveDate={record.conversionInfo.effectiveDate}
+                            />
+                          )}
+                        </TableCell>
+                        <TableCell>{record.department}</TableCell>
+                        <TableCell>{record.position}</TableCell>
+                        <TableCell className="text-right">{formatCurrency(record.basicSalary)}</TableCell>
+                        <TableCell className="text-right">{formatCurrency(record.allowancesTotal)}</TableCell>
+                        <TableCell className="text-right">{formatCurrency(record.grossPay)}</TableCell>
+                        <TableCell className="text-right">{formatCurrency(record.employerGosi)}</TableCell>
+                        <TableCell className="text-right">{formatCurrency(record.employerBenefitsCost)}</TableCell>
+                        <TableCell className="text-right font-bold">{formatCurrency(record.ctcTotal)}</TableCell>
+                      </TableRow>
+                      {expandedRows.has(record.employeeId) && (
+                        <TableRow className="bg-muted/30">
+                          <TableCell colSpan={11}>
+                            <div className="p-4 space-y-3">
+                              <h4 className="font-medium text-sm">Allowances Breakdown</h4>
+                              {record.allowancesBreakdown.length > 0 ? (
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                  {record.allowancesBreakdown.map((allowance, idx) => (
+                                    <div key={idx} className="flex justify-between text-sm">
+                                      <span className="text-muted-foreground">{allowance.name}:</span>
+                                      <span>{formatCurrency(allowance.amount)}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <p className="text-sm text-muted-foreground">No allowances</p>
+                              )}
+                              {record.wasConverted && record.conversionInfo && (
+                                <p className="text-xs text-muted-foreground mt-2">
+                                  Note: Values converted from {record.conversionInfo.fromCurrency} to BHD 
+                                  using rate {record.conversionInfo.rate.toFixed(4)}
+                                </p>
+                              )}
+                            </div>
                           </TableCell>
-                          <TableCell>{record.department}</TableCell>
-                          <TableCell>{record.position}</TableCell>
-                          <TableCell className="text-right">{formatCurrency(record.basicSalary)}</TableCell>
-                          <TableCell className="text-right">{formatCurrency(record.allowancesTotal)}</TableCell>
-                          <TableCell className="text-right">{formatCurrency(record.grossPay)}</TableCell>
-                          <TableCell className="text-right">{formatCurrency(record.employerGosi)}</TableCell>
-                          <TableCell className="text-right">{formatCurrency(record.employerBenefitsCost)}</TableCell>
-                          <TableCell className="text-right font-bold">{formatCurrency(record.ctcTotal)}</TableCell>
                         </TableRow>
-                        <CollapsibleContent asChild>
-                          <TableRow className="bg-muted/30">
-                            <TableCell colSpan={11}>
-                              <div className="p-4 space-y-3">
-                                <h4 className="font-medium text-sm">Allowances Breakdown</h4>
-                                {record.allowancesBreakdown.length > 0 ? (
-                                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                    {record.allowancesBreakdown.map((allowance, idx) => (
-                                      <div key={idx} className="flex justify-between text-sm">
-                                        <span className="text-muted-foreground">{allowance.name}:</span>
-                                        <span>{formatCurrency(allowance.amount)}</span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                ) : (
-                                  <p className="text-sm text-muted-foreground">No allowances</p>
-                                )}
-                                {record.wasConverted && record.conversionInfo && (
-                                  <p className="text-xs text-muted-foreground mt-2">
-                                    Note: Values converted from {record.conversionInfo.fromCurrency} to BHD 
-                                    using rate {record.conversionInfo.rate.toFixed(4)}
-                                  </p>
-                                )}
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        </CollapsibleContent>
-                      </>
-                    </Collapsible>
+                      )}
+                    </Fragment>
                   ))}
                   {(!data?.records || data.records.length === 0) && (
                     <TableRow>
