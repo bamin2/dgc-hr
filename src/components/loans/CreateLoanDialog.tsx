@@ -147,7 +147,7 @@ export function CreateLoanDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-y-auto">
+      <DialogContent size="xl" className="max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create Loan</DialogTitle>
           <DialogDescription>

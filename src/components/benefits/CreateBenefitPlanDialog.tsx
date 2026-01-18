@@ -173,7 +173,7 @@ const [coverageLevels, setCoverageLevels] = useState<CoverageLevel[]>([]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent size="2xl" className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create Benefit Plan</DialogTitle>
         </DialogHeader>

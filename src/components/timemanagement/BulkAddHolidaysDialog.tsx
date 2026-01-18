@@ -108,7 +108,7 @@ export function BulkAddHolidaysDialog({
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl max-h-[80vh]">
+      <DialogContent size="2xl" className="max-h-[80vh]">
         <DialogHeader>
           <DialogTitle>Add Multiple Holidays</DialogTitle>
         </DialogHeader>

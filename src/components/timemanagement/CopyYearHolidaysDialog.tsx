@@ -104,7 +104,7 @@ export function CopyYearHolidaysDialog({
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[80vh]">
+      <DialogContent size="lg" className="max-h-[80vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Copy className="h-5 w-5" />

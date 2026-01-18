@@ -173,7 +173,7 @@ export function EmployeeImportDialog({ open, onOpenChange }: EmployeeImportDialo
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
+      <DialogContent size="4xl" className="max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Import Employees</DialogTitle>
           <DialogDescription>

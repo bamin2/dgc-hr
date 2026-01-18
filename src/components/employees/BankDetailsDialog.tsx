@@ -81,7 +81,7 @@ export function BankDetailsDialog({ open, onOpenChange, employee }: BankDetailsD
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent size="md">
         <DialogHeader>
           <DialogTitle>Edit Bank Details</DialogTitle>
         </DialogHeader>

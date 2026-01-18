@@ -92,7 +92,7 @@ export function CreateProjectDialog({ open, onOpenChange, defaultStatus = 'todo'
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent size="xl">
         <DialogHeader>
           <DialogTitle>Create New Project</DialogTitle>
           <DialogDescription>
