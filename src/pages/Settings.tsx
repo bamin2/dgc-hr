@@ -53,7 +53,7 @@ const SettingsPageSkeleton = () => (
 const SettingsPage = () => {
   const [searchParams] = useSearchParams();
   const { settings: globalSettings, updateSettings: updateGlobalSettings, isLoading: companyLoading, isSaving: companySaving } = useCompanySettings();
-  const { preferences: dbUserPreferences, updatePreferences, isLoading: prefsLoading, isSaving: prefsSaving } = useUserPreferences();
+  const { preferences: dbUserPreferences, updatePreferences, isLoading: prefsLoading, isSaving: prefsSaving, jobTitleFromEmployee } = useUserPreferences();
   const { settings: dbNotificationSettings, updateSettings: updateNotifications, isLoading: notifLoading, isSaving: notifSaving } = useNotificationPreferences();
   const { sessions, isLoading: sessionsLoading, revokeSession, revokeAllSessions } = useUserSessions();
   const { canManageRoles } = useRole();
@@ -190,7 +190,8 @@ const SettingsPage = () => {
         return (
           <UserPreferencesForm 
             preferences={userPreferences} 
-            onChange={setUserPreferences} 
+            onChange={setUserPreferences}
+            jobTitleFromEmployee={jobTitleFromEmployee}
           />
         );
       case 'notifications':

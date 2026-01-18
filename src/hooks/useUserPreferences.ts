@@ -63,11 +63,16 @@ function parseEmployeeTableColumns(json: Json | null | undefined): EmployeeTable
   );
 }
 
+interface TransformedPreferences extends UserPreferences {
+  jobTitleFromEmployee: boolean;
+}
+
 function transformFromDb(
   prefs: DbUserPreferences | null, 
   profile: DbProfile | null, 
-  userId: string
-): UserPreferences {
+  userId: string,
+  jobTitleFromEmployee: boolean = false
+): TransformedPreferences {
   return {
     userId,
     profile: {
@@ -87,11 +92,12 @@ function transformFromDb(
       employeeTableColumns: parseEmployeeTableColumns(prefs?.employee_table_columns),
     },
     regional: {
-      timezone: prefs?.timezone || 'America/Los_Angeles',
+      timezone: prefs?.timezone || 'Asia/Bahrain',
       dateFormat: prefs?.date_format || 'MM/DD/YYYY',
       timeFormat: (prefs?.time_format as '12h' | '24h') || '12h',
       firstDayOfWeek: (prefs?.first_day_of_week as 'sunday' | 'monday') || 'sunday',
     },
+    jobTitleFromEmployee,
   };
 }
 
@@ -104,7 +110,7 @@ export function useUserPreferences() {
     queryFn: async () => {
       if (!user?.id) throw new Error('No user');
 
-      // Fetch preferences, profile, and employee avatar in parallel
+      // Fetch preferences, profile, and employee with position in parallel
       const [prefsResult, profileResult, employeeResult] = await Promise.all([
         supabase
           .from('user_preferences')
@@ -118,7 +124,7 @@ export function useUserPreferences() {
           .maybeSingle(),
         supabase
           .from('employees')
-          .select('id, avatar_url')
+          .select('id, avatar_url, position:positions(title)')
           .eq('user_id', user.id)
           .maybeSingle(),
       ]);
@@ -126,16 +132,23 @@ export function useUserPreferences() {
       if (prefsResult.error) throw prefsResult.error;
       if (profileResult.error) throw profileResult.error;
 
+      // Extract position title from employee record
+      const positionTitle = employeeResult.data?.position && typeof employeeResult.data.position === 'object' 
+        ? (employeeResult.data.position as { title: string }).title 
+        : '';
+
       // Use employee avatar as primary source
-      const profileWithEmployeeAvatar = profileResult.data ? {
+      const profileWithEmployeeData = profileResult.data ? {
         ...profileResult.data,
         avatar_url: employeeResult.data?.avatar_url || profileResult.data.avatar_url,
+        job_title: positionTitle || profileResult.data.job_title,
       } : null;
 
       return transformFromDb(
         prefsResult.data as DbUserPreferences | null, 
-        profileWithEmployeeAvatar as DbProfile | null, 
-        user.id
+        profileWithEmployeeData as DbProfile | null, 
+        user.id,
+        !!positionTitle
       );
     },
     enabled: !!user?.id,
@@ -225,10 +238,11 @@ export function useUserPreferences() {
   });
 
   return {
-    preferences: query.data || { ...defaultPreferences, userId: user?.id || '' },
+    preferences: query.data || { ...defaultPreferences, userId: user?.id || '', jobTitleFromEmployee: false },
     isLoading: query.isLoading,
     error: query.error,
     updatePreferences: mutation.mutateAsync,
     isSaving: mutation.isPending,
+    jobTitleFromEmployee: query.data?.jobTitleFromEmployee || false,
   };
 }
