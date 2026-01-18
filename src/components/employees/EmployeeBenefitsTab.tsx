@@ -6,16 +6,12 @@ import {
   DollarSign, 
   Calendar,
   Inbox,
-  Users,
-  ChevronDown,
-  ChevronUp
+  Users
 } from 'lucide-react';
 import { useBenefitEnrollments, BenefitEnrollment } from '@/hooks/useBenefitEnrollments';
 import { BenefitTypeBadge } from '@/components/benefits/BenefitTypeBadge';
 import { format } from 'date-fns';
-import { useState } from 'react';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Button } from '@/components/ui/button';
+import { useCompanySettings } from '@/contexts/CompanySettingsContext';
 import { BenefitType } from '@/types/benefits';
 
 interface EmployeeBenefitsTabProps {
@@ -30,11 +26,16 @@ const statusConfig: Record<string, { label: string; variant: 'default' | 'second
 };
 
 function EnrollmentCard({ enrollment }: { enrollment: BenefitEnrollment }) {
-  const [showBeneficiaries, setShowBeneficiaries] = useState(false);
+  const { formatCurrency } = useCompanySettings();
   const config = statusConfig[enrollment.status] || statusConfig.pending;
   const beneficiaries = enrollment.beneficiaries || [];
   const hasBeneficiaries = beneficiaries.length > 0;
-  const totalCost = enrollment.employee_contribution + enrollment.employer_contribution;
+  
+  // Calculate costs including dependents (multiply by 1 + number of beneficiaries)
+  const dependentMultiplier = 1 + beneficiaries.length;
+  const adjustedEmployeeContribution = enrollment.employee_contribution * dependentMultiplier;
+  const adjustedEmployerContribution = enrollment.employer_contribution * dependentMultiplier;
+  const totalCost = adjustedEmployeeContribution + adjustedEmployerContribution;
 
   return (
     <Card>
@@ -78,52 +79,41 @@ function EnrollmentCard({ enrollment }: { enrollment: BenefitEnrollment }) {
           <div className="bg-muted/50 rounded-lg p-3">
             <div className="flex justify-between items-center mb-2">
               <span className="text-xs text-muted-foreground">Monthly Cost</span>
-              <span className="text-sm font-semibold">${totalCost.toFixed(2)}</span>
+              <span className="text-sm font-semibold">{formatCurrency(totalCost)}</span>
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Employee pays</span>
-                <span className="font-medium">${enrollment.employee_contribution.toFixed(2)}</span>
+                <span className="font-medium">{formatCurrency(adjustedEmployeeContribution)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Employer pays</span>
-                <span className="font-medium text-green-600">${enrollment.employer_contribution.toFixed(2)}</span>
+                <span className="font-medium text-green-600">{formatCurrency(adjustedEmployerContribution)}</span>
               </div>
             </div>
           </div>
 
-          {/* Beneficiaries */}
+          {/* Beneficiaries - Always visible list */}
           {hasBeneficiaries && (
-            <Collapsible open={showBeneficiaries} onOpenChange={setShowBeneficiaries}>
-              <CollapsibleTrigger asChild>
-                <Button variant="ghost" size="sm" className="w-full justify-between">
-                  <span className="flex items-center gap-2">
-                    <Users className="h-4 w-4" />
-                    {beneficiaries.length} Beneficiar{beneficiaries.length === 1 ? 'y' : 'ies'}
-                  </span>
-                  {showBeneficiaries ? (
-                    <ChevronUp className="h-4 w-4" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4" />
-                  )}
-                </Button>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="pt-2">
-                <div className="space-y-2 border-t pt-2">
-                  {beneficiaries.map((beneficiary) => (
-                    <div key={beneficiary.id} className="flex items-center justify-between text-sm">
-                      <div>
-                        <p className="font-medium">{beneficiary.name}</p>
-                        <p className="text-xs text-muted-foreground">{beneficiary.relationship}</p>
-                      </div>
-                      {beneficiary.percentage && (
-                        <span className="text-muted-foreground">{beneficiary.percentage}%</span>
-                      )}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Users className="h-4 w-4" />
+                <span>{beneficiaries.length} Beneficiar{beneficiaries.length === 1 ? 'y' : 'ies'}</span>
+              </div>
+              <div className="space-y-2 border-t pt-2">
+                {beneficiaries.map((beneficiary) => (
+                  <div key={beneficiary.id} className="flex items-center justify-between text-sm">
+                    <div>
+                      <p className="font-medium">{beneficiary.name}</p>
+                      <p className="text-xs text-muted-foreground">{beneficiary.relationship}</p>
                     </div>
-                  ))}
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
+                    {beneficiary.percentage && (
+                      <span className="text-muted-foreground">{beneficiary.percentage}%</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
         </div>
       </CardContent>
@@ -132,6 +122,7 @@ function EnrollmentCard({ enrollment }: { enrollment: BenefitEnrollment }) {
 }
 
 export function EmployeeBenefitsTab({ employeeId }: EmployeeBenefitsTabProps) {
+  const { formatCurrency } = useCompanySettings();
   const { data: enrollments, isLoading } = useBenefitEnrollments({
     employeeId: employeeId,
   });
@@ -154,13 +145,14 @@ export function EmployeeBenefitsTab({ employeeId }: EmployeeBenefitsTabProps) {
   const pendingEnrollments = enrollments?.filter(e => e.status === 'pending') || [];
   const otherEnrollments = enrollments?.filter(e => ['cancelled', 'expired'].includes(e.status)) || [];
 
+  // Calculate totals including dependents
   const totalMonthlyContribution = activeEnrollments.reduce(
-    (sum, e) => sum + e.employee_contribution, 
+    (sum, e) => sum + (e.employee_contribution * (1 + (e.beneficiaries?.length || 0))), 
     0
   );
 
   const totalEmployerContribution = activeEnrollments.reduce(
-    (sum, e) => sum + e.employer_contribution, 
+    (sum, e) => sum + (e.employer_contribution * (1 + (e.beneficiaries?.length || 0))), 
     0
   );
 
@@ -193,7 +185,7 @@ export function EmployeeBenefitsTab({ employeeId }: EmployeeBenefitsTabProps) {
               <div>
                 <p className="text-xs text-muted-foreground">Monthly Cost (Total)</p>
                 <p className="text-xl font-semibold">
-                  ${(totalMonthlyContribution + totalEmployerContribution).toFixed(2)}
+                  {formatCurrency(totalMonthlyContribution + totalEmployerContribution)}
                 </p>
               </div>
             </CardContent>
