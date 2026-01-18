@@ -80,7 +80,7 @@ export function DepartmentFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent size="md">
         <DialogHeader>
           <DialogTitle>{isEdit ? 'Edit Department' : 'Add Department'}</DialogTitle>
         </DialogHeader>

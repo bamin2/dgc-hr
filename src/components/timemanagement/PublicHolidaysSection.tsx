@@ -289,7 +289,7 @@ export function PublicHolidaysSection({ className }: PublicHolidaysSectionProps)
       
       {/* Add/Edit Dialog */}
       <Dialog open={isAddDialogOpen || !!editingHoliday} onOpenChange={(open) => !open && closeDialog()}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent size="md">
           <DialogHeader>
             <DialogTitle>
               {editingHoliday ? 'Edit Holiday' : 'Add Public Holiday'}

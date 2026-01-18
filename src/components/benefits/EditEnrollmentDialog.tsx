@@ -135,7 +135,7 @@ export const EditEnrollmentDialog = ({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-lg max-h-[90vh] flex flex-col">
+        <DialogContent size="lg" className="max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Edit Enrollment</DialogTitle>
           </DialogHeader>

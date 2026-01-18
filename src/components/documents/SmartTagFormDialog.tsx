@@ -131,7 +131,7 @@ export function SmartTagFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent size="md">
         <DialogHeader>
           <DialogTitle>
             {smartTag ? "Edit Smart Tag" : "Add Smart Tag"}

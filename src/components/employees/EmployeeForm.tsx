@@ -301,7 +301,7 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent size="2xl" className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold">
               {isEditing ? 'Edit Employee' : 'Add New Employee'}

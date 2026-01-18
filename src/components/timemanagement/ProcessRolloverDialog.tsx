@@ -74,7 +74,7 @@ export function ProcessRolloverDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="max-w-md">
+      <AlertDialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2">
             <RotateCcw className="w-5 h-5 text-primary" />

@@ -55,7 +55,7 @@ export function ImportHistoryDialog({ open, onOpenChange }: ImportHistoryDialogP
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent size="2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <History className="h-5 w-5" />

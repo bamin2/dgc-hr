@@ -177,7 +177,7 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+      <DialogContent size="lg" className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl">Request time off</DialogTitle>
         </DialogHeader>
