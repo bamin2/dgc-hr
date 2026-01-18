@@ -1,14 +1,17 @@
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { CalendarIcon, RefreshCw, X } from 'lucide-react';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
-import { DateRange } from 'react-day-picker';
-import { ReportFilters } from '@/types/reports';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import * as React from "react";
+
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { CalendarIcon, RefreshCw, X } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { DateRange } from "react-day-picker";
+import { ReportFilters } from "@/types/reports";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+
 
 interface ReportFiltersBarProps {
   filters: ReportFilters;
@@ -144,16 +147,28 @@ export function ReportFiltersBar({
       }
     : undefined;
 
+  // Keep a draft range so the first click (from) is visible even before committing filters.
+  const [draftDateRange, setDraftDateRange] = React.useState<DateRange | undefined>(dateRange);
+
+  React.useEffect(() => {
+    setDraftDateRange(dateRange);
+  }, [filters.dateRange]);
+
   const handleDateRangeChange = (range: DateRange | undefined) => {
+    setDraftDateRange(range);
+
     if (range?.from && range?.to) {
       onFiltersChange({
         ...filters,
         dateRange: {
-          start: format(range.from, 'yyyy-MM-dd'),
-          end: format(range.to, 'yyyy-MM-dd'),
+          start: format(range.from, "yyyy-MM-dd"),
+          end: format(range.to, "yyyy-MM-dd"),
         },
       });
-    } else if (!range) {
+      return;
+    }
+
+    if (!range) {
       onFiltersChange({ ...filters, dateRange: undefined });
     }
   };
@@ -176,21 +191,21 @@ export function ReportFiltersBar({
           <Button
             variant="outline"
             className={cn(
-              'w-[220px] justify-start text-left font-normal',
-              !dateRange && 'text-muted-foreground'
+              "w-[220px] justify-start text-left font-normal",
+              !draftDateRange && "text-muted-foreground"
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {dateRange?.from ? (
-              dateRange.to ? (
+            {draftDateRange?.from ? (
+              draftDateRange.to ? (
                 <>
-                  {format(dateRange.from, 'MMM d')} - {format(dateRange.to, 'MMM d, yyyy')}
+                  {format(draftDateRange.from, "MMM d")} - {format(draftDateRange.to, "MMM d, yyyy")}
                 </>
               ) : (
-                format(dateRange.from, 'MMM d, yyyy')
+                format(draftDateRange.from, "MMM d, yyyy")
               )
             ) : (
-              'Select date range'
+              "Select date range"
             )}
           </Button>
         </PopoverTrigger>
@@ -198,8 +213,8 @@ export function ReportFiltersBar({
           <Calendar
             initialFocus
             mode="range"
-            defaultMonth={dateRange?.from}
-            selected={dateRange}
+            defaultMonth={draftDateRange?.from}
+            selected={draftDateRange}
             onSelect={handleDateRangeChange}
             numberOfMonths={2}
             className="pointer-events-auto"
