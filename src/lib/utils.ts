@@ -7,8 +7,8 @@ export function cn(...inputs: ClassValue[]) {
 
 export function getResponsiveFontSize(value: string | number): string {
   const length = String(value).length;
-  if (length <= 10) return "text-2xl";
-  if (length <= 14) return "text-lg";
-  if (length <= 18) return "text-base";
+  if (length <= 8) return "text-2xl";
+  if (length <= 11) return "text-lg";
+  if (length <= 14) return "text-base";
   return "text-sm";
 }
