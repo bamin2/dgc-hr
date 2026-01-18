@@ -112,18 +112,13 @@ async function fetchCTCReport(
     employeeMap.set(emp.id, emp as EmployeeCurrencyInfo);
   });
 
-  // Fetch GOSI rates - use a simpler approach with location settings
-  const { data: locations } = await supabase
-    .from('work_locations')
-    .select('id, gosi_employer_rate_saudi, gosi_employer_rate_non_saudi');
-
-  const gosiRateMap = new Map<string, { saudi: number; nonSaudi: number }>();
-  (locations || []).forEach((loc) => {
-    gosiRateMap.set(loc.id, {
-      saudi: loc.gosi_employer_rate_saudi || 0.12,
-      nonSaudi: loc.gosi_employer_rate_non_saudi || 0.02,
-    });
-  });
+  // GOSI rates - use standard rates (could be enhanced with location-specific settings)
+  // Saudi: 12% employer, Non-Saudi: 2% employer
+  const getGosiRate = (nationality: string | null): number => {
+    const isSaudi = nationality?.toLowerCase().includes('saudi') || 
+                    nationality?.toLowerCase().includes('سعودي');
+    return isSaudi ? 0.12 : 0.02;
+  };
 
   // Fetch employer benefit contributions
   const { data: benefitEnrollments } = await supabase
@@ -193,10 +188,7 @@ async function fetchCTCReport(
     // Calculate employer GOSI
     let employerGosi = 0;
     if (empInfo?.is_subject_to_gosi) {
-      const nationalityType = empInfo.nationality?.toLowerCase().includes('saudi') ? 'saudi' : 'nonSaudi';
-      const locationRates = gosiRateMap.get(empInfo.work_location_id || '');
-      const employerRate = locationRates ? locationRates[nationalityType] : 0.12;
-      
+      const employerRate = getGosiRate(empInfo.nationality);
       const gosiBase = emp.base_salary;
       employerGosi = gosiBase * employerRate;
     }
