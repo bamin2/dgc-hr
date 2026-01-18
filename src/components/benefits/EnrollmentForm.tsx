@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
+
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CalendarIcon, Check, Loader2, Users, Edit2 } from 'lucide-react';
@@ -32,7 +32,7 @@ export const EnrollmentForm = ({ onSubmit, onCancel }: EnrollmentFormProps) => {
   const [planId, setPlanId] = useState('');
   const [coverageLevelId, setCoverageLevelId] = useState('');
   const [startDate, setStartDate] = useState<Date>();
-  const [acknowledged, setAcknowledged] = useState(false);
+  
   const [dependents, setDependents] = useState<Dependent[]>([]);
   const [dependentsDialogOpen, setDependentsDialogOpen] = useState(false);
   const [previousEmployeeId, setPreviousEmployeeId] = useState('');
@@ -72,7 +72,7 @@ export const EnrollmentForm = ({ onSubmit, onCancel }: EnrollmentFormProps) => {
     }
   };
 
-  const isValid = employeeId && planId && coverageLevelId && startDate && acknowledged;
+  const isValid = employeeId && planId && coverageLevelId && startDate;
   const isLoading = employeesLoading || plansLoading;
 
   if (isLoading) {
@@ -243,16 +243,6 @@ export const EnrollmentForm = ({ onSubmit, onCancel }: EnrollmentFormProps) => {
           </Card>
         )}
 
-        <div className="flex items-start gap-3">
-          <Checkbox
-            id="acknowledge"
-            checked={acknowledged}
-            onCheckedChange={(checked) => setAcknowledged(checked as boolean)}
-          />
-          <Label htmlFor="acknowledge" className="text-sm text-muted-foreground leading-relaxed cursor-pointer">
-            I acknowledge that by enrolling in this benefit plan, the monthly premium will be deducted from my paycheck. I have reviewed the plan details and understand the coverage provided.
-          </Label>
-        </div>
 
         <div className="flex gap-3">
           <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
