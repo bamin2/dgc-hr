@@ -1,0 +1,2 @@
+ALTER TABLE benefit_plans 
+ADD COLUMN currency TEXT NOT NULL DEFAULT 'BHD';

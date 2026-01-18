@@ -679,6 +679,7 @@ export type Database = {
       benefit_plans: {
         Row: {
           created_at: string
+          currency: string
           description: string | null
           enrolled_count: number | null
           expiry_date: string | null
@@ -693,6 +694,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          currency?: string
           description?: string | null
           enrolled_count?: number | null
           expiry_date?: string | null
@@ -707,6 +709,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          currency?: string
           description?: string | null
           enrolled_count?: number | null
           expiry_date?: string | null
