@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { DashboardLayout } from '@/components/dashboard';
+import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Check, Trash2, Bell, Loader2 } from 'lucide-react';
 import {
@@ -156,26 +157,25 @@ const Notifications = () => {
 
   return (
     <DashboardLayout>
-      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">Notifications</h1>
-            <p className="text-muted-foreground text-sm sm:text-base">View and manage all your notifications</p>
-          </div>
-          <div className="flex gap-2 sm:gap-3">
-            {metrics.unread > 0 && (
-              <Button variant="outline" onClick={handleMarkAllAsRead}>
-                <Check className="mr-2 h-4 w-4" />
-                Mark all read
+      <div className="space-y-4 sm:space-y-6">
+        <PageHeader
+          title="Notifications"
+          subtitle="View and manage all your notifications"
+          actions={
+            <>
+              {metrics.unread > 0 && (
+                <Button variant="outline" onClick={handleMarkAllAsRead}>
+                  <Check className="mr-2 h-4 w-4" />
+                  Mark all read
+                </Button>
+              )}
+              <Button variant="outline" onClick={handleClearRead}>
+                <Trash2 className="mr-2 h-4 w-4" />
+                Clear read
               </Button>
-            )}
-            <Button variant="outline" onClick={handleClearRead}>
-              <Trash2 className="mr-2 h-4 w-4" />
-              Clear read
-            </Button>
-          </div>
-        </div>
+            </>
+          }
+        />
 
         {/* Metrics */}
         <NotificationsMetrics {...metrics} />

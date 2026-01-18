@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/dashboard';
+import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -107,17 +108,15 @@ const ClaimSubmission = () => {
   return (
     <DashboardLayout>
       <div className="max-w-2xl mx-auto space-y-6">
-        {/* Back Button */}
         <Button variant="ghost" onClick={() => navigate('/benefits')} className="mb-2">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Benefits
         </Button>
 
-        {/* Header */}
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Submit Claim</h1>
-          <p className="text-muted-foreground">Submit a new benefits claim for processing</p>
-        </div>
+        <PageHeader
+          title="Submit Claim"
+          subtitle="Submit a new benefits claim for processing"
+        />
 
         {isLoading ? (
           <div className="flex items-center justify-center py-12">

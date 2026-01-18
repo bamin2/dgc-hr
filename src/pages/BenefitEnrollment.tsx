@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/dashboard';
+import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { EnrollmentForm } from '@/components/benefits';
@@ -52,17 +53,15 @@ const BenefitEnrollment = () => {
   return (
     <DashboardLayout>
       <div className="max-w-2xl mx-auto space-y-6">
-        {/* Back Button */}
         <Button variant="ghost" onClick={() => navigate('/benefits')} className="mb-2">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Benefits
         </Button>
 
-        {/* Header */}
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">New Enrollment</h1>
-          <p className="text-muted-foreground">Enroll an employee in a benefit plan</p>
-        </div>
+        <PageHeader
+          title="New Enrollment"
+          subtitle="Enroll an employee in a benefit plan"
+        />
 
         {/* Form */}
         <EnrollmentForm 

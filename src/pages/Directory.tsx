@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { DashboardLayout } from "@/components/dashboard";
+import { PageHeader } from "@/components/ui/page-header";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Users } from "lucide-react";
@@ -57,13 +58,10 @@ export default function Directory() {
 
   return (
     <DashboardLayout>
-      {/* Page Header */}
-      <div className="mb-6">
-        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Company Directory</h1>
-        <p className="text-muted-foreground mt-1 text-sm sm:text-base">
-          Find and connect with colleagues across the organization
-        </p>
-      </div>
+      <PageHeader
+        title="Company Directory"
+        subtitle="Find and connect with colleagues across the organization"
+      />
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">

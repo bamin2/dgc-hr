@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { Plus, FileText, Copy, Archive, Star, MoreHorizontal, Eye, Pencil } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard";
+import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -78,19 +79,16 @@ export default function PayslipTemplates() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Payslip Templates</h1>
-            <p className="text-muted-foreground text-sm">
-              Manage DOCX templates for generating payslips
-            </p>
-          </div>
-          <Button onClick={() => navigate("/payroll/templates/new")}>
-            <Plus className="mr-2 h-4 w-4" />
-            New Template
-          </Button>
-        </div>
+        <PageHeader
+          title="Payslip Templates"
+          subtitle="Manage DOCX templates for generating payslips"
+          actions={
+            <Button onClick={() => navigate("/payroll/templates/new")}>
+              <Plus className="mr-2 h-4 w-4" />
+              New Template
+            </Button>
+          }
+        />
 
         {/* Filters */}
         <div className="flex items-center gap-4">

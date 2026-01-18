@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { History, Download } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AuditFilters, AuditTable } from "@/components/audit";
@@ -109,22 +110,16 @@ export default function AuditTrail() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-              <History className="h-8 w-8 text-primary" />
-              Audit Trail
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Track all changes made to employee data, time off, loans, and documents.
-            </p>
-          </div>
-          <Button onClick={handleExportCSV} variant="outline" disabled={!data?.logs.length}>
-            <Download className="h-4 w-4 mr-2" />
-            Export CSV
-          </Button>
-        </div>
+        <PageHeader
+          title="Audit Trail"
+          subtitle="Track all changes made to employee data, time off, loans, and documents."
+          actions={
+            <Button onClick={handleExportCSV} variant="outline" disabled={!data?.logs.length}>
+              <Download className="h-4 w-4 mr-2" />
+              Export CSV
+            </Button>
+          }
+        />
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
