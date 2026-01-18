@@ -33,24 +33,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Fetch user profile and employee_id
   const fetchProfile = async (userId: string) => {
-    // Fetch profile data
-    const { data: profileData, error: profileError } = await supabase
-      .from('profiles')
-      .select('id, first_name, last_name, email, avatar_url')
-      .eq('id', userId)
-      .single();
+    // Fetch profile and employee data in parallel
+    const [profileResult, employeeResult] = await Promise.all([
+      supabase
+        .from('profiles')
+        .select('id, first_name, last_name, email, avatar_url')
+        .eq('id', userId)
+        .single(),
+      supabase
+        .from('employees')
+        .select('id, avatar_url')
+        .eq('user_id', userId)
+        .maybeSingle(),
+    ]);
     
-    // Fetch employee_id from employees table (single source of truth)
-    const { data: employeeData } = await supabase
-      .from('employees')
-      .select('id')
-      .eq('user_id', userId)
-      .maybeSingle();
+    const { data: profileData, error: profileError } = profileResult;
+    const { data: employeeData } = employeeResult;
     
     if (!profileError && profileData) {
       setProfile({
         ...profileData,
-        employee_id: employeeData?.id ?? null
+        employee_id: employeeData?.id ?? null,
+        // Use employee avatar as primary source, fallback to profile avatar
+        avatar_url: employeeData?.avatar_url || profileData.avatar_url || null,
       });
     }
   };

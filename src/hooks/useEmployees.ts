@@ -117,10 +117,19 @@ export function useUpdateEmployee() {
         .from("employees")
         .update(employee)
         .eq("id", id)
-        .select()
+        .select("*, user_id")
         .single();
 
       if (error) throw error;
+
+      // Sync avatar to profiles table if employee has a linked user
+      if (employee.avatar_url !== undefined && data.user_id) {
+        await supabase
+          .from('profiles')
+          .update({ avatar_url: employee.avatar_url })
+          .eq('id', data.user_id);
+      }
+
       return data;
     },
     onSuccess: (_, variables) => {
@@ -128,6 +137,8 @@ export function useUpdateEmployee() {
       queryClient.invalidateQueries({ queryKey: queryKeys.employees.detail(variables.id) });
       queryClient.invalidateQueries({ queryKey: queryKeys.teamMembers.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.teamMembers.detail(variables.id) });
+      // Also invalidate user preferences to refresh avatar in settings
+      queryClient.invalidateQueries({ queryKey: ['user-preferences'] });
     },
   });
 }
