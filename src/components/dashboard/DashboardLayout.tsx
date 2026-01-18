@@ -1,20 +1,37 @@
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { ImpersonationBanner } from "./ImpersonationBanner";
+import { cn } from "@/lib/utils";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
+  /** Use full width without max-width constraint (e.g., org chart) */
+  fullWidth?: boolean;
+  /** Remove default content padding */
+  noPadding?: boolean;
 }
 
-export function DashboardLayout({ children }: DashboardLayoutProps) {
+export function DashboardLayout({ 
+  children, 
+  fullWidth = false,
+  noPadding = false 
+}: DashboardLayoutProps) {
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <ImpersonationBanner />
         <Header />
-        <main className="flex-1 p-4 sm:p-6 overflow-y-auto overflow-x-hidden">
-          {children}
+        <main className="flex-1 overflow-y-auto overflow-x-hidden">
+          <div 
+            className={cn(
+              "w-full min-h-full",
+              !noPadding && "px-4 sm:px-6 lg:px-8 py-4 sm:py-6",
+              !fullWidth && "max-w-[1400px] mx-auto"
+            )}
+          >
+            {children}
+          </div>
         </main>
       </div>
     </div>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
+import { PageHeader } from '@/components/ui/page-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useRole } from '@/contexts/RoleContext';
 import { MyTripsTab } from '@/components/business-trips/MyTripsTab';
@@ -19,13 +20,10 @@ export default function BusinessTrips() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Business Trips</h1>
-          <p className="text-muted-foreground">
-            Manage your business travel requests and expenses
-          </p>
-        </div>
+        <PageHeader
+          title="Business Trips"
+          subtitle="Manage your business travel requests and expenses"
+        />
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">

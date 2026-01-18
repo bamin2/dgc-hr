@@ -11,9 +11,7 @@ const Index = () => {
   
   return (
     <DashboardLayout>
-      <div className="max-w-7xl mx-auto">
-        <DashboardRenderer />
-      </div>
+      <DashboardRenderer />
     </DashboardLayout>
   );
 };

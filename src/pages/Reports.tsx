@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/dashboard';
+import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -149,17 +150,13 @@ const Reports = () => {
 
   return (
     <DashboardLayout>
-      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
+      <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">Reports</h1>
-            <p className="text-muted-foreground text-sm sm:text-base">Analytics and insights for your organization</p>
-          </div>
-          <div className="flex gap-2 sm:gap-3">
-            <ExportButton onExport={handleExport} />
-          </div>
-        </div>
+        <PageHeader
+          title="Reports"
+          subtitle="Analytics and insights for your organization"
+          actions={<ExportButton onExport={handleExport} />}
+        />
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={handleTabChange}>
