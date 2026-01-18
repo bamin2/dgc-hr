@@ -38,6 +38,7 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useCreateBenefitPlan, type BenefitType, type BenefitStatus } from '@/hooks/useBenefitPlans';
 import { useBenefitDocumentUpload } from '@/hooks/useBenefitDocumentUpload';
+import { FormSection, FormActions } from '@/components/ui/form-section';
 
 const formSchema = z.object({
   name: z.string().min(1, 'Plan name is required'),
@@ -66,7 +67,7 @@ export function CreateBenefitPlanDialog({ open, onOpenChange }: CreateBenefitPla
   const createPlan = useCreateBenefitPlan();
   const { uploadDocument, isUploading } = useBenefitDocumentUpload();
   
-const [coverageLevels, setCoverageLevels] = useState<CoverageLevel[]>([]);
+  const [coverageLevels, setCoverageLevels] = useState<CoverageLevel[]>([]);
   const [policyFile, setPolicyFile] = useState<File | null>(null);
   const [expiryDate, setExpiryDate] = useState<Date | undefined>();
 
@@ -181,67 +182,62 @@ const [coverageLevels, setCoverageLevels] = useState<CoverageLevel[]>([]);
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {/* Plan Information */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium text-muted-foreground">Plan Information</h3>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Plan Name *</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., Premium Health Plus" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+            <FormSection title="Plan Information" layout="grid">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Plan Name *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., Premium Health Plus" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                <FormField
-                  control={form.control}
-                  name="type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Plan Type *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="health">Health</SelectItem>
-                          <SelectItem value="dental">Dental</SelectItem>
-                          <SelectItem value="vision">Vision</SelectItem>
-                          <SelectItem value="life">Life</SelectItem>
-                          <SelectItem value="disability">Disability</SelectItem>
-                          <SelectItem value="retirement">Retirement</SelectItem>
-                          <SelectItem value="wellness">Wellness</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="provider"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Provider *</FormLabel>
+              <FormField
+                control={form.control}
+                name="type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Plan Type *</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <Input placeholder="e.g., Blue Cross Blue Shield" {...field} />
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select type" />
+                        </SelectTrigger>
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                      <SelectContent>
+                        <SelectItem value="health">Health</SelectItem>
+                        <SelectItem value="dental">Dental</SelectItem>
+                        <SelectItem value="vision">Vision</SelectItem>
+                        <SelectItem value="life">Life</SelectItem>
+                        <SelectItem value="disability">Disability</SelectItem>
+                        <SelectItem value="retirement">Retirement</SelectItem>
+                        <SelectItem value="wellness">Wellness</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="provider"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Provider *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., Blue Cross Blue Shield" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}
@@ -265,9 +261,7 @@ const [coverageLevels, setCoverageLevels] = useState<CoverageLevel[]>([]);
                   </FormItem>
                 )}
               />
-            </div>
 
-            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <FormLabel>Expiry Date</FormLabel>
                 <Popover>
@@ -293,8 +287,9 @@ const [coverageLevels, setCoverageLevels] = useState<CoverageLevel[]>([]);
                   </PopoverContent>
                 </Popover>
               </div>
-            </div>
+            </FormSection>
 
+            <FormSection title="Description & Features">
               <FormField
                 control={form.control}
                 name="description"
@@ -332,64 +327,71 @@ const [coverageLevels, setCoverageLevels] = useState<CoverageLevel[]>([]);
                   </FormItem>
                 )}
               />
-            </div>
+            </FormSection>
 
             {/* Coverage Levels */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium text-muted-foreground">Coverage Levels</h3>
-                <Button type="button" variant="outline" size="sm" onClick={addCoverageLevel}>
-                  <Plus className="h-4 w-4 mr-1" />
-                  Add Level
-                </Button>
-              </div>
-
-              {coverageLevels.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4 bg-muted/30 rounded-lg">
-                  No coverage levels added. Click "Add Level" to create coverage options.
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  {coverageLevels.map((level, index) => (
-                    <div key={index} className="flex items-start gap-3 p-3 bg-muted/30 rounded-lg">
-                      <div className="flex-1 grid grid-cols-3 gap-3">
-                        <Input
-                          placeholder="Level name (e.g., Individual)"
-                          value={level.name}
-                          onChange={(e) => updateCoverageLevel(index, 'name', e.target.value)}
-                        />
-                        <Input
-                          type="number"
-                          placeholder="Employee cost"
-                          value={level.employee_cost || ''}
-                          onChange={(e) => updateCoverageLevel(index, 'employee_cost', parseFloat(e.target.value) || 0)}
-                        />
-                        <Input
-                          type="number"
-                          placeholder="Employer cost"
-                          value={level.employer_cost || ''}
-                          onChange={(e) => updateCoverageLevel(index, 'employer_cost', parseFloat(e.target.value) || 0)}
-                        />
-                      </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => removeCoverageLevel(index)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
+            <FormSection 
+              title="Coverage Levels" 
+              description="Define cost tiers for different coverage options"
+              separator
+            >
+              <div className="space-y-4">
+                <div className="flex justify-end">
+                  <Button type="button" variant="outline" size="sm" onClick={addCoverageLevel}>
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Level
+                  </Button>
                 </div>
-              )}
-            </div>
+
+                {coverageLevels.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4 bg-muted/30 rounded-lg">
+                    No coverage levels added. Click "Add Level" to create coverage options.
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {coverageLevels.map((level, index) => (
+                      <div key={index} className="flex items-start gap-3 p-3 bg-muted/30 rounded-lg">
+                        <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
+                          <Input
+                            placeholder="Level name (e.g., Individual)"
+                            value={level.name}
+                            onChange={(e) => updateCoverageLevel(index, 'name', e.target.value)}
+                          />
+                          <Input
+                            type="number"
+                            placeholder="Employee cost"
+                            value={level.employee_cost || ''}
+                            onChange={(e) => updateCoverageLevel(index, 'employee_cost', parseFloat(e.target.value) || 0)}
+                          />
+                          <Input
+                            type="number"
+                            placeholder="Employer cost"
+                            value={level.employer_cost || ''}
+                            onChange={(e) => updateCoverageLevel(index, 'employer_cost', parseFloat(e.target.value) || 0)}
+                          />
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => removeCoverageLevel(index)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </FormSection>
 
             {/* Policy Document Upload */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium text-muted-foreground">Policy Document</h3>
-              
+            <FormSection 
+              title="Policy Document" 
+              description="Upload the official policy document"
+              separator
+            >
               <div className="border-2 border-dashed border-border/50 rounded-lg p-6 text-center">
                 {policyFile ? (
                   <div className="flex items-center justify-center gap-3">
@@ -430,10 +432,10 @@ const [coverageLevels, setCoverageLevels] = useState<CoverageLevel[]>([]);
                   </>
                 )}
               </div>
-            </div>
+            </FormSection>
 
             {/* Actions */}
-            <div className="flex justify-end gap-3 pt-4 border-t">
+            <FormActions>
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
@@ -441,7 +443,7 @@ const [coverageLevels, setCoverageLevels] = useState<CoverageLevel[]>([]);
                 {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 Create Plan
               </Button>
-            </div>
+            </FormActions>
           </form>
         </Form>
       </DialogContent>

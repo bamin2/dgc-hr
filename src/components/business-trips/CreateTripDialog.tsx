@@ -2,7 +2,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon } from 'lucide-react';
+import { Calendar as CalendarIcon, Loader2, Calculator } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
@@ -35,14 +35,13 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { Loader2, Calculator } from 'lucide-react';
 import { useBusinessTripDestinations } from '@/hooks/useBusinessTripDestinations';
 import { useBusinessTripSettings } from '@/hooks/useBusinessTripSettings';
 import { useCreateBusinessTrip, calculateNights, calculatePerDiem } from '@/hooks/useBusinessTrips';
 import { CountrySelect } from '@/components/ui/country-select';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import { FormSection, FormActions, FormFieldGroup } from '@/components/ui/form-section';
 
 const tripFormSchema = z.object({
   destination_id: z.string().min(1, 'Destination is required'),
@@ -159,221 +158,223 @@ export function CreateTripDialog({ open, onOpenChange }: CreateTripDialogProps) 
 
         <Form {...form}>
           <form className="space-y-6">
-            {/* Destination */}
-            <FormField
-              control={form.control}
-              name="destination_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Destination *</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select destination" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {loadingDestinations ? (
-                        <div className="p-2 text-center">
-                          <Loader2 className="h-4 w-4 animate-spin mx-auto" />
-                        </div>
-                      ) : destinations?.length === 0 ? (
-                        <div className="p-2 text-center text-muted-foreground">
-                          No destinations configured
-                        </div>
-                      ) : (
-                        destinations?.map(dest => (
-                          <SelectItem key={dest.id} value={dest.id}>
-                            {dest.name} ({dest.country}) - BHD {dest.per_diem_rate_bhd}/night
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Destination & Origin */}
+            <FormSection title="Trip Details" description="Where are you traveling to and from?">
+              <FormField
+                control={form.control}
+                name="destination_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Destination *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select destination" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {loadingDestinations ? (
+                          <div className="p-2 text-center">
+                            <Loader2 className="h-4 w-4 animate-spin mx-auto" />
+                          </div>
+                        ) : destinations?.length === 0 ? (
+                          <div className="p-2 text-center text-muted-foreground">
+                            No destinations configured
+                          </div>
+                        ) : (
+                          destinations?.map(dest => (
+                            <SelectItem key={dest.id} value={dest.id}>
+                              {dest.name} ({dest.country}) - BHD {dest.per_diem_rate_bhd}/night
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            {/* Origin Country */}
-            <FormField
-              control={form.control}
-              name="origin_country"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Origin Country</FormLabel>
-                  <FormControl>
-                    <CountrySelect
-                      value={field.value || ''}
-                      onValueChange={field.onChange}
-                      placeholder="Select departure country"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <FormFieldGroup>
+                <FormField
+                  control={form.control}
+                  name="origin_country"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Origin Country</FormLabel>
+                      <FormControl>
+                        <CountrySelect
+                          value={field.value || ''}
+                          onValueChange={field.onChange}
+                          placeholder="Select departure country"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            {/* Origin City */}
-            <FormField
-              control={form.control}
-              name="origin_city"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Origin City (Optional)</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="e.g., Manama"
-                      value={field.value || ''}
-                      onChange={field.onChange}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                <FormField
+                  control={form.control}
+                  name="origin_city"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Origin City (Optional)</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="e.g., Manama"
+                          value={field.value || ''}
+                          onChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </FormFieldGroup>
+            </FormSection>
 
             {/* Dates */}
-            <div className="grid grid-cols-2 gap-4">
+            <FormSection title="Travel Dates" separator>
+              <FormFieldGroup>
+                <FormField
+                  control={form.control}
+                  name="start_date"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Start Date *</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            initialFocus
+                            className="pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="end_date"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>End Date *</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            disabled={(date) => watchedValues.start_date ? date < watchedValues.start_date : false}
+                            initialFocus
+                            className="pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </FormFieldGroup>
+            </FormSection>
+
+            {/* Travel Options */}
+            <FormSection title="Travel Options" separator>
               <FormField
                 control={form.control}
-                name="start_date"
+                name="travel_mode"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Start Date *</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "w-full pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          initialFocus
-                          className="pointer-events-auto"
-                        />
-                      </PopoverContent>
-                    </Popover>
+                  <FormItem>
+                    <FormLabel>Travel Mode *</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        className="flex gap-4"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="plane" id="plane" />
+                          <Label htmlFor="plane">Plane</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="car" id="car" />
+                          <Label htmlFor="car">Car (+BHD {carUplift}/night)</Label>
+                        </div>
+                      </RadioGroup>
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
-                name="end_date"
+                name="corporate_card_used"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>End Date *</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "w-full pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          disabled={(date) => watchedValues.start_date ? date < watchedValues.start_date : false}
-                          initialFocus
-                          className="pointer-events-auto"
-                        />
-                      </PopoverContent>
-                    </Popover>
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Corporate Credit Card</FormLabel>
+                      <p className="text-sm text-muted-foreground">
+                        If using corporate card, per diem will not be paid as cash
+                      </p>
+                    </div>
+                    <FormControl>
+                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="flight_details"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Flight Details (Optional)</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Enter flight numbers, times, booking references..."
+                        {...field}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            </div>
-
-            {/* Travel Mode */}
-            <FormField
-              control={form.control}
-              name="travel_mode"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Travel Mode *</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      value={field.value}
-                      className="flex gap-4"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="plane" id="plane" />
-                        <Label htmlFor="plane">Plane</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="car" id="car" />
-                        <Label htmlFor="car">Car (+BHD {carUplift}/night)</Label>
-                      </div>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Corporate Card */}
-            <FormField
-              control={form.control}
-              name="corporate_card_used"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">Corporate Credit Card</FormLabel>
-                    <p className="text-sm text-muted-foreground">
-                      If using corporate card, per diem will not be paid as cash
-                    </p>
-                  </div>
-                  <FormControl>
-                    <Switch checked={field.value} onCheckedChange={field.onChange} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-
-            {/* Flight Details */}
-            <FormField
-              control={form.control}
-              name="flight_details"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Flight Details (Optional)</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Enter flight numbers, times, booking references..."
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <Separator />
+            </FormSection>
 
             {/* Per Diem Calculation Preview */}
             <Card className="bg-muted/50">
@@ -398,7 +399,7 @@ export function CreateTripDialog({ open, onOpenChange }: CreateTripDialogProps) 
                     <span className="font-medium">BHD {carUpliftTotal.toFixed(3)}</span>
                   </div>
                 )}
-                <Separator />
+                <div className="border-t my-2" />
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Per Diem Budget:</span>
                   <span className="font-semibold">BHD {budget.toFixed(3)}</span>
