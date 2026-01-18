@@ -13,8 +13,9 @@ interface BenefitPlanCardProps {
 export const BenefitPlanCard = ({ plan }: BenefitPlanCardProps) => {
   const navigate = useNavigate();
   const coverageLevels = plan.coverage_levels || [];
-  const costs = coverageLevels.map(c => c.employee_cost);
+  const costs = coverageLevels.map(c => c.employee_cost + c.employer_cost);
   const lowestCost = costs.length > 0 ? Math.min(...costs) : 0;
+  const highestCost = costs.length > 0 ? Math.max(...costs) : 0;
 
   // Format currency using the plan's currency
   const planCurrency = plan.currency || 'BHD';
@@ -48,7 +49,11 @@ export const BenefitPlanCard = ({ plan }: BenefitPlanCardProps) => {
             <span>{plan.enrolled_count} enrolled</span>
           </div>
           <div className="text-muted-foreground">
-            From <span className="font-semibold text-foreground">{formatPlanCurrency(lowestCost)}</span>/mo
+            {lowestCost === highestCost ? (
+              <><span className="font-semibold text-foreground">{formatPlanCurrency(lowestCost)}</span>/mo</>
+            ) : (
+              <><span className="font-semibold text-foreground">{formatPlanCurrency(lowestCost)}</span> - <span className="font-semibold text-foreground">{formatPlanCurrency(highestCost)}</span>/mo</>
+            )}
           </div>
         </div>
 
