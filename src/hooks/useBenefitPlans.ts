@@ -25,6 +25,7 @@ export interface BenefitPlan {
   enrolled_count: number;
   features: string[];
   policy_document_url: string | null;
+  expiry_date: string | null;
   created_at: string;
   updated_at: string;
   coverage_levels?: CoverageLevel[];
@@ -87,6 +88,7 @@ export function useCreateBenefitPlan() {
       description?: string;
       status?: BenefitStatus;
       features?: string[];
+      expiry_date?: string;
       coverageLevels?: Array<{
         name: string;
         employee_cost: number;
@@ -104,6 +106,7 @@ export function useCreateBenefitPlan() {
           description: plan.description,
           status: plan.status || 'active',
           features: plan.features || [],
+          expiry_date: plan.expiry_date,
         })
         .select()
         .single();

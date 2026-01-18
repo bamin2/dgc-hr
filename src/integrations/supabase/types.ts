@@ -678,6 +678,7 @@ export type Database = {
           created_at: string
           description: string | null
           enrolled_count: number | null
+          expiry_date: string | null
           features: string[] | null
           id: string
           name: string
@@ -691,6 +692,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           enrolled_count?: number | null
+          expiry_date?: string | null
           features?: string[] | null
           id?: string
           name: string
@@ -704,6 +706,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           enrolled_count?: number | null
+          expiry_date?: string | null
           features?: string[] | null
           id?: string
           name?: string
