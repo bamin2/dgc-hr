@@ -32,6 +32,7 @@ export interface BenefitEnrollment {
     name: string;
     type: string;
     provider: string;
+    currency: string;
   };
   coverage_level?: {
     id: string;
@@ -76,7 +77,8 @@ export function useBenefitEnrollments(filters?: {
             id,
             name,
             type,
-            provider
+            provider,
+            currency
           ),
           coverage_level:benefit_coverage_levels!benefit_enrollments_coverage_level_id_fkey (
             id,
@@ -139,6 +141,7 @@ export function useBenefitEnrollment(enrollmentId: string | undefined) {
             name,
             type,
             provider,
+            currency,
             description,
             features
           ),

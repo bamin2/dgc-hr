@@ -1,13 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { 
-  Shield, 
-  DollarSign, 
-  Calendar,
-  Inbox,
-  Users
-} from 'lucide-react';
+import { Shield, DollarSign, Calendar, Inbox, Users } from 'lucide-react';
 import { useBenefitEnrollments, BenefitEnrollment } from '@/hooks/useBenefitEnrollments';
 import { BenefitTypeBadge } from '@/components/benefits/BenefitTypeBadge';
 import { format } from 'date-fns';
@@ -26,10 +20,19 @@ const statusConfig: Record<string, { label: string; variant: 'default' | 'second
 };
 
 function EnrollmentCard({ enrollment }: { enrollment: BenefitEnrollment }) {
-  const { formatCurrency } = useCompanySettings();
   const config = statusConfig[enrollment.status] || statusConfig.pending;
   const beneficiaries = enrollment.beneficiaries || [];
   const hasBeneficiaries = beneficiaries.length > 0;
+  
+  // Format currency using the plan's currency
+  const planCurrency = enrollment.plan?.currency || 'BHD';
+  const formatPlanCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: planCurrency,
+      minimumFractionDigits: 2,
+    }).format(amount);
+  };
   
   // Calculate costs including dependents (multiply by 1 + number of beneficiaries)
   const dependentMultiplier = 1 + beneficiaries.length;
@@ -79,16 +82,16 @@ function EnrollmentCard({ enrollment }: { enrollment: BenefitEnrollment }) {
           <div className="bg-muted/50 rounded-lg p-3">
             <div className="flex justify-between items-center mb-2">
               <span className="text-xs text-muted-foreground">Monthly Cost</span>
-              <span className="text-sm font-semibold">{formatCurrency(totalCost)}</span>
+              <span className="text-sm font-semibold">{formatPlanCurrency(totalCost)}</span>
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Employee pays</span>
-                <span className="font-medium">{formatCurrency(adjustedEmployeeContribution)}</span>
+                <span className="font-medium">{formatPlanCurrency(adjustedEmployeeContribution)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Employer pays</span>
-                <span className="font-medium text-green-600">{formatCurrency(adjustedEmployerContribution)}</span>
+                <span className="font-medium text-green-600">{formatPlanCurrency(adjustedEmployerContribution)}</span>
               </div>
             </div>
           </div>
