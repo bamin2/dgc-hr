@@ -20,6 +20,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LoanStatusBadge } from "./LoanStatusBadge";
 import { Loan } from "@/hooks/useLoans";
 import { useCompanySettings } from "@/contexts/CompanySettingsContext";
+import { useIsMobile } from "@/hooks/use-media-query";
+import { DataCard, DataCardList } from "@/components/ui/data-card";
 
 interface LoansTableProps {
   loans: Loan[];
@@ -41,6 +43,7 @@ export function LoansTable({
   showEmployeeColumn = true,
 }: LoansTableProps) {
   const { formatCurrency } = useCompanySettings();
+  const isMobile = useIsMobile();
 
   const getEmployeeName = (loan: Loan) => {
     if (!loan.employee) return "Unknown";
@@ -51,6 +54,27 @@ export function LoansTable({
   const getEmployeeInitials = (loan: Loan) => {
     if (!loan.employee) return "?";
     return `${loan.employee.first_name?.[0] || ""}${loan.employee.last_name?.[0] || ""}`;
+  };
+
+  const getActions = (loan: Loan): Array<{ label: string; onClick: () => void; icon?: React.ReactNode; destructive?: boolean }> => {
+    const actions: Array<{ label: string; onClick: () => void; icon?: React.ReactNode; destructive?: boolean }> = [
+      { label: "View Details", onClick: () => onViewDetails(loan), icon: <Eye className="h-4 w-4" /> },
+    ];
+
+    if (loan.status === "requested" && onApprove && onReject) {
+      actions.push(
+        { label: "Approve", onClick: () => onApprove(loan), icon: <CheckCircle className="h-4 w-4" /> },
+        { label: "Reject", onClick: () => onReject(loan), icon: <XCircle className="h-4 w-4" />, destructive: true },
+      );
+    }
+
+    if (loan.status === "approved" && onDisburse) {
+      actions.push(
+        { label: "Disburse Loan", onClick: () => onDisburse(loan), icon: <Banknote className="h-4 w-4" /> },
+      );
+    }
+
+    return actions;
   };
 
   if (isLoading) {
@@ -70,6 +94,55 @@ export function LoansTable({
     );
   }
 
+  // Mobile card view
+  if (isMobile) {
+    return (
+      <DataCardList>
+        {loans.map((loan) => (
+          <DataCard
+            key={loan.id}
+            title={showEmployeeColumn ? getEmployeeName(loan) : formatCurrency(loan.principal_amount)}
+            subtitle={showEmployeeColumn ? formatCurrency(loan.principal_amount) : undefined}
+            avatar={showEmployeeColumn ? (
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={loan.employee?.avatar_url || undefined} />
+                <AvatarFallback className="text-xs">
+                  {getEmployeeInitials(loan)}
+                </AvatarFallback>
+              </Avatar>
+            ) : undefined}
+            fields={[
+              { 
+                label: "Installment", 
+                value: loan.installment_amount ? formatCurrency(loan.installment_amount) : "-" 
+              },
+              { 
+                label: "Duration", 
+                value: loan.duration_months ? `${loan.duration_months} months` : "-" 
+              },
+              { 
+                label: "Start Date", 
+                value: format(new Date(loan.start_date), "MMM d, yyyy") 
+              },
+              { 
+                label: "Payroll", 
+                value: loan.deduct_from_payroll ? (
+                  <span className="text-emerald-600">Yes</span>
+                ) : (
+                  <span className="text-muted-foreground">No</span>
+                )
+              },
+            ]}
+            badge={<LoanStatusBadge status={loan.status} />}
+            onClick={() => onViewDetails(loan)}
+            actions={getActions(loan)}
+          />
+        ))}
+      </DataCardList>
+    );
+  }
+
+  // Desktop table view
   return (
     <div className="rounded-md border">
       <Table>

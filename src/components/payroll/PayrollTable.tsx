@@ -12,6 +12,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { PaymentStatusBadge } from "./PaymentStatusBadge";
 import { PayrollRecord } from "@/data/payroll";
+import { useIsMobile } from "@/hooks/use-media-query";
+import { DataCard, DataCardList } from "@/components/ui/data-card";
 
 interface PayrollTableProps {
   records: PayrollRecord[];
@@ -20,6 +22,7 @@ interface PayrollTableProps {
 
 export function PayrollTable({ records, currency = "USD" }: PayrollTableProps) {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -34,6 +37,61 @@ export function PayrollTable({ records, currency = "USD" }: PayrollTableProps) {
     return deductions.tax + deductions.insurance + deductions.other;
   };
 
+  if (records.length === 0) {
+    return (
+      <div className="text-center py-12 text-muted-foreground">
+        No payroll records found
+      </div>
+    );
+  }
+
+  // Mobile card view
+  if (isMobile) {
+    return (
+      <DataCardList>
+        {records.map((record) => (
+          <DataCard
+            key={record.id}
+            title={`${record.employee.firstName} ${record.employee.lastName}`}
+            subtitle={record.employee.position}
+            avatar={
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={record.employee.avatar} alt={`${record.employee.firstName} ${record.employee.lastName}`} />
+                <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                  {record.employee.firstName[0]}{record.employee.lastName[0]}
+                </AvatarFallback>
+              </Avatar>
+            }
+            fields={[
+              { label: "Base Salary", value: formatCurrency(record.baseSalary) },
+              { 
+                label: "Bonuses", 
+                value: record.bonuses > 0 ? (
+                  <span className="text-success">+{formatCurrency(record.bonuses)}</span>
+                ) : "-" 
+              },
+              { 
+                label: "Deductions", 
+                value: <span className="text-destructive">-{formatCurrency(getTotalDeductions(record.deductions))}</span>
+              },
+              { 
+                label: "Net Pay", 
+                value: <span className="font-semibold">{formatCurrency(record.netPay)}</span>
+              },
+            ]}
+            badge={<PaymentStatusBadge status={record.status} />}
+            onClick={() => navigate(`/payroll/payslip/${record.id}`)}
+            actions={[
+              { label: "View Payslip", onClick: () => navigate(`/payroll/payslip/${record.id}`), icon: <Eye className="h-4 w-4" /> },
+              { label: "Download", onClick: () => {}, icon: <Download className="h-4 w-4" /> },
+            ]}
+          />
+        ))}
+      </DataCardList>
+    );
+  }
+
+  // Desktop table view
   return (
     <div className="bg-card rounded-xl border border-border overflow-hidden">
       <Table>
@@ -107,12 +165,6 @@ export function PayrollTable({ records, currency = "USD" }: PayrollTableProps) {
           ))}
         </TableBody>
       </Table>
-      
-      {records.length === 0 && (
-        <div className="text-center py-12 text-muted-foreground">
-          No payroll records found
-        </div>
-      )}
     </div>
   );
 }
