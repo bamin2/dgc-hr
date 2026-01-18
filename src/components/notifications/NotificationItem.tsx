@@ -1,5 +1,4 @@
 import { formatDistanceToNow } from "date-fns";
-import { formatDisplayDate, formatTime } from "@/lib/dateUtils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { NotificationTypeBadge } from "./NotificationTypeBadge";
@@ -19,12 +18,24 @@ export function NotificationItem({ notification, onMarkAsRead }: NotificationIte
     }
   };
 
+  // Severity-based styling
+  const severityStyles = {
+    danger: "border-l-2 border-l-destructive",
+    warning: "border-l-2 border-l-yellow-500",
+    success: "border-l-2 border-l-green-500",
+    info: "",
+  };
+
+  const severityStyle = notification.severity ? severityStyles[notification.severity] : "";
+
   return (
     <button
       onClick={handleClick}
       className={cn(
         "w-full flex items-start gap-3 p-3 text-left transition-colors hover:bg-muted/50",
-        !notification.isRead && "bg-primary/5"
+        !notification.isRead && "bg-primary/5",
+        notification.priority === "urgent" && "bg-destructive/5",
+        severityStyle
       )}
     >
       {notification.actor ? (
@@ -35,7 +46,10 @@ export function NotificationItem({ notification, onMarkAsRead }: NotificationIte
           </AvatarFallback>
         </Avatar>
       ) : (
-        <NotificationTypeBadge type={notification.type} />
+        <NotificationTypeBadge 
+          type={notification.type} 
+          entityType={notification.entityType}
+        />
       )}
 
       <div className="flex-1 min-w-0">
@@ -48,6 +62,11 @@ export function NotificationItem({ notification, onMarkAsRead }: NotificationIte
           </span>
           {!notification.isRead && (
             <span className="w-2 h-2 rounded-full bg-primary shrink-0" />
+          )}
+          {notification.priority === "urgent" && (
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-destructive text-destructive-foreground font-medium">
+              Urgent
+            </span>
           )}
         </div>
         <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
