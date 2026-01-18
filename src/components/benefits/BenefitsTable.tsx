@@ -38,10 +38,18 @@ export const BenefitsTable = ({ plans }: BenefitsTableProps) => {
         <TableBody>
           {plans.map((plan) => {
             const coverageLevels = plan.coverage_levels || [];
-            const costs = coverageLevels.map(c => c.employee_cost);
+            const costs = coverageLevels.map((c) => c.employee_cost + c.employer_cost);
             const minCost = costs.length > 0 ? Math.min(...costs) : 0;
             const maxCost = costs.length > 0 ? Math.max(...costs) : 0;
-            
+
+            const planCurrency = plan.currency || 'BHD';
+            const formatPlanCurrency = (amount: number) =>
+              new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: planCurrency,
+                minimumFractionDigits: 0,
+              }).format(amount);
+
             return (
               <TableRow key={plan.id} className="hover:bg-muted/30">
                 <TableCell className="font-medium">{plan.name}</TableCell>
@@ -56,14 +64,20 @@ export const BenefitsTable = ({ plans }: BenefitsTableProps) => {
                   </div>
                 </TableCell>
                 <TableCell>
-                  ${minCost} - ${maxCost}/mo
+                  {minCost === maxCost ? (
+                    <>{formatPlanCurrency(minCost)}/mo</>
+                  ) : (
+                    <>
+                      {formatPlanCurrency(minCost)} - {formatPlanCurrency(maxCost)}/mo
+                    </>
+                  )}
                 </TableCell>
                 <TableCell>
                   <BenefitStatusBadge status={plan.status} />
                 </TableCell>
                 <TableCell className="text-right">
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     size="sm"
                     onClick={() => navigate(`/benefits/plans/${plan.id}`)}
                   >
