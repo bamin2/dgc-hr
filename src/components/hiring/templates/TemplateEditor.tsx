@@ -377,7 +377,7 @@ export function TemplateEditor({ templateId, onSuccess }: TemplateEditorProps) {
                 Preview
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-3xl max-h-[80vh]">
+            <DialogContent size="3xl" className="max-h-[80vh]">
               <DialogHeader>
                 <DialogTitle>Template Preview</DialogTitle>
               </DialogHeader>

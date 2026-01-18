@@ -91,7 +91,7 @@ export function TemplatePreviewDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[85vh]">
+      <DialogContent size="3xl" className="max-h-[85vh]">
         <DialogHeader>
           <div className="flex items-center gap-3">
             <DialogTitle>{template.name}</DialogTitle>

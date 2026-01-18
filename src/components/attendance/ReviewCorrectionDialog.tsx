@@ -96,7 +96,7 @@ export function ReviewCorrectionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent size="lg">
         <DialogHeader>
           <DialogTitle>Review Attendance Correction</DialogTitle>
           <DialogDescription>

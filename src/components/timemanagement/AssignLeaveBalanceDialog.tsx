@@ -71,7 +71,7 @@ export function AssignLeaveBalanceDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent size="md">
         <DialogHeader>
           <DialogTitle>Assign Leave Balance</DialogTitle>
           <DialogDescription>

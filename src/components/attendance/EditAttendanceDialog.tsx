@@ -161,7 +161,7 @@ export function EditAttendanceDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent size="lg">
         <DialogHeader>
           <DialogTitle>
             {isEditMode ? 'Edit Attendance Record' : 'Add Attendance Record'}

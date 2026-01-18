@@ -67,7 +67,7 @@ export function ImageCropper({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-lg">
+      <DialogContent size="lg">
         <DialogHeader>
           <DialogTitle>Crop Profile Photo</DialogTitle>
         </DialogHeader>

@@ -137,7 +137,7 @@ export function OrgChartExportDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
+      <DialogContent size="4xl" className="max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Export Org Chart</DialogTitle>
           <DialogDescription>

@@ -133,7 +133,7 @@ export function EmailTemplateEditor({ template, open, onClose }: EmailTemplateEd
 
   return (
     <Dialog open={open} onOpenChange={() => onClose()}>
-      <DialogContent className="max-w-5xl h-[85vh] flex flex-col p-0">
+      <DialogContent size="4xl" className="h-[85vh] flex flex-col p-0">
         <DialogHeader className="p-6 pb-0">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-xl">{template.name}</DialogTitle>
