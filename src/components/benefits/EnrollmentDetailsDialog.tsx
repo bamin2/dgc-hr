@@ -33,7 +33,15 @@ export const EnrollmentDetailsDialog = ({
   const plan = enrollment.plan;
   const coverageLevel = enrollment.coverage_level;
   const beneficiaries = enrollment.beneficiaries || [];
-  const totalCost = enrollment.employee_contribution + enrollment.employer_contribution;
+  
+  // Calculate costs including dependents (each dependent costs same as employee)
+  const dependentsCount = beneficiaries.length;
+  const totalPersons = 1 + dependentsCount;
+  const baseEmployeeCost = enrollment.employee_contribution;
+  const baseEmployerCost = enrollment.employer_contribution;
+  const totalEmployeeCost = baseEmployeeCost * totalPersons;
+  const totalEmployerCost = baseEmployerCost * totalPersons;
+  const totalCost = totalEmployeeCost + totalEmployerCost;
 
   // Format using plan's currency
   const planCurrency = plan?.currency || 'BHD';
@@ -140,15 +148,38 @@ export const EnrollmentDetailsDialog = ({
               Monthly Costs
             </h4>
             <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+              {/* Persons covered */}
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Employee pays</span>
-                <span className="font-medium">{formatPlanCurrency(enrollment.employee_contribution)}</span>
+                <span className="text-muted-foreground">Persons Covered</span>
+                <span className="font-medium">
+                  1 Employee{dependentsCount > 0 && ` + ${dependentsCount} Dependent${dependentsCount > 1 ? 's' : ''}`} = {totalPersons}
+                </span>
+              </div>
+              <Separator className="my-2" />
+              {/* Per person costs */}
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Employee pays (per person)</span>
+                <span>{formatPlanCurrency(baseEmployeeCost)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Employer pays</span>
-                <span className="font-medium text-emerald-600">{formatPlanCurrency(enrollment.employer_contribution)}</span>
+                <span className="text-muted-foreground">Employer pays (per person)</span>
+                <span className="text-emerald-600">{formatPlanCurrency(baseEmployerCost)}</span>
               </div>
-              <Separator />
+              {dependentsCount > 0 && (
+                <>
+                  <Separator className="my-2" />
+                  {/* Total breakdown */}
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Employee Total ({formatPlanCurrency(baseEmployeeCost)} × {totalPersons})</span>
+                    <span className="font-medium">{formatPlanCurrency(totalEmployeeCost)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Employer Total ({formatPlanCurrency(baseEmployerCost)} × {totalPersons})</span>
+                    <span className="font-medium text-emerald-600">{formatPlanCurrency(totalEmployerCost)}</span>
+                  </div>
+                </>
+              )}
+              <Separator className="my-2" />
               <div className="flex justify-between">
                 <span className="font-medium">Total Monthly Cost</span>
                 <span className="font-semibold">{formatPlanCurrency(totalCost)}</span>

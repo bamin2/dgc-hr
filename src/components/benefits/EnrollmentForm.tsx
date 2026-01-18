@@ -215,30 +215,53 @@ export const EnrollmentForm = ({ onSubmit, onCancel }: EnrollmentFormProps) => {
           <Card className="border-border/50 bg-muted/30">
             <CardContent className="p-4">
               <h4 className="font-medium mb-3">Enrollment Summary</h4>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Plan</span>
-                  <span className="font-medium">{selectedPlan.name}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Coverage</span>
-                  <span>{selectedCoverage.name}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Employee Cost</span>
-                  <span className="font-medium">{formatCurrency(selectedCoverage.employee_cost)}/month</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Employer Contribution</span>
-                  <span className="text-emerald-600">{formatCurrency(selectedCoverage.employer_cost)}/month</span>
-                </div>
-                {dependents.length > 0 && (
-                  <div className="flex justify-between pt-2 border-t">
-                    <span className="text-muted-foreground">Dependents</span>
-                    <span>{dependents.length} dependent{dependents.length > 1 ? 's' : ''}</span>
+              {(() => {
+                const totalPersons = 1 + dependents.length;
+                const baseEmployeeCost = selectedCoverage.employee_cost;
+                const baseEmployerCost = selectedCoverage.employer_cost;
+                const totalEmployeeCost = baseEmployeeCost * totalPersons;
+                const totalEmployerCost = baseEmployerCost * totalPersons;
+                const totalCost = totalEmployeeCost + totalEmployerCost;
+
+                return (
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Plan</span>
+                      <span className="font-medium">{selectedPlan.name}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Coverage</span>
+                      <span>{selectedCoverage.name}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Persons Covered</span>
+                      <span className="font-medium">
+                        1 Employee{dependents.length > 0 && ` + ${dependents.length} Dependent${dependents.length > 1 ? 's' : ''}`} = {totalPersons}
+                      </span>
+                    </div>
+                    <div className="border-t pt-2 mt-2 space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">
+                          Employee Cost {dependents.length > 0 && `(${formatCurrency(baseEmployeeCost)} × ${totalPersons})`}
+                        </span>
+                        <span className="font-medium">{formatCurrency(totalEmployeeCost)}/month</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">
+                          Employer Cost {dependents.length > 0 && `(${formatCurrency(baseEmployerCost)} × ${totalPersons})`}
+                        </span>
+                        <span className="text-emerald-600">{formatCurrency(totalEmployerCost)}/month</span>
+                      </div>
+                    </div>
+                    <div className="border-t pt-2 mt-2">
+                      <div className="flex justify-between">
+                        <span className="font-medium">Total Monthly Cost</span>
+                        <span className="font-semibold">{formatCurrency(totalCost)}/month</span>
+                      </div>
+                    </div>
                   </div>
-                )}
-              </div>
+                );
+              })()}
             </CardContent>
           </Card>
         )}
