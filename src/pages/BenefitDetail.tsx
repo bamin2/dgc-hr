@@ -7,11 +7,13 @@ import { ArrowLeft, Users, Check, Building2, Loader2, FileText, Pencil } from 'l
 import { BenefitTypeBadge, BenefitStatusBadge, EnrollmentsTable, EditBenefitPlanDialog } from '@/components/benefits';
 import { useBenefitPlan } from '@/hooks/useBenefitPlans';
 import { useBenefitEnrollments } from '@/hooks/useBenefitEnrollments';
+import { useCompanySettings } from '@/contexts/CompanySettingsContext';
 
 const BenefitDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const { formatCurrency } = useCompanySettings();
 
   const { data: plan, isLoading: planLoading } = useBenefitPlan(id);
   const { data: enrollments = [], isLoading: enrollmentsLoading } = useBenefitEnrollments({ planId: id });
@@ -111,15 +113,15 @@ const BenefitDetail = () => {
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Employee Cost</span>
-                        <span className="font-medium">${coverage.employee_cost}/mo</span>
+                        <span className="font-medium">{formatCurrency(coverage.employee_cost)}/mo</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Employer Contribution</span>
-                        <span className="text-emerald-600 font-medium">${coverage.employer_cost}/mo</span>
+                        <span className="text-emerald-600 font-medium">{formatCurrency(coverage.employer_cost)}/mo</span>
                       </div>
                       <div className="flex justify-between pt-2 border-t">
                         <span className="text-muted-foreground">Total Value</span>
-                        <span className="font-semibold">${coverage.employee_cost + coverage.employer_cost}/mo</span>
+                        <span className="font-semibold">{formatCurrency(coverage.employee_cost + coverage.employer_cost)}/mo</span>
                       </div>
                     </div>
                   </div>
