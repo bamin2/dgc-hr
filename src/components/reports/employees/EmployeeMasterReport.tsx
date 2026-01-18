@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/table';
 import { format } from 'date-fns';
 import { Users, UserCheck, UserX, Building2 } from 'lucide-react';
+import { cn, getResponsiveFontSize } from '@/lib/utils';
 
 const columns: ReportColumn<EmployeeMasterRecord>[] = [
   { key: 'employeeCode', header: 'Emp Code' },
@@ -65,7 +66,7 @@ export function EmployeeMasterReport() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Total Employees</p>
-              <p className="text-2xl font-bold">{stats.total}</p>
+              <p className={cn("font-bold", getResponsiveFontSize(stats.total))}>{stats.total}</p>
             </div>
           </div>
         </CardContent>
@@ -78,7 +79,7 @@ export function EmployeeMasterReport() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Active Employees</p>
-              <p className="text-2xl font-bold">{stats.active}</p>
+              <p className={cn("font-bold", getResponsiveFontSize(stats.active))}>{stats.active}</p>
             </div>
           </div>
         </CardContent>
@@ -91,7 +92,7 @@ export function EmployeeMasterReport() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Inactive Employees</p>
-              <p className="text-2xl font-bold">{stats.inactive}</p>
+              <p className={cn("font-bold", getResponsiveFontSize(stats.inactive))}>{stats.inactive}</p>
             </div>
           </div>
         </CardContent>
@@ -104,7 +105,7 @@ export function EmployeeMasterReport() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Departments</p>
-              <p className="text-2xl font-bold">{stats.departments.size}</p>
+              <p className={cn("font-bold", getResponsiveFontSize(stats.departments.size))}>{stats.departments.size}</p>
             </div>
           </div>
         </CardContent>

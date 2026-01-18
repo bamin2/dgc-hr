@@ -10,6 +10,7 @@ import { useWorkLocationsFilter, useDepartmentsFilter } from '@/hooks/reports/us
 import { CostReportFilters, PayrollVarianceRecord, VarianceReasonTag } from '@/types/reports';
 import { exportToCSV, exportToPDF, generateReportFilename } from '@/utils/reportExport';
 import { format, parseISO } from 'date-fns';
+import { cn, getResponsiveFontSize } from '@/lib/utils';
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('en-BH', {
@@ -205,7 +206,7 @@ export function PayrollVarianceReport() {
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(data.summary.currentTotalGross)}</div>
+              <div className={cn("font-bold", getResponsiveFontSize(formatCurrency(data.summary.currentTotalGross)))}>{formatCurrency(data.summary.currentTotalGross)}</div>
               <p className="text-xs text-muted-foreground">{data.summary.currentHeadcount} employees</p>
             </CardContent>
           </Card>
@@ -215,7 +216,7 @@ export function PayrollVarianceReport() {
               <TrendingDown className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(data.summary.previousTotalGross)}</div>
+              <div className={cn("font-bold", getResponsiveFontSize(formatCurrency(data.summary.previousTotalGross)))}>{formatCurrency(data.summary.previousTotalGross)}</div>
               <p className="text-xs text-muted-foreground">{data.summary.previousHeadcount} employees</p>
             </CardContent>
           </Card>
@@ -229,10 +230,10 @@ export function PayrollVarianceReport() {
               )}
             </CardHeader>
             <CardContent>
-              <div className={`text-2xl font-bold ${data.summary.deltaAmount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              <div className={cn("font-bold", getResponsiveFontSize(formatCurrency(data.summary.deltaAmount)), data.summary.deltaAmount >= 0 ? 'text-green-600' : 'text-red-600')}>
                 {formatCurrency(data.summary.deltaAmount)}
               </div>
-              <p className={`text-sm ${data.summary.deltaPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              <p className={cn("text-sm", data.summary.deltaPercent >= 0 ? 'text-green-600' : 'text-red-600')}>
                 {formatPercent(data.summary.deltaPercent)}
               </p>
             </CardContent>
@@ -243,7 +244,7 @@ export function PayrollVarianceReport() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className={`text-2xl font-bold ${data.summary.headcountDelta >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              <div className={cn("font-bold", getResponsiveFontSize(`${data.summary.headcountDelta >= 0 ? '+' : ''}${data.summary.headcountDelta}`), data.summary.headcountDelta >= 0 ? 'text-green-600' : 'text-red-600')}>
                 {data.summary.headcountDelta >= 0 ? '+' : ''}{data.summary.headcountDelta}
               </div>
               <p className="text-xs text-muted-foreground">net change</p>

@@ -9,7 +9,7 @@ import { useWorkLocationsFilter, useDepartmentsFilter } from '@/hooks/reports/us
 import { CostReportFilters, CTCRecord } from '@/types/reports';
 import { CurrencyConversionTooltip } from '../CurrencyConversionTooltip';
 import { exportToCSV, exportToPDF, generateReportFilename } from '@/utils/reportExport';
-
+import { cn, getResponsiveFontSize } from '@/lib/utils';
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('en-BH', {
     style: 'currency',
@@ -178,7 +178,7 @@ export function CTCReport() {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(data.summary.totalCtcMonthly)}</div>
+              <div className={cn("font-bold", getResponsiveFontSize(formatCurrency(data.summary.totalCtcMonthly)))}>{formatCurrency(data.summary.totalCtcMonthly)}</div>
             </CardContent>
           </Card>
           <Card>
@@ -187,7 +187,7 @@ export function CTCReport() {
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(data.summary.totalCtcYearly)}</div>
+              <div className={cn("font-bold", getResponsiveFontSize(formatCurrency(data.summary.totalCtcYearly)))}>{formatCurrency(data.summary.totalCtcYearly)}</div>
             </CardContent>
           </Card>
           <Card>
@@ -196,7 +196,7 @@ export function CTCReport() {
               <Briefcase className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(data.summary.totalGrossPay)}</div>
+              <div className={cn("font-bold", getResponsiveFontSize(formatCurrency(data.summary.totalGrossPay)))}>{formatCurrency(data.summary.totalGrossPay)}</div>
             </CardContent>
           </Card>
           <Card>
@@ -205,7 +205,7 @@ export function CTCReport() {
               <Building2 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(data.summary.totalEmployerGosi)}</div>
+              <div className={cn("font-bold", getResponsiveFontSize(formatCurrency(data.summary.totalEmployerGosi)))}>{formatCurrency(data.summary.totalEmployerGosi)}</div>
             </CardContent>
           </Card>
           <Card>
@@ -214,7 +214,7 @@ export function CTCReport() {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(data.summary.totalEmployerBenefitsCost)}</div>
+              <div className={cn("font-bold", getResponsiveFontSize(formatCurrency(data.summary.totalEmployerBenefitsCost)))}>{formatCurrency(data.summary.totalEmployerBenefitsCost)}</div>
             </CardContent>
           </Card>
           <Card>
@@ -223,7 +223,7 @@ export function CTCReport() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{data.summary.employeeCount}</div>
+              <div className={cn("font-bold", getResponsiveFontSize(data.summary.employeeCount))}>{data.summary.employeeCount}</div>
             </CardContent>
           </Card>
         </div>

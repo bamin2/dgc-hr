@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/table';
 import { Users, DollarSign, Building2, Percent } from 'lucide-react';
 import { CurrencyViewToggle, CurrencyViewMode } from '../CurrencyViewToggle';
+import { cn, getResponsiveFontSize } from '@/lib/utils';
 import { useFxRatesForCurrencies, convertToBaseCurrency, getMissingRateCurrencies } from '@/hooks/useFxRates';
 
 const columns: ReportColumn<GosiContributionRecord>[] = [
@@ -138,7 +139,7 @@ export function GosiContributionReport() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">GOSI Employees</p>
-              <p className="text-2xl font-bold">{totals.employees}</p>
+              <p className={cn("font-bold", getResponsiveFontSize(totals.employees))}>{totals.employees}</p>
             </div>
           </div>
         </CardContent>
@@ -151,7 +152,7 @@ export function GosiContributionReport() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Employee Contributions</p>
-              <p className="text-2xl font-bold">{formatTotalAmount(totals.employeeContrib)}</p>
+              <p className={cn("font-bold", getResponsiveFontSize(formatTotalAmount(totals.employeeContrib)))}>{formatTotalAmount(totals.employeeContrib)}</p>
             </div>
           </div>
         </CardContent>
@@ -164,7 +165,7 @@ export function GosiContributionReport() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Employer Contributions</p>
-              <p className="text-2xl font-bold">{formatTotalAmount(totals.employerContrib)}</p>
+              <p className={cn("font-bold", getResponsiveFontSize(formatTotalAmount(totals.employerContrib)))}>{formatTotalAmount(totals.employerContrib)}</p>
             </div>
           </div>
         </CardContent>
@@ -177,7 +178,7 @@ export function GosiContributionReport() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Total Contributions</p>
-              <p className="text-2xl font-bold">{formatTotalAmount(totals.total)}</p>
+              <p className={cn("font-bold", getResponsiveFontSize(formatTotalAmount(totals.total)))}>{formatTotalAmount(totals.total)}</p>
             </div>
           </div>
         </CardContent>

@@ -11,6 +11,7 @@ import { useWorkLocationsFilter, useDepartmentsFilter } from '@/hooks/reports/us
 import { CostReportFilters } from '@/types/reports';
 import { exportToCSV, exportToPDF, generateReportFilename } from '@/utils/reportExport';
 import { format, parseISO } from 'date-fns';
+import { cn, getResponsiveFontSize } from '@/lib/utils';
 
 export function ComplianceSnapshotReport() {
   const [filters, setFilters] = useState<CostReportFilters>({ expiryWindowDays: 30 });
@@ -186,10 +187,10 @@ export function ComplianceSnapshotReport() {
           <Card className={data.summary.missingDocsCount > 0 ? 'border-red-200 bg-red-50/50' : ''}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Missing Documents</CardTitle>
-              <FileWarning className={`h-4 w-4 ${data.summary.missingDocsCount > 0 ? 'text-red-500' : 'text-muted-foreground'}`} />
+              <FileWarning className={cn("h-4 w-4", data.summary.missingDocsCount > 0 ? 'text-red-500' : 'text-muted-foreground')} />
             </CardHeader>
             <CardContent>
-              <div className={`text-2xl font-bold ${data.summary.missingDocsCount > 0 ? 'text-red-600' : ''}`}>
+              <div className={cn("font-bold", getResponsiveFontSize(data.summary.missingDocsCount), data.summary.missingDocsCount > 0 && 'text-red-600')}>
                 {data.summary.missingDocsCount}
               </div>
               <p className="text-xs text-muted-foreground">required docs not uploaded</p>
@@ -198,10 +199,10 @@ export function ComplianceSnapshotReport() {
           <Card className={data.summary.expiredDocsCount > 0 ? 'border-red-200 bg-red-50/50' : ''}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Expired Documents</CardTitle>
-              <AlertTriangle className={`h-4 w-4 ${data.summary.expiredDocsCount > 0 ? 'text-red-500' : 'text-muted-foreground'}`} />
+              <AlertTriangle className={cn("h-4 w-4", data.summary.expiredDocsCount > 0 ? 'text-red-500' : 'text-muted-foreground')} />
             </CardHeader>
             <CardContent>
-              <div className={`text-2xl font-bold ${data.summary.expiredDocsCount > 0 ? 'text-red-600' : ''}`}>
+              <div className={cn("font-bold", getResponsiveFontSize(data.summary.expiredDocsCount), data.summary.expiredDocsCount > 0 && 'text-red-600')}>
                 {data.summary.expiredDocsCount}
               </div>
               <p className="text-xs text-muted-foreground">documents past expiry</p>
@@ -210,10 +211,10 @@ export function ComplianceSnapshotReport() {
           <Card className={data.summary.expiringDocsCount > 0 ? 'border-amber-200 bg-amber-50/50' : ''}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Expiring Soon</CardTitle>
-              <Clock className={`h-4 w-4 ${data.summary.expiringDocsCount > 0 ? 'text-amber-500' : 'text-muted-foreground'}`} />
+              <Clock className={cn("h-4 w-4", data.summary.expiringDocsCount > 0 ? 'text-amber-500' : 'text-muted-foreground')} />
             </CardHeader>
             <CardContent>
-              <div className={`text-2xl font-bold ${data.summary.expiringDocsCount > 0 ? 'text-amber-600' : ''}`}>
+              <div className={cn("font-bold", getResponsiveFontSize(data.summary.expiringDocsCount), data.summary.expiringDocsCount > 0 && 'text-amber-600')}>
                 {data.summary.expiringDocsCount}
               </div>
               <p className="text-xs text-muted-foreground">within {filters.expiryWindowDays || 30} days</p>
@@ -222,10 +223,10 @@ export function ComplianceSnapshotReport() {
           <Card className={data.summary.gosiMismatchCount > 0 ? 'border-orange-200 bg-orange-50/50' : ''}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">GOSI Mismatches</CardTitle>
-              <ShieldAlert className={`h-4 w-4 ${data.summary.gosiMismatchCount > 0 ? 'text-orange-500' : 'text-muted-foreground'}`} />
+              <ShieldAlert className={cn("h-4 w-4", data.summary.gosiMismatchCount > 0 ? 'text-orange-500' : 'text-muted-foreground')} />
             </CardHeader>
             <CardContent>
-              <div className={`text-2xl font-bold ${data.summary.gosiMismatchCount > 0 ? 'text-orange-600' : ''}`}>
+              <div className={cn("font-bold", getResponsiveFontSize(data.summary.gosiMismatchCount), data.summary.gosiMismatchCount > 0 && 'text-orange-600')}>
                 {data.summary.gosiMismatchCount}
               </div>
               <p className="text-xs text-muted-foreground">registration issues</p>

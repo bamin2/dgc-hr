@@ -12,6 +12,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Calendar, Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import { cn, getResponsiveFontSize } from '@/lib/utils';
 
 const columns: ReportColumn<LeaveBalanceRecord>[] = [
   { key: 'employeeCode', header: 'Emp Code' },
@@ -48,7 +49,7 @@ export function LeaveBalanceReport() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Total Entitled</p>
-              <p className="text-2xl font-bold">{totals.entitled} days</p>
+              <p className={cn("font-bold", getResponsiveFontSize(`${totals.entitled} days`))}>{totals.entitled} days</p>
             </div>
           </div>
         </CardContent>
@@ -61,7 +62,7 @@ export function LeaveBalanceReport() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Total Taken</p>
-              <p className="text-2xl font-bold">{totals.taken} days</p>
+              <p className={cn("font-bold", getResponsiveFontSize(`${totals.taken} days`))}>{totals.taken} days</p>
             </div>
           </div>
         </CardContent>
@@ -74,7 +75,7 @@ export function LeaveBalanceReport() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Pending Approval</p>
-              <p className="text-2xl font-bold">{totals.pending} days</p>
+              <p className={cn("font-bold", getResponsiveFontSize(`${totals.pending} days`))}>{totals.pending} days</p>
             </div>
           </div>
         </CardContent>
@@ -87,7 +88,7 @@ export function LeaveBalanceReport() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Remaining</p>
-              <p className="text-2xl font-bold">{totals.remaining} days</p>
+              <p className={cn("font-bold", getResponsiveFontSize(`${totals.remaining} days`))}>{totals.remaining} days</p>
             </div>
           </div>
         </CardContent>
