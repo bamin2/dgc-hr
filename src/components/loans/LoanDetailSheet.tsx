@@ -253,7 +253,7 @@ export function LoanDetailSheet({ loanId, open, onOpenChange }: LoanDetailSheetP
                 <TabsContent value="schedule" className="mt-4">
                   <LoanInstallmentsTable 
                     installments={loan.installments}
-                    canMarkPaid={!loan.deduct_from_payroll && loan.status === "active"}
+                    canMarkPaid={loan.status === "active"}
                     canSkip={loan.status === "active"}
                     onMarkPaid={handleMarkPaid}
                     onSkip={handleSkipInstallment}
