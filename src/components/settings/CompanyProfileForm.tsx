@@ -306,7 +306,7 @@ export const CompanyProfileForm = ({ settings, onChange }: CompanyProfileFormPro
                 </SelectTrigger>
                 <SelectContent>
                   {timezones.map((tz) => (
-                    <SelectItem key={tz} value={tz}>{tz.replace('_', ' ')}</SelectItem>
+                    <SelectItem key={tz.value} value={tz.value}>{tz.label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

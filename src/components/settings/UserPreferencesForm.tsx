@@ -4,7 +4,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { SettingsCard } from './SettingsCard';
 import { ImageUpload } from './ImageUpload';
-import { ThemeToggle } from './ThemeToggle';
 import { User, Monitor, Globe } from 'lucide-react';
 import { 
   UserPreferences, 
@@ -17,9 +16,10 @@ import {
 interface UserPreferencesFormProps {
   preferences: UserPreferences;
   onChange: (preferences: UserPreferences) => void;
+  jobTitleFromEmployee?: boolean;
 }
 
-export const UserPreferencesForm = ({ preferences, onChange }: UserPreferencesFormProps) => {
+export const UserPreferencesForm = ({ preferences, onChange, jobTitleFromEmployee = false }: UserPreferencesFormProps) => {
   const updateProfile = (field: string, value: string) => {
     onChange({ 
       ...preferences, 
@@ -55,7 +55,7 @@ export const UserPreferencesForm = ({ preferences, onChange }: UserPreferencesFo
               value={preferences.profile.avatar}
               onChange={(v) => updateProfile('avatar', v)}
               label="Upload Photo"
-              fallback={`${preferences.profile.firstName[0]}${preferences.profile.lastName[0]}`}
+              fallback={`${preferences.profile.firstName[0] || ''}${preferences.profile.lastName[0] || ''}`}
               size="md"
             />
           </div>
@@ -99,8 +99,15 @@ export const UserPreferencesForm = ({ preferences, onChange }: UserPreferencesFo
               <Input
                 id="jobTitle"
                 value={preferences.profile.jobTitle}
-                onChange={(e) => updateProfile('jobTitle', e.target.value)}
+                disabled={jobTitleFromEmployee}
+                className={jobTitleFromEmployee ? 'bg-muted' : ''}
+                onChange={(e) => !jobTitleFromEmployee && updateProfile('jobTitle', e.target.value)}
               />
+              {jobTitleFromEmployee && (
+                <p className="text-xs text-muted-foreground">
+                  Managed in Employee Management
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -112,13 +119,6 @@ export const UserPreferencesForm = ({ preferences, onChange }: UserPreferencesFo
         icon={Monitor}
       >
         <div className="space-y-6">
-          <div className="space-y-3">
-            <Label>Theme</Label>
-            <ThemeToggle
-              value={preferences.display.theme}
-              onChange={(v) => updateDisplay('theme', v)}
-            />
-          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="language">Language</Label>
@@ -201,7 +201,7 @@ export const UserPreferencesForm = ({ preferences, onChange }: UserPreferencesFo
                 </SelectTrigger>
                 <SelectContent>
                   {timezones.map((tz) => (
-                    <SelectItem key={tz} value={tz}>{tz.replace('_', ' ')}</SelectItem>
+                    <SelectItem key={tz.value} value={tz.value}>{tz.label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
