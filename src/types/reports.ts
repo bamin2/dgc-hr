@@ -222,3 +222,145 @@ export interface ReportDashboardStats {
   activeLoans: number;
   completedPayrollRuns: number;
 }
+
+// =====================================
+// Compliance & Cost Report Types
+// =====================================
+
+// CTC Report Types
+export interface AllowanceBreakdownItem {
+  name: string;
+  amount: number;
+}
+
+export interface CTCRecord {
+  employeeId: string;
+  employeeCode: string;
+  employeeName: string;
+  department: string;
+  position: string;
+  originalCurrency: string;
+  basicSalary: number;
+  allowancesTotal: number;
+  allowancesBreakdown: AllowanceBreakdownItem[];
+  grossPay: number;
+  employerGosi: number;
+  employerBenefitsCost: number;
+  ctcTotal: number;
+  wasConverted: boolean;
+  conversionInfo?: { rate: number; effectiveDate: string; fromCurrency: string };
+}
+
+export interface CTCSummary {
+  totalCTC: number;
+  totalGrossPay: number;
+  totalEmployerGosi: number;
+  totalEmployerBenefitsCost: number;
+  employeeCount: number;
+}
+
+// Payroll Variance Types
+export type VarianceReasonTag = 
+  | 'salary_change' 
+  | 'allowance_change' 
+  | 'loan_started' 
+  | 'loan_changed' 
+  | 'loan_ended' 
+  | 'adjustment' 
+  | 'joiner' 
+  | 'leaver';
+
+export interface PayrollVarianceDetails {
+  previousBasic: number;
+  currentBasic: number;
+  previousAllowances: number;
+  currentAllowances: number;
+  previousDeductions: number;
+  currentDeductions: number;
+  previousLoanInstallment: number;
+  currentLoanInstallment: number;
+  previousAllowancesBreakdown?: AllowanceBreakdownItem[];
+  currentAllowancesBreakdown?: AllowanceBreakdownItem[];
+}
+
+export interface PayrollVarianceRecord {
+  employeeId: string;
+  employeeCode: string;
+  employeeName: string;
+  department: string;
+  previousGrossPay: number;
+  currentGrossPay: number;
+  deltaBHD: number;
+  deltaPercent: number;
+  reasons: VarianceReasonTag[];
+  details: PayrollVarianceDetails;
+}
+
+export interface PayrollVarianceSummary {
+  currentTotalGross: number;
+  previousTotalGross: number;
+  deltaAmount: number;
+  deltaPercent: number;
+  currentHeadcount: number;
+  previousHeadcount: number;
+  headcountDelta: number;
+}
+
+// Compliance Snapshot Types
+export interface ComplianceMissingDocRecord {
+  employeeId: string;
+  employeeCode: string;
+  employeeName: string;
+  department: string;
+  location: string;
+  missingDocumentType: string;
+  documentTypeId: string;
+}
+
+export interface ComplianceExpiredDocRecord {
+  employeeId: string;
+  employeeCode: string;
+  employeeName: string;
+  department: string;
+  documentType: string;
+  documentName: string;
+  expiryDate: string;
+  daysPastExpiry: number;
+}
+
+export interface ComplianceExpiringDocRecord {
+  employeeId: string;
+  employeeCode: string;
+  employeeName: string;
+  department: string;
+  documentType: string;
+  documentName: string;
+  expiryDate: string;
+  daysUntilExpiry: number;
+}
+
+export interface GosiMismatchRecord {
+  employeeId: string;
+  employeeCode: string;
+  employeeName: string;
+  department: string;
+  location: string;
+  issue: string;
+  isSubjectToGosi: boolean | null;
+  gosiRegisteredSalary: number | null;
+  locationGosiEnabled: boolean | null;
+}
+
+export interface ComplianceSnapshotSummary {
+  missingDocsCount: number;
+  expiredDocsCount: number;
+  expiringDocsCount: number;
+  gosiMismatchCount: number;
+}
+
+// Extended Report Filters for Compliance & Cost reports
+export interface CostReportFilters extends ReportFilters {
+  comparePayrollRunId?: string;
+  month?: string; // YYYY-MM format
+  expiryWindowDays?: number; // 30, 60, or 90
+}
