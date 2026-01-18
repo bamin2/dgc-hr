@@ -7,3 +7,4 @@ export { MyProfileDocumentsTab } from './MyProfileDocumentsTab';
 export { MyProfileTimeOffTab } from './MyProfileTimeOffTab';
 export { MyProfileLoansTab } from './MyProfileLoansTab';
 export { MyProfilePayslipsSection } from './MyProfilePayslipsSection';
+export { MyProfileBenefitsTab } from './MyProfileBenefitsTab';
