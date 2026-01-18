@@ -57,9 +57,11 @@ export const BenefitsMetrics = ({ metrics }: BenefitsMetricsProps) => {
                 <div className="space-y-1 min-w-0 flex-1 mr-3">
                   <p className="text-sm text-muted-foreground">{card.title}</p>
                   <p className={cn(
-                    "font-semibold tracking-tight break-words",
-                    card.value.length > 15 ? "text-lg" : "text-2xl",
-                    card.value.length > 20 ? "text-base" : ""
+                    "font-semibold tracking-tight",
+                    card.value.length <= 10 && "text-2xl",
+                    card.value.length > 10 && card.value.length <= 14 && "text-lg",
+                    card.value.length > 14 && card.value.length <= 18 && "text-base",
+                    card.value.length > 18 && "text-sm"
                   )}>{card.value}</p>
                   <p className="text-xs text-muted-foreground">{card.subtitle}</p>
                 </div>
