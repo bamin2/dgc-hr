@@ -137,10 +137,14 @@ async function fetchCTCReport(
 
   if (allowError) throw allowError;
 
-  // Fetch active benefit enrollments
+  // Fetch active benefit enrollments WITH dependent count
   const { data: benefitEnrollments, error: benefitError } = await supabase
     .from('benefit_enrollments')
-    .select('employee_id, employer_contribution')
+    .select(`
+      employee_id, 
+      employer_contribution,
+      benefit_beneficiaries(id)
+    `)
     .in('employee_id', filteredIds)
     .eq('status', 'active');
 
@@ -169,10 +173,16 @@ async function fetchCTCReport(
     }
   });
 
+  // Build benefits map - include cost for employee + dependents
   const benefitsMap = new Map<string, number>();
   (benefitEnrollments || []).forEach(be => {
     const current = benefitsMap.get(be.employee_id) || 0;
-    benefitsMap.set(be.employee_id, current + be.employer_contribution);
+    const dependentCount = Array.isArray(be.benefit_beneficiaries) 
+      ? be.benefit_beneficiaries.length 
+      : 0;
+    const totalPersons = 1 + dependentCount; // Employee + dependents
+    const totalEmployerCost = be.employer_contribution * totalPersons;
+    benefitsMap.set(be.employee_id, current + totalEmployerCost);
   });
 
   // Build CTC records
