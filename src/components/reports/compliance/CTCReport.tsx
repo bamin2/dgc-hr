@@ -171,14 +171,14 @@ export function CTCReport() {
 
       {/* Summary Cards */}
       {data?.summary && (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Monthly CTC</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className={cn("font-bold", getResponsiveFontSize(formatCurrency(data.summary.totalCtcMonthly)))}>{formatCurrency(data.summary.totalCtcMonthly)}</div>
+              <div className={cn("font-bold truncate", getResponsiveFontSize(formatCurrency(data.summary.totalCtcMonthly)))}>{formatCurrency(data.summary.totalCtcMonthly)}</div>
             </CardContent>
           </Card>
           <Card>
@@ -187,7 +187,7 @@ export function CTCReport() {
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className={cn("font-bold", getResponsiveFontSize(formatCurrency(data.summary.totalCtcYearly)))}>{formatCurrency(data.summary.totalCtcYearly)}</div>
+              <div className={cn("font-bold truncate", getResponsiveFontSize(formatCurrency(data.summary.totalCtcYearly)))}>{formatCurrency(data.summary.totalCtcYearly)}</div>
             </CardContent>
           </Card>
           <Card>
@@ -196,7 +196,7 @@ export function CTCReport() {
               <Briefcase className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className={cn("font-bold", getResponsiveFontSize(formatCurrency(data.summary.totalGrossPay)))}>{formatCurrency(data.summary.totalGrossPay)}</div>
+              <div className={cn("font-bold truncate", getResponsiveFontSize(formatCurrency(data.summary.totalGrossPay)))}>{formatCurrency(data.summary.totalGrossPay)}</div>
             </CardContent>
           </Card>
           <Card>
@@ -205,7 +205,7 @@ export function CTCReport() {
               <Building2 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className={cn("font-bold", getResponsiveFontSize(formatCurrency(data.summary.totalEmployerGosi)))}>{formatCurrency(data.summary.totalEmployerGosi)}</div>
+              <div className={cn("font-bold truncate", getResponsiveFontSize(formatCurrency(data.summary.totalEmployerGosi)))}>{formatCurrency(data.summary.totalEmployerGosi)}</div>
             </CardContent>
           </Card>
           <Card>
@@ -214,16 +214,7 @@ export function CTCReport() {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className={cn("font-bold", getResponsiveFontSize(formatCurrency(data.summary.totalEmployerBenefitsCost)))}>{formatCurrency(data.summary.totalEmployerBenefitsCost)}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Employees</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className={cn("font-bold", getResponsiveFontSize(data.summary.employeeCount))}>{data.summary.employeeCount}</div>
+              <div className={cn("font-bold truncate", getResponsiveFontSize(formatCurrency(data.summary.totalEmployerBenefitsCost)))}>{formatCurrency(data.summary.totalEmployerBenefitsCost)}</div>
             </CardContent>
           </Card>
         </div>
