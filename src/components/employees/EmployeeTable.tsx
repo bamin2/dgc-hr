@@ -20,6 +20,8 @@ import { StatusBadge } from "./StatusBadge";
 import { Employee } from "@/hooks/useEmployees";
 import { format } from "date-fns";
 import { EmployeeTableColumnId, defaultEmployeeTableColumns } from "@/data/settings";
+import { useIsMobile } from "@/hooks/use-media-query";
+import { DataCard, DataCardList } from "@/components/ui/data-card";
 
 interface EmployeeTableProps {
   employees: Employee[];
@@ -46,6 +48,8 @@ export function EmployeeTable({
   canEdit = true,
   visibleColumns = defaultEmployeeTableColumns,
 }: EmployeeTableProps) {
+  const isMobile = useIsMobile();
+  
   const allSelected = employees.length > 0 && employees.every(emp => selectedEmployees.includes(emp.id));
   const someSelected = employees.some(emp => selectedEmployees.includes(emp.id)) && !allSelected;
 
@@ -63,6 +67,23 @@ export function EmployeeTable({
     } else {
       onSelectionChange(selectedEmployees.filter(id => id !== employeeId));
     }
+  };
+
+  const getActions = (employee: Employee): Array<{ label: string; onClick: () => void; icon?: React.ReactNode; destructive?: boolean }> => {
+    const actions: Array<{ label: string; onClick: () => void; icon?: React.ReactNode; destructive?: boolean }> = [
+      { label: "View Profile", onClick: () => onView(employee) },
+    ];
+    
+    if (canEdit) {
+      actions.push(
+        { label: "Edit Employee", onClick: () => onEdit(employee) },
+        { label: "Start Onboarding", onClick: () => onStartOnboarding?.(employee), icon: <UserPlus className="h-4 w-4" /> },
+        { label: "Start Offboarding", onClick: () => onStartOffboarding?.(employee), icon: <UserMinus className="h-4 w-4" /> },
+        { label: "Delete Employee", onClick: () => onDelete(employee), destructive: true },
+      );
+    }
+    
+    return actions;
   };
 
   const columnConfig: Record<EmployeeTableColumnId, {
@@ -111,6 +132,46 @@ export function EmployeeTable({
     },
   };
 
+  // Mobile card view
+  if (isMobile) {
+    return (
+      <DataCardList>
+        {employees.map((employee) => {
+          const initials = `${employee.firstName[0]}${employee.lastName[0]}`;
+          const isSelected = selectedEmployees.includes(employee.id);
+          
+          return (
+            <DataCard
+              key={employee.id}
+              title={`${employee.firstName} ${employee.lastName}`}
+              subtitle={employee.position}
+              avatar={
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={employee.avatar} alt={`${employee.firstName} ${employee.lastName}`} />
+                  <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+              }
+              fields={[
+                { label: "Department", value: employee.department || "-" },
+                { label: "Email", value: employee.email },
+                { label: "Joined", value: format(new Date(employee.joinDate), 'MMM d, yyyy') },
+              ]}
+              badge={<StatusBadge status={employee.status} />}
+              selectable
+              selected={isSelected}
+              onSelect={(checked) => handleSelectOne(employee.id, checked)}
+              onClick={() => onView(employee)}
+              actions={getActions(employee)}
+            />
+          );
+        })}
+      </DataCardList>
+    );
+  }
+
+  // Desktop table view
   return (
     <div className="rounded-lg border bg-card overflow-hidden">
       <Table>

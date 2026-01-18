@@ -24,6 +24,13 @@ interface DataCardAction {
   destructive?: boolean;
 }
 
+type DataCardActionWithOptionalProps = {
+  label: string;
+  onClick: () => void;
+  icon?: React.ReactNode;
+  destructive?: boolean;
+};
+
 interface DataCardProps {
   /** Primary title/name */
   title: string;
