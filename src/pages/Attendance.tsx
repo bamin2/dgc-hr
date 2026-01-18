@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/dashboard';
+import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -103,30 +104,24 @@ export default function Attendance() {
 
   return (
     <DashboardLayout>
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-semibold">Leave & Attendance</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Manage employee attendance and leave requests
-          </p>
-        </div>
-        <div className="flex gap-2">
-          {canEditEmployees && (
-            <Button variant="outline" onClick={handleAddRecord}>
+      <PageHeader
+        title="Leave & Attendance"
+        subtitle="Manage employee attendance and leave requests"
+        actions={
+          <>
+            {canEditEmployees && (
+              <Button variant="outline" onClick={handleAddRecord}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Record
+              </Button>
+            )}
+            <Button onClick={() => navigate('/attendance/leave/request')}>
               <Plus className="h-4 w-4 mr-2" />
-              Add Record
+              Request Leave
             </Button>
-          )}
-          <Button
-            className="bg-primary hover:bg-primary/90"
-            onClick={() => navigate('/attendance/leave/request')}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Request Leave
-          </Button>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">

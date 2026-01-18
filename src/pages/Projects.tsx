@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { DashboardLayout } from "@/components/dashboard";
+import { PageHeader } from "@/components/ui/page-header";
 import {
   ProjectsHeader,
   ProjectsToolbar,
@@ -162,9 +163,12 @@ export default function Projects() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-[1600px] mx-auto space-y-4 sm:space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
-        <ProjectsHeader />
+        <PageHeader
+          title="Projects"
+          subtitle="Manage and track project progress"
+        />
 
         {/* View Tabs */}
         <ProjectViewTabs viewMode={viewMode} onViewModeChange={setViewMode} />
