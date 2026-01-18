@@ -40,7 +40,7 @@ const BenefitEnrollment = () => {
         title: 'Enrollment Successful',
         description: 'The employee has been enrolled in the benefit plan.'
       });
-      navigate('/benefits');
+      navigate('/benefits?tab=enrollments');
     } catch (error) {
       toast({
         title: 'Error',
