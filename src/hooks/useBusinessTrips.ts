@@ -10,6 +10,8 @@ import {
   UpdateBusinessTripInput,
   TripStatus,
 } from '@/types/businessTrips';
+import { createNotification } from '@/lib/notificationService';
+import { format } from 'date-fns';
 
 // Calculate per diem values
 export function calculatePerDiem(
@@ -405,10 +407,14 @@ export function useSubmitBusinessTrip() {
 
   return useMutation({
     mutationFn: async (tripId: string) => {
-      // Get trip details to get employee_id
+      // Get trip details with destination
       const { data: trip, error: tripError } = await supabase
         .from('business_trips')
-        .select('employee_id')
+        .select(`
+          id, employee_id, start_date, end_date, nights_count,
+          destination:business_trip_destinations(name),
+          employee:employees(id, first_name, last_name, user_id, avatar_url)
+        `)
         .eq('id', tripId)
         .single();
 
@@ -423,6 +429,9 @@ export function useSubmitBusinessTrip() {
 
       if (workflowError) throw workflowError;
 
+      const employeeName = `${trip.employee?.first_name} ${trip.employee?.last_name}`;
+      const destinationName = trip.destination?.name || 'Unknown';
+
       // If workflow is inactive, auto-approve
       if (!workflow.is_active || !workflow.steps || (workflow.steps as unknown[]).length === 0) {
         const { data, error } = await supabase
@@ -436,7 +445,7 @@ export function useSubmitBusinessTrip() {
           .single();
 
         if (error) throw error;
-        return { trip: data, autoApproved: true };
+        return { trip: data, autoApproved: true, employeeUserId: trip.employee?.user_id };
       }
 
       // Get manager user_id for the employee
@@ -536,7 +545,66 @@ export function useSubmitBusinessTrip() {
         .single();
 
       if (error) throw error;
-      return { trip: data, autoApproved: false };
+
+      // Create notification for the employee confirming submission
+      if (trip.employee?.user_id) {
+        await createNotification({
+          userId: trip.employee.user_id,
+          type: 'approval',
+          priority: 'low',
+          title: 'Business Trip Submitted',
+          message: `Your trip to ${destinationName} has been submitted for approval`,
+          actionUrl: '/business-trips',
+          metadata: {
+            entity_type: 'business_trip',
+            entity_id: tripId,
+            severity: 'info',
+            event_key: 'trip.submitted',
+            extra: {
+              destination: destinationName,
+              start_date: trip.start_date,
+              end_date: trip.end_date,
+              nights_count: trip.nights_count,
+            },
+          },
+        });
+      }
+
+      // Create notification for the manager/approver
+      const { data: pendingStep } = await supabase
+        .from("request_approval_steps")
+        .select("approver_user_id")
+        .eq("request_id", tripId)
+        .eq("request_type", "business_trip")
+        .eq("status", "pending")
+        .single();
+
+      if (pendingStep?.approver_user_id) {
+        await createNotification({
+          userId: pendingStep.approver_user_id,
+          type: 'approval',
+          priority: 'medium',
+          title: 'New Business Trip Request',
+          message: `${employeeName} has submitted a trip to ${destinationName} (${trip.nights_count} nights)`,
+          actionUrl: '/approvals',
+          actorName: employeeName,
+          actorAvatar: trip.employee?.avatar_url || undefined,
+          metadata: {
+            entity_type: 'business_trip',
+            entity_id: tripId,
+            severity: 'info',
+            event_key: 'trip.submitted',
+            extra: {
+              destination: destinationName,
+              start_date: trip.start_date,
+              end_date: trip.end_date,
+              nights_count: trip.nights_count,
+            },
+          },
+        });
+      }
+
+      return { trip: data, autoApproved: false, employeeUserId: trip.employee?.user_id };
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['business-trips', 'my'] });
@@ -597,6 +665,7 @@ export function useCancelBusinessTrip() {
 // Approve trip (Manager or HR)
 export function useApproveBusinessTrip() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async ({ tripId, asHR = false, comment }: { 
@@ -604,10 +673,14 @@ export function useApproveBusinessTrip() {
       asHR?: boolean;
       comment?: string;
     }) => {
-      // Get current trip status
+      // Get current trip with employee and destination details
       const { data: trip, error: fetchError } = await supabase
         .from('business_trips')
-        .select('status, employee_id')
+        .select(`
+          id, status, employee_id, start_date, end_date, nights_count,
+          destination:business_trip_destinations(name),
+          employee:employees(id, first_name, last_name, user_id)
+        `)
         .eq('id', tripId)
         .single();
 
@@ -629,6 +702,90 @@ export function useApproveBusinessTrip() {
         .single();
 
       if (error) throw error;
+
+      const destinationName = trip.destination?.name || 'Unknown';
+      const employeeName = `${trip.employee?.first_name} ${trip.employee?.last_name}`;
+
+      // Get approver name
+      let approverName = 'Your request';
+      if (user) {
+        const { data: approverEmployee } = await supabase
+          .from('employees')
+          .select('first_name, last_name')
+          .eq('user_id', user.id)
+          .single();
+        if (approverEmployee) {
+          approverName = `${approverEmployee.first_name} ${approverEmployee.last_name}`;
+        }
+      }
+
+      // Notify employee about approval
+      if (trip.employee?.user_id) {
+        const eventKey = asHR ? 'trip.approved' : 'trip.manager_approved';
+        const title = asHR ? 'Business Trip Approved' : 'Business Trip Manager Approved';
+        const message = asHR 
+          ? `Your trip to ${destinationName} has been fully approved`
+          : `Your trip to ${destinationName} has been approved by your manager and is pending HR approval`;
+
+        await createNotification({
+          userId: trip.employee.user_id,
+          type: 'approval',
+          priority: 'medium',
+          title,
+          message,
+          actionUrl: '/business-trips',
+          actorName: approverName,
+          metadata: {
+            entity_type: 'business_trip',
+            entity_id: tripId,
+            severity: 'success',
+            event_key: eventKey,
+            extra: {
+              destination: destinationName,
+              start_date: trip.start_date,
+              end_date: trip.end_date,
+              nights_count: trip.nights_count,
+              approved_by: approverName,
+            },
+          },
+        });
+      }
+
+      // If manager approved, notify HR for next step
+      if (!asHR && newStatus === 'manager_approved') {
+        const { data: hrUsers } = await supabase
+          .from('user_roles')
+          .select('user_id')
+          .in('role', ['hr', 'admin'])
+          .limit(5);
+
+        if (hrUsers) {
+          for (const hrUser of hrUsers) {
+            await createNotification({
+              userId: hrUser.user_id,
+              type: 'approval',
+              priority: 'medium',
+              title: 'Business Trip Pending HR Approval',
+              message: `${employeeName}'s trip to ${destinationName} requires HR approval`,
+              actionUrl: '/approvals',
+              actorName: employeeName,
+              metadata: {
+                entity_type: 'business_trip',
+                entity_id: tripId,
+                severity: 'info',
+                event_key: 'trip.manager_approved',
+                extra: {
+                  destination: destinationName,
+                  start_date: trip.start_date,
+                  end_date: trip.end_date,
+                  nights_count: trip.nights_count,
+                },
+              },
+            });
+          }
+        }
+      }
+
       return data;
     },
     onSuccess: () => {
@@ -636,6 +793,7 @@ export function useApproveBusinessTrip() {
       queryClient.invalidateQueries({ queryKey: queryKeys.businessTrips.hrApprovals });
       queryClient.invalidateQueries({ queryKey: ['business-trips', 'pending-approvals'] });
       queryClient.invalidateQueries({ queryKey: queryKeys.businessTrips.all() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
       toast({
         title: 'Trip approved',
         description: 'The business trip has been approved.',
@@ -654,9 +812,23 @@ export function useApproveBusinessTrip() {
 // Reject trip (Manager or HR)
 export function useRejectBusinessTrip() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async ({ tripId, reason }: { tripId: string; reason: string }) => {
+      // Get trip with employee and destination details
+      const { data: trip, error: fetchError } = await supabase
+        .from('business_trips')
+        .select(`
+          id, start_date, end_date, nights_count,
+          destination:business_trip_destinations(name),
+          employee:employees(id, first_name, last_name, user_id)
+        `)
+        .eq('id', tripId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
       const { data, error } = await supabase
         .from('business_trips')
         .update({ 
@@ -668,6 +840,49 @@ export function useRejectBusinessTrip() {
         .single();
 
       if (error) throw error;
+
+      const destinationName = trip.destination?.name || 'Unknown';
+
+      // Get rejector name
+      let rejectorName = 'HR';
+      if (user) {
+        const { data: rejectorEmployee } = await supabase
+          .from('employees')
+          .select('first_name, last_name')
+          .eq('user_id', user.id)
+          .single();
+        if (rejectorEmployee) {
+          rejectorName = `${rejectorEmployee.first_name} ${rejectorEmployee.last_name}`;
+        }
+      }
+
+      // Notify employee about rejection
+      if (trip.employee?.user_id) {
+        await createNotification({
+          userId: trip.employee.user_id,
+          type: 'approval',
+          priority: 'high',
+          title: 'Business Trip Rejected',
+          message: `Your trip to ${destinationName} has been rejected: ${reason}`,
+          actionUrl: '/business-trips',
+          actorName: rejectorName,
+          metadata: {
+            entity_type: 'business_trip',
+            entity_id: tripId,
+            severity: 'danger',
+            event_key: 'trip.rejected',
+            extra: {
+              destination: destinationName,
+              start_date: trip.start_date,
+              end_date: trip.end_date,
+              nights_count: trip.nights_count,
+              rejection_reason: reason,
+              rejected_by: rejectorName,
+            },
+          },
+        });
+      }
+
       return data;
     },
     onSuccess: () => {
@@ -675,6 +890,7 @@ export function useRejectBusinessTrip() {
       queryClient.invalidateQueries({ queryKey: queryKeys.businessTrips.hrApprovals });
       queryClient.invalidateQueries({ queryKey: ['business-trips', 'pending-approvals'] });
       queryClient.invalidateQueries({ queryKey: queryKeys.businessTrips.all() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
       toast({
         title: 'Trip rejected',
         description: 'The business trip has been rejected.',
