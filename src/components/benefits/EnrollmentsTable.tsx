@@ -51,7 +51,10 @@ export const EnrollmentsTable = ({
             const employee = enrollment.employee;
             const plan = enrollment.plan;
             const coverageLevel = enrollment.coverage_level;
-            const monthlyCost = enrollment.employee_contribution + enrollment.employer_contribution;
+            const dependentsCount = enrollment.beneficiaries?.length || 0;
+            const baseCost = enrollment.employee_contribution + enrollment.employer_contribution;
+            const totalPersons = 1 + dependentsCount;
+            const monthlyCost = baseCost * totalPersons;
 
             // Format using plan's currency
             const planCurrency = plan?.currency || 'BHD';
@@ -96,7 +99,14 @@ export const EnrollmentsTable = ({
                   {format(new Date(enrollment.start_date), 'MMM d, yyyy')}
                 </TableCell>
                 <TableCell className="font-medium">
-                  {formatPlanCurrency(monthlyCost)}/mo
+                  <div className="flex flex-col">
+                    <span>{formatPlanCurrency(monthlyCost)}/mo</span>
+                    {dependentsCount > 0 && (
+                      <span className="text-xs text-muted-foreground">
+                        {totalPersons} persons
+                      </span>
+                    )}
+                  </div>
                 </TableCell>
                 <TableCell>
                   <BenefitStatusBadge status={enrollment.status} />
