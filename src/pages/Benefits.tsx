@@ -16,6 +16,7 @@ import {
   CreateBenefitPlanDialog,
   EnrollmentDetailsDialog,
   EndEnrollmentDialog,
+  EditEnrollmentDialog,
 } from '@/components/benefits';
 import { useBenefitPlans, type BenefitType, type BenefitStatus } from '@/hooks/useBenefitPlans';
 import { useBenefitEnrollments, type EnrollmentStatus, type BenefitEnrollment } from '@/hooks/useBenefitEnrollments';
@@ -33,6 +34,14 @@ const Benefits = () => {
   const [selectedEnrollment, setSelectedEnrollment] = useState<BenefitEnrollment | null>(null);
   const [enrollmentDetailsOpen, setEnrollmentDetailsOpen] = useState(false);
   const [endEnrollmentOpen, setEndEnrollmentOpen] = useState(false);
+  const [editEnrollmentOpen, setEditEnrollmentOpen] = useState(false);
+
+  // Handle edit enrollment
+  const handleEditEnrollment = (enrollment: BenefitEnrollment) => {
+    setEnrollmentDetailsOpen(false);
+    setSelectedEnrollment(enrollment);
+    setEditEnrollmentOpen(true);
+  };
   
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -324,11 +333,18 @@ const Benefits = () => {
         open={enrollmentDetailsOpen}
         onOpenChange={setEnrollmentDetailsOpen}
         enrollment={selectedEnrollment}
+        onEdit={handleEditEnrollment}
       />
 
       <EndEnrollmentDialog
         open={endEnrollmentOpen}
         onOpenChange={setEndEnrollmentOpen}
+        enrollment={selectedEnrollment}
+      />
+
+      <EditEnrollmentDialog
+        open={editEnrollmentOpen}
+        onOpenChange={setEditEnrollmentOpen}
         enrollment={selectedEnrollment}
       />
     </DashboardLayout>

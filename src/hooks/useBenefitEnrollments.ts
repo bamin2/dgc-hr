@@ -245,7 +245,11 @@ export function useUpdateBenefitEnrollment() {
     }: {
       id: string;
       status?: EnrollmentStatus;
-      end_date?: string;
+      coverage_level_id?: string;
+      start_date?: string;
+      end_date?: string | null;
+      employee_contribution?: number;
+      employer_contribution?: number;
     }) => {
       const { data, error } = await supabase
         .from('benefit_enrollments')
@@ -260,6 +264,53 @@ export function useUpdateBenefitEnrollment() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.benefits.enrollments.all });
       queryClient.invalidateQueries({ queryKey: [...queryKeys.benefits.enrollments.all, variables.id] });
+    },
+  });
+}
+
+export function useUpdateBeneficiaries() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      enrollmentId,
+      beneficiaries,
+    }: {
+      enrollmentId: string;
+      beneficiaries: Array<{
+        id?: string;
+        name: string;
+        relationship: string;
+        date_of_birth?: string | null;
+        percentage?: number;
+        national_id?: string | null;
+      }>;
+    }) => {
+      // Delete existing beneficiaries
+      await supabase
+        .from('benefit_beneficiaries')
+        .delete()
+        .eq('enrollment_id', enrollmentId);
+
+      // Insert new beneficiaries if any
+      if (beneficiaries.length > 0) {
+        const { error } = await supabase
+          .from('benefit_beneficiaries')
+          .insert(
+            beneficiaries.map(b => ({
+              enrollment_id: enrollmentId,
+              name: b.name,
+              relationship: b.relationship,
+              date_of_birth: b.date_of_birth,
+              percentage: b.percentage || 100,
+              national_id: b.national_id,
+            }))
+          );
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.benefits.enrollments.all });
     },
   });
 }

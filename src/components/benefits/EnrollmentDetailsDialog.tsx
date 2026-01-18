@@ -6,23 +6,26 @@ import {
 } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { BenefitTypeBadge } from './BenefitTypeBadge';
 import { BenefitStatusBadge } from './BenefitStatusBadge';
 import { format } from 'date-fns';
-import { Users, Calendar, DollarSign } from 'lucide-react';
+import { Users, Calendar, DollarSign, Pencil } from 'lucide-react';
 import type { BenefitEnrollment } from '@/hooks/useBenefitEnrollments';
 
 interface EnrollmentDetailsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   enrollment: BenefitEnrollment | null;
+  onEdit?: (enrollment: BenefitEnrollment) => void;
 }
 
 export const EnrollmentDetailsDialog = ({
   open,
   onOpenChange,
   enrollment,
+  onEdit,
 }: EnrollmentDetailsDialogProps) => {
   if (!enrollment) return null;
 
@@ -45,8 +48,18 @@ export const EnrollmentDetailsDialog = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
-        <DialogHeader>
+        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <DialogTitle>Enrollment Details</DialogTitle>
+          {enrollment.status === 'active' && onEdit && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => onEdit(enrollment)}
+            >
+              <Pencil className="h-4 w-4 mr-1" />
+              Edit
+            </Button>
+          )}
         </DialogHeader>
 
         <div className="space-y-6">
