@@ -14,6 +14,7 @@ import {
   MyProfileDocumentsTab,
   MyProfileTimeOffTab,
   MyProfileLoansTab,
+  MyProfileBenefitsTab,
 } from '@/components/myprofile';
 
 const MyProfileSkeleton = () => (
@@ -71,6 +72,7 @@ const MyProfilePage = () => {
     { value: 'documents', label: 'Documents' },
     { value: 'timeoff', label: 'Time Off' },
     { value: 'loans', label: 'Loans' },
+    { value: 'benefits', label: 'Benefits' },
   ];
 
   return (
@@ -121,6 +123,10 @@ const MyProfilePage = () => {
 
             <TabsContent value="loans" className="m-0">
               <MyProfileLoansTab employeeId={employee.id} />
+            </TabsContent>
+
+            <TabsContent value="benefits" className="m-0">
+              <MyProfileBenefitsTab employeeId={employee.id} />
             </TabsContent>
           </div>
         </Tabs>
