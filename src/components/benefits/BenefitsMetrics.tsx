@@ -54,9 +54,13 @@ export const BenefitsMetrics = ({ metrics }: BenefitsMetricsProps) => {
           <Card key={card.title} className="border-border/50">
             <CardContent className="p-5">
               <div className="flex items-start justify-between">
-                <div className="space-y-1">
+                <div className="space-y-1 min-w-0 flex-1 mr-3">
                   <p className="text-sm text-muted-foreground">{card.title}</p>
-                  <p className="text-2xl font-semibold tracking-tight">{card.value}</p>
+                  <p className={cn(
+                    "font-semibold tracking-tight break-words",
+                    card.value.length > 15 ? "text-lg" : "text-2xl",
+                    card.value.length > 20 ? "text-base" : ""
+                  )}>{card.value}</p>
                   <p className="text-xs text-muted-foreground">{card.subtitle}</p>
                 </div>
                 <div className={cn('p-2.5 rounded-lg', card.iconBg)}>
