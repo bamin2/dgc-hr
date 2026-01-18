@@ -35,6 +35,8 @@ const mainMenuItems = [
   { icon: Calendar, label: "Calendar", path: "/calendar" },
   { icon: Briefcase, label: "Projects", path: "/projects" },
   { icon: Clock, label: "Time Off", path: "/time-off" },
+  { icon: Settings, label: "Settings", path: "/settings" },
+  { icon: HelpCircle, label: "Help Center", path: "/help-center" },
 ];
 
 // MANAGEMENT - HR & Manager roles only
@@ -50,8 +52,6 @@ const managementMenuItems = [
 const companyMenuItems = [
   { icon: FileStack, label: "Documents", path: "/documents" },
   { icon: History, label: "Audit Trail", path: "/audit-trail" },
-  { icon: Settings, label: "Settings", path: "/settings" },
-  { icon: HelpCircle, label: "Help Center", path: "/help-center" },
 ];
 
 interface NavItemProps {
