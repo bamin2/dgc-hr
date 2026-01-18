@@ -51,8 +51,8 @@ export function TimelineCard({ project, weekStart, dayWidth, totalWidth, onClick
         </h4>
         <DropdownMenu>
           <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-            <Button variant="ghost" size="icon" className="h-5 w-5 shrink-0">
-              <MoreHorizontal className="h-3 w-3" />
+            <Button variant="ghost" size="icon-sm" className="shrink-0">
+              <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">

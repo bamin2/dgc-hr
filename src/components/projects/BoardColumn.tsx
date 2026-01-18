@@ -90,8 +90,7 @@ export function BoardColumn({
         </div>
         <Button
           variant="ghost"
-          size="icon"
-          className="h-6 w-6"
+          size="icon-sm"
           onClick={() => onAddProject(status)}
         >
           <Plus className="h-4 w-4" />

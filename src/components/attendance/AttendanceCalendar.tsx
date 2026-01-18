@@ -61,13 +61,13 @@ export function AttendanceCalendar() {
         <div className="flex items-center justify-between">
           <CardTitle className="text-base font-semibold">Attendance Calendar</CardTitle>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigateMonth(-1)}>
+            <Button variant="ghost" size="icon-sm" onClick={() => navigateMonth(-1)}>
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <span className="text-sm font-medium min-w-[120px] text-center">
               {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
             </span>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigateMonth(1)}>
+            <Button variant="ghost" size="icon-sm" onClick={() => navigateMonth(1)}>
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>

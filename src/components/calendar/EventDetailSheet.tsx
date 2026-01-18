@@ -130,13 +130,13 @@ export function EventDetailSheet({
               {event.type}
             </Badge>
             <div className="flex gap-1">
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleEdit}>
+              <Button variant="ghost" size="icon-sm" onClick={handleEdit}>
                 <Edit className="h-4 w-4" />
               </Button>
               <Button 
                 variant="ghost" 
-                size="icon" 
-                className="h-8 w-8 text-destructive" 
+                size="icon-sm" 
+                className="text-destructive" 
                 onClick={handleDelete}
                 disabled={deleteEvent.isPending}
               >

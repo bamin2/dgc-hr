@@ -54,7 +54,7 @@ export function ProjectCard({ project, onClick, isDragging, onDragStart, onDragE
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-            <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0">
+            <Button variant="ghost" size="icon-sm" className="shrink-0">
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>

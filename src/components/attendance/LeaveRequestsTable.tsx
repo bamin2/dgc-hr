@@ -113,8 +113,7 @@ export function LeaveRequestsTable({ requests, showActions = true }: LeaveReques
                       <div className="flex items-center justify-end gap-1">
                         <Button
                           variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
+                          size="icon-sm"
                           onClick={() => navigate(`/attendance/leave/${request.id}`)}
                         >
                           <Eye className="h-4 w-4" />
@@ -123,15 +122,15 @@ export function LeaveRequestsTable({ requests, showActions = true }: LeaveReques
                           <>
                             <Button
                               variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
+                              size="icon-sm"
+                              className="text-green-600 hover:text-green-700 hover:bg-green-50"
                             >
                               <Check className="h-4 w-4" />
                             </Button>
                             <Button
                               variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                              size="icon-sm"
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
                             >
                               <X className="h-4 w-4" />
                             </Button>

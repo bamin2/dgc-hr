@@ -135,7 +135,7 @@ export function DataCard({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 shrink-0"
+                  className="shrink-0"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <MoreHorizontal className="h-4 w-4" />
