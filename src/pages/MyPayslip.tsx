@@ -1,9 +1,9 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/dashboard";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageHeader } from "@/components/ui/page-header";
 import { PayslipCard } from "@/components/payroll";
 import { PayslipPdfViewer } from "@/components/payroll/PayslipPdfViewer";
 import { PayslipData } from "@/types/payslip";
@@ -192,22 +192,21 @@ export default function MyPayslip() {
   const periodStart = payslipDocument?.period_start || payslip?.payPeriod.startDate || "";
   const periodEnd = payslipDocument?.period_end || payslip?.payPeriod.endDate || "";
 
+  const periodLabel = periodStart && periodEnd
+    ? `${new Date(periodStart).toLocaleDateString()} - ${new Date(periodEnd).toLocaleDateString()}`
+    : payslip?.id.slice(0, 8);
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/my-profile")}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">My Payslip</h1>
-            <p className="text-muted-foreground">
-              {periodStart && periodEnd
-                ? `${new Date(periodStart).toLocaleDateString()} - ${new Date(periodEnd).toLocaleDateString()}`
-                : payslip?.id.slice(0, 8)}
-            </p>
-          </div>
-        </div>
+        <PageHeader
+          title="My Payslip"
+          subtitle={periodLabel}
+          breadcrumbs={[
+            { label: 'My Profile', href: '/my-profile' },
+            { label: 'Payslip' }
+          ]}
+        />
 
         {/* If there's a generated PDF, show the PDF viewer; otherwise show PayslipCard */}
         {payslipDocument?.pdf_storage_path ? (

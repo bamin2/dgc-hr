@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { Button } from '@/components/ui/button';
+import { PageHeader } from '@/components/ui/page-header';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { useBusinessTrip } from '@/hooks/useBusinessTrips';
 import { TripDetailView } from '@/components/business-trips/TripDetailView';
@@ -39,20 +40,15 @@ export default function BusinessTripDetail() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/business-trips')}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Trip Details</h1>
-            <p className="text-muted-foreground">
-              {trip.destination?.name || 'Unknown Destination'}
-            </p>
-          </div>
-        </div>
+        <PageHeader
+          title="Trip Details"
+          subtitle={trip.destination?.name || 'Unknown Destination'}
+          breadcrumbs={[
+            { label: 'Business Trips', href: '/business-trips' },
+            { label: 'Trip Details' }
+          ]}
+        />
 
-        {/* Trip Detail View */}
         <TripDetailView trip={trip} />
       </div>
     </DashboardLayout>

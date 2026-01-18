@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/dashboard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Users, Check, Building2, Loader2, FileText, Pencil } from 'lucide-react';
+import { PageHeader } from '@/components/ui/page-header';
+import { Users, Check, Building2, Loader2, FileText, Pencil, ArrowLeft } from 'lucide-react';
 import { BenefitTypeBadge, BenefitStatusBadge, EnrollmentsTable, EditBenefitPlanDialog } from '@/components/benefits';
 import { useBenefitPlan } from '@/hooks/useBenefitPlans';
 import { useBenefitEnrollments } from '@/hooks/useBenefitEnrollments';
@@ -53,48 +54,38 @@ const BenefitDetail = () => {
   return (
     <DashboardLayout>
       <div className="max-w-4xl mx-auto space-y-6">
-        {/* Back Button */}
-        <Button variant="ghost" onClick={() => navigate('/benefits')} className="mb-2">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Benefits
-        </Button>
-
-        {/* Plan Header */}
-        <Card className="border-border/50">
-          <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <BenefitTypeBadge type={plan.type} />
-                  <BenefitStatusBadge status={plan.status} />
-                </div>
-                <h1 className="text-2xl font-semibold">{plan.name}</h1>
-                <p className="text-muted-foreground">{plan.description || 'No description available'}</p>
-                
-                <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground pt-2">
-                  <div className="flex items-center gap-1.5">
-                    <Building2 className="h-4 w-4" />
-                    <span>{plan.provider}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <Users className="h-4 w-4" />
-                    <span>{plan.enrolled_count} enrolled</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setEditDialogOpen(true)}>
-                  <Pencil className="mr-2 h-4 w-4" />
-                  Edit Plan
-                </Button>
-                <Button onClick={() => navigate('/benefits/enroll')}>
-                  Enroll Employee
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <PageHeader
+          title={plan.name}
+          subtitle={plan.description || 'No description available'}
+          breadcrumbs={[
+            { label: 'Benefits', href: '/benefits' },
+            { label: plan.name }
+          ]}
+          actions={
+            <>
+              <Button variant="outline" onClick={() => setEditDialogOpen(true)}>
+                <Pencil className="mr-2 h-4 w-4" />
+                Edit Plan
+              </Button>
+              <Button onClick={() => navigate('/benefits/enroll')}>
+                Enroll Employee
+              </Button>
+            </>
+          }
+        >
+          <div className="flex items-center gap-3">
+            <BenefitTypeBadge type={plan.type} />
+            <BenefitStatusBadge status={plan.status} />
+            <span className="text-sm text-muted-foreground flex items-center gap-1.5">
+              <Building2 className="h-4 w-4" />
+              {plan.provider}
+            </span>
+            <span className="text-sm text-muted-foreground flex items-center gap-1.5">
+              <Users className="h-4 w-4" />
+              {plan.enrolled_count} enrolled
+            </span>
+          </div>
+        </PageHeader>
 
         {/* Coverage Levels */}
         {coverageLevels.length > 0 && (

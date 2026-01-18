@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, History } from "lucide-react";
+import { History } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PageHeader } from "@/components/ui/page-header";
 import { useOffer } from "@/hooks/useOffers";
 import { OfferStatusBadge } from "@/components/hiring/offers/OfferStatusBadge";
 import { OfferVersionCard } from "@/components/hiring/offers/OfferVersionCard";
@@ -49,22 +49,17 @@ export default function OfferDetail() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 p-4 md:p-6 max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/hiring")}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div className="flex-1">
-            <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-2xl font-bold font-mono">{offer.offer_code}</h1>
-              <OfferStatusBadge status={offer.status} />
-            </div>
-            <p className="text-muted-foreground">
-              For: {offer.candidate?.first_name} {offer.candidate?.last_name}
-            </p>
-          </div>
-        </div>
+      <div className="space-y-6 max-w-7xl mx-auto">
+        <PageHeader
+          title={offer.offer_code}
+          subtitle={`For: ${offer.candidate?.first_name} ${offer.candidate?.last_name}`}
+          breadcrumbs={[
+            { label: 'Hiring', href: '/hiring' },
+            { label: offer.offer_code }
+          ]}
+        >
+          <OfferStatusBadge status={offer.status} />
+        </PageHeader>
 
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Main Content */}

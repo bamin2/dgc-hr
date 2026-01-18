@@ -1,10 +1,9 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Mail, Phone, MapPin, Building, Briefcase, Calendar, User, FileText, Archive } from "lucide-react";
+import { Mail, Phone, MapPin, Building, Briefcase, Calendar, User, FileText } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+import { PageHeader } from "@/components/ui/page-header";
 import { useCandidate } from "@/hooks/useCandidates";
 import { useOffers, useCreateOffer } from "@/hooks/useOffers";
 import { CandidateStatusBadge } from "@/components/hiring/candidates/CandidateStatusBadge";
@@ -51,28 +50,25 @@ export default function CandidateDetail() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 p-4 md:p-6 max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/hiring")}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div className="flex-1">
-            <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-2xl font-bold">{candidate.first_name} {candidate.last_name}</h1>
-              <CandidateStatusBadge status={candidate.status} />
-            </div>
-            <p className="text-muted-foreground font-mono text-sm">{candidate.candidate_code}</p>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            {candidate.status !== 'archived' && candidate.status !== 'offer_accepted' && (
+      <div className="space-y-6 max-w-6xl mx-auto">
+        <PageHeader
+          title={`${candidate.first_name} ${candidate.last_name}`}
+          subtitle={candidate.candidate_code}
+          breadcrumbs={[
+            { label: 'Hiring', href: '/hiring' },
+            { label: `${candidate.first_name} ${candidate.last_name}` }
+          ]}
+          actions={
+            candidate.status !== 'archived' && candidate.status !== 'offer_accepted' ? (
               <Button onClick={handleCreateOffer} disabled={createOffer.isPending}>
                 <FileText className="h-4 w-4 mr-2" />
                 Create Offer
               </Button>
-            )}
-          </div>
-        </div>
+            ) : undefined
+          }
+        >
+          <CandidateStatusBadge status={candidate.status} />
+        </PageHeader>
 
         <div className="grid gap-6 md:grid-cols-2">
           {/* Contact Information */}
