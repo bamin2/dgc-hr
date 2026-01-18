@@ -45,6 +45,7 @@ export interface BenefitEnrollment {
     relationship: string;
     date_of_birth: string | null;
     percentage: number;
+    national_id?: string | null;
   }>;
 }
 
@@ -88,7 +89,8 @@ export function useBenefitEnrollments(filters?: {
             name,
             relationship,
             date_of_birth,
-            percentage
+            percentage,
+            national_id
           )
         `)
         .order('created_at', { ascending: false });
@@ -151,7 +153,8 @@ export function useBenefitEnrollment(enrollmentId: string | undefined) {
             name,
             relationship,
             date_of_birth,
-            percentage
+            percentage,
+            national_id
           )
         `)
         .eq('id', enrollmentId)
@@ -181,6 +184,7 @@ export function useCreateBenefitEnrollment() {
         relationship: string;
         date_of_birth?: string;
         percentage?: number;
+        national_id?: string;
       }>;
     }) => {
       // Insert the enrollment
@@ -212,6 +216,7 @@ export function useCreateBenefitEnrollment() {
               relationship: b.relationship,
               date_of_birth: b.date_of_birth,
               percentage: b.percentage || 100,
+              national_id: b.national_id,
             }))
           );
 
