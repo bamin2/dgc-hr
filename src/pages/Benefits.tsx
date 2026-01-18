@@ -13,10 +13,12 @@ import {
   EnrollmentsTable,
   ClaimsTable,
   BenefitsCostChart,
-  CreateBenefitPlanDialog
+  CreateBenefitPlanDialog,
+  EnrollmentDetailsDialog,
+  EndEnrollmentDialog,
 } from '@/components/benefits';
 import { useBenefitPlans, type BenefitType, type BenefitStatus } from '@/hooks/useBenefitPlans';
-import { useBenefitEnrollments, type EnrollmentStatus } from '@/hooks/useBenefitEnrollments';
+import { useBenefitEnrollments, type EnrollmentStatus, type BenefitEnrollment } from '@/hooks/useBenefitEnrollments';
 import { useBenefitClaims, useApproveBenefitClaim, useRejectBenefitClaim, type ClaimStatus } from '@/hooks/useBenefitClaims';
 import { useBenefitsMetrics } from '@/hooks/useBenefitsMetrics';
 import { useToast } from '@/hooks/use-toast';
@@ -26,6 +28,11 @@ const Benefits = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('overview');
   const [createPlanOpen, setCreatePlanOpen] = useState(false);
+  
+  // Enrollment dialogs state
+  const [selectedEnrollment, setSelectedEnrollment] = useState<BenefitEnrollment | null>(null);
+  const [enrollmentDetailsOpen, setEnrollmentDetailsOpen] = useState(false);
+  const [endEnrollmentOpen, setEndEnrollmentOpen] = useState(false);
   
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -257,7 +264,17 @@ const Benefits = () => {
               typeFilter={typeFilter}
               onTypeChange={setTypeFilter}
             />
-            <EnrollmentsTable enrollments={filteredEnrollments} />
+            <EnrollmentsTable 
+              enrollments={filteredEnrollments}
+              onViewEnrollment={(enrollment) => {
+                setSelectedEnrollment(enrollment);
+                setEnrollmentDetailsOpen(true);
+              }}
+              onEndEnrollment={(enrollment) => {
+                setSelectedEnrollment(enrollment);
+                setEndEnrollmentOpen(true);
+              }}
+            />
           </TabsContent>
 
           {/* Claims Tab */}
@@ -301,6 +318,18 @@ const Benefits = () => {
       <CreateBenefitPlanDialog 
         open={createPlanOpen} 
         onOpenChange={setCreatePlanOpen}
+      />
+
+      <EnrollmentDetailsDialog
+        open={enrollmentDetailsOpen}
+        onOpenChange={setEnrollmentDetailsOpen}
+        enrollment={selectedEnrollment}
+      />
+
+      <EndEnrollmentDialog
+        open={endEnrollmentOpen}
+        onOpenChange={setEndEnrollmentOpen}
+        enrollment={selectedEnrollment}
       />
     </DashboardLayout>
   );
