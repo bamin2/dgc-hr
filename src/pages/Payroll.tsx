@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { DashboardLayout } from "@/components/dashboard";
+import { PageHeader } from "@/components/ui/page-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PayrollDashboard } from "@/components/payroll/PayrollDashboard";
 import { PayrollRunsTab } from "@/components/payroll/PayrollRunsTab";
@@ -19,16 +20,12 @@ export default function Payroll() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-4 sm:space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Payroll</h1>
-          <p className="text-muted-foreground text-sm sm:text-base">
-            Manage employee salaries and process payroll
-          </p>
-        </div>
+      <div className="space-y-6">
+        <PageHeader
+          title="Payroll"
+          subtitle="Manage employee salaries and process payroll"
+        />
 
-        {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList>
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>

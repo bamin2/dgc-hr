@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/dashboard';
+import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -157,18 +158,17 @@ const Benefits = () => {
 
   return (
     <DashboardLayout>
-      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">Benefits</h1>
-            <p className="text-muted-foreground text-sm sm:text-base">Manage employee benefits and enrollments</p>
-          </div>
-          <Button onClick={() => navigate('/benefits/enroll')} className="w-full sm:w-auto">
-            <Plus className="mr-2 h-4 w-4" />
-            New Enrollment
-          </Button>
-        </div>
+      <div className="space-y-6">
+        <PageHeader
+          title="Benefits"
+          subtitle="Manage employee benefits and enrollments"
+          actions={
+            <Button onClick={() => navigate('/benefits/enroll')}>
+              <Plus className="mr-2 h-4 w-4" />
+              New Enrollment
+            </Button>
+          }
+        />
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>

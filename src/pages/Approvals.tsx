@@ -1,6 +1,6 @@
 import { DashboardLayout } from "@/components/dashboard";
+import { PageHeader } from "@/components/ui/page-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CheckSquare } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { 
@@ -43,21 +43,11 @@ const ApprovalsPage = () => {
 
   return (
     <DashboardLayout>
-      <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
-        {/* Header */}
-        <div className="flex items-center gap-3">
-          <div className="p-2 sm:p-2.5 rounded-lg bg-primary/10">
-            <CheckSquare className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">
-              Requests & Approvals
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Submit and track your requests
-            </p>
-          </div>
-        </div>
+      <div className="space-y-6">
+        <PageHeader
+          title="Requests & Approvals"
+          subtitle="Submit and track your requests"
+        />
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">

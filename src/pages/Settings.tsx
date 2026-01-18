@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { DashboardLayout } from '@/components/dashboard';
-
+import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
@@ -249,29 +249,21 @@ const SettingsPage = () => {
 
   return (
     <DashboardLayout>
-      <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 sm:p-2.5 rounded-lg bg-primary/10">
-              <Settings className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">Settings</h1>
-              <p className="text-sm text-muted-foreground">
-                Manage your workspace and preferences
-              </p>
-            </div>
-          </div>
-          <Button onClick={handleSave} disabled={isSaving} className="w-full sm:w-auto">
-            {isSaving ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Save className="h-4 w-4 mr-2" />
-            )}
-            {isSaving ? 'Saving...' : 'Save Changes'}
-          </Button>
-        </div>
+      <div className="space-y-6">
+        <PageHeader
+          title="Settings"
+          subtitle="Manage your workspace and preferences"
+          actions={
+            <Button onClick={handleSave} disabled={isSaving}>
+              {isSaving ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
+              {isSaving ? 'Saving...' : 'Save Changes'}
+            </Button>
+          }
+        />
 
         {/* Two-column layout: Sidebar + Content */}
         <div className="flex flex-col md:flex-row gap-6">

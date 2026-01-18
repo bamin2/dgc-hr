@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Plus, Banknote, Clock, CheckCircle } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard";
+import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -75,20 +76,17 @@ export default function Loans() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Page Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Loans</h1>
-            <p className="text-muted-foreground">
-              Manage employee loans, requests, and repayments
-            </p>
-          </div>
-          <Button onClick={() => setCreateDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Create Loan
-          </Button>
-        </div>
+      <div className="space-y-6">
+        <PageHeader
+          title="Loans"
+          subtitle="Manage employee loans, requests, and repayments"
+          actions={
+            <Button onClick={() => setCreateDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Create Loan
+            </Button>
+          }
+        />
 
         {/* Metrics Cards */}
         <div className="grid gap-4 md:grid-cols-3">
