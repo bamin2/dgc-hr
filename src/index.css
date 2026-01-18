@@ -183,3 +183,78 @@
     border-radius: 3px;
   }
 }
+
+/* Compact Mode Styles */
+@layer utilities {
+  /* Card padding reductions */
+  body.compact .card-header-compact,
+  body.compact [data-slot="card-header"] {
+    @apply p-4;
+  }
+
+  body.compact .card-content-compact,
+  body.compact [data-slot="card-content"] {
+    @apply p-4 pt-0;
+  }
+
+  /* Table row height reductions */
+  body.compact table th {
+    @apply h-10 px-3;
+  }
+
+  body.compact table td {
+    @apply p-3;
+  }
+
+  /* Gap reductions */
+  body.compact .gap-6 {
+    gap: 1rem;
+  }
+
+  body.compact .gap-4 {
+    gap: 0.5rem;
+  }
+
+  body.compact .space-y-6 > * + * {
+    margin-top: 1rem;
+  }
+
+  body.compact .space-y-4 > * + * {
+    margin-top: 0.5rem;
+  }
+
+  /* Padding reductions */
+  body.compact .p-6 {
+    padding: 1rem;
+  }
+
+  body.compact .p-8 {
+    padding: 1.25rem;
+  }
+
+  body.compact .py-6 {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  body.compact .px-6 {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Typography size reductions */
+  body.compact .text-2xl {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+
+  body.compact .text-xl {
+    font-size: 1.125rem;
+    line-height: 1.5rem;
+  }
+
+  /* Sidebar compact adjustments */
+  body.compact aside[data-sidebar] {
+    --sidebar-width: 14rem;
+  }
+}

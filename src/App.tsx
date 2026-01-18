@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { RoleProvider } from "@/contexts/RoleContext";
 import { CompanySettingsProvider } from "@/contexts/CompanySettingsContext";
+import { CompactModeProvider } from "@/contexts/CompactModeContext";
 import { ProtectedRoute, PublicRoute } from "@/components/auth";
 import { PageLoader } from "@/components/ui/page-loader";
 import { DashboardPageLoader } from "@/components/dashboard/DashboardPageLoader";
@@ -80,10 +81,11 @@ const App = () => (
     <AuthProvider>
       <CompanySettingsProvider>
         <RoleProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
+          <CompactModeProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
               <Routes>
                 {/* Public routes */}
                 <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
@@ -140,8 +142,9 @@ const App = () => (
                 {/* Catch-all */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
+              </BrowserRouter>
+            </TooltipProvider>
+          </CompactModeProvider>
         </RoleProvider>
       </CompanySettingsProvider>
     </AuthProvider>
