@@ -104,8 +104,8 @@ export function useUserPreferences() {
     queryFn: async () => {
       if (!user?.id) throw new Error('No user');
 
-      // Fetch preferences and profile in parallel
-      const [prefsResult, profileResult] = await Promise.all([
+      // Fetch preferences, profile, and employee avatar in parallel
+      const [prefsResult, profileResult, employeeResult] = await Promise.all([
         supabase
           .from('user_preferences')
           .select('*')
@@ -116,14 +116,25 @@ export function useUserPreferences() {
           .select('*')
           .eq('id', user.id)
           .maybeSingle(),
+        supabase
+          .from('employees')
+          .select('id, avatar_url')
+          .eq('user_id', user.id)
+          .maybeSingle(),
       ]);
 
       if (prefsResult.error) throw prefsResult.error;
       if (profileResult.error) throw profileResult.error;
 
+      // Use employee avatar as primary source
+      const profileWithEmployeeAvatar = profileResult.data ? {
+        ...profileResult.data,
+        avatar_url: employeeResult.data?.avatar_url || profileResult.data.avatar_url,
+      } : null;
+
       return transformFromDb(
         prefsResult.data as DbUserPreferences | null, 
-        profileResult.data as DbProfile | null, 
+        profileWithEmployeeAvatar as DbProfile | null, 
         user.id
       );
     },
@@ -154,6 +165,25 @@ export function useUserPreferences() {
             if (error) throw error;
           };
           updates.push(updateProfile());
+        }
+
+        // Sync avatar to employee record if user has one
+        if (preferences.profile.avatar !== undefined) {
+          const syncAvatarToEmployee = async () => {
+            const { data: employee } = await supabase
+              .from('employees')
+              .select('id')
+              .eq('user_id', user.id)
+              .maybeSingle();
+            
+            if (employee) {
+              await supabase
+                .from('employees')
+                .update({ avatar_url: preferences.profile!.avatar })
+                .eq('id', employee.id);
+            }
+          };
+          updates.push(syncAvatarToEmployee());
         }
       }
 
