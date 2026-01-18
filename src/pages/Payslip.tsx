@@ -1,9 +1,9 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/dashboard";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageHeader } from "@/components/ui/page-header";
 import { PayslipCard } from "@/components/payroll";
 import { PayslipData } from "@/types/payslip";
 import { supabase } from "@/integrations/supabase/client";
@@ -129,15 +129,14 @@ export default function Payslip() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/payroll")}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Payslip</h1>
-            <p className="text-muted-foreground">{payslip.employee.name} - {payslip.id.slice(0, 8)}</p>
-          </div>
-        </div>
+        <PageHeader
+          title="Payslip"
+          subtitle={`${payslip.employee.name} - ${payslip.id.slice(0, 8)}`}
+          breadcrumbs={[
+            { label: 'Payroll', href: '/payroll' },
+            { label: 'Payslip' }
+          ]}
+        />
         <PayslipCard payslip={payslip} />
       </div>
     </DashboardLayout>

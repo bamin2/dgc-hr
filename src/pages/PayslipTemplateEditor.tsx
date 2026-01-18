@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Save, Loader2, Check } from "lucide-react";
+import { Save, Loader2, Check } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard";
+import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -115,32 +116,27 @@ export default function PayslipTemplateEditor() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/payroll/templates")}>
-              <ArrowLeft className="h-5 w-5" />
+        <PageHeader
+          title={isNew ? "New Payslip Template" : "Edit Template"}
+          subtitle={isNew
+            ? "Upload a DOCX template and configure settings"
+            : template?.name || "Loading..."}
+          breadcrumbs={[
+            { label: 'Payroll', href: '/payroll' },
+            { label: 'Templates', href: '/payroll/templates' },
+            { label: isNew ? 'New Template' : 'Edit Template' }
+          ]}
+          actions={
+            <Button onClick={handleSave} disabled={!canSave || isSaving}>
+              {isSaving ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="mr-2 h-4 w-4" />
+              )}
+              {isNew ? "Create Template" : "Save Changes"}
             </Button>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">
-                {isNew ? "New Payslip Template" : "Edit Template"}
-              </h1>
-              <p className="text-muted-foreground text-sm">
-                {isNew
-                  ? "Upload a DOCX template and configure settings"
-                  : template?.name || "Loading..."}
-              </p>
-            </div>
-          </div>
-          <Button onClick={handleSave} disabled={!canSave || isSaving}>
-            {isSaving ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Save className="mr-2 h-4 w-4" />
-            )}
-            {isNew ? "Create Template" : "Save Changes"}
-          </Button>
-        </div>
+          }
+        />
 
         {/* Name, Description & Status */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

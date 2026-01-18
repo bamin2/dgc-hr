@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Check, Calendar as CalendarIcon, Users, DollarSign, FileCheck } from "lucide-react";
 import { startOfMonth, endOfMonth, format } from "date-fns";
 import { DashboardLayout } from "@/components/dashboard";
+import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -447,22 +448,14 @@ export default function PayrollRun() {
   return (
     <DashboardLayout>
       <div className="max-w-4xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/payroll")}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Run Payroll</h1>
-            <p className="text-muted-foreground">
-              Process payroll for your team
-            </p>
-          </div>
-        </div>
+        <PageHeader
+          title="Run Payroll"
+          subtitle="Process payroll for your team"
+          breadcrumbs={[
+            { label: 'Payroll', href: '/payroll' },
+            { label: 'Run Payroll' }
+          ]}
+        />
 
         {/* Steps */}
         <div className="flex items-center justify-between">
