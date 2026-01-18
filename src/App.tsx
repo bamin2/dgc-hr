@@ -53,6 +53,7 @@ const CandidateDetail = lazy(() => import("./pages/CandidateDetail"));
 const OfferDetail = lazy(() => import("./pages/OfferDetail"));
 const BusinessTrips = lazy(() => import("./pages/BusinessTrips"));
 const BusinessTripDetail = lazy(() => import("./pages/BusinessTripDetail"));
+const HelpCenter = lazy(() => import("./pages/HelpCenter"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -132,6 +133,9 @@ const App = () => (
                 <Route path="/documents" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><Documents /></DashboardLazyPage></ProtectedRoute>} />
                 <Route path="/audit-trail" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><AuditTrail /></DashboardLazyPage></ProtectedRoute>} />
                 <Route path="/settings" element={<ProtectedRoute requiredRoles={['admin']}><DashboardLazyPage><Settings /></DashboardLazyPage></ProtectedRoute>} />
+                
+                {/* Help Center - All authenticated users */}
+                <Route path="/help-center" element={<ProtectedRoute><DashboardLazyPage><HelpCenter /></DashboardLazyPage></ProtectedRoute>} />
                 
                 {/* Catch-all */}
                 <Route path="*" element={<NotFound />} />

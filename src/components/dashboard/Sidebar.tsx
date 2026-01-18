@@ -58,7 +58,7 @@ const companyMenuItems = [
   { icon: FileStack, label: "Documents", path: "/documents" },
   { icon: History, label: "Audit Trail", path: "/audit-trail" },
   { icon: Settings, label: "Settings", path: "/settings" },
-  { icon: HelpCircle, label: "Help & Center", path: "/help", comingSoon: true },
+  { icon: HelpCircle, label: "Help Center", path: "/help-center" },
 ];
 
 export function Sidebar() {
