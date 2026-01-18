@@ -339,7 +339,7 @@ serve(async (req: Request): Promise<Response> => {
                 });
               }
 
-              // Create in-app notification for the approver
+              // Create in-app notification for the approver with standardized metadata
               await supabase.from("notifications").insert({
                 user_id: pendingStep.approver_user_id,
                 type: "approval",
@@ -349,22 +349,44 @@ serve(async (req: Request): Promise<Response> => {
                 action_url: "/approvals",
                 actor_name: employeeName,
                 actor_avatar: leaveRequest.employee.avatar_url,
-                metadata: { request_id: leaveRequestId, request_type: "time_off" },
+                metadata: {
+                  entity_type: "leave_request",
+                  entity_id: leaveRequestId,
+                  severity: "info",
+                  event_key: "leave.submitted",
+                  extra: {
+                    leave_type: leaveTypeName,
+                    start_date: leaveRequest.start_date,
+                    end_date: leaveRequest.end_date,
+                    days_count: leaveRequest.days_count,
+                  },
+                },
               });
             }
           }
         }
 
-        // Create confirmation notification for the requester
+        // Create confirmation notification for the requester with standardized metadata
         if (requesterProfile?.id) {
           await supabase.from("notifications").insert({
             user_id: requesterProfile.id,
-            type: "leave_request",
+            type: "approval",
             title: "Leave Request Submitted",
             message: `Your ${leaveTypeName} request for ${leaveRequest.days_count} day${leaveRequest.days_count !== 1 ? "s" : ""} has been submitted and is pending approval`,
             priority: "low",
             action_url: "/approvals?tab=my-requests",
-            metadata: { request_id: leaveRequestId },
+            metadata: {
+              entity_type: "leave_request",
+              entity_id: leaveRequestId,
+              severity: "info",
+              event_key: "leave.submitted",
+              extra: {
+                leave_type: leaveTypeName,
+                start_date: leaveRequest.start_date,
+                end_date: leaveRequest.end_date,
+                days_count: leaveRequest.days_count,
+              },
+            },
           });
         }
       } else if (type === "leave_request_approved" || type === "leave_request_rejected") {
@@ -452,11 +474,10 @@ serve(async (req: Request): Promise<Response> => {
             });
           }
 
-          // Create in-app notification for the requester
-          const notificationTitle = type === "leave_request_approved" 
-            ? "Leave Request Approved" 
-            : "Leave Request Rejected";
-          const notificationMessage = type === "leave_request_approved"
+          // Create in-app notification for the requester with standardized metadata
+          const isApproved = type === "leave_request_approved";
+          const notificationTitle = isApproved ? "Leave Request Approved" : "Leave Request Rejected";
+          const notificationMessage = isApproved
             ? `Your ${leaveTypeName} request has been approved`
             : `Your ${leaveTypeName} request has been rejected${leaveRequest.rejection_reason ? `: ${leaveRequest.rejection_reason}` : ""}`;
 
@@ -465,9 +486,22 @@ serve(async (req: Request): Promise<Response> => {
             type: "approval",
             title: notificationTitle,
             message: notificationMessage,
-            priority: type === "leave_request_approved" ? "medium" : "high",
+            priority: isApproved ? "medium" : "high",
             action_url: "/approvals?tab=my-requests",
-            metadata: { request_id: leaveRequestId, status: type === "leave_request_approved" ? "approved" : "rejected" },
+            metadata: {
+              entity_type: "leave_request",
+              entity_id: leaveRequestId,
+              severity: isApproved ? "success" : "danger",
+              event_key: isApproved ? "leave.approved" : "leave.rejected",
+              extra: {
+                leave_type: leaveTypeName,
+                start_date: leaveRequest.start_date,
+                end_date: leaveRequest.end_date,
+                days_count: leaveRequest.days_count,
+                reviewer_name: reviewerName,
+                rejection_reason: leaveRequest.rejection_reason,
+              },
+            },
           });
         }
       }

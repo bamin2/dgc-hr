@@ -649,7 +649,7 @@ const handler = async (req: Request): Promise<Response> => {
           payslipDocId = created.id;
         }
 
-        // Create notification for employee
+        // Create notification for employee with standardized metadata
         if (emp.user_id) {
           await supabaseClient.from("notifications").insert({
             user_id: emp.user_id,
@@ -658,6 +658,18 @@ const handler = async (req: Request): Promise<Response> => {
             message: `Your payslip for ${formatMonthYear(periodStart)} is now available.`,
             priority: "medium",
             action_url: `/my-profile/payslip/${payslipDocId}`,
+            metadata: {
+              entity_type: "payslip",
+              entity_id: payslipDocId,
+              severity: "success",
+              event_key: "payslip.published",
+              extra: {
+                period: formatMonthYear(periodStart),
+                period_start: periodStart,
+                period_end: periodEnd,
+                currency: currencyCode,
+              },
+            },
           });
         }
 
