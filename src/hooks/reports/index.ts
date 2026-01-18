@@ -19,3 +19,4 @@ export { useEmployeeMasterReport } from './useEmployeeReports';
 // Cost & Compliance Reports (new)
 export { useCTCReport, usePayrollVarianceReport, usePayrollRunsForLocation } from './useCostReports';
 export { useComplianceSnapshotReport } from './useComplianceSnapshotReport';
+export { useWorkLocationsFilter, useDepartmentsFilter } from './useReportFilters';

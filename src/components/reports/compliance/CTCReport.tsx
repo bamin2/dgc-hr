@@ -6,11 +6,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { RefreshCw, Download, ChevronDown, ChevronRight, DollarSign, Users, Building2, Briefcase } from 'lucide-react';
 import { useCTCReport, usePayrollRunsForLocation } from '@/hooks/reports/useCostReports';
+import { useWorkLocationsFilter, useDepartmentsFilter } from '@/hooks/reports/useReportFilters';
 import { CostReportFilters, CTCRecord } from '@/types/reports';
 import { CurrencyConversionTooltip } from '../CurrencyConversionTooltip';
 import { exportToCSV, exportToPDF, generateReportFilename } from '@/utils/reportExport';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { format, parseISO } from 'date-fns';
 
 const formatCurrency = (amount: number) => {
@@ -25,23 +24,9 @@ export function CTCReport() {
   const [filters, setFilters] = useState<CostReportFilters>({});
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
-  // Fetch locations for filter
-  const { data: locations } = useQuery({
-    queryKey: ['work-locations-ctc'],
-    queryFn: async () => {
-      const { data } = await supabase.from('work_locations').select('id, name').eq('is_active', true);
-      return data || [];
-    },
-  });
-
-  // Fetch departments for filter
-  const { data: departments } = useQuery({
-    queryKey: ['departments-ctc'],
-    queryFn: async () => {
-      const { data } = await supabase.from('departments').select('id, name');
-      return data || [];
-    },
-  });
+  // Fetch locations and departments for filters
+  const { data: locations } = useWorkLocationsFilter('ctc');
+  const { data: departments } = useDepartmentsFilter('ctc');
 
   // Fetch payroll runs for selected location
   const { data: payrollRuns } = usePayrollRunsForLocation(filters.locationId);

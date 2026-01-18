@@ -7,33 +7,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RefreshCw, Download, FileWarning, Clock, AlertTriangle, ShieldAlert } from 'lucide-react';
 import { useComplianceSnapshotReport } from '@/hooks/reports/useComplianceSnapshotReport';
+import { useWorkLocationsFilter, useDepartmentsFilter } from '@/hooks/reports/useReportFilters';
 import { CostReportFilters } from '@/types/reports';
 import { exportToCSV, exportToPDF, generateReportFilename } from '@/utils/reportExport';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { format, parseISO } from 'date-fns';
 
 export function ComplianceSnapshotReport() {
   const [filters, setFilters] = useState<CostReportFilters>({ expiryWindowDays: 30 });
   const [activeTab, setActiveTab] = useState('missing');
 
-  // Fetch locations for filter
-  const { data: locations } = useQuery({
-    queryKey: ['work-locations-compliance'],
-    queryFn: async () => {
-      const { data } = await supabase.from('work_locations').select('id, name').eq('is_active', true);
-      return data || [];
-    },
-  });
-
-  // Fetch departments for filter
-  const { data: departments } = useQuery({
-    queryKey: ['departments-compliance'],
-    queryFn: async () => {
-      const { data } = await supabase.from('departments').select('id, name');
-      return data || [];
-    },
-  });
+  // Fetch locations and departments for filters
+  const { data: locations } = useWorkLocationsFilter('compliance');
+  const { data: departments } = useDepartmentsFilter('compliance');
 
   // Fetch compliance snapshot data
   const { data, isLoading, refetch } = useComplianceSnapshotReport(filters);
