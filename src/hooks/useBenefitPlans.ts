@@ -28,6 +28,7 @@ export interface BenefitPlan {
   expiry_date: string | null;
   created_at: string;
   updated_at: string;
+  currency: string;
   coverage_levels?: CoverageLevel[];
 }
 

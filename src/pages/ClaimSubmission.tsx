@@ -56,6 +56,14 @@ const ClaimSubmission = () => {
 
   const selectedEnrollment = allEnrollments.find(e => e.id === enrollmentId);
 
+  // Get currency symbol from selected plan
+  const selectedPlanCurrency = selectedEnrollment?.plan?.currency || 'USD';
+  const currencySymbol = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: selectedPlanCurrency,
+    currencyDisplay: 'narrowSymbol',
+  }).formatToParts(0).find(p => p.type === 'currency')?.value || '$';
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -182,7 +190,9 @@ const ClaimSubmission = () => {
                   <div className="space-y-2">
                     <Label htmlFor="amount">Claim Amount *</Label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                        {currencySymbol}
+                      </span>
                       <Input
                         id="amount"
                         type="number"

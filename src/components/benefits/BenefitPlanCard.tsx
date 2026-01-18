@@ -5,7 +5,6 @@ import { BenefitStatusBadge } from './BenefitStatusBadge';
 import { Users, Check, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { BenefitPlan } from '@/hooks/useBenefitPlans';
-import { useCompanySettings } from '@/contexts/CompanySettingsContext';
 
 interface BenefitPlanCardProps {
   plan: BenefitPlan;
@@ -13,10 +12,19 @@ interface BenefitPlanCardProps {
 
 export const BenefitPlanCard = ({ plan }: BenefitPlanCardProps) => {
   const navigate = useNavigate();
-  const { formatCurrency } = useCompanySettings();
   const coverageLevels = plan.coverage_levels || [];
   const costs = coverageLevels.map(c => c.employee_cost);
   const lowestCost = costs.length > 0 ? Math.min(...costs) : 0;
+
+  // Format currency using the plan's currency
+  const planCurrency = plan.currency || 'BHD';
+  const formatPlanCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: planCurrency,
+      minimumFractionDigits: 0,
+    }).format(amount);
+  };
 
   return (
     <Card className="border-border/50 hover:shadow-md transition-shadow">
@@ -40,7 +48,7 @@ export const BenefitPlanCard = ({ plan }: BenefitPlanCardProps) => {
             <span>{plan.enrolled_count} enrolled</span>
           </div>
           <div className="text-muted-foreground">
-            From <span className="font-semibold text-foreground">{formatCurrency(lowestCost)}</span>/mo
+            From <span className="font-semibold text-foreground">{formatPlanCurrency(lowestCost)}</span>/mo
           </div>
         </div>
 

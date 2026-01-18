@@ -1,15 +1,29 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { BenefitTypeBadge } from './BenefitTypeBadge';
 import { BenefitStatusBadge } from './BenefitStatusBadge';
 import { format } from 'date-fns';
+import { MoreHorizontal, Eye, CalendarX } from 'lucide-react';
 import type { BenefitEnrollment } from '@/hooks/useBenefitEnrollments';
 
 interface EnrollmentsTableProps {
   enrollments: BenefitEnrollment[];
+  onViewEnrollment?: (enrollment: BenefitEnrollment) => void;
+  onEndEnrollment?: (enrollment: BenefitEnrollment) => void;
 }
 
-export const EnrollmentsTable = ({ enrollments }: EnrollmentsTableProps) => {
+export const EnrollmentsTable = ({ 
+  enrollments,
+  onViewEnrollment,
+  onEndEnrollment,
+}: EnrollmentsTableProps) => {
   if (enrollments.length === 0) {
     return (
       <div className="border rounded-lg p-8 text-center text-muted-foreground">
@@ -29,6 +43,7 @@ export const EnrollmentsTable = ({ enrollments }: EnrollmentsTableProps) => {
             <TableHead>Start Date</TableHead>
             <TableHead>Monthly Cost</TableHead>
             <TableHead>Status</TableHead>
+            <TableHead className="w-[70px]">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -37,6 +52,16 @@ export const EnrollmentsTable = ({ enrollments }: EnrollmentsTableProps) => {
             const plan = enrollment.plan;
             const coverageLevel = enrollment.coverage_level;
             const monthlyCost = enrollment.employee_contribution + enrollment.employer_contribution;
+
+            // Format using plan's currency
+            const planCurrency = plan?.currency || 'BHD';
+            const formatPlanCurrency = (amount: number) => {
+              return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: planCurrency,
+                minimumFractionDigits: 0,
+              }).format(amount);
+            };
 
             return (
               <TableRow key={enrollment.id} className="hover:bg-muted/30">
@@ -71,10 +96,34 @@ export const EnrollmentsTable = ({ enrollments }: EnrollmentsTableProps) => {
                   {format(new Date(enrollment.start_date), 'MMM d, yyyy')}
                 </TableCell>
                 <TableCell className="font-medium">
-                  ${monthlyCost}/mo
+                  {formatPlanCurrency(monthlyCost)}/mo
                 </TableCell>
                 <TableCell>
                   <BenefitStatusBadge status={enrollment.status} />
+                </TableCell>
+                <TableCell>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => onViewEnrollment?.(enrollment)}>
+                        <Eye className="mr-2 h-4 w-4" />
+                        View Details
+                      </DropdownMenuItem>
+                      {enrollment.status === 'active' && (
+                        <DropdownMenuItem
+                          onClick={() => onEndEnrollment?.(enrollment)}
+                          className="text-destructive focus:text-destructive"
+                        >
+                          <CalendarX className="mr-2 h-4 w-4" />
+                          End Enrollment
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             );
