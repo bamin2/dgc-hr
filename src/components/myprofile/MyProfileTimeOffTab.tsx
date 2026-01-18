@@ -13,7 +13,7 @@ import {
   Hourglass,
   Inbox
 } from 'lucide-react';
-import { useLeaveBalances } from '@/hooks/useLeaveBalances';
+import { useMyLeaveBalances } from '@/hooks/useLeaveBalances';
 import { useLeaveRequests } from '@/hooks/useLeaveRequests';
 import { format } from 'date-fns';
 import { RequestTimeOffDialog } from '@/components/timeoff/RequestTimeOffDialog';
@@ -32,7 +32,7 @@ export function MyProfileTimeOffTab({ employeeId }: MyProfileTimeOffTabProps) {
   const [showRequestDialog, setShowRequestDialog] = useState(false);
   const currentYear = new Date().getFullYear();
   
-  const { data: balances, isLoading: loadingBalances } = useLeaveBalances(employeeId, currentYear);
+  const { data: balances, isLoading: loadingBalances } = useMyLeaveBalances(currentYear);
   const { data: requests, isLoading: loadingRequests } = useLeaveRequests({ employeeId });
 
   const isLoading = loadingBalances || loadingRequests;
