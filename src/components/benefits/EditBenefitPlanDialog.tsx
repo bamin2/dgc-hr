@@ -173,7 +173,7 @@ export function EditBenefitPlanDialog({ open, onOpenChange, plan }: EditBenefitP
 
       // Update coverage levels
       const originalLevelIds = (plan.coverage_levels || []).map(cl => cl.id);
-      await updateCoverageLevels.mutateAsync({
+      const result = await updateCoverageLevels.mutateAsync({
         planId: plan.id,
         coverageLevels: validCoverageLevels,
         originalLevelIds,
@@ -187,6 +187,14 @@ export function EditBenefitPlanDialog({ open, onOpenChange, plan }: EditBenefitP
           .from('benefit_plans')
           .update({ policy_document_url: documentUrl })
           .eq('id', plan.id);
+      }
+
+      // Show warning if some coverage levels couldn't be deleted
+      if (result?.skippedLevels?.length > 0) {
+        toast({
+          title: 'Some coverage levels were not removed',
+          description: `${result.skippedLevels.length} coverage level(s) could not be removed because employees are currently enrolled in them.`,
+        });
       }
 
       toast({

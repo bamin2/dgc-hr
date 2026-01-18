@@ -179,7 +179,7 @@ export function useUpdateCoverageLevels() {
         employer_cost: number;
       }>;
       originalLevelIds: string[];
-    }) => {
+    }): Promise<{ skippedLevels: string[] }> => {
       // Separate existing levels (with id) from new levels (without id)
       const existingLevels = coverageLevels.filter(cl => cl.id);
       const newLevels = coverageLevels.filter(cl => !cl.id);
@@ -188,12 +188,29 @@ export function useUpdateCoverageLevels() {
       const currentIds = existingLevels.map(cl => cl.id!);
       const idsToDelete = originalLevelIds.filter(id => !currentIds.includes(id));
 
-      // Delete removed levels
-      if (idsToDelete.length > 0) {
+      // Check which levels have enrollments before deleting
+      const skippedLevels: string[] = [];
+      const levelsThatCanBeDeleted: string[] = [];
+
+      for (const id of idsToDelete) {
+        const { count } = await supabase
+          .from('benefit_enrollments')
+          .select('*', { count: 'exact', head: true })
+          .eq('coverage_level_id', id);
+        
+        if (count && count > 0) {
+          skippedLevels.push(id);
+        } else {
+          levelsThatCanBeDeleted.push(id);
+        }
+      }
+
+      // Only delete levels without enrollments
+      if (levelsThatCanBeDeleted.length > 0) {
         const { error: deleteError } = await supabase
           .from('benefit_coverage_levels')
           .delete()
-          .in('id', idsToDelete);
+          .in('id', levelsThatCanBeDeleted);
         if (deleteError) throw deleteError;
       }
 
@@ -224,6 +241,8 @@ export function useUpdateCoverageLevels() {
           );
         if (insertError) throw insertError;
       }
+
+      return { skippedLevels };
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.benefits.plans.all });
