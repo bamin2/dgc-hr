@@ -10,17 +10,13 @@ import {
   Settings,
   Clock,
   Briefcase,
-  UsersRound,
   FileStack,
-  Puzzle,
-  Receipt,
   HelpCircle,
   BookUser,
   History,
   Menu,
   X,
   UserCircle,
-  icons,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -54,8 +50,6 @@ const managementMenuItems = [
 const companyMenuItems = [
   { icon: FileStack, label: "Documents", path: "/documents" },
   { icon: History, label: "Audit Trail", path: "/audit-trail" },
-  { icon: Puzzle, label: "Integrations", path: "/integrations", comingSoon: true },
-  { icon: Receipt, label: "Invoices", path: "/invoices", comingSoon: true },
   { icon: Settings, label: "Settings", path: "/settings" },
   { icon: HelpCircle, label: "Help & Center", path: "/help", comingSoon: true },
 ];
