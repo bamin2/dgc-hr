@@ -14,3 +14,4 @@ export { EditBenefitPlanDialog } from './EditBenefitPlanDialog';
 export { DependentsDialog, type Dependent } from './DependentsDialog';
 export { EnrollmentDetailsDialog } from './EnrollmentDetailsDialog';
 export { EndEnrollmentDialog } from './EndEnrollmentDialog';
+export { EditEnrollmentDialog } from './EditEnrollmentDialog';
