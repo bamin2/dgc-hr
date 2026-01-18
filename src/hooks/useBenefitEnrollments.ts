@@ -194,7 +194,7 @@ export function useCreateBenefitEnrollment() {
           end_date: enrollment.end_date,
           employee_contribution: enrollment.employee_contribution,
           employer_contribution: enrollment.employer_contribution,
-          status: 'pending',
+          status: 'active',
         })
         .select()
         .single();

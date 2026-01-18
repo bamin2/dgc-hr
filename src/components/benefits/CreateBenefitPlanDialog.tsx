@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { format } from 'date-fns';
 import {
   Dialog,
   DialogContent,
@@ -26,7 +27,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Trash2, Upload, Loader2, FileText } from 'lucide-react';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { Plus, Trash2, Upload, Loader2, FileText, CalendarIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useCreateBenefitPlan, type BenefitType, type BenefitStatus } from '@/hooks/useBenefitPlans';
 import { useBenefitDocumentUpload } from '@/hooks/useBenefitDocumentUpload';
@@ -58,8 +66,9 @@ export function CreateBenefitPlanDialog({ open, onOpenChange }: CreateBenefitPla
   const createPlan = useCreateBenefitPlan();
   const { uploadDocument, isUploading } = useBenefitDocumentUpload();
   
-  const [coverageLevels, setCoverageLevels] = useState<CoverageLevel[]>([]);
+const [coverageLevels, setCoverageLevels] = useState<CoverageLevel[]>([]);
   const [policyFile, setPolicyFile] = useState<File | null>(null);
+  const [expiryDate, setExpiryDate] = useState<Date | undefined>();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -123,6 +132,7 @@ export function CreateBenefitPlanDialog({ open, onOpenChange }: CreateBenefitPla
         description: values.description,
         status: values.status as BenefitStatus,
         features,
+        expiry_date: expiryDate ? format(expiryDate, 'yyyy-MM-dd') : undefined,
         coverageLevels: validCoverageLevels,
       });
 
@@ -147,6 +157,7 @@ export function CreateBenefitPlanDialog({ open, onOpenChange }: CreateBenefitPla
       form.reset();
       setCoverageLevels([]);
       setPolicyFile(null);
+      setExpiryDate(undefined);
       onOpenChange(false);
     } catch (error) {
       console.error('Error creating benefit plan:', error);
@@ -232,29 +243,57 @@ export function CreateBenefitPlanDialog({ open, onOpenChange }: CreateBenefitPla
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Status *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select status" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="active">Active</SelectItem>
-                          <SelectItem value="inactive">Inactive</SelectItem>
-                          <SelectItem value="pending">Pending</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status *</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <FormLabel>Expiry Date</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !expiryDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {expiryDate ? format(expiryDate, "PPP") : "Select expiry date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={expiryDate}
+                      onSelect={setExpiryDate}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
+            </div>
 
               <FormField
                 control={form.control}
