@@ -1,5 +1,6 @@
 import { DollarSign, Users, Clock, TrendingUp } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 interface PayrollMetricsProps {
   totalPayroll: number;
@@ -65,9 +66,13 @@ export function PayrollMetrics({
         <Card key={metric.title} className="border-0 shadow-sm">
           <CardContent className="p-5">
             <div className="flex items-start justify-between">
-              <div className="space-y-1">
+              <div className="space-y-1 min-w-0 flex-1 mr-3">
                 <p className="text-sm text-muted-foreground">{metric.title}</p>
-                <p className="text-2xl font-bold text-foreground">{metric.value}</p>
+                <p className={cn(
+                  "font-bold text-foreground break-words",
+                  metric.value.length > 15 ? "text-lg" : "text-2xl",
+                  metric.value.length > 20 ? "text-base" : ""
+                )}>{metric.value}</p>
                 <p className="text-xs text-muted-foreground">{metric.subtitle}</p>
               </div>
               <div className={`p-2.5 rounded-xl ${metric.iconBg}`}>
