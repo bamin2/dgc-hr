@@ -18,6 +18,7 @@ const BenefitEnrollment = () => {
     coverageLevelId: string;
     coverageLevel: { employee_cost: number; employer_cost: number };
     startDate: Date;
+    dependents?: Array<{ name: string; relationship: string; nationalId?: string }>;
   }) => {
     try {
       await createEnrollment.mutateAsync({
@@ -27,6 +28,11 @@ const BenefitEnrollment = () => {
         start_date: format(data.startDate, 'yyyy-MM-dd'),
         employee_contribution: data.coverageLevel.employee_cost,
         employer_contribution: data.coverageLevel.employer_cost,
+        beneficiaries: data.dependents?.map(d => ({
+          name: d.name,
+          relationship: d.relationship,
+          national_id: d.nationalId,
+        })),
       });
       
       toast({

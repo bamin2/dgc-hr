@@ -409,6 +409,7 @@ export type Database = {
           enrollment_id: string
           id: string
           name: string
+          national_id: string | null
           percentage: number | null
           relationship: string
         }
@@ -418,6 +419,7 @@ export type Database = {
           enrollment_id: string
           id?: string
           name: string
+          national_id?: string | null
           percentage?: number | null
           relationship: string
         }
@@ -427,6 +429,7 @@ export type Database = {
           enrollment_id?: string
           id?: string
           name?: string
+          national_id?: string | null
           percentage?: number | null
           relationship?: string
         }
