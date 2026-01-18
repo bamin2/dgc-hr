@@ -7,10 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { RefreshCw, Download, ChevronDown, ChevronRight, TrendingUp, TrendingDown, Users, ArrowRightLeft } from 'lucide-react';
 import { usePayrollVarianceReport, usePayrollRunsForLocation } from '@/hooks/reports/useCostReports';
+import { useWorkLocationsFilter, useDepartmentsFilter } from '@/hooks/reports/useReportFilters';
 import { CostReportFilters, PayrollVarianceRecord, VarianceReasonTag } from '@/types/reports';
 import { exportToCSV, exportToPDF, generateReportFilename } from '@/utils/reportExport';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { format, parseISO } from 'date-fns';
 
 const formatCurrency = (amount: number) => {
@@ -41,23 +40,9 @@ export function PayrollVarianceReport() {
   const [filters, setFilters] = useState<CostReportFilters>({});
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
-  // Fetch locations for filter
-  const { data: locations } = useQuery({
-    queryKey: ['work-locations-variance'],
-    queryFn: async () => {
-      const { data } = await supabase.from('work_locations').select('id, name').eq('is_active', true);
-      return data || [];
-    },
-  });
-
-  // Fetch departments for filter
-  const { data: departments } = useQuery({
-    queryKey: ['departments-variance'],
-    queryFn: async () => {
-      const { data } = await supabase.from('departments').select('id, name');
-      return data || [];
-    },
-  });
+  // Fetch locations and departments for filters
+  const { data: locations } = useWorkLocationsFilter('variance');
+  const { data: departments } = useDepartmentsFilter('variance');
 
   // Fetch payroll runs for selected location
   const { data: payrollRuns } = usePayrollRunsForLocation(filters.locationId);

@@ -5,7 +5,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { RefreshCw, Users, DollarSign, Calendar, CreditCard, Shield, FileText, ArrowLeft } from 'lucide-react';
+import { RefreshCw, Users, DollarSign, Calendar, CreditCard, Shield, FileText, ArrowLeft, BadgeDollarSign } from 'lucide-react';
 import { ExportButton } from '@/components/reports';
 import { ReportsOverviewDashboard } from '@/components/reports/overview';
 import { useToast } from '@/hooks/use-toast';
@@ -16,7 +16,7 @@ import { useTimeToFirstData } from '@/lib/perf';
 import { PayrollRunSummaryReport, PayrollDetailedReport, PayslipRegisterReport } from '@/components/reports/payroll';
 import { LeaveBalanceReport, LeaveRequestsReport } from '@/components/reports/leave';
 import { LoanSummaryReport, LoanInstallmentsReport } from '@/components/reports/loans';
-import { GosiContributionReport } from '@/components/reports/compliance';
+import { GosiContributionReport, CTCReport, PayrollVarianceReport, ComplianceSnapshotReport } from '@/components/reports/compliance';
 import { EmployeeMasterReport } from '@/components/reports/employees';
 import { SalaryDistributionReport, SalaryChangeHistoryReport } from '@/components/reports/salary';
 import { ReportCatalogTable } from '@/components/reports/ReportCatalogTable';
@@ -28,6 +28,7 @@ type SalaryReportView = 'list' | 'salary-distribution' | 'salary-change-history'
 type LeaveReportView = 'list' | 'leave-balance' | 'leave-requests';
 type LoanReportView = 'list' | 'loan-summary' | 'loan-installments';
 type ComplianceReportView = 'list' | 'gosi-contribution';
+type CostReportView = 'list' | 'ctc-report' | 'payroll-variance' | 'compliance-snapshot';
 type EmployeeReportView = 'list' | 'employee-master';
 
 const Reports = () => {
@@ -45,7 +46,12 @@ const Reports = () => {
   const [leaveView, setLeaveView] = useState<LeaveReportView>('list');
   const [loanView, setLoanView] = useState<LoanReportView>('list');
   const [complianceView, setComplianceView] = useState<ComplianceReportView>('list');
+  const [costView, setCostView] = useState<CostReportView>('list');
   const [employeeView, setEmployeeView] = useState<EmployeeReportView>('list');
+
+  // Role check for cost reports - HR/Admin or managers only
+  const isManager = canAccessManagement;
+  const canViewCostReports = hasRole('hr') || hasRole('admin') || isManager;
 
   // Role-based access control - require HR or Admin
   const canAccessReports = hasRole('hr') || hasRole('admin') || canAccessManagement;
@@ -90,6 +96,9 @@ const Reports = () => {
     } else if (reportId === 'gosi-contribution') {
       setActiveTab('compliance');
       setComplianceView('gosi-contribution');
+    } else if (reportId === 'ctc-report' || reportId === 'payroll-variance' || reportId === 'compliance-snapshot') {
+      setActiveTab('cost');
+      setCostView(reportId as CostReportView);
     } else if (reportId === 'employee-master') {
       setActiveTab('employees');
       setEmployeeView('employee-master');
@@ -114,6 +123,7 @@ const Reports = () => {
     setLeaveView('list');
     setLoanView('list');
     setComplianceView('list');
+    setCostView('list');
     setEmployeeView('list');
   };
 
@@ -182,6 +192,12 @@ const Reports = () => {
               <Shield className="h-3.5 w-3.5" />
               Compliance
             </TabsTrigger>
+            {canViewCostReports && (
+              <TabsTrigger value="cost" className="gap-1">
+                <BadgeDollarSign className="h-3.5 w-3.5" />
+                Compliance & Cost
+              </TabsTrigger>
+            )}
             <TabsTrigger value="employees" className="gap-1">
               <Users className="h-3.5 w-3.5" />
               Employees
@@ -316,6 +332,38 @@ const Reports = () => {
               </>
             )}
           </TabsContent>
+
+          {/* Compliance & Cost Tab */}
+          {canViewCostReports && (
+            <TabsContent value="cost" className="space-y-6 mt-6">
+              {costView === 'list' ? (
+                <div className="grid gap-4 md:grid-cols-3">
+                  <ReportCard
+                    title="Cost-to-Company (CTC)"
+                    description="True employer cost per employee including salary, GOSI, and benefits"
+                    onClick={() => setCostView('ctc-report')}
+                  />
+                  <ReportCard
+                    title="Payroll Variance"
+                    description="Month-over-month payroll comparison with change reasons"
+                    onClick={() => setCostView('payroll-variance')}
+                  />
+                  <ReportCard
+                    title="Compliance Snapshot"
+                    description="Missing/expired documents and GOSI registration mismatches"
+                    onClick={() => setCostView('compliance-snapshot')}
+                  />
+                </div>
+              ) : (
+                <>
+                  {renderBackButton(() => setCostView('list'))}
+                  {costView === 'ctc-report' && <CTCReport />}
+                  {costView === 'payroll-variance' && <PayrollVarianceReport />}
+                  {costView === 'compliance-snapshot' && <ComplianceSnapshotReport />}
+                </>
+              )}
+            </TabsContent>
+          )}
 
           {/* Employees Tab */}
           <TabsContent value="employees" className="space-y-6 mt-6">
