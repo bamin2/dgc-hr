@@ -104,6 +104,7 @@ export const ReportsFilters = ({
               selected={dateRange}
               onSelect={onDateRangeChange}
               numberOfMonths={2}
+              className="pointer-events-auto"
             />
           </PopoverContent>
         </Popover>

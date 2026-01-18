@@ -202,6 +202,7 @@ export function ReportFiltersBar({
             selected={dateRange}
             onSelect={handleDateRangeChange}
             numberOfMonths={2}
+            className="pointer-events-auto"
           />
         </PopoverContent>
       </Popover>
