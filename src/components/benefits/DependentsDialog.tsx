@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -48,6 +48,19 @@ export const DependentsDialog = ({
     initialDependents.length > 0 ? initialDependents : [{ name: '', relationship: '', nationalId: '' }]
   );
 
+  // Sync state when dialog opens with initial dependents
+  useEffect(() => {
+    if (open) {
+      if (initialDependents.length > 0) {
+        setDependents(initialDependents);
+        setShowForm(true);
+      } else {
+        setDependents([{ name: '', relationship: '', nationalId: '' }]);
+        setShowForm(false);
+      }
+    }
+  }, [open, initialDependents]);
+
   const handleAddDependent = () => {
     setDependents([...dependents, { name: '', relationship: '', nationalId: '' }]);
   };
@@ -81,9 +94,6 @@ export const DependentsDialog = ({
   };
 
   const handleOpenChange = (isOpen: boolean) => {
-    if (!isOpen) {
-      resetState();
-    }
     onOpenChange(isOpen);
   };
 
