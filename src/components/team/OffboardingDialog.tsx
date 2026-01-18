@@ -35,16 +35,18 @@ export const OffboardingDialog = forwardRef<HTMLDivElement, OffboardingDialogPro
 
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent ref={ref} className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent ref={ref} className="max-w-4xl max-h-[90vh] overflow-visible p-0">
+          <DialogHeader className="p-6 pb-0">
             <DialogTitle className="text-xl">
               Start Employee Offboarding
             </DialogTitle>
           </DialogHeader>
-          <OffboardingWizard
-            employee={employeeInfo}
-            onComplete={handleComplete}
-          />
+          <div className="overflow-y-auto max-h-[calc(90vh-80px)] p-6 pt-4">
+            <OffboardingWizard
+              employee={employeeInfo}
+              onComplete={handleComplete}
+            />
+          </div>
         </DialogContent>
       </Dialog>
     );
