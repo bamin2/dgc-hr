@@ -1597,6 +1597,7 @@ export type Database = {
           description: string | null
           id: string
           is_active: boolean | null
+          is_required: boolean | null
           name: string
           requires_expiry: boolean | null
         }
@@ -1605,6 +1606,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean | null
+          is_required?: boolean | null
           name: string
           requires_expiry?: boolean | null
         }
@@ -1613,6 +1615,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean | null
+          is_required?: boolean | null
           name?: string
           requires_expiry?: boolean | null
         }

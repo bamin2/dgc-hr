@@ -15,3 +15,7 @@ export { useGosiContributionReport, calculateGosiTotals } from './useComplianceR
 
 // Employee Reports
 export { useEmployeeMasterReport } from './useEmployeeReports';
+
+// Cost & Compliance Reports (new)
+export { useCTCReport, usePayrollVarianceReport, usePayrollRunsForLocation } from './useCostReports';
+export { useComplianceSnapshotReport } from './useComplianceSnapshotReport';
