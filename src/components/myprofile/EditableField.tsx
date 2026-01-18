@@ -98,20 +98,20 @@ export function EditableField({
           )}
           <div className="flex gap-1">
             <Button
-              size="icon"
+              size="icon-sm"
               variant="ghost"
               onClick={handleSave}
               disabled={isSaving}
-              className="h-9 w-9 shrink-0"
+              className="shrink-0"
             >
               <Check className="h-4 w-4 text-green-600" />
             </Button>
             <Button
-              size="icon"
+              size="icon-sm"
               variant="ghost"
               onClick={handleCancel}
               disabled={isSaving}
-              className="h-9 w-9 shrink-0"
+              className="shrink-0"
             >
               <X className="h-4 w-4 text-destructive" />
             </Button>
@@ -127,10 +127,10 @@ export function EditableField({
           </span>
           {editable && (
             <Button
-              size="icon"
+              size="icon-sm"
               variant="ghost"
               onClick={() => setIsEditing(true)}
-              className="h-7 w-7 shrink-0"
+              className="shrink-0"
             >
               <Pencil className="h-3.5 w-3.5" />
             </Button>

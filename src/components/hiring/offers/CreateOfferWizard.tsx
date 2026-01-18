@@ -488,8 +488,7 @@ export function CreateOfferWizard({ candidate, onSuccess, onCancel }: CreateOffe
                           <Button
                             type="button"
                             variant="ghost"
-                            size="icon"
-                            className="h-7 w-7"
+                            size="icon-sm"
                             onClick={() => handleRemoveAllowance(allowance.id)}
                           >
                             <X className="h-4 w-4" />
@@ -554,8 +553,7 @@ export function CreateOfferWizard({ candidate, onSuccess, onCancel }: CreateOffe
                         <Button
                           type="button"
                           variant="ghost"
-                          size="icon"
-                          className="h-7 w-7"
+                          size="icon-sm"
                           onClick={() => handleRemoveDeduction(deduction.id)}
                         >
                           <X className="h-4 w-4" />

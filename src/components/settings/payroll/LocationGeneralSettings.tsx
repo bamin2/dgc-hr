@@ -253,8 +253,8 @@ export function LocationGeneralSettings({ workLocation }: LocationGeneralSetting
                         </div>
                         <Button
                           variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          size="icon-sm"
+                          className="text-muted-foreground hover:text-destructive"
                           onClick={() => handleRemoveNationality(rate.nationality)}
                           disabled={updateLocation.isPending}
                         >

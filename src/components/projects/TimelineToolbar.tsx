@@ -70,13 +70,13 @@ export function TimelineToolbar({
 
       {/* Date range navigation */}
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handlePrev}>
+        <Button variant="ghost" size="icon-sm" onClick={handlePrev}>
           <ChevronLeft className="h-4 w-4" />
         </Button>
         <span className="text-sm font-medium text-foreground min-w-[160px] text-center">
           {format(weekStart, "MMM dd")} - {format(weekEnd, "MMM dd")}
         </span>
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleNext}>
+        <Button variant="ghost" size="icon-sm" onClick={handleNext}>
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
