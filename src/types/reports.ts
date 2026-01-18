@@ -246,13 +246,15 @@ export interface CTCRecord {
   grossPay: number;
   employerGosi: number;
   employerBenefitsCost: number;
-  ctcTotal: number;
+  ctcMonthly: number;
+  ctcYearly: number;
   wasConverted: boolean;
   conversionInfo?: { rate: number; effectiveDate: string; fromCurrency: string };
 }
 
 export interface CTCSummary {
-  totalCTC: number;
+  totalCtcMonthly: number;
+  totalCtcYearly: number;
   totalGrossPay: number;
   totalEmployerGosi: number;
   totalEmployerBenefitsCost: number;

@@ -3,13 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RefreshCw, Download, ChevronDown, ChevronRight, DollarSign, Users, Building2, Briefcase } from 'lucide-react';
-import { useCTCReport, usePayrollRunsForLocation } from '@/hooks/reports/useCostReports';
+import { RefreshCw, Download, ChevronDown, ChevronRight, DollarSign, Users, Building2, Briefcase, Calendar } from 'lucide-react';
+import { useCTCReport } from '@/hooks/reports/useCostReports';
 import { useWorkLocationsFilter, useDepartmentsFilter } from '@/hooks/reports/useReportFilters';
 import { CostReportFilters, CTCRecord } from '@/types/reports';
 import { CurrencyConversionTooltip } from '../CurrencyConversionTooltip';
 import { exportToCSV, exportToPDF, generateReportFilename } from '@/utils/reportExport';
-import { format, parseISO } from 'date-fns';
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('en-BH', {
@@ -26,9 +25,6 @@ export function CTCReport() {
   // Fetch locations and departments for filters
   const { data: locations } = useWorkLocationsFilter('ctc');
   const { data: departments } = useDepartmentsFilter('ctc');
-
-  // Fetch payroll runs for selected location
-  const { data: payrollRuns } = usePayrollRunsForLocation(filters.locationId);
 
   // Fetch CTC report data
   const { data, isLoading, refetch } = useCTCReport(filters);
@@ -57,7 +53,8 @@ export function CTCReport() {
       { key: 'grossPay', header: 'Gross Pay (BHD)', format: 'currency' as const },
       { key: 'employerGosi', header: 'Employer GOSI (BHD)', format: 'currency' as const },
       { key: 'employerBenefitsCost', header: 'Benefits Cost (BHD)', format: 'currency' as const },
-      { key: 'ctcTotal', header: 'CTC Total (BHD)', format: 'currency' as const },
+      { key: 'ctcMonthly', header: 'Monthly CTC (BHD)', format: 'currency' as const },
+      { key: 'ctcYearly', header: 'Yearly CTC (BHD)', format: 'currency' as const },
     ];
     exportToCSV(data.records as unknown as Record<string, unknown>[], columns, generateReportFilename('CTC Report', 'csv'));
   };
@@ -70,7 +67,8 @@ export function CTCReport() {
       { key: 'department', header: 'Dept' },
       { key: 'grossPay', header: 'Gross (BHD)', format: 'currency' as const },
       { key: 'employerGosi', header: 'GOSI (BHD)', format: 'currency' as const },
-      { key: 'ctcTotal', header: 'CTC (BHD)', format: 'currency' as const },
+      { key: 'ctcMonthly', header: 'Monthly CTC', format: 'currency' as const },
+      { key: 'ctcYearly', header: 'Yearly CTC', format: 'currency' as const },
     ];
     await exportToPDF({
       title: 'Cost-to-Company Report',
@@ -87,7 +85,7 @@ export function CTCReport() {
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Cost-to-Company Report</h2>
           <p className="text-muted-foreground">
-            True employer cost per employee including gross pay, GOSI, and benefits
+            Real-time employer cost per employee based on current salary, allowances, GOSI, and benefits
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -110,7 +108,7 @@ export function CTCReport() {
       <div className="flex flex-wrap items-center gap-3 p-4 bg-muted/30 rounded-lg border">
         <Select
           value={filters.locationId || 'all'}
-          onValueChange={(v) => setFilters({ ...filters, locationId: v === 'all' ? undefined : v, payrollRunId: undefined })}
+          onValueChange={(v) => setFilters({ ...filters, locationId: v === 'all' ? undefined : v })}
         >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="All Locations" />
@@ -119,23 +117,6 @@ export function CTCReport() {
             <SelectItem value="all">All Locations</SelectItem>
             {locations?.map(loc => (
               <SelectItem key={loc.id} value={loc.id}>{loc.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select
-          value={filters.payrollRunId || 'latest'}
-          onValueChange={(v) => setFilters({ ...filters, payrollRunId: v === 'latest' ? undefined : v })}
-        >
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Latest Payroll Run" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="latest">Latest Payroll Run</SelectItem>
-            {payrollRuns?.map(run => (
-              <SelectItem key={run.id} value={run.id}>
-                {format(parseISO(run.pay_period_start), 'MMM yyyy')}
-              </SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -156,31 +137,40 @@ export function CTCReport() {
         </Select>
 
         <Select
-          value={filters.status || 'all'}
-          onValueChange={(v) => setFilters({ ...filters, status: v === 'all' ? undefined : v })}
+          value={filters.status || 'active'}
+          onValueChange={(v) => setFilters({ ...filters, status: v })}
         >
           <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="All Statuses" />
+            <SelectValue placeholder="Active" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
             <SelectItem value="active">Active</SelectItem>
             <SelectItem value="on_leave">On Leave</SelectItem>
             <SelectItem value="probation">Probation</SelectItem>
+            <SelectItem value="on_boarding">Onboarding</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       {/* Summary Cards */}
       {data?.summary && (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total CTC</CardTitle>
+              <CardTitle className="text-sm font-medium">Monthly CTC</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(data.summary.totalCTC)}</div>
+              <div className="text-2xl font-bold">{formatCurrency(data.summary.totalCtcMonthly)}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Yearly CTC</CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{formatCurrency(data.summary.totalCtcYearly)}</div>
             </CardContent>
           </Card>
           <Card>
@@ -249,7 +239,8 @@ export function CTCReport() {
                     <TableHead className="text-right">Gross (BHD)</TableHead>
                     <TableHead className="text-right">GOSI (BHD)</TableHead>
                     <TableHead className="text-right">Benefits (BHD)</TableHead>
-                    <TableHead className="text-right">CTC (BHD)</TableHead>
+                    <TableHead className="text-right">Monthly CTC</TableHead>
+                    <TableHead className="text-right">Yearly CTC</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -291,11 +282,12 @@ export function CTCReport() {
                         <TableCell className="text-right">{formatCurrency(record.grossPay)}</TableCell>
                         <TableCell className="text-right">{formatCurrency(record.employerGosi)}</TableCell>
                         <TableCell className="text-right">{formatCurrency(record.employerBenefitsCost)}</TableCell>
-                        <TableCell className="text-right font-bold">{formatCurrency(record.ctcTotal)}</TableCell>
+                        <TableCell className="text-right font-semibold">{formatCurrency(record.ctcMonthly)}</TableCell>
+                        <TableCell className="text-right font-bold text-primary">{formatCurrency(record.ctcYearly)}</TableCell>
                       </TableRow>
                       {expandedRows.has(record.employeeId) && (
                         <TableRow className="bg-muted/30">
-                          <TableCell colSpan={11}>
+                          <TableCell colSpan={12}>
                             <div className="p-4 space-y-3">
                               <h4 className="font-medium text-sm">Allowances Breakdown</h4>
                               {record.allowancesBreakdown.length > 0 ? (
@@ -324,8 +316,8 @@ export function CTCReport() {
                   ))}
                   {(!data?.records || data.records.length === 0) && (
                     <TableRow>
-                      <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">
-                        No data available. Select a payroll run to view CTC breakdown.
+                      <TableCell colSpan={12} className="text-center py-8 text-muted-foreground">
+                        No employees found matching the selected filters.
                       </TableCell>
                     </TableRow>
                   )}
