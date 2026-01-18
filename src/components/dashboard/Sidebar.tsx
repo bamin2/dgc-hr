@@ -57,8 +57,6 @@ const managementMenuItems = [
 const companyMenuItems = [
   { icon: FileStack, label: "Documents", path: "/documents" },
   { icon: History, label: "Audit Trail", path: "/audit-trail" },
-  { icon: Settings, label: "Settings", path: "/settings" },
-  { icon: HelpCircle, label: "Help Center", path: "/help-center" },
 ];
 
 export function Sidebar() {
@@ -85,6 +83,8 @@ export function Sidebar() {
     { icon: Clock, label: "Time Off", path: "/time-off" },
     { icon: Plane, label: "Business Trips", path: "/business-trips" },
     { icon: CheckSquare, label: "Approvals", path: "/approvals", badge: pendingCount },
+    { icon: Settings, label: "Settings", path: "/settings" },
+    { icon: HelpCircle, label: "Help Center", path: "/help-center" },
   ], [pendingCount]);
 
   const initials = currentUser.name
