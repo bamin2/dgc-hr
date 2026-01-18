@@ -209,14 +209,14 @@ export function ReportFiltersBar({
       {/* Year Filter */}
       {showYear && (
         <Select
-          value={filters.year?.toString() || ''}
-          onValueChange={(v) => onFiltersChange({ ...filters, year: v ? parseInt(v) : undefined })}
+          value={filters.year?.toString() || 'all'}
+          onValueChange={(v) => onFiltersChange({ ...filters, year: v === 'all' ? undefined : parseInt(v) })}
         >
           <SelectTrigger className="w-[120px]">
             <SelectValue placeholder="Year" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Years</SelectItem>
+            <SelectItem value="all">All Years</SelectItem>
             {yearOptions.map(year => (
               <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
             ))}
@@ -227,14 +227,14 @@ export function ReportFiltersBar({
       {/* Location Filter */}
       {showLocation && (
         <Select
-          value={filters.locationId || ''}
-          onValueChange={(v) => onFiltersChange({ ...filters, locationId: v || undefined })}
+          value={filters.locationId || 'all'}
+          onValueChange={(v) => onFiltersChange({ ...filters, locationId: v === 'all' ? undefined : v })}
         >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="All Locations" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Locations</SelectItem>
+            <SelectItem value="all">All Locations</SelectItem>
             {locations.map(loc => (
               <SelectItem key={loc.id} value={loc.id}>{loc.name}</SelectItem>
             ))}
@@ -245,14 +245,14 @@ export function ReportFiltersBar({
       {/* Department Filter */}
       {showDepartment && (
         <Select
-          value={filters.departmentId || ''}
-          onValueChange={(v) => onFiltersChange({ ...filters, departmentId: v || undefined })}
+          value={filters.departmentId || 'all'}
+          onValueChange={(v) => onFiltersChange({ ...filters, departmentId: v === 'all' ? undefined : v })}
         >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="All Departments" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Departments</SelectItem>
+            <SelectItem value="all">All Departments</SelectItem>
             {departments.map(dept => (
               <SelectItem key={dept.id} value={dept.id}>{dept.name}</SelectItem>
             ))}
@@ -263,14 +263,14 @@ export function ReportFiltersBar({
       {/* Employee Filter */}
       {showEmployee && (
         <Select
-          value={filters.employeeId || ''}
-          onValueChange={(v) => onFiltersChange({ ...filters, employeeId: v || undefined })}
+          value={filters.employeeId || 'all'}
+          onValueChange={(v) => onFiltersChange({ ...filters, employeeId: v === 'all' ? undefined : v })}
         >
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="All Employees" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Employees</SelectItem>
+            <SelectItem value="all">All Employees</SelectItem>
             {employees.map(emp => (
               <SelectItem key={emp.id} value={emp.id}>
                 {emp.first_name} {emp.last_name} {emp.employee_code && `(${emp.employee_code})`}
@@ -283,14 +283,14 @@ export function ReportFiltersBar({
       {/* Payroll Run Filter */}
       {showPayrollRun && (
         <Select
-          value={filters.payrollRunId || ''}
-          onValueChange={(v) => onFiltersChange({ ...filters, payrollRunId: v || undefined })}
+          value={filters.payrollRunId || 'all'}
+          onValueChange={(v) => onFiltersChange({ ...filters, payrollRunId: v === 'all' ? undefined : v })}
         >
           <SelectTrigger className="w-[220px]">
             <SelectValue placeholder="All Payroll Runs" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Payroll Runs</SelectItem>
+            <SelectItem value="all">All Payroll Runs</SelectItem>
             {payrollRuns.map(run => (
               <SelectItem key={run.id} value={run.id}>
                 {format(new Date(run.pay_period_start), 'MMM yyyy')}
@@ -303,14 +303,14 @@ export function ReportFiltersBar({
       {/* Status Filter */}
       {showStatus && statusOptions.length > 0 && (
         <Select
-          value={filters.status || ''}
-          onValueChange={(v) => onFiltersChange({ ...filters, status: v || undefined })}
+          value={filters.status || 'all'}
+          onValueChange={(v) => onFiltersChange({ ...filters, status: v === 'all' ? undefined : v })}
         >
           <SelectTrigger className="w-[150px]">
             <SelectValue placeholder="All Statuses" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Statuses</SelectItem>
+            <SelectItem value="all">All Statuses</SelectItem>
             {statusOptions.map(opt => (
               <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
             ))}
