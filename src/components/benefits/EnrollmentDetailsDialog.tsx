@@ -3,6 +3,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogBody,
 } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -70,6 +71,7 @@ export const EnrollmentDetailsDialog = ({
           )}
         </DialogHeader>
 
+        <DialogBody>
         <div className="space-y-6">
           {/* Employee Info */}
           <div className="flex items-center gap-4">
@@ -218,6 +220,7 @@ export const EnrollmentDetailsDialog = ({
             </>
           )}
         </div>
+        </DialogBody>
       </DialogContent>
     </Dialog>
   );
