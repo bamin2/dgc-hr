@@ -1,10 +1,9 @@
-import { useState } from 'react';
+import { useState, Fragment } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { RefreshCw, Download, ChevronDown, ChevronRight, TrendingUp, TrendingDown, Users, ArrowRightLeft } from 'lucide-react';
 import { usePayrollVarianceReport, usePayrollRunsForLocation } from '@/hooks/reports/useCostReports';
 import { useWorkLocationsFilter, useDepartmentsFilter } from '@/hooks/reports/useReportFilters';
@@ -287,80 +286,79 @@ export function PayrollVarianceReport() {
                 </TableHeader>
                 <TableBody>
                   {data?.records?.map((record: PayrollVarianceRecord) => (
-                    <Collapsible key={record.employeeId} open={expandedRows.has(record.employeeId)} asChild>
-                      <>
-                        <TableRow className="cursor-pointer hover:bg-muted/50">
-                          <TableCell>
-                            <CollapsibleTrigger asChild>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="p-0 h-6 w-6"
-                                onClick={() => toggleRow(record.employeeId)}
-                              >
-                                {expandedRows.has(record.employeeId) ? (
-                                  <ChevronDown className="h-4 w-4" />
-                                ) : (
-                                  <ChevronRight className="h-4 w-4" />
-                                )}
-                              </Button>
-                            </CollapsibleTrigger>
-                          </TableCell>
-                          <TableCell className="font-mono text-sm">{record.employeeCode}</TableCell>
-                          <TableCell className="font-medium">{record.employeeName}</TableCell>
-                          <TableCell>{record.department}</TableCell>
-                          <TableCell className="text-right">{formatCurrency(record.previousGrossPay)}</TableCell>
-                          <TableCell className="text-right">{formatCurrency(record.currentGrossPay)}</TableCell>
-                          <TableCell className={`text-right font-medium ${record.deltaBHD >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                            {formatCurrency(record.deltaBHD)}
-                          </TableCell>
-                          <TableCell className={`text-right ${record.deltaPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                            {formatPercent(record.deltaPercent)}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex flex-wrap gap-1">
-                              {record.reasons.map((reason, idx) => (
-                                <Badge key={idx} variant={reasonLabels[reason].variant}>
-                                  {reasonLabels[reason].label}
-                                </Badge>
-                              ))}
+                    <Fragment key={record.employeeId}>
+                      <TableRow className="cursor-pointer hover:bg-muted/50" onClick={() => toggleRow(record.employeeId)}>
+                        <TableCell>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="p-0 h-6 w-6"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleRow(record.employeeId);
+                            }}
+                          >
+                            {expandedRows.has(record.employeeId) ? (
+                              <ChevronDown className="h-4 w-4" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </TableCell>
+                        <TableCell className="font-mono text-sm">{record.employeeCode}</TableCell>
+                        <TableCell className="font-medium">{record.employeeName}</TableCell>
+                        <TableCell>{record.department}</TableCell>
+                        <TableCell className="text-right">{formatCurrency(record.previousGrossPay)}</TableCell>
+                        <TableCell className="text-right">{formatCurrency(record.currentGrossPay)}</TableCell>
+                        <TableCell className={`text-right font-medium ${record.deltaBHD >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {formatCurrency(record.deltaBHD)}
+                        </TableCell>
+                        <TableCell className={`text-right ${record.deltaPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {formatPercent(record.deltaPercent)}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-wrap gap-1">
+                            {record.reasons.map((reason, idx) => (
+                              <Badge key={idx} variant={reasonLabels[reason].variant}>
+                                {reasonLabels[reason].label}
+                              </Badge>
+                            ))}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                      {expandedRows.has(record.employeeId) && (
+                        <TableRow className="bg-muted/30">
+                          <TableCell colSpan={9}>
+                            <div className="p-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+                              <div>
+                                <p className="text-sm font-medium">Basic Salary</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {formatCurrency(record.details.previousBasic)} → {formatCurrency(record.details.currentBasic)}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium">Allowances</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {formatCurrency(record.details.previousAllowances)} → {formatCurrency(record.details.currentAllowances)}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium">Deductions</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {formatCurrency(record.details.previousDeductions)} → {formatCurrency(record.details.currentDeductions)}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium">Loan Installment</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {formatCurrency(record.details.previousLoanInstallment)} → {formatCurrency(record.details.currentLoanInstallment)}
+                                </p>
+                              </div>
                             </div>
                           </TableCell>
                         </TableRow>
-                        <CollapsibleContent asChild>
-                          <TableRow className="bg-muted/30">
-                            <TableCell colSpan={9}>
-                              <div className="p-4 grid grid-cols-2 md:grid-cols-4 gap-4">
-                                <div>
-                                  <p className="text-sm font-medium">Basic Salary</p>
-                                  <p className="text-sm text-muted-foreground">
-                                    {formatCurrency(record.details.previousBasic)} → {formatCurrency(record.details.currentBasic)}
-                                  </p>
-                                </div>
-                                <div>
-                                  <p className="text-sm font-medium">Allowances</p>
-                                  <p className="text-sm text-muted-foreground">
-                                    {formatCurrency(record.details.previousAllowances)} → {formatCurrency(record.details.currentAllowances)}
-                                  </p>
-                                </div>
-                                <div>
-                                  <p className="text-sm font-medium">Deductions</p>
-                                  <p className="text-sm text-muted-foreground">
-                                    {formatCurrency(record.details.previousDeductions)} → {formatCurrency(record.details.currentDeductions)}
-                                  </p>
-                                </div>
-                                <div>
-                                  <p className="text-sm font-medium">Loan Installment</p>
-                                  <p className="text-sm text-muted-foreground">
-                                    {formatCurrency(record.details.previousLoanInstallment)} → {formatCurrency(record.details.currentLoanInstallment)}
-                                  </p>
-                                </div>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        </CollapsibleContent>
-                      </>
-                    </Collapsible>
+                      )}
+                    </Fragment>
                   ))}
                   {(!data?.records || data.records.length === 0) && (
                     <TableRow>
