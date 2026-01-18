@@ -33,8 +33,33 @@ interface BenefitEnrollmentInfo {
   employer_contribution: number;
 }
 
+import { getCountryCodeByName } from '@/data/countries';
+
+interface WorkLocationWithGosi {
+  id: string;
+  currency: string;
+  gosi_enabled: boolean | null;
+  gosi_nationality_rates: Array<{ nationality: string; employeeRate: number; employerRate: number }> | null;
+}
+
+interface EmployeeWithDetails {
+  id: string;
+  employee_code: string | null;
+  first_name: string;
+  last_name: string;
+  salary: number | null;
+  salary_currency_code: string | null;
+  nationality: string | null;
+  gosi_registered_salary: number | null;
+  is_subject_to_gosi: boolean | null;
+  department_id: string | null;
+  department: { name: string } | null;
+  position: { title: string } | null;
+  work_location: WorkLocationWithGosi | null;
+}
+
 /**
- * Fetch CTC Report data
+ * Fetch CTC Report data - based on current employee master data
  */
 async function fetchCTCReport(
   filters: CostReportFilters,
@@ -45,199 +70,202 @@ async function fetchCTCReport(
   effectiveEmployeeId: string | undefined,
   teamMemberIds: string[]
 ): Promise<{ records: CTCRecord[]; summary: CTCSummary }> {
-  // Determine payroll run to use
-  let payrollRunId = filters.payrollRunId;
-  
-  if (!payrollRunId && filters.month) {
-    // Find payroll run for the given month
-    const monthStart = `${filters.month}-01`;
-    const { data: runs } = await supabase
-      .from('payroll_runs')
-      .select('id')
-      .gte('pay_period_start', monthStart)
-      .lte('pay_period_start', `${filters.month}-31`)
-      .eq('location_id', filters.locationId || '')
-      .in('status', ['completed', 'payslips_issued'])
-      .limit(1);
-    
-    if (runs && runs.length > 0) {
-      payrollRunId = runs[0].id;
-    }
-  }
-
-  if (!payrollRunId) {
-    // Get the most recent completed payroll run for the location
-    let query = supabase
-      .from('payroll_runs')
-      .select('id')
-      .in('status', ['completed', 'payslips_issued'])
-      .order('pay_period_end', { ascending: false })
-      .limit(1);
-    
-    if (filters.locationId) {
-      query = query.eq('location_id', filters.locationId);
-    }
-    
-    const { data: runs } = await query;
-    if (runs && runs.length > 0) {
-      payrollRunId = runs[0].id;
-    }
-  }
-
-  if (!payrollRunId) {
-    return { records: [], summary: { totalCTC: 0, totalGrossPay: 0, totalEmployerGosi: 0, totalEmployerBenefitsCost: 0, employeeCount: 0 } };
-  }
-
-  // Fetch payroll run employees
-  const { data: payrollEmployees, error } = await supabase
-    .from('payroll_run_employees')
-    .select('*')
-    .eq('payroll_run_id', payrollRunId);
-
-  if (error) throw error;
-  if (!payrollEmployees || payrollEmployees.length === 0) {
-    return { records: [], summary: { totalCTC: 0, totalGrossPay: 0, totalEmployerGosi: 0, totalEmployerBenefitsCost: 0, employeeCount: 0 } };
-  }
-
-  const employeeIds = payrollEmployees.map(e => e.employee_id);
-
-  // Fetch employee currency and GOSI info
-  const { data: employeeInfo } = await supabase
-    .from('employees')
-    .select('id, salary_currency_code, is_subject_to_gosi, nationality, work_location_id, department_id, work_locations!work_location_id(currency)')
-    .in('id', employeeIds);
-
-  const employeeMap = new Map<string, EmployeeCurrencyInfo>();
-  (employeeInfo || []).forEach(emp => {
-    employeeMap.set(emp.id, emp as EmployeeCurrencyInfo);
-  });
-
-  // GOSI rates - use standard rates (could be enhanced with location-specific settings)
-  // Saudi: 12% employer, Non-Saudi: 2% employer
-  const getGosiRate = (nationality: string | null): number => {
-    const isSaudi = nationality?.toLowerCase().includes('saudi') || 
-                    nationality?.toLowerCase().includes('سعودي');
-    return isSaudi ? 0.12 : 0.02;
+  const emptySummary: CTCSummary = {
+    totalCtcMonthly: 0,
+    totalCtcYearly: 0,
+    totalGrossPay: 0,
+    totalEmployerGosi: 0,
+    totalEmployerBenefitsCost: 0,
+    employeeCount: 0,
   };
 
-  // Fetch employer benefit contributions
-  const { data: benefitEnrollments } = await supabase
-    .from('benefit_enrollments')
-    .select('employee_id, employer_contribution')
-    .in('employee_id', employeeIds)
-    .eq('status', 'active');
+  // Build employee query
+  const statusFilter = (filters.status || 'active') as 'active' | 'on_boarding' | 'on_leave' | 'probation' | 'resigned' | 'terminated';
+  
+  let employeeQuery = supabase
+    .from('employees')
+    .select(`
+      id, employee_code, first_name, last_name, salary, nationality,
+      gosi_registered_salary, is_subject_to_gosi, salary_currency_code, department_id,
+      department:departments!employees_department_id_fkey(name),
+      position:positions!employees_position_id_fkey(title),
+      work_location:work_locations!employees_work_location_id_fkey(id, currency, gosi_enabled, gosi_nationality_rates)
+    `)
+    .eq('status', statusFilter);
 
-  const benefitsMap = new Map<string, number>();
-  (benefitEnrollments || []).forEach((be: BenefitEnrollmentInfo) => {
-    const current = benefitsMap.get(be.employee_id) || 0;
-    benefitsMap.set(be.employee_id, current + be.employer_contribution);
-  });
-
-  // Apply role-based filtering
-  let filteredEmployees = payrollEmployees;
-  if (!isHrAdmin && isManager && effectiveEmployeeId) {
-    // Manager can only see direct reports
-    filteredEmployees = payrollEmployees.filter(e => teamMemberIds.includes(e.employee_id));
+  // Apply location filter
+  if (filters.locationId) {
+    employeeQuery = employeeQuery.eq('work_location_id', filters.locationId);
   }
 
   // Apply department filter
   if (filters.departmentId) {
-    const deptEmployeeIds = (employeeInfo || [])
-      .filter(e => e.department_id === filters.departmentId)
-      .map(e => e.id);
-    filteredEmployees = filteredEmployees.filter(e => deptEmployeeIds.includes(e.employee_id));
+    employeeQuery = employeeQuery.eq('department_id', filters.departmentId);
   }
 
-  // Apply status filter
-  if (filters.status) {
-    const { data: statusEmployees } = await supabase
-      .from('employees')
-      .select('id')
-      .eq('status', filters.status as 'active' | 'on_boarding' | 'on_leave' | 'probation' | 'resigned' | 'terminated')
-      .in('id', employeeIds);
-    
-    const statusIds = new Set((statusEmployees || []).map(e => e.id));
-    filteredEmployees = filteredEmployees.filter(e => statusIds.has(e.employee_id));
+  const { data: employees, error: empError } = await employeeQuery;
+
+  if (empError) throw empError;
+  if (!employees || employees.length === 0) {
+    return { records: [], summary: emptySummary };
   }
+
+  const employeeIds = employees.map(e => e.id);
+
+  // Apply role-based filtering
+  let filteredEmployees = employees as EmployeeWithDetails[];
+  if (!isHrAdmin && isManager && effectiveEmployeeId) {
+    filteredEmployees = filteredEmployees.filter(e => teamMemberIds.includes(e.id));
+  }
+
+  if (filteredEmployees.length === 0) {
+    return { records: [], summary: emptySummary };
+  }
+
+  const filteredIds = filteredEmployees.map(e => e.id);
+
+  // Fetch allowances for filtered employees
+  const { data: allowances, error: allowError } = await supabase
+    .from('employee_allowances')
+    .select(`
+      employee_id,
+      custom_amount,
+      custom_name,
+      allowance_template:allowance_templates(name, amount, amount_type, percentage_of)
+    `)
+    .in('employee_id', filteredIds);
+
+  if (allowError) throw allowError;
+
+  // Fetch active benefit enrollments
+  const { data: benefitEnrollments, error: benefitError } = await supabase
+    .from('benefit_enrollments')
+    .select('employee_id, employer_contribution')
+    .in('employee_id', filteredIds)
+    .eq('status', 'active');
+
+  if (benefitError) throw benefitError;
+
+  // Build maps
+  const allowanceMap = new Map<string, Array<{ name: string; amount: number }>>();
+  (allowances || []).forEach(a => {
+    const empId = a.employee_id;
+    if (!allowanceMap.has(empId)) {
+      allowanceMap.set(empId, []);
+    }
+    const list = allowanceMap.get(empId)!;
+    
+    if (a.custom_amount && a.custom_amount > 0) {
+      list.push({ name: a.custom_name || 'Custom Allowance', amount: a.custom_amount });
+    } else if (a.allowance_template) {
+      const template = a.allowance_template as { name: string; amount: number; amount_type: string; percentage_of: string | null };
+      // Note: For percentage-based, we'll calculate in the record loop when we have base salary
+      list.push({
+        name: template.name,
+        amount: template.amount_type === 'fixed' ? template.amount : -1, // -1 = percentage, handle later
+        // Store metadata for percentage calculation
+        ...(template.amount_type === 'percentage' ? { _percentage: template.amount, _of: template.percentage_of } : {}),
+      });
+    }
+  });
+
+  const benefitsMap = new Map<string, number>();
+  (benefitEnrollments || []).forEach(be => {
+    const current = benefitsMap.get(be.employee_id) || 0;
+    benefitsMap.set(be.employee_id, current + be.employer_contribution);
+  });
 
   // Build CTC records
   const records: CTCRecord[] = filteredEmployees.map((emp) => {
-    const empInfo = employeeMap.get(emp.employee_id);
-    const currency = empInfo?.salary_currency_code || 
-      empInfo?.work_locations?.currency || 'BHD';
+    const baseSalary = emp.salary || 0;
+    const currency = emp.salary_currency_code || emp.work_location?.currency || 'BHD';
 
-    // Parse allowances breakdown
-    const allowancesBreakdown: AllowanceBreakdownItem[] = [];
-    if (emp.housing_allowance > 0) {
-      allowancesBreakdown.push({ name: 'Housing', amount: emp.housing_allowance });
-    }
-    if (emp.transportation_allowance > 0) {
-      allowancesBreakdown.push({ name: 'Transportation', amount: emp.transportation_allowance });
-    }
-    const otherAllowances = emp.other_allowances;
-    if (otherAllowances && typeof otherAllowances === 'object' && !Array.isArray(otherAllowances)) {
-      Object.entries(otherAllowances as Record<string, unknown>).forEach(([name, amount]) => {
-        if (typeof amount === 'number' && amount > 0) {
-          allowancesBreakdown.push({ name, amount });
+    // Calculate allowances
+    const rawAllowances = allowanceMap.get(emp.id) || [];
+    const allowancesBreakdown: AllowanceBreakdownItem[] = rawAllowances.map(a => {
+      if ((a as unknown as { _percentage?: number })._percentage !== undefined) {
+        const pct = (a as unknown as { _percentage: number })._percentage;
+        const of = (a as unknown as { _of?: string })._of;
+        if (of === 'base_salary') {
+          return { name: a.name, amount: (baseSalary * pct) / 100 };
         }
-      });
-    }
+        return { name: a.name, amount: 0 };
+      }
+      return { name: a.name, amount: a.amount };
+    }).filter(a => a.amount > 0);
 
     const allowancesTotal = allowancesBreakdown.reduce((sum, a) => sum + a.amount, 0);
-    
-    // Calculate employer GOSI
+    const grossPay = baseSalary + allowancesTotal;
+
+    // Calculate employer GOSI using work location rates
     let employerGosi = 0;
-    if (empInfo?.is_subject_to_gosi) {
-      const employerRate = getGosiRate(empInfo.nationality);
-      const gosiBase = emp.base_salary;
-      employerGosi = gosiBase * employerRate;
+    const workLocation = emp.work_location;
+    if (emp.is_subject_to_gosi && workLocation?.gosi_enabled) {
+      const gosiBase = emp.gosi_registered_salary || baseSalary;
+      const rates = workLocation.gosi_nationality_rates || [];
+      const nationalityCode = getCountryCodeByName(emp.nationality || '');
+      const matchingRate = rates.find(r => r.nationality === nationalityCode);
+      
+      if (matchingRate) {
+        employerGosi = (gosiBase * (matchingRate.employerRate ?? 0)) / 100;
+      }
     }
 
     // Get employer benefits cost
-    const employerBenefitsCost = benefitsMap.get(emp.employee_id) || 0;
+    const employerBenefitsCost = benefitsMap.get(emp.id) || 0;
+
+    // Calculate CTC
+    const ctcMonthly = grossPay + employerGosi + employerBenefitsCost;
+    const ctcYearly = ctcMonthly * 12;
 
     // Convert to BHD if needed
-    let basicSalary = emp.base_salary;
-    let grossPay = emp.gross_pay;
+    let convertedBaseSalary = baseSalary;
+    let convertedGrossPay = grossPay;
+    let convertedEmployerGosi = employerGosi;
+    let convertedCtcMonthly = ctcMonthly;
+    let convertedCtcYearly = ctcYearly;
     let wasConverted = false;
     let conversionInfo: CTCRecord['conversionInfo'] = undefined;
 
     if (currency !== 'BHD' && fxRateMap.size > 0) {
-      const conversion = convertToBaseCurrency(emp.gross_pay, currency, fxRateMap);
+      const conversion = convertToBaseCurrency(grossPay, currency, fxRateMap);
       if (conversion) {
-        grossPay = conversion.convertedAmount;
-        basicSalary = emp.base_salary / conversion.rate;
-        employerGosi = employerGosi / conversion.rate;
+        const rate = conversion.rate;
+        convertedBaseSalary = baseSalary / rate;
+        convertedGrossPay = grossPay / rate;
+        convertedEmployerGosi = employerGosi / rate;
+        convertedCtcMonthly = ctcMonthly / rate;
+        convertedCtcYearly = ctcYearly / rate;
         wasConverted = true;
         conversionInfo = {
-          rate: conversion.rate,
+          rate,
           effectiveDate: conversion.effectiveDate,
           fromCurrency: currency,
         };
         // Convert allowances
         allowancesBreakdown.forEach(a => {
-          a.amount = a.amount / conversion.rate;
+          a.amount = a.amount / rate;
         });
       }
     }
 
     const allowancesTotalConverted = allowancesBreakdown.reduce((sum, a) => sum + a.amount, 0);
-    const ctcTotal = grossPay + employerGosi + employerBenefitsCost;
 
     return {
-      employeeId: emp.employee_id,
+      employeeId: emp.id,
       employeeCode: emp.employee_code || '',
-      employeeName: emp.employee_name,
-      department: emp.department,
-      position: emp.position || '',
+      employeeName: `${emp.first_name} ${emp.last_name}`,
+      department: emp.department?.name || '',
+      position: emp.position?.title || '',
       originalCurrency: currency,
-      basicSalary,
+      basicSalary: convertedBaseSalary,
       allowancesTotal: allowancesTotalConverted,
       allowancesBreakdown,
-      grossPay,
-      employerGosi,
+      grossPay: convertedGrossPay,
+      employerGosi: convertedEmployerGosi,
       employerBenefitsCost,
-      ctcTotal,
+      ctcMonthly: convertedCtcMonthly,
+      ctcYearly: convertedCtcYearly,
       wasConverted,
       conversionInfo,
     };
@@ -245,7 +273,8 @@ async function fetchCTCReport(
 
   // Calculate summary
   const summary: CTCSummary = {
-    totalCTC: records.reduce((sum, r) => sum + r.ctcTotal, 0),
+    totalCtcMonthly: records.reduce((sum, r) => sum + r.ctcMonthly, 0),
+    totalCtcYearly: records.reduce((sum, r) => sum + r.ctcYearly, 0),
     totalGrossPay: records.reduce((sum, r) => sum + r.grossPay, 0),
     totalEmployerGosi: records.reduce((sum, r) => sum + r.employerGosi, 0),
     totalEmployerBenefitsCost: records.reduce((sum, r) => sum + r.employerBenefitsCost, 0),
