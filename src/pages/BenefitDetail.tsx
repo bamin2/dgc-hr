@@ -1,15 +1,17 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/dashboard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Users, Check, Building2, Loader2, FileText } from 'lucide-react';
-import { BenefitTypeBadge, BenefitStatusBadge, EnrollmentsTable } from '@/components/benefits';
+import { ArrowLeft, Users, Check, Building2, Loader2, FileText, Pencil } from 'lucide-react';
+import { BenefitTypeBadge, BenefitStatusBadge, EnrollmentsTable, EditBenefitPlanDialog } from '@/components/benefits';
 import { useBenefitPlan } from '@/hooks/useBenefitPlans';
 import { useBenefitEnrollments } from '@/hooks/useBenefitEnrollments';
 
 const BenefitDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const { data: plan, isLoading: planLoading } = useBenefitPlan(id);
   const { data: enrollments = [], isLoading: enrollmentsLoading } = useBenefitEnrollments({ planId: id });
@@ -79,9 +81,15 @@ const BenefitDetail = () => {
                 </div>
               </div>
 
-              <Button onClick={() => navigate('/benefits/enroll')}>
-                Enroll Employee
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setEditDialogOpen(true)}>
+                  <Pencil className="mr-2 h-4 w-4" />
+                  Edit Plan
+                </Button>
+                <Button onClick={() => navigate('/benefits/enroll')}>
+                  Enroll Employee
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -169,6 +177,15 @@ const BenefitDetail = () => {
               <EnrollmentsTable enrollments={enrollments} />
             </CardContent>
           </Card>
+        )}
+
+        {/* Edit Dialog */}
+        {plan && (
+          <EditBenefitPlanDialog
+            open={editDialogOpen}
+            onOpenChange={setEditDialogOpen}
+            plan={plan}
+          />
         )}
       </div>
     </DashboardLayout>
