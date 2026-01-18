@@ -121,14 +121,14 @@ export function ComplianceSnapshotReport() {
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3 p-4 bg-muted/30 rounded-lg border">
         <Select
-          value={filters.locationId || ''}
-          onValueChange={(v) => setFilters({ ...filters, locationId: v || undefined })}
+          value={filters.locationId || 'all'}
+          onValueChange={(v) => setFilters({ ...filters, locationId: v === 'all' ? undefined : v })}
         >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="All Locations" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Locations</SelectItem>
+            <SelectItem value="all">All Locations</SelectItem>
             {locations?.map(loc => (
               <SelectItem key={loc.id} value={loc.id}>{loc.name}</SelectItem>
             ))}
@@ -136,14 +136,14 @@ export function ComplianceSnapshotReport() {
         </Select>
 
         <Select
-          value={filters.departmentId || ''}
-          onValueChange={(v) => setFilters({ ...filters, departmentId: v || undefined })}
+          value={filters.departmentId || 'all'}
+          onValueChange={(v) => setFilters({ ...filters, departmentId: v === 'all' ? undefined : v })}
         >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="All Departments" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Departments</SelectItem>
+            <SelectItem value="all">All Departments</SelectItem>
             {departments?.map(dept => (
               <SelectItem key={dept.id} value={dept.id}>{dept.name}</SelectItem>
             ))}

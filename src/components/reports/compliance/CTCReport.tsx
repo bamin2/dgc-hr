@@ -109,14 +109,14 @@ export function CTCReport() {
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3 p-4 bg-muted/30 rounded-lg border">
         <Select
-          value={filters.locationId || ''}
-          onValueChange={(v) => setFilters({ ...filters, locationId: v || undefined, payrollRunId: undefined })}
+          value={filters.locationId || 'all'}
+          onValueChange={(v) => setFilters({ ...filters, locationId: v === 'all' ? undefined : v, payrollRunId: undefined })}
         >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="All Locations" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Locations</SelectItem>
+            <SelectItem value="all">All Locations</SelectItem>
             {locations?.map(loc => (
               <SelectItem key={loc.id} value={loc.id}>{loc.name}</SelectItem>
             ))}
@@ -124,14 +124,14 @@ export function CTCReport() {
         </Select>
 
         <Select
-          value={filters.payrollRunId || ''}
-          onValueChange={(v) => setFilters({ ...filters, payrollRunId: v || undefined })}
+          value={filters.payrollRunId || 'latest'}
+          onValueChange={(v) => setFilters({ ...filters, payrollRunId: v === 'latest' ? undefined : v })}
         >
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Latest Payroll Run" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Latest Payroll Run</SelectItem>
+            <SelectItem value="latest">Latest Payroll Run</SelectItem>
             {payrollRuns?.map(run => (
               <SelectItem key={run.id} value={run.id}>
                 {format(parseISO(run.pay_period_start), 'MMM yyyy')}
@@ -141,14 +141,14 @@ export function CTCReport() {
         </Select>
 
         <Select
-          value={filters.departmentId || ''}
-          onValueChange={(v) => setFilters({ ...filters, departmentId: v || undefined })}
+          value={filters.departmentId || 'all'}
+          onValueChange={(v) => setFilters({ ...filters, departmentId: v === 'all' ? undefined : v })}
         >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="All Departments" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Departments</SelectItem>
+            <SelectItem value="all">All Departments</SelectItem>
             {departments?.map(dept => (
               <SelectItem key={dept.id} value={dept.id}>{dept.name}</SelectItem>
             ))}
@@ -156,14 +156,14 @@ export function CTCReport() {
         </Select>
 
         <Select
-          value={filters.status || ''}
-          onValueChange={(v) => setFilters({ ...filters, status: v || undefined })}
+          value={filters.status || 'all'}
+          onValueChange={(v) => setFilters({ ...filters, status: v === 'all' ? undefined : v })}
         >
           <SelectTrigger className="w-[140px]">
             <SelectValue placeholder="All Statuses" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Statuses</SelectItem>
+            <SelectItem value="all">All Statuses</SelectItem>
             <SelectItem value="active">Active</SelectItem>
             <SelectItem value="on_leave">On Leave</SelectItem>
             <SelectItem value="probation">Probation</SelectItem>

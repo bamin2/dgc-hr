@@ -131,14 +131,14 @@ export function PayrollVarianceReport() {
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3 p-4 bg-muted/30 rounded-lg border">
         <Select
-          value={filters.locationId || ''}
-          onValueChange={(v) => setFilters({ ...filters, locationId: v || undefined, payrollRunId: undefined, comparePayrollRunId: undefined })}
+          value={filters.locationId || 'all'}
+          onValueChange={(v) => setFilters({ ...filters, locationId: v === 'all' ? undefined : v, payrollRunId: undefined, comparePayrollRunId: undefined })}
         >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Select Location" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Locations</SelectItem>
+            <SelectItem value="all">All Locations</SelectItem>
             {locations?.map(loc => (
               <SelectItem key={loc.id} value={loc.id}>{loc.name}</SelectItem>
             ))}
@@ -164,14 +164,14 @@ export function PayrollVarianceReport() {
         <ArrowRightLeft className="h-4 w-4 text-muted-foreground" />
 
         <Select
-          value={filters.comparePayrollRunId || ''}
-          onValueChange={(v) => setFilters({ ...filters, comparePayrollRunId: v || undefined })}
+          value={filters.comparePayrollRunId || 'auto'}
+          onValueChange={(v) => setFilters({ ...filters, comparePayrollRunId: v === 'auto' ? undefined : v })}
         >
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Previous (auto)" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Auto (Previous Month)</SelectItem>
+            <SelectItem value="auto">Auto (Previous Month)</SelectItem>
             {payrollRuns?.filter(r => r.id !== filters.payrollRunId).map(run => (
               <SelectItem key={run.id} value={run.id}>
                 {format(parseISO(run.pay_period_start), 'MMM yyyy')}
@@ -181,14 +181,14 @@ export function PayrollVarianceReport() {
         </Select>
 
         <Select
-          value={filters.departmentId || ''}
-          onValueChange={(v) => setFilters({ ...filters, departmentId: v || undefined })}
+          value={filters.departmentId || 'all'}
+          onValueChange={(v) => setFilters({ ...filters, departmentId: v === 'all' ? undefined : v })}
         >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="All Departments" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Departments</SelectItem>
+            <SelectItem value="all">All Departments</SelectItem>
             {departments?.map(dept => (
               <SelectItem key={dept.id} value={dept.id}>{dept.name}</SelectItem>
             ))}
