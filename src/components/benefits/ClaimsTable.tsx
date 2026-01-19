@@ -6,6 +6,7 @@ import { ClaimStatusBadge } from './ClaimStatusBadge';
 import { Check, X, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 import type { BenefitClaim } from '@/hooks/useBenefitClaims';
+import { useCompanySettings } from '@/contexts/CompanySettingsContext';
 
 interface ClaimsTableProps {
   claims: BenefitClaim[];
@@ -14,6 +15,8 @@ interface ClaimsTableProps {
 }
 
 export const ClaimsTable = ({ claims, onApprove, onDeny }: ClaimsTableProps) => {
+  const { formatCurrency } = useCompanySettings();
+
   if (claims.length === 0) {
     return (
       <div className="border rounded-lg p-8 text-center text-muted-foreground">
@@ -69,10 +72,10 @@ export const ClaimsTable = ({ claims, onApprove, onDeny }: ClaimsTableProps) => 
                 </TableCell>
                 <TableCell>
                   <div>
-                    <p className="font-medium">${claim.amount.toLocaleString()}</p>
+                    <p className="font-medium">{formatCurrency(claim.amount)}</p>
                     {claim.approved_amount && (
                       <p className="text-xs text-emerald-600">
-                        Approved: ${claim.approved_amount.toLocaleString()}
+                        Approved: {formatCurrency(claim.approved_amount)}
                       </p>
                     )}
                   </div>

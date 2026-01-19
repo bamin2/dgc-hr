@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import type { BenefitEnrollment } from '@/hooks/useBenefitEnrollments';
+import { useCompanySettings } from '@/contexts/CompanySettingsContext';
 
 interface BenefitsCostChartProps {
   enrollments: BenefitEnrollment[];
@@ -9,6 +10,8 @@ interface BenefitsCostChartProps {
 const COLORS = ['#22C55E', '#14B8A6', '#C6A45E', '#F97316', '#6B8E7B', '#64748B', '#F87171', '#6B7280'];
 
 export const BenefitsCostChart = ({ enrollments }: BenefitsCostChartProps) => {
+  const { formatCurrency } = useCompanySettings();
+
   const costByType = enrollments.reduce((acc, enrollment) => {
     const type = enrollment.plan?.type || 'other';
     const monthlyCost = enrollment.employee_contribution + enrollment.employer_contribution;
@@ -39,7 +42,7 @@ export const BenefitsCostChart = ({ enrollments }: BenefitsCostChartProps) => {
       <Card className="border-border/50">
         <CardHeader className="pb-2">
           <CardTitle className="text-base font-medium">Cost by Benefit Type</CardTitle>
-          <p className="text-2xl font-semibold">$0<span className="text-sm font-normal text-muted-foreground">/month</span></p>
+          <p className="text-2xl font-semibold">{formatCurrency(0)}<span className="text-sm font-normal text-muted-foreground">/month</span></p>
         </CardHeader>
         <CardContent>
           <div className="h-[220px] flex items-center justify-center text-muted-foreground">
@@ -54,7 +57,7 @@ export const BenefitsCostChart = ({ enrollments }: BenefitsCostChartProps) => {
     <Card className="border-border/50">
       <CardHeader className="pb-2">
         <CardTitle className="text-base font-medium">Cost by Benefit Type</CardTitle>
-        <p className="text-2xl font-semibold">${totalCost.toLocaleString()}<span className="text-sm font-normal text-muted-foreground">/month</span></p>
+        <p className="text-2xl font-semibold">{formatCurrency(totalCost)}<span className="text-sm font-normal text-muted-foreground">/month</span></p>
       </CardHeader>
       <CardContent>
         <div className="h-[220px]">
@@ -74,14 +77,14 @@ export const BenefitsCostChart = ({ enrollments }: BenefitsCostChartProps) => {
                 ))}
               </Pie>
               <Tooltip 
-                formatter={(value: number) => [`$${value}`, 'Monthly Cost']}
+                formatter={(value: number) => [formatCurrency(value), 'Monthly Cost']}
                 contentStyle={{ 
                   background: 'hsl(var(--card))', 
                   border: '1px solid hsl(var(--border))',
                   borderRadius: '8px'
                 }}
               />
-              <Legend 
+              <Legend
                 layout="horizontal" 
                 verticalAlign="bottom"
                 wrapperStyle={{ paddingTop: '20px' }}
