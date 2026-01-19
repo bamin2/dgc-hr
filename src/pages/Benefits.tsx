@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useCompanySettings } from '@/contexts/CompanySettingsContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { DashboardLayout } from '@/components/dashboard';
 import { PageHeader } from '@/components/ui/page-header';
@@ -29,6 +30,7 @@ const Benefits = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
+  const { formatCurrency } = useCompanySettings();
   
   // Initialize activeTab from URL param or default to 'overview'
   const initialTab = searchParams.get('tab') || 'overview';
@@ -234,7 +236,7 @@ const Benefits = () => {
                             </p>
                             <p className="text-xs text-muted-foreground">{claim.description || 'Benefit claim'}</p>
                           </div>
-                          <p className="font-semibold">${claim.amount}</p>
+                          <p className="font-semibold">{formatCurrency(claim.amount)}</p>
                         </div>
                       ))}
                       {pendingClaims.length === 0 && (
