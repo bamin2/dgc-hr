@@ -4,8 +4,10 @@ import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-// Brand colors
-const BRAND_PRIMARY = "#804EEC";
+// DGC Brand Colors
+const DGC_DEEP_GREEN = "#0F2A28";
+const DGC_GOLD = "#C6A45E";
+const DGC_OFF_WHITE = "#F7F7F5";
 
 // Type definitions
 interface EmailActionToken {
@@ -372,7 +374,7 @@ function generateRejectionForm(token: string, errorMessage?: string): Response {
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { 
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+      background: linear-gradient(135deg, ${DGC_OFF_WHITE} 0%, #e8e8e4 100%);
       min-height: 100vh;
       display: flex;
       align-items: center;
@@ -440,8 +442,8 @@ function generateRejectionForm(token: string, errorMessage?: string): Response {
     }
     textarea:focus {
       outline: none;
-      border-color: ${BRAND_PRIMARY};
-      box-shadow: 0 0 0 3px ${BRAND_PRIMARY}20;
+      border-color: ${DGC_GOLD};
+      box-shadow: 0 0 0 3px ${DGC_GOLD}20;
     }
     button {
       width: 100%;
@@ -521,7 +523,7 @@ function generateHtmlResponse(
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { 
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+      background: linear-gradient(135deg, ${DGC_OFF_WHITE} 0%, #e8e8e4 100%);
       min-height: 100vh;
       display: flex;
       align-items: center;
@@ -563,7 +565,7 @@ function generateHtmlResponse(
     }
     .btn {
       display: inline-block;
-      background: ${BRAND_PRIMARY};
+      background: ${DGC_GOLD};
       color: white;
       text-decoration: none;
       padding: 14px 32px;
