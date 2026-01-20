@@ -45,6 +45,13 @@ interface EmailTemplate {
   subject: string;
   body_content: string;
   is_active: boolean;
+  recipient_config: RecipientConfig | null;
+}
+
+interface RecipientConfig {
+  send_to_manager?: boolean;
+  send_to_hr?: boolean;
+  custom_emails?: string[];
 }
 
 /**
@@ -121,10 +128,10 @@ serve(async (req: Request): Promise<Response> => {
       ? `${company.address_city}, ${company.address_country}` 
       : undefined;
 
-    // Fetch email template from database
+    // Fetch email template from database with recipient config
     const { data: emailTemplate } = await supabase
       .from("email_templates")
-      .select("subject, body_content, is_active")
+      .select("subject, body_content, is_active, recipient_config")
       .eq("type", type)
       .single();
 

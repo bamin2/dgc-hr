@@ -8,6 +8,8 @@ import { EmailTemplate } from "@/hooks/useEmailTemplates";
 interface EmailTemplateCardProps {
   template: EmailTemplate;
   onEdit: () => void;
+  /** Compact mode shows only the edit button without full template details */
+  compact?: boolean;
 }
 
 const templateIcons: Record<string, string> = {
@@ -17,8 +19,18 @@ const templateIcons: Record<string, string> = {
   payslip_issued: "💰",
 };
 
-export function EmailTemplateCard({ template, onEdit }: EmailTemplateCardProps) {
+export function EmailTemplateCard({ template, onEdit, compact = false }: EmailTemplateCardProps) {
   const icon = templateIcons[template.type] || "📧";
+
+  // Compact mode - just show an edit button
+  if (compact) {
+    return (
+      <Button variant="outline" size="sm" onClick={onEdit} className="w-full">
+        <Pencil className="h-3.5 w-3.5 mr-1.5" />
+        Edit Template Content
+      </Button>
+    );
+  }
 
   return (
     <Card className="hover:bg-muted/30 transition-colors">
