@@ -96,6 +96,14 @@ export const queryKeys = {
     byEmployee: (employeeId: string) => ['employee-documents', employeeId] as const,
   },
   
+  // Payslip document queries
+  payslipDocuments: {
+    all: ['payslip-documents'] as const,
+    byPayrollRun: (runId: string) => ['payslip-documents', 'run', runId] as const,
+    byEmployee: (employeeId: string) => ['payslip-documents', 'employee', employeeId] as const,
+    detail: (id: string) => ['payslip-documents', id] as const,
+  },
+  
   // Attendance queries
   attendance: {
     records: {

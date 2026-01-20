@@ -2,16 +2,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { queryPresets } from "@/lib/queryOptions";
+import { queryKeys } from "@/lib/queryKeys";
 import type { PayslipDocument, PayslipDocumentInsert } from "@/types/payslip-template";
 import type { Json } from "@/integrations/supabase/types";
 
-// Query keys
-const payslipDocumentKeys = {
-  all: ['payslip-documents'] as const,
-  byPayrollRun: (runId: string) => ['payslip-documents', 'run', runId] as const,
-  byEmployee: (employeeId: string) => ['payslip-documents', 'employee', employeeId] as const,
-  detail: (id: string) => ['payslip-documents', id] as const,
-};
+// Use centralized query keys
+const payslipDocumentKeys = queryKeys.payslipDocuments;
 
 export function usePayslipDocuments(payrollRunId: string) {
   return useQuery({
