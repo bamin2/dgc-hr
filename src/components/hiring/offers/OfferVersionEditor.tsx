@@ -94,6 +94,30 @@ export function OfferVersionEditor({ version, offerId, candidateId, candidateNat
     });
   }, [version]);
 
+  // Store initial form values for change detection
+  const initialFormData = useMemo(() => ({
+    work_location_id: version.work_location_id || "",
+    department_id: version.department_id || "",
+    position_id: version.position_id || "",
+    manager_employee_id: version.manager_employee_id || "",
+    start_date: version.start_date || "",
+    offer_expiry_date: version.offer_expiry_date || "",
+    currency_code: version.currency_code || "BHD",
+    basic_salary: version.basic_salary || 0,
+    housing_allowance: version.housing_allowance || 0,
+    transport_allowance: version.transport_allowance || 0,
+    other_allowances: version.other_allowances || 0,
+    is_subject_to_gosi: version.is_subject_to_gosi ?? false,
+    other_deductions: version.other_deductions || 0,
+    remarks_internal: version.remarks_internal || "",
+    change_reason: version.change_reason || "",
+  }), [version]);
+
+  // Check if form has changes compared to initial values
+  const hasChanges = useMemo(() => {
+    return JSON.stringify(formData) !== JSON.stringify(initialFormData);
+  }, [formData, initialFormData]);
+
   // Get selected work location for GOSI rates
   const selectedWorkLocation = useMemo(() => {
     return workLocations?.find(l => l.id === formData.work_location_id);
@@ -242,7 +266,12 @@ export function OfferVersionEditor({ version, offerId, candidateId, candidateNat
             </div>
             <div className="flex gap-2 flex-wrap">
               {version.status === 'draft' && (
-                <Button variant="outline" onClick={handleSave} disabled={createNewVersion.isPending}>
+                <Button 
+                  variant="outline" 
+                  onClick={handleSave} 
+                  disabled={createNewVersion.isPending || !hasChanges}
+                  title={!hasChanges ? "No changes to save" : undefined}
+                >
                   <Save className="h-4 w-4 mr-2" />
                   Save
                 </Button>
