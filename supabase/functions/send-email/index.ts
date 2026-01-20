@@ -660,7 +660,6 @@ function generateEmailHeader(data: { companyName: string; companyLogo?: string }
           <tr>
             <td style="vertical-align:middle;">
               ${logoSection}
-              <span style="color:#ffffff;font-size:22px;font-weight:600;vertical-align:middle;font-family:Arial,sans-serif;">${data.companyName}</span>
             </td>
           </tr>
         </table>
