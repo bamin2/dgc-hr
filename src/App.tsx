@@ -13,6 +13,7 @@ import { ProtectedRoute, PublicRoute } from "@/components/auth";
 import { PageLoader } from "@/components/ui/page-loader";
 import { DashboardPageLoader } from "@/components/dashboard/DashboardPageLoader";
 import { OfflineIndicator } from "@/components/pwa/OfflineIndicator";
+import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 
 // Critical routes - keep eager for fast initial load
 import Index from "./pages/Index";
@@ -88,6 +89,7 @@ const App = () => (
               <Toaster />
               <Sonner />
               <OfflineIndicator />
+              <InstallPrompt />
               <BrowserRouter>
               <Routes>
               {/* Public routes */}
