@@ -17,7 +17,7 @@ const BRAND_PRIMARY = "#C6A45E";
 const BRAND_PRIMARY_DARK = "#B8934D";
 
 // Portal URL for employee access
-const PORTAL_BASE_URL = "https://id-preview--87a2f9c6-37a0-4f1c-85df-84b46780269e.lovable.app";
+const PORTAL_BASE_URL = Deno.env.get("APP_BASE_URL") || "https://hr.dgcholding.com";
 
 interface SendPayslipRequest {
   payrollRunId: string;
