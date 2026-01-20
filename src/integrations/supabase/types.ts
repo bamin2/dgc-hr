@@ -1783,6 +1783,7 @@ export type Database = {
           subject: string
           type: string
           updated_at: string | null
+          use_default_template: boolean | null
         }
         Insert: {
           body_content: string
@@ -1795,6 +1796,7 @@ export type Database = {
           subject: string
           type: string
           updated_at?: string | null
+          use_default_template?: boolean | null
         }
         Update: {
           body_content?: string
@@ -1807,6 +1809,7 @@ export type Database = {
           subject?: string
           type?: string
           updated_at?: string | null
+          use_default_template?: boolean | null
         }
         Relationships: []
       }

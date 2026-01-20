@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Mail, Loader2, Info, Send, UserCheck, Building2 } from "lucide-react";
-import { useLeaveEmailTemplates, EmailTemplate } from "@/hooks/useEmailTemplates";
+import { Mail, Loader2, Info, Send, UserCheck, Building2, Sparkles, FileText } from "lucide-react";
+import { useLeaveEmailTemplates, EmailTemplate, useEmailTemplates } from "@/hooks/useEmailTemplates";
 import { EmailTemplateCard } from "@/components/settings/email-templates/EmailTemplateCard";
 import { EmailTemplateEditor } from "@/components/settings/email-templates/EmailTemplateEditor";
 import { RecipientConfigCard } from "./RecipientConfigCard";
+import { TemplateSourceToggle } from "@/components/settings/email-templates/TemplateSourceToggle";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -28,7 +29,15 @@ const triggerDescriptions: Record<string, { trigger: string; recipient: string; 
 
 export function LeaveEmailTemplatesTab() {
   const { templates, isLoading, error } = useLeaveEmailTemplates();
+  const { updateTemplate } = useEmailTemplates();
   const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null);
+
+  const handleToggleDefaultTemplate = (templateId: string, useDefault: boolean) => {
+    updateTemplate.mutate({
+      id: templateId,
+      updates: { use_default_template: useDefault },
+    });
+  };
 
   if (isLoading) {
     return (
@@ -115,7 +124,22 @@ export function LeaveEmailTemplatesTab() {
                 </div>
               </CardHeader>
               <CardContent className="p-0">
-                <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x">
+                <div className="grid md:grid-cols-3 divide-y md:divide-y-0 md:divide-x">
+                  {/* Template Source Toggle */}
+                  <div className="p-4">
+                    <TemplateSourceToggle
+                      useDefault={template.use_default_template}
+                      onChange={(useDefault) => handleToggleDefaultTemplate(template.id, useDefault)}
+                      disabled={updateTemplate.isPending}
+                    />
+                    {template.use_default_template && (
+                      <div className="mt-3 flex items-center gap-2 text-xs text-primary">
+                        <Sparkles className="h-3.5 w-3.5" />
+                        <span>Using DGC-branded template</span>
+                      </div>
+                    )}
+                  </div>
+
                   {/* Trigger Info & Edit */}
                   <div className="p-4 space-y-4">
                     <div>
@@ -126,11 +150,13 @@ export function LeaveEmailTemplatesTab() {
                       <h4 className="text-sm font-medium mb-2">Primary Recipient</h4>
                       <p className="text-sm text-muted-foreground">{info?.recipient}</p>
                     </div>
-                    <EmailTemplateCard 
-                      template={template} 
-                      onEdit={() => setSelectedTemplate(template)}
-                      compact
-                    />
+                    {!template.use_default_template && (
+                      <EmailTemplateCard 
+                        template={template} 
+                        onEdit={() => setSelectedTemplate(template)}
+                        compact
+                      />
+                    )}
                   </div>
                   
                   {/* Recipient Configuration */}
