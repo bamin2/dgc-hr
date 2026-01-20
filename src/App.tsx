@@ -136,7 +136,7 @@ const App = () => (
                 {/* Protected routes - Admin only */}
                 <Route path="/documents" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><Documents /></DashboardLazyPage></ProtectedRoute>} />
                 <Route path="/audit-trail" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><AuditTrail /></DashboardLazyPage></ProtectedRoute>} />
-                <Route path="/settings" element={<ProtectedRoute requiredRoles={['admin']}><DashboardLazyPage><Settings /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/settings" element={<ProtectedRoute><DashboardLazyPage><Settings /></DashboardLazyPage></ProtectedRoute>} />
                 
                 {/* Help Center - All authenticated users */}
                 <Route path="/help-center" element={<ProtectedRoute><DashboardLazyPage><HelpCenter /></DashboardLazyPage></ProtectedRoute>} />
