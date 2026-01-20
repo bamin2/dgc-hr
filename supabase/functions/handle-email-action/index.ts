@@ -177,13 +177,19 @@ async function processAction(
   // 5. Process the action
   if (action === "approve") {
     // Update the current step to approved
-    await supabase
+    const { error: stepUpdateError } = await supabase
       .from("request_approval_steps")
       .update({
         status: "approved",
-        decided_at: new Date().toISOString(),
+        acted_at: new Date().toISOString(),
+        acted_by: typedToken.user_id,
       })
       .eq("id", step.id);
+
+    if (stepUpdateError) {
+      console.error("Failed to update approval step:", stepUpdateError);
+      return generateHtmlResponse("Error", "Failed to process approval. Please try again or use the app.", "error", "/approvals");
+    }
 
     // Check if there are more steps
     const { data: nextStepData } = await supabase
@@ -272,14 +278,20 @@ async function processAction(
     }
 
     // Update the current step to rejected
-    await supabase
+    const { error: rejectStepError } = await supabase
       .from("request_approval_steps")
       .update({
         status: "rejected",
-        decided_at: new Date().toISOString(),
-        notes: rejectionReason,
+        acted_at: new Date().toISOString(),
+        acted_by: typedToken.user_id,
+        comment: rejectionReason,
       })
       .eq("id", step.id);
+
+    if (rejectStepError) {
+      console.error("Failed to update rejection step:", rejectStepError);
+      return generateHtmlResponse("Error", "Failed to process rejection. Please try again or use the app.", "error", "/approvals");
+    }
 
     // Cancel any queued steps
     await supabase
