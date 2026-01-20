@@ -20,6 +20,7 @@ import {
   RotateCcw,
   Banknote,
   Heart,
+  AlertTriangle,
 } from "lucide-react";
 import { useEmployeeAllowances } from "@/hooks/useEmployeeAllowances";
 import { useEmployeeDeductions } from "@/hooks/useEmployeeDeductions";
@@ -31,6 +32,16 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { StatusBadge, EmployeeForm, RoleBadge, RoleSelectorWithDescription, CreateLoginDialog, ResetPasswordDialog, SalaryHistoryCard, BankDetailsDialog, EmployeeTimeOffTab, EmployeeActivityTab } from "@/components/employees";
 import { EmployeeDocumentsTab } from "@/components/employees/documents";
 import { EmployeeLoansTab } from "@/components/employees/EmployeeLoansTab";
@@ -38,9 +49,10 @@ import { EmployeeBenefitsTab } from "@/components/employees/EmployeeBenefitsTab"
 import { useEmployee, useUpdateEmployee, useEmployees, Employee } from "@/hooks/useEmployees";
 import { useWorkLocations } from "@/hooks/useWorkLocations";
 import { getCountryByName, getCountryCodeByName } from "@/data/countries";
-import { AppRole, roleDescriptions } from "@/data/roles";
+import { AppRole, roleDescriptions, roleLabels } from "@/data/roles";
 import { useRole } from "@/contexts/RoleContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAuditLog } from "@/hooks/useAuditLog";
 import { formatLongDate } from "@/lib/dateUtils";
 import { toast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -67,10 +79,13 @@ export default function EmployeeProfile() {
   const { data: allowances = [] } = useEmployeeAllowances(id);
   const { data: deductions = [] } = useEmployeeDeductions(id);
   const updateEmployee = useUpdateEmployee();
+  const { logAction } = useAuditLog();
   const [formOpen, setFormOpen] = useState(false);
   const [createLoginOpen, setCreateLoginOpen] = useState(false);
   const [resetPasswordOpen, setResetPasswordOpen] = useState(false);
   const [bankDialogOpen, setBankDialogOpen] = useState(false);
+  const [roleChangeDialogOpen, setRoleChangeDialogOpen] = useState(false);
+  const [pendingRole, setPendingRole] = useState<AppRole | null>(null);
   const { data: workLocations } = useWorkLocations();
   const employeeRole = useMemo(() => {
     if (!employee) return 'employee';
@@ -260,23 +275,55 @@ export default function EmployeeProfile() {
     });
   };
 
-  const handleRoleChange = async (newRole: AppRole) => {
-    if (!id) return;
+  // Initiate role change - opens confirmation dialog
+  const initiateRoleChange = (newRole: AppRole) => {
+    if (!id || newRole === employeeRole) return;
+    setPendingRole(newRole);
+    setRoleChangeDialogOpen(true);
+  };
 
-    const result = await updateEmployeeRole(id, newRole);
+  // Confirm and execute the role change
+  const confirmRoleChange = async () => {
+    if (!id || !pendingRole) return;
+
+    const previousRole = employeeRole;
+    const result = await updateEmployeeRole(id, pendingRole);
+
     if (result?.error) {
       toast({
         title: "Error",
         description: result.error,
         variant: "destructive",
       });
+      setRoleChangeDialogOpen(false);
+      setPendingRole(null);
       return;
+    }
+
+    // Log the role change to audit logs
+    try {
+      await logAction({
+        entityType: 'employee',
+        entityId: id,
+        employeeId: id,
+        action: 'update',
+        fieldName: 'system_role',
+        oldValue: roleLabels[previousRole],
+        newValue: roleLabels[pendingRole],
+        description: `Changed system role from ${roleLabels[previousRole]} to ${roleLabels[pendingRole]}`,
+      });
+    } catch (auditError) {
+      console.error('Failed to log role change:', auditError);
+      // Non-blocking - role change succeeded even if audit log fails
     }
 
     toast({
       title: "Role updated",
-      description: `Employee role has been changed to ${roleDescriptions[newRole] || newRole}.`,
+      description: `Employee role has been changed to ${roleDescriptions[pendingRole]}.`,
     });
+
+    setRoleChangeDialogOpen(false);
+    setPendingRole(null);
   };
 
   return (
@@ -623,7 +670,7 @@ export default function EmployeeProfile() {
                   {canManageRoles ? (
                     <RoleSelectorWithDescription
                       value={employeeRole}
-                      onValueChange={handleRoleChange}
+                      onValueChange={initiateRoleChange}
                     />
                   ) : (
                     <div className="flex items-center gap-3">
@@ -715,6 +762,58 @@ export default function EmployeeProfile() {
         onOpenChange={setBankDialogOpen}
         employee={employee}
       />
+
+      {/* Role Change Confirmation Dialog */}
+      <AlertDialog open={roleChangeDialogOpen} onOpenChange={setRoleChangeDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-warning" />
+              Change System Role?
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p>
+                  You are about to change <strong>{employee.fullName}</strong>'s role:
+                </p>
+                
+                <div className="rounded-lg border p-3 space-y-2 bg-muted/50">
+                  <div className="flex items-start gap-2">
+                    <span className="text-muted-foreground text-sm min-w-16">Current:</span>
+                    <div>
+                      <span className="text-sm font-medium">{roleLabels[employeeRole]}</span>
+                      <p className="text-xs text-muted-foreground">{roleDescriptions[employeeRole]}</p>
+                    </div>
+                  </div>
+                  <Separator />
+                  <div className="flex items-start gap-2">
+                    <span className="text-muted-foreground text-sm min-w-16">New:</span>
+                    <div>
+                      <span className="text-sm font-medium">{pendingRole ? roleLabels[pendingRole] : ''}</span>
+                      <p className="text-xs text-muted-foreground">{pendingRole ? roleDescriptions[pendingRole] : ''}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-2 rounded-md border border-warning/50 bg-warning/10 p-3">
+                  <Shield className="h-4 w-4 text-warning mt-0.5 shrink-0" />
+                  <p className="text-sm text-warning-foreground">
+                    <strong>Warning:</strong> This will immediately change their access permissions throughout the system.
+                  </p>
+                </div>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPendingRole(null)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={confirmRoleChange}>
+              Change Role
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DashboardLayout>
   );
 }
