@@ -17,6 +17,7 @@ import { DashboardPageLoader } from "@/components/dashboard/DashboardPageLoader"
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import EmailActionResult from "./pages/EmailActionResult";
 
 // Lazy load all other pages for reduced initial bundle
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
@@ -87,9 +88,10 @@ const App = () => (
               <Sonner />
               <BrowserRouter>
               <Routes>
-                {/* Public routes */}
-                <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
-                <Route path="/auth/reset-password" element={<LazyPage><ResetPassword /></LazyPage>} />
+              {/* Public routes */}
+              <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
+              <Route path="/auth/reset-password" element={<LazyPage><ResetPassword /></LazyPage>} />
+              <Route path="/email-action-result" element={<EmailActionResult />} />
                 
                 {/* Protected routes - All authenticated users */}
                 <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
