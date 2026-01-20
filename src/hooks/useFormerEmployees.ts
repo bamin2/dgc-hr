@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
+import { queryKeys } from "@/lib/queryKeys";
 
 type DepartureReason = Database["public"]["Enums"]["departure_reason"];
 
@@ -23,8 +24,6 @@ export interface FormerEmployee {
 }
 
 async function fetchFormerEmployees(): Promise<FormerEmployee[]> {
-  console.log("[Former Employees] Starting fetch...");
-  
   // Fetch employees with resigned or terminated status
   const { data: employees, error: empError } = await supabase
     .from("employees")
@@ -47,10 +46,7 @@ async function fetchFormerEmployees(): Promise<FormerEmployee[]> {
     throw empError;
   }
   
-  console.log("[Former Employees] Found employees:", employees?.length);
-  
   if (!employees || employees.length === 0) {
-    console.log("[Former Employees] No former employees found");
     return [];
   }
 
@@ -72,8 +68,6 @@ async function fetchFormerEmployees(): Promise<FormerEmployee[]> {
     console.error("[Former Employees] Error fetching offboarding records:", offError);
     throw offError;
   }
-  
-  console.log("[Former Employees] Found offboarding records:", offboardingRecords?.length);
 
   // Get offboarding record IDs for exit interview lookup
   const offboardingIds = offboardingRecords?.map((o) => o.id) || [];
@@ -94,8 +88,6 @@ async function fetchFormerEmployees(): Promise<FormerEmployee[]> {
       console.error("[Former Employees] Error fetching exit interviews:", intError);
       throw intError;
     }
-    
-    console.log("[Former Employees] Found exit interviews:", interviews?.length);
     exitInterviews = interviews || [];
   }
 
@@ -136,7 +128,7 @@ async function fetchFormerEmployees(): Promise<FormerEmployee[]> {
 
 export function useFormerEmployees() {
   return useQuery({
-    queryKey: ["former-employees"],
+    queryKey: queryKeys.employees.former,
     queryFn: fetchFormerEmployees,
   });
 }
