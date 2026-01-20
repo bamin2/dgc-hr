@@ -22,7 +22,7 @@ export function PayslipPdfViewer({ pdfStoragePath, periodStart, periodEnd }: Pay
         setError(null);
 
         const { data, error: urlError } = await supabase.storage
-          .from("payslip-documents")
+          .from("payslips")
           .createSignedUrl(pdfStoragePath, 3600); // 1 hour expiry
 
         if (urlError) throw urlError;
