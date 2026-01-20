@@ -26,9 +26,10 @@ interface OfferLetterPreviewProps {
     last_name: string;
     email: string;
   } | null;
+  offerId: string;
 }
 
-export function OfferLetterPreview({ version, candidate }: OfferLetterPreviewProps) {
+export function OfferLetterPreview({ version, candidate, offerId }: OfferLetterPreviewProps) {
   const { data: templates } = useOfferLetterTemplates();
   const { settings } = useCompanySettings();
   const { data: smartTags } = useActiveSmartTags();
@@ -145,7 +146,8 @@ export function OfferLetterPreview({ version, candidate }: OfferLetterPreviewPro
       await sendOfferLetter.mutateAsync({
         versionId: version.id,
         templateId: selectedTemplateId,
-        senderEmployeeId: currentUserEmployee?.id || undefined
+        senderEmployeeId: currentUserEmployee?.id || undefined,
+        offerId
       });
       
       toast.success("Offer letter sent successfully!");

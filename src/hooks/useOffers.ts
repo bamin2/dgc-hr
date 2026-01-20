@@ -645,11 +645,13 @@ export function useSendOfferLetter() {
     mutationFn: async ({ 
       versionId, 
       templateId, 
-      senderEmployeeId 
+      senderEmployeeId,
+      offerId
     }: { 
       versionId: string; 
       templateId: string;
       senderEmployeeId?: string;
+      offerId: string;
     }) => {
       // Call the edge function to send the offer letter email
       const { data, error } = await supabase.functions.invoke('send-offer-letter', {
@@ -663,8 +665,9 @@ export function useSendOfferLetter() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (_, { offerId }) => {
       queryClient.invalidateQueries({ queryKey: ["offers"] });
+      queryClient.invalidateQueries({ queryKey: ["offer", offerId] });
       queryClient.invalidateQueries({ queryKey: ["candidates"] });
       toast.success("Offer letter sent successfully");
     },
