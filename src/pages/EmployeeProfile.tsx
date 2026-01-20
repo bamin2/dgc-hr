@@ -60,7 +60,7 @@ function InfoRow({ label, value, icon }: { label: string; value?: string | null;
 export default function EmployeeProfile() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getEmployeeRole, updateEmployeeRole, canManageRoles, canEditEmployees, isTeamMember } = useRole();
+  const { getEmployeeRole, updateEmployeeRole, canManageRoles, canEditEmployees, isTeamMember, userRoles } = useRole();
   const { profile } = useAuth();
   const { data: employee, isLoading, error } = useEmployee(id);
   const { data: allEmployees = [] } = useEmployees();
@@ -74,7 +74,7 @@ export default function EmployeeProfile() {
   const { data: workLocations } = useWorkLocations();
   const employeeRole = useMemo(() => {
     return id ? getEmployeeRole(id) : 'employee';
-  }, [id, getEmployeeRole]);
+  }, [id, getEmployeeRole, userRoles]);
   
   // Get HQ currency for formatting
   const hqLocation = workLocations?.find(loc => loc.is_hq);
