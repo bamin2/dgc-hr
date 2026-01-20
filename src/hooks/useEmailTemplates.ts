@@ -1,7 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { queryKeys } from "@/lib/queryKeys";
 
+/** Email template record from the database */
 export interface EmailTemplate {
   id: string;
   type: string;
@@ -14,13 +16,17 @@ export interface EmailTemplate {
   updated_at: string;
 }
 
+/** Partial update payload for email templates */
 export interface EmailTemplateUpdate {
   subject?: string;
   body_content?: string;
   is_active?: boolean;
 }
 
-// Map email template types to relevant smart tag categories
+/**
+ * Maps email template types to available smart tag categories.
+ * Used by the template editor to show relevant placeholders.
+ */
 export const templateTagCategories: Record<string, string[]> = {
   leave_request_submitted: ["Employee", "Leave", "Company", "Date"],
   leave_request_approved: ["Employee", "Leave", "Company", "Date"],
@@ -28,11 +34,17 @@ export const templateTagCategories: Record<string, string[]> = {
   payslip_issued: ["Employee", "Payroll", "Compensation", "Company", "Date"],
 };
 
+/**
+ * Hook for managing email templates.
+ * Provides CRUD operations for email notification templates.
+ * 
+ * @returns Templates list, loading state, error, and update mutation
+ */
 export function useEmailTemplates() {
   const queryClient = useQueryClient();
 
   const { data: templates, isLoading, error } = useQuery({
-    queryKey: ["email-templates"],
+    queryKey: queryKeys.emailTemplates.all,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("email_templates")
@@ -70,7 +82,7 @@ export function useEmailTemplates() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["email-templates"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.emailTemplates.all });
       toast.success("Email template updated successfully");
     },
     onError: (error: any) => {
