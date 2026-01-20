@@ -12,6 +12,7 @@ import { CompactModeProvider } from "@/contexts/CompactModeContext";
 import { ProtectedRoute, PublicRoute } from "@/components/auth";
 import { PageLoader } from "@/components/ui/page-loader";
 import { DashboardPageLoader } from "@/components/dashboard/DashboardPageLoader";
+import { OfflineIndicator } from "@/components/pwa/OfflineIndicator";
 
 // Critical routes - keep eager for fast initial load
 import Index from "./pages/Index";
@@ -86,6 +87,7 @@ const App = () => (
             <TooltipProvider>
               <Toaster />
               <Sonner />
+              <OfflineIndicator />
               <BrowserRouter>
               <Routes>
               {/* Public routes */}
