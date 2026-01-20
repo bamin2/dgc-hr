@@ -22,3 +22,10 @@ export type {
 
 // Mappers
 export { mapDbEmployeeToEmployee, mapDbToTeamMember } from './mappers';
+
+// Shared mutations
+export {
+  useCreateEmployeeMutation,
+  useUpdateEmployeeMutation,
+  useDeleteEmployeeMutation,
+} from './mutations';
