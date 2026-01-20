@@ -1,13 +1,15 @@
-import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { queryKeys } from "@/lib/queryKeys";
 import { queryPresets } from "@/lib/queryOptions";
 import { 
   fetchEmployeesBase, 
   fetchEmployeeBase, 
   EMPLOYEE_SELECT_QUERY,
-  mapDbEmployeeToEmployee 
+  mapDbEmployeeToEmployee,
+  useCreateEmployeeMutation,
+  useUpdateEmployeeMutation,
+  useDeleteEmployeeMutation,
 } from "./employee";
 
 // Re-export types for backwards compatibility
@@ -84,79 +86,7 @@ export function usePositions() {
   });
 }
 
-export function useCreateEmployee() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (employee: TablesInsert<"employees">) => {
-      const { data, error } = await supabase
-        .from("employees")
-        .insert(employee)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.employees.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.teamMembers.all });
-    },
-  });
-}
-
-export function useUpdateEmployee() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({
-      id,
-      ...employee
-    }: TablesUpdate<"employees"> & { id: string }) => {
-      const { data, error } = await supabase
-        .from("employees")
-        .update(employee)
-        .eq("id", id)
-        .select("*, user_id")
-        .single();
-
-      if (error) throw error;
-
-      // Sync avatar to profiles table if employee has a linked user
-      if (employee.avatar_url !== undefined && data.user_id) {
-        await supabase
-          .from('profiles')
-          .update({ avatar_url: employee.avatar_url })
-          .eq('id', data.user_id);
-      }
-
-      return data;
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.employees.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.employees.detail(variables.id) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.teamMembers.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.teamMembers.detail(variables.id) });
-      // Also invalidate user preferences to refresh avatar in settings
-      queryClient.invalidateQueries({ queryKey: ['user-preferences'] });
-    },
-  });
-}
-
-export function useDeleteEmployee() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("employees").delete().eq("id", id);
-
-      if (error) throw error;
-    },
-    onSuccess: (_, id) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.employees.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.employees.detail(id) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.teamMembers.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.teamMembers.detail(id) });
-    },
-  });
-}
+// Re-export shared mutations with legacy names for backwards compatibility
+export { useCreateEmployeeMutation as useCreateEmployee };
+export { useUpdateEmployeeMutation as useUpdateEmployee };
+export { useDeleteEmployeeMutation as useDeleteEmployee };
