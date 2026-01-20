@@ -1,6 +1,8 @@
 import { useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AppRole, UserRole } from '@/data/roles';
+import { queryKeys } from '@/lib/queryKeys';
 
 interface UseRoleManagementResult {
   getEmployeeRole: (employeeId: string) => AppRole;
@@ -11,6 +13,8 @@ export function useRoleManagement(
   userRoles: UserRole[],
   setUserRoles: React.Dispatch<React.SetStateAction<UserRole[]>>
 ): UseRoleManagementResult {
+  const queryClient = useQueryClient();
+
   const getEmployeeRole = useCallback(
     (employeeId: string): AppRole => {
       const userRole = userRoles.find(ur => ur.userId === employeeId);
@@ -59,9 +63,12 @@ export function useRoleManagement(
         return [...filtered, { id: `role-${employeeId}`, userId: employeeId, role: newRole }];
       });
 
+      // Invalidate the React Query cache to ensure fresh data
+      queryClient.invalidateQueries({ queryKey: queryKeys.roles.allUserRoles });
+
       return {};
     },
-    [setUserRoles]
+    [setUserRoles, queryClient]
   );
 
   return { getEmployeeRole, updateEmployeeRole };
