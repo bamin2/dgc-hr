@@ -1,12 +1,21 @@
 import { DbEmployeeBase, extractManagerName } from './core';
 import { Employee, TeamMember, TeamMemberStatus } from './types';
 
+// Additional fields that may be present on DbEmployeeBase but aren't in the base type
+// These are accessed via type assertion since the actual DB row includes them
+type DbEmployeeWithExtras = DbEmployeeBase & {
+  second_name?: string | null;
+  full_name?: string | null;
+};
+
 // Map database record to Employee UI format
 export function mapDbEmployeeToEmployee(db: DbEmployeeBase): Employee {
+  // The database row includes these fields, access them safely
+  const extDb = db as DbEmployeeWithExtras;
   const firstName = db.first_name;
   const lastName = db.last_name;
-  const secondName = (db as any).second_name || undefined;
-  const fullName = (db as any).full_name || `${firstName} ${lastName}`.trim();
+  const secondName = extDb.second_name || undefined;
+  const fullName = extDb.full_name || `${firstName} ${lastName}`.trim();
 
   return {
     id: db.id,
@@ -45,11 +54,11 @@ export function mapDbEmployeeToEmployee(db: DbEmployeeBase): Employee {
             phone: db.emergency_contact_phone,
           }
         : undefined,
-    bankName: (db as any).bank_name || undefined,
-    bankAccountNumber: (db as any).bank_account_number || undefined,
-    iban: (db as any).iban || undefined,
-    passportNumber: (db as any).passport_number || undefined,
-    cprNumber: (db as any).cpr_number || undefined,
+    bankName: db.bank_name || undefined,
+    bankAccountNumber: db.bank_account_number || undefined,
+    iban: db.iban || undefined,
+    passportNumber: db.passport_number || undefined,
+    cprNumber: db.cpr_number || undefined,
   };
 }
 

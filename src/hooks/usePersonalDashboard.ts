@@ -100,8 +100,9 @@ export function usePersonalDashboard() {
         fetchCompanySettings(),
       ]);
 
-      // Get employee currency
-      const loanCurrency = (employeeRes.data?.work_location as any)?.currency || 'SAR';
+      // Get employee currency from work location
+      const workLocation = employeeRes.data?.work_location as { currency?: string } | null;
+      const loanCurrency = workLocation?.currency || 'SAR';
 
       // Process leave balances
       const leaveBalances = (leaveBalancesRes.data || []).map((b: any) => ({

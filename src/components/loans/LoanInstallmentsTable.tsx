@@ -53,9 +53,9 @@ export function LoanInstallmentsTable({
                 Skipped
               </Badge>
             </TooltipTrigger>
-            {(installment as any).skipped_reason && (
+            {installment.skipped_reason && (
               <TooltipContent>
-                <p>{(installment as any).skipped_reason}</p>
+                <p>{installment.skipped_reason}</p>
               </TooltipContent>
             )}
           </Tooltip>
