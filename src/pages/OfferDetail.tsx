@@ -90,6 +90,7 @@ export default function OfferDetail() {
                   <OfferLetterPreview 
                     version={selectedVersion}
                     candidate={offer.candidate}
+                    offerId={offer.id}
                   />
                 ) : (
                   <Card>
