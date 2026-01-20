@@ -230,12 +230,27 @@ export function usePayrollRunEmployees(runId: string | null) {
       };
     });
 
+    // First, delete all existing employees for this run to ensure clean slate
+    const { error: deleteError } = await supabase
+      .from("payroll_run_employees")
+      .delete()
+      .eq("payroll_run_id", payrollRunId);
+
+    if (deleteError) {
+      console.error("snapshotEmployees: delete failed", {
+        payrollRunId,
+        deleteError,
+      });
+      throw deleteError;
+    }
+
+    // Then insert the newly selected employees
     const { error } = await supabase
       .from("payroll_run_employees")
-      .upsert(snapshots, { onConflict: "payroll_run_id,employee_id" });
+      .insert(snapshots);
 
     if (error) {
-      console.error("snapshotEmployees: upsert failed", {
+      console.error("snapshotEmployees: insert failed", {
         payrollRunId,
         employeeIdsCount: employeeIds.length,
         snapshotsCount: snapshots.length,
