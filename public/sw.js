@@ -1,6 +1,7 @@
-const CACHE_NAME = 'dgc-core-pwa-v1';
+const CACHE_NAME = 'dgc-core-pwa-v2';
 const STATIC_ASSETS = [
   '/index.html',
+  '/offline.html',
   '/manifest.json',
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png',
@@ -82,7 +83,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // For navigation requests, network-first with cache fallback
+  // For navigation requests, network-first with cache fallback, then offline page
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
@@ -95,7 +96,12 @@ self.addEventListener('fetch', (event) => {
           }
           return response;
         })
-        .catch(() => caches.match(request))
+        .catch(() => {
+          // Try cached version first, then fall back to offline page
+          return caches.match(request).then((cached) => {
+            return cached || caches.match('/offline.html');
+          });
+        })
     );
   }
 });
