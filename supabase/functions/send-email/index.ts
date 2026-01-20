@@ -13,9 +13,11 @@ const corsHeaders = {
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-// Brand colors
-const BRAND_PRIMARY = "#804EEC";
-const BRAND_PRIMARY_DARK = "#6B3FD4";
+// DGC Brand Colors
+const DGC_DEEP_GREEN = "#0F2A28";
+const DGC_DEEP_GREEN_DARK = "#0A1D1B";
+const DGC_GOLD = "#C6A45E";
+const DGC_OFF_WHITE = "#F7F7F5";
 
 // Input validation schema
 const EmailRequestSchema = z.object({
@@ -547,13 +549,13 @@ interface EmailWrapperWithActionsData extends EmailWrapperData {
 }
 
 function wrapInEmailTemplate(data: EmailWrapperData): string {
-  const gradientColors = data.gradientColors || { from: BRAND_PRIMARY, to: BRAND_PRIMARY_DARK };
+  const gradientColors = data.gradientColors || { from: DGC_DEEP_GREEN, to: DGC_DEEP_GREEN_DARK };
   
   return `
 <!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background-color:#f4f4f5;">
+<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background-color:${DGC_OFF_WHITE};">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;padding:20px;">
     ${generateEmailHeader(data, gradientColors)}
     <tr>
@@ -595,13 +597,13 @@ function wrapInEmailTemplateWithActions(data: EmailWrapperWithActionsData): stri
 <!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background-color:#f4f4f5;">
+<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background-color:${DGC_OFF_WHITE};">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;padding:20px;">
-    ${generateEmailHeader(data, { from: BRAND_PRIMARY, to: BRAND_PRIMARY_DARK })}
+    ${generateEmailHeader(data, { from: DGC_DEEP_GREEN, to: DGC_DEEP_GREEN_DARK })}
     <tr>
       <td style="background-color:#ffffff;padding:30px;">
         <div style="text-align:center;margin-bottom:20px;">
-          <span style="display:inline-block;background:linear-gradient(135deg,${BRAND_PRIMARY} 0%,${BRAND_PRIMARY_DARK} 100%);color:#ffffff;font-size:11px;font-weight:600;padding:6px 14px;border-radius:20px;text-transform:uppercase;letter-spacing:0.5px;">Action Required</span>
+          <span style="display:inline-block;background:linear-gradient(135deg,${DGC_DEEP_GREEN} 0%,${DGC_DEEP_GREEN_DARK} 100%);color:#ffffff;font-size:11px;font-weight:600;padding:6px 14px;border-radius:20px;text-transform:uppercase;letter-spacing:0.5px;">Action Required</span>
         </div>
         ${data.bodyContent}
         ${actionButtonsHtml}
@@ -633,7 +635,7 @@ interface LeaveEmailData {
   rejectUrl?: string;
 }
 
-function generateEmailHeader(data: { companyName: string; companyLogo?: string }, gradientColors: { from: string; to: string } = { from: BRAND_PRIMARY, to: BRAND_PRIMARY_DARK }): string {
+function generateEmailHeader(data: { companyName: string; companyLogo?: string }, gradientColors: { from: string; to: string } = { from: DGC_DEEP_GREEN, to: DGC_DEEP_GREEN_DARK }): string {
   const logoSection = data.companyLogo 
     ? `<img src="${data.companyLogo}" alt="${data.companyName}" style="max-height:45px;max-width:150px;margin-right:15px;vertical-align:middle;" />`
     : `<div style="display:inline-block;width:45px;height:45px;background:rgba(255,255,255,0.2);border-radius:8px;margin-right:15px;vertical-align:middle;text-align:center;line-height:45px;font-size:20px;font-weight:bold;color:white;">${data.companyName.charAt(0)}</div>`;
@@ -670,10 +672,10 @@ function generateEmailFooter(data: { companyName: string; companyPhone?: string;
               <p style="color:#71717a;margin:0 0 15px 0;font-size:12px;">
                 <a href="tel:${phone.replace(/\s/g, '')}" style="color:#71717a;text-decoration:none;">${phone}</a>
                 &nbsp;|&nbsp;
-                <a href="mailto:${email}" style="color:${BRAND_PRIMARY};text-decoration:none;">${email}</a>
+                <a href="mailto:${email}" style="color:${DGC_GOLD};text-decoration:none;">${email}</a>
               </p>
               <p style="margin:0 0 15px 0;">
-                <a href="https://${website}" style="color:${BRAND_PRIMARY};text-decoration:none;font-size:12px;font-weight:500;">${website}</a>
+                <a href="https://${website}" style="color:${DGC_GOLD};text-decoration:none;font-size:12px;font-weight:500;">${website}</a>
               </p>
               <hr style="border:none;border-top:1px solid #e5e7eb;margin:15px 0;" />
               <p style="color:#a1a1aa;margin:0;font-size:11px;line-height:1.5;">
@@ -716,27 +718,27 @@ function generateLeaveSubmittedHtml(data: LeaveEmailData): string {
 <!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background-color:#f4f4f5;">
+<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background-color:${DGC_OFF_WHITE};">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;padding:20px;">
     ${generateEmailHeader(data)}
     <tr>
       <td style="background-color:#ffffff;padding:30px;">
         <div style="text-align:center;margin-bottom:20px;">
-          <span style="display:inline-block;background:linear-gradient(135deg,${BRAND_PRIMARY} 0%,${BRAND_PRIMARY_DARK} 100%);color:#ffffff;font-size:11px;font-weight:600;padding:6px 14px;border-radius:20px;text-transform:uppercase;letter-spacing:0.5px;">Action Required</span>
+          <span style="display:inline-block;background:linear-gradient(135deg,${DGC_DEEP_GREEN} 0%,${DGC_DEEP_GREEN_DARK} 100%);color:#ffffff;font-size:11px;font-weight:600;padding:6px 14px;border-radius:20px;text-transform:uppercase;letter-spacing:0.5px;">Action Required</span>
         </div>
         <h2 style="color:#18181b;margin:0 0 15px 0;font-size:22px;text-align:center;font-weight:600;">Leave Request Submitted</h2>
         <p style="color:#52525b;margin:0 0 25px 0;line-height:1.6;text-align:center;font-size:15px;"><strong style="color:#18181b;">${data.employeeName}</strong> has submitted a leave request that requires your review.</p>
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#fafafa;border-radius:10px;border:1px solid #e5e7eb;margin-bottom:20px;">
           <tr><td style="padding:20px;">
             <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
-              <tr><td style="padding:10px 0;color:#71717a;font-size:13px;border-bottom:1px solid #e5e7eb;">Leave Type</td><td style="padding:10px 0;color:#18181b;font-size:14px;text-align:right;font-weight:600;border-bottom:1px solid #e5e7eb;"><span style="background-color:${BRAND_PRIMARY}15;color:${BRAND_PRIMARY};padding:4px 10px;border-radius:4px;">${data.leaveType}</span></td></tr>
+              <tr><td style="padding:10px 0;color:#71717a;font-size:13px;border-bottom:1px solid #e5e7eb;">Leave Type</td><td style="padding:10px 0;color:#18181b;font-size:14px;text-align:right;font-weight:600;border-bottom:1px solid #e5e7eb;"><span style="background-color:${DGC_GOLD}20;color:${DGC_GOLD};padding:4px 10px;border-radius:4px;">${data.leaveType}</span></td></tr>
               <tr><td style="padding:10px 0;color:#71717a;font-size:13px;border-bottom:1px solid #e5e7eb;">Start Date</td><td style="padding:10px 0;color:#18181b;font-size:14px;text-align:right;border-bottom:1px solid #e5e7eb;">${formatDate(data.startDate)}</td></tr>
               <tr><td style="padding:10px 0;color:#71717a;font-size:13px;border-bottom:1px solid #e5e7eb;">End Date</td><td style="padding:10px 0;color:#18181b;font-size:14px;text-align:right;border-bottom:1px solid #e5e7eb;">${formatDate(data.endDate)}</td></tr>
-              <tr><td style="padding:10px 0;color:#71717a;font-size:13px;">Total Duration</td><td style="padding:10px 0;color:${BRAND_PRIMARY};font-size:16px;text-align:right;font-weight:700;">${data.daysCount} day${data.daysCount !== 1 ? "s" : ""}</td></tr>
+              <tr><td style="padding:10px 0;color:#71717a;font-size:13px;">Total Duration</td><td style="padding:10px 0;color:${DGC_GOLD};font-size:16px;text-align:right;font-weight:700;">${data.daysCount} day${data.daysCount !== 1 ? "s" : ""}</td></tr>
             </table>
           </td></tr>
         </table>
-        ${data.reason ? `<div style="background-color:#f0f9ff;border-left:4px solid ${BRAND_PRIMARY};padding:15px 18px;margin-bottom:20px;border-radius:0 8px 8px 0;"><p style="color:#71717a;margin:0 0 5px 0;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Reason</p><p style="color:#18181b;margin:0;font-size:14px;line-height:1.5;">${data.reason}</p></div>` : ""}
+        ${data.reason ? `<div style="background-color:#f0f9ff;border-left:4px solid ${DGC_GOLD};padding:15px 18px;margin-bottom:20px;border-radius:0 8px 8px 0;"><p style="color:#71717a;margin:0 0 5px 0;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Reason</p><p style="color:#18181b;margin:0;font-size:14px;line-height:1.5;">${data.reason}</p></div>` : ""}
         ${actionButtonsHtml}
       </td>
     </tr>
@@ -751,7 +753,7 @@ function generateLeaveApprovedHtml(data: LeaveEmailData): string {
 <!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background-color:#f4f4f5;">
+<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background-color:${DGC_OFF_WHITE};">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;padding:20px;">
     ${generateEmailHeader(data, { from: "#22c55e", to: "#16a34a" })}
     <tr>
@@ -785,7 +787,7 @@ function generateLeaveRejectedHtml(data: LeaveEmailData): string {
 <!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background-color:#f4f4f5;">
+<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background-color:${DGC_OFF_WHITE};">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;padding:20px;">
     ${generateEmailHeader(data, { from: "#ef4444", to: "#dc2626" })}
     <tr>
