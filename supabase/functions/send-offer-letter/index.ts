@@ -24,10 +24,11 @@ async function sendEmailWithAttachment(
   subject: string,
   html: string,
   fromName: string,
+  fromEmail: string,
   attachment?: { filename: string; content: string }
 ) {
   const body: Record<string, unknown> = {
-    from: `${fromName} <noreply@updates.dgcholding.com>`,
+    from: `${fromName} <${fromEmail}>`,
     to: [to],
     subject,
     html,
@@ -212,16 +213,18 @@ serve(async (req: Request): Promise<Response> => {
     // Fetch sender employee info if provided
     let senderName = "";
     let senderPosition = "";
+    let senderEmail = "noreply@updates.dgcholding.com";
     
     if (sender_employee_id) {
       const { data: sender } = await supabase
         .from("employees")
-        .select("first_name, last_name, position:positions(title)")
+        .select("first_name, last_name, email, position:positions(title)")
         .eq("id", sender_employee_id)
         .single();
       
       if (sender) {
         senderName = `${sender.first_name} ${sender.last_name}`;
+        senderEmail = sender.email || "noreply@updates.dgcholding.com";
         const positionData = sender.position as { title: string } | { title: string }[] | null;
         senderPosition = Array.isArray(positionData) ? positionData[0]?.title || "" : positionData?.title || "";
       }
@@ -485,12 +488,13 @@ serve(async (req: Request): Promise<Response> => {
     }
 
     // Send email via Resend API
-    console.log("Sending email...");
+    console.log("Sending email from:", senderEmail);
     const emailResponse = await sendEmailWithAttachment(
       candidate.email,
       renderedSubject,
       renderedBody,
-      `${companyName} HR`,
+      senderName || `${companyName} HR`,
+      senderEmail,
       pdfAttachment
     );
 
