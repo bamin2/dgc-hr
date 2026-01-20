@@ -43,7 +43,7 @@ const defaultPreferences: Omit<UserPreferences, 'userId'> = {
     theme: 'system',
     defaultPage: 'dashboard',
     itemsPerPage: 25,
-    compactMode: false,
+    compactMode: true,
     employeeTableColumns: defaultEmployeeTableColumns,
   },
   regional: {
@@ -88,7 +88,7 @@ function transformFromDb(
       theme: (prefs?.theme as 'light' | 'dark' | 'system') || 'system',
       defaultPage: prefs?.default_page || 'dashboard',
       itemsPerPage: prefs?.items_per_page || 25,
-      compactMode: prefs?.compact_mode || false,
+      compactMode: prefs?.compact_mode ?? true,
       employeeTableColumns: parseEmployeeTableColumns(prefs?.employee_table_columns),
     },
     regional: {
