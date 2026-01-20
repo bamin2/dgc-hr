@@ -47,6 +47,7 @@ export interface LoanInstallment {
   paid_method: "payroll" | "manual" | null;
   paid_in_payroll_run_id: string | null;
   created_at: string;
+  skipped_reason?: string | null;
 }
 
 export interface LoanWithInstallments extends Loan {

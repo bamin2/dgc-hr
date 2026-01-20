@@ -100,17 +100,17 @@ export function EmailTemplatePreview({ templateType, subject, bodyContent }: Ema
   
   const sampleData = sampleRenderData[templateType] || { employee: { first_name: "John", last_name: "Smith" } };
   
-  // Add company data from settings
+  // Add company data from settings - access nested branding and address objects
   const renderData: RenderData = useMemo(() => ({
     ...sampleData,
     company: {
       name: settings.name || "Company",
       email: settings.email || "info@company.com",
       phone: settings.phone || "+973 17000342",
-      logo_url: (settings as any).logoUrl,
-      document_logo_url: (settings as any).documentLogoUrl,
-      address_city: (settings as any).addressCity,
-      address_country: (settings as any).addressCountry,
+      logo_url: settings.branding?.logoUrl,
+      document_logo_url: settings.branding?.documentLogoUrl,
+      address_city: settings.address?.city,
+      address_country: settings.address?.country,
       website: settings.website,
     },
   }), [sampleData, settings]);
@@ -129,12 +129,12 @@ export function EmailTemplatePreview({ templateType, subject, bodyContent }: Ema
   }, [bodyContent, renderData, smartTags, sampleData.customFields]);
   
   const companyName = settings.name || "Company";
-  const companyLogo = (settings as any).documentLogoUrl || (settings as any).logoUrl;
+  const companyLogo = settings.branding?.documentLogoUrl || settings.branding?.logoUrl;
   const companyPhone = settings.phone || "+973 17000342";
   const companyWebsite = settings.website || "www.company.com";
   const companyEmail = settings.email || "info@company.com";
-  const companyAddress = (settings as any).addressCity && (settings as any).addressCountry 
-    ? `${(settings as any).addressCity}, ${(settings as any).addressCountry}` 
+  const companyAddress = settings.address?.city && settings.address?.country 
+    ? `${settings.address.city}, ${settings.address.country}` 
     : "City, Country";
 
   // Determine header gradient based on template type
