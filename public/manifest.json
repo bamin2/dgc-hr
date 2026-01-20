@@ -1,0 +1,24 @@
+{
+  "name": "DGC CORE",
+  "short_name": "DGC CORE",
+  "description": "The core of how we work at DGC. Access your work life, benefits, and requests in one place.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0F2A28",
+  "theme_color": "#0F2A28",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

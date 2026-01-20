@@ -1,7 +1,10 @@
-const CACHE_NAME = 'hr-app-static-v1';
+const CACHE_NAME = 'dgc-core-pwa-v1';
 const STATIC_ASSETS = [
   '/index.html',
   '/manifest.json',
+  '/icons/icon-192x192.png',
+  '/icons/icon-512x512.png',
+  '/icons/apple-touch-icon.png',
 ];
 
 // Install event - cache static assets
