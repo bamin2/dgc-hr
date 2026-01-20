@@ -1,6 +1,17 @@
 /**
- * Centralized query key factory for consistent cache management
- * Usage: queryKey: queryKeys.employees.all
+ * Centralized query keys for React Query cache management.
+ * 
+ * This module provides a single source of truth for all query keys used
+ * throughout the application. Using a factory pattern ensures type-safe,
+ * consistent cache key generation and simplifies cache invalidation.
+ * 
+ * @example
+ * // In a hook
+ * useQuery({ queryKey: queryKeys.employees.all, queryFn: ... })
+ * 
+ * @example
+ * // Invalidating related queries
+ * queryClient.invalidateQueries({ queryKey: queryKeys.employees.all })
  */
 export const queryKeys = {
   // Employee queries
@@ -217,6 +228,12 @@ export const queryKeys = {
   // Analytics queries
   analytics: {
     salary: ['salary-analytics'] as const,
+  },
+  
+  // Email templates
+  emailTemplates: {
+    all: ['email-templates'] as const,
+    detail: (id: string) => ['email-templates', id] as const,
   },
   
   // Smart tags queries
