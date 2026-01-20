@@ -72,7 +72,9 @@ export default function EmployeeProfile() {
   const [resetPasswordOpen, setResetPasswordOpen] = useState(false);
   const [bankDialogOpen, setBankDialogOpen] = useState(false);
   const { data: workLocations } = useWorkLocations();
-  const employeeRole = id ? getEmployeeRole(id) : 'employee';
+  const employeeRole = useMemo(() => {
+    return id ? getEmployeeRole(id) : 'employee';
+  }, [id, getEmployeeRole]);
   
   // Get HQ currency for formatting
   const hqLocation = workLocations?.find(loc => loc.is_hq);
