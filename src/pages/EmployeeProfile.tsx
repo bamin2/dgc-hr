@@ -73,9 +73,15 @@ export default function EmployeeProfile() {
   const [bankDialogOpen, setBankDialogOpen] = useState(false);
   const { data: workLocations } = useWorkLocations();
   const employeeRole = useMemo(() => {
-    return id ? getEmployeeRole(id) : 'employee';
-  }, [id, getEmployeeRole, userRoles]);
-  
+    if (!employee) return 'employee';
+
+    // Roles can be keyed by either employee.id or the linked auth user_id
+    const roleByEmployeeId = id ? getEmployeeRole(id) : 'employee';
+    if (roleByEmployeeId !== 'employee') return roleByEmployeeId;
+
+    const linkedUserId = (employee as any).userId as string | undefined;
+    return linkedUserId ? getEmployeeRole(linkedUserId) : roleByEmployeeId;
+  }, [id, employee, getEmployeeRole, userRoles]);
   // Get HQ currency for formatting
   const hqLocation = workLocations?.find(loc => loc.is_hq);
   const currency = hqLocation?.currency || "USD";
@@ -256,20 +262,21 @@ export default function EmployeeProfile() {
 
   const handleRoleChange = async (newRole: AppRole) => {
     if (!id) return;
-    
-    try {
-      await updateEmployeeRole(id, newRole);
-      toast({
-        title: "Role updated",
-        description: `Employee role has been changed to ${roleDescriptions[newRole] || newRole}.`,
-      });
-    } catch (error) {
+
+    const result = await updateEmployeeRole(id, newRole);
+    if (result?.error) {
       toast({
         title: "Error",
-        description: "Failed to update employee role.",
+        description: result.error,
         variant: "destructive",
       });
+      return;
     }
+
+    toast({
+      title: "Role updated",
+      description: `Employee role has been changed to ${roleDescriptions[newRole] || newRole}.`,
+    });
   };
 
   return (

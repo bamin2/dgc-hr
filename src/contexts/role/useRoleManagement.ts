@@ -52,15 +52,27 @@ export function useRoleManagement(
           role: newRole,
         });
 
+      // If the role already exists (idempotent update), treat it as success
       if (error) {
-        console.error('Failed to update role:', error);
-        return { error: 'Failed to update role in database.' };
+        const isDuplicateRole =
+          error.code === '23505' ||
+          /duplicate key value|already exists/i.test(error.message || '');
+
+        if (!isDuplicateRole) {
+          console.error('Failed to update role:', error);
+          return { error: 'Failed to update role in database.' };
+        }
       }
 
-      // Update local state with employeeId
+      // Update local state using BOTH identifiers so lookups work whether the UI
+      // keys roles by employeeId or by auth user_id.
       setUserRoles(prev => {
-        const filtered = prev.filter(ur => ur.userId !== employeeId);
-        return [...filtered, { id: `role-${employeeId}`, userId: employeeId, role: newRole }];
+        const filtered = prev.filter(ur => ur.userId !== employeeId && ur.userId !== userId);
+        return [
+          ...filtered,
+          { id: `role-emp-${employeeId}`, userId: employeeId, role: newRole },
+          { id: `role-user-${userId}`, userId: userId, role: newRole },
+        ];
       });
 
       // Invalidate the React Query cache to ensure fresh data
