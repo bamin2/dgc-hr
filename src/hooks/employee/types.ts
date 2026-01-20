@@ -13,6 +13,7 @@ export type TeamMemberStatus = 'active' | 'draft' | 'absent' | 'onboarding' | 'o
 // UI-compatible Employee interface (for HR/Admin views)
 export interface Employee {
   id: string;
+  userId?: string;
   firstName: string;
   secondName?: string;
   lastName: string;
