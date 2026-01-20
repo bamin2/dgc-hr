@@ -43,8 +43,9 @@ export interface CompanySettings {
     country: string;
   };
   branding: {
-    logoUrl: string;
-    documentLogoUrl: string; // Logo for documents and email templates
+    logoUrl: string; // Legacy - kept for backward compatibility
+    documentLogoUrl: string; // Logo for generated documents (payslips, offer letters, etc.)
+    emailLogoUrl: string; // Logo for email templates
     dashboardDisplayType: 'logo' | 'icon';
     dashboardIconName: string;
     primaryColor: string;
@@ -163,6 +164,7 @@ export const companySettings: CompanySettings = {
   branding: {
     logoUrl: '/placeholder.svg',
     documentLogoUrl: '',
+    emailLogoUrl: '',
     dashboardDisplayType: 'logo',
     dashboardIconName: 'Building2',
     primaryColor: '#C6A45E',

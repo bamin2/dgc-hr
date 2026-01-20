@@ -24,6 +24,7 @@ interface DbCompanySettings {
   address_country: string | null;
   logo_url: string | null;
   document_logo_url: string | null;
+  email_logo_url: string | null;
   dashboard_display_type: string | null;
   dashboard_icon_name: string | null;
   primary_color: string | null;
@@ -63,6 +64,7 @@ function transformFromDb(row: DbCompanySettings): CompanySettings {
     branding: {
       logoUrl: row.logo_url || '',
       documentLogoUrl: row.document_logo_url || '',
+      emailLogoUrl: row.email_logo_url || '',
       dashboardDisplayType: (row.dashboard_display_type as 'logo' | 'icon') || 'logo',
       dashboardIconName: row.dashboard_icon_name || 'Building2',
       primaryColor: row.primary_color || '#804EEC',
@@ -106,6 +108,7 @@ function transformToDb(settings: Partial<CompanySettings>): Record<string, unkno
   if (settings.branding) {
     if (settings.branding.logoUrl !== undefined) db.logo_url = settings.branding.logoUrl;
     if (settings.branding.documentLogoUrl !== undefined) db.document_logo_url = settings.branding.documentLogoUrl;
+    if (settings.branding.emailLogoUrl !== undefined) db.email_logo_url = settings.branding.emailLogoUrl;
     if (settings.branding.dashboardDisplayType !== undefined) db.dashboard_display_type = settings.branding.dashboardDisplayType;
     if (settings.branding.dashboardIconName !== undefined) db.dashboard_icon_name = settings.branding.dashboardIconName;
     if (settings.branding.primaryColor !== undefined) db.primary_color = settings.branding.primaryColor;

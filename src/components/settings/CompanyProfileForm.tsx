@@ -210,20 +210,8 @@ export const CompanyProfileForm = ({ settings, onChange }: CompanyProfileFormPro
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label>Sidebar Logo</Label>
-              <p className="text-xs text-muted-foreground">Displayed in the navigation sidebar</p>
-              <LogoUpload
-                value={settings.branding.logoUrl}
-                onChange={(v) => updateBranding('logoUrl', v)}
-                label="Upload Sidebar Logo"
-                fallback={settings.name.slice(0, 2).toUpperCase()}
-                size="md"
-              />
-            </div>
-
-            <div className="space-y-2">
               <Label>Document Logo</Label>
-              <p className="text-xs text-muted-foreground">Used in generated documents and email templates</p>
+              <p className="text-xs text-muted-foreground">Used in generated documents (payslips, offer letters, etc.)</p>
               <LogoUpload
                 value={settings.branding.documentLogoUrl}
                 onChange={(v) => updateBranding('documentLogoUrl', v)}
@@ -232,15 +220,25 @@ export const CompanyProfileForm = ({ settings, onChange }: CompanyProfileFormPro
                 size="lg"
               />
             </div>
+
+            <div className="space-y-2">
+              <Label>Email Logo</Label>
+              <p className="text-xs text-muted-foreground">Used in email templates and notifications</p>
+              <LogoUpload
+                value={settings.branding.emailLogoUrl}
+                onChange={(v) => updateBranding('emailLogoUrl', v)}
+                label="Upload Email Logo"
+                fallback={settings.name.slice(0, 2).toUpperCase()}
+                size="lg"
+              />
+            </div>
           </div>
 
           {/* Logo Preview Section */}
           <LogoPreviewSection
-            sidebarLogoUrl={settings.branding.logoUrl}
             documentLogoUrl={settings.branding.documentLogoUrl}
+            emailLogoUrl={settings.branding.emailLogoUrl}
             companyName={settings.name}
-            displayType={settings.branding.dashboardDisplayType}
-            iconName={settings.branding.dashboardIconName}
           />
 
           <div className="space-y-3 pt-2 border-t">
