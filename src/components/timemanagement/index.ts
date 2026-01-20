@@ -15,3 +15,5 @@ export { BulkAddHolidaysDialog } from './BulkAddHolidaysDialog';
 export { CopyYearHolidaysDialog } from './CopyYearHolidaysDialog';
 export { AttendanceTab } from './AttendanceTab';
 export { LeavesTab } from './LeavesTab';
+export { LeaveEmailTemplatesTab } from './LeaveEmailTemplatesTab';
+export { RecipientConfigCard } from './RecipientConfigCard';
