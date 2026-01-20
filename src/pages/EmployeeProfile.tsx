@@ -225,7 +225,7 @@ export default function EmployeeProfile() {
       salary: data.salary,
       address: data.address,
       date_of_birth: data.dateOfBirth || null,
-      gender: data.gender as "male" | "female" | "other" | "prefer_not_to_say" | null,
+      gender: data.gender ? (data.gender as "male" | "female" | "other" | "prefer_not_to_say") : null,
       nationality: data.nationality,
       avatar_url: data.avatar,
       emergency_contact_name: data.emergencyContact?.name,
