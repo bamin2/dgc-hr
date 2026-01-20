@@ -638,18 +638,28 @@ interface LeaveEmailData {
 }
 
 function generateEmailHeader(data: { companyName: string; companyLogo?: string }, gradientColors: { from: string; to: string } = { from: DGC_DEEP_GREEN, to: DGC_DEEP_GREEN_DARK }): string {
-  const logoSection = data.companyLogo 
+  // Check if logo is SVG (poor email client support)
+  const isSvg = data.companyLogo?.toLowerCase().endsWith('.svg');
+  
+  // Use table-based fallback letter if no logo or if SVG (better email client compatibility)
+  const logoSection = (data.companyLogo && !isSvg)
     ? `<img src="${data.companyLogo}" alt="${data.companyName}" style="max-height:45px;max-width:150px;margin-right:15px;vertical-align:middle;" />`
-    : `<div style="display:inline-block;width:45px;height:45px;background:rgba(255,255,255,0.2);border-radius:8px;margin-right:15px;vertical-align:middle;text-align:center;line-height:45px;font-size:20px;font-weight:bold;color:white;">${data.companyName.charAt(0)}</div>`;
+    : `<table role="presentation" cellspacing="0" cellpadding="0" style="display:inline-block;vertical-align:middle;margin-right:15px;">
+        <tr>
+          <td bgcolor="#1a3634" style="width:45px;height:45px;background-color:#1a3634;border-radius:8px;text-align:center;font-size:20px;font-weight:bold;color:#ffffff;font-family:Arial,sans-serif;">
+            ${data.companyName.charAt(0)}
+          </td>
+        </tr>
+       </table>`;
 
   return `
     <tr>
-      <td style="background:linear-gradient(135deg,${gradientColors.from} 0%,${gradientColors.to} 100%);padding:25px 30px;border-radius:12px 12px 0 0;">
+      <td bgcolor="${gradientColors.from}" style="background-color:${gradientColors.from};background:linear-gradient(135deg,${gradientColors.from} 0%,${gradientColors.to} 100%);padding:25px 30px;border-radius:12px 12px 0 0;">
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
           <tr>
             <td style="vertical-align:middle;">
               ${logoSection}
-              <span style="color:#ffffff;font-size:22px;font-weight:600;vertical-align:middle;">${data.companyName}</span>
+              <span style="color:#ffffff;font-size:22px;font-weight:600;vertical-align:middle;font-family:Arial,sans-serif;">${data.companyName}</span>
             </td>
           </tr>
         </table>
