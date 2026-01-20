@@ -21,6 +21,7 @@ export interface EmailTemplate {
   body_content: string;
   is_active: boolean;
   recipient_config: EmailRecipientConfig | null;
+  use_default_template: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -31,6 +32,7 @@ export interface EmailTemplateUpdate {
   body_content?: string;
   is_active?: boolean;
   recipient_config?: EmailRecipientConfig;
+  use_default_template?: boolean;
 }
 
 /**
@@ -74,7 +76,7 @@ export function useEmailTemplates() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("email_templates")
-        .select("id, type, name, subject, description, body_content, is_active, recipient_config, created_at, updated_at")
+        .select("id, type, name, subject, description, body_content, is_active, recipient_config, use_default_template, created_at, updated_at")
         .order("name");
 
       if (error) throw error;
@@ -89,6 +91,7 @@ export function useEmailTemplates() {
         body_content: row.body_content,
         is_active: row.is_active ?? true,
         recipient_config: parseRecipientConfig(row.recipient_config),
+        use_default_template: row.use_default_template ?? false,
         created_at: row.created_at ?? "",
         updated_at: row.updated_at ?? "",
       }));

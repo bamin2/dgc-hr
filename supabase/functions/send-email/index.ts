@@ -48,6 +48,7 @@ interface EmailTemplate {
   body_content: string;
   is_active: boolean;
   recipient_config: RecipientConfig | null;
+  use_default_template: boolean;
 }
 
 interface RecipientConfig {
@@ -130,14 +131,15 @@ serve(async (req: Request): Promise<Response> => {
       ? `${company.address_city}, ${company.address_country}` 
       : undefined;
 
-    // Fetch email template from database with recipient config
+    // Fetch email template from database with recipient config and default template flag
     const { data: emailTemplate } = await supabase
       .from("email_templates")
-      .select("subject, body_content, is_active, recipient_config")
+      .select("subject, body_content, is_active, recipient_config, use_default_template")
       .eq("type", type)
       .single();
 
-    const useCustomTemplate = emailTemplate?.is_active && emailTemplate?.body_content;
+    // Use custom template ONLY if active, has content, AND use_default_template is false
+    const useCustomTemplate = emailTemplate?.is_active && emailTemplate?.body_content && !emailTemplate?.use_default_template;
 
     let emailSent = false;
     let emailResult: ResendResponse = {};
