@@ -39,6 +39,7 @@ interface CompanyData {
   website?: string;
   logo_url?: string;
   document_logo_url?: string;
+  email_logo_url?: string;
   address_city?: string;
   address_country?: string;
 }
@@ -121,7 +122,7 @@ serve(async (req: Request): Promise<Response> => {
     // Get company settings with all branding data
     const { data: companySettings } = await supabase
       .from("company_settings")
-      .select("name, email, phone, website, logo_url, document_logo_url, address_city, address_country")
+      .select("name, email, phone, website, logo_url, document_logo_url, email_logo_url, address_city, address_country")
       .single();
 
     const company: CompanyData = companySettings || { name: "Company" };
@@ -298,7 +299,7 @@ serve(async (req: Request): Promise<Response> => {
                     // Wrap with action buttons for approval emails
                     html = wrapInEmailTemplateWithActions({
                       companyName,
-                      companyLogo: company.document_logo_url || company.logo_url,
+                      companyLogo: company.email_logo_url || company.document_logo_url || company.logo_url,
                       companyPhone: company.phone,
                       companyWebsite: company.website,
                       companyEmail: company.email,
@@ -313,7 +314,7 @@ serve(async (req: Request): Promise<Response> => {
                   subject = `Leave Request: ${employeeName} - ${leaveTypeName}`;
                   html = generateLeaveSubmittedHtml({
                     companyName,
-                    companyLogo: company.document_logo_url || company.logo_url,
+                    companyLogo: company.email_logo_url || company.document_logo_url || company.logo_url,
                     companyPhone: company.phone,
                     companyWebsite: company.website,
                     companyEmail: company.email,
@@ -427,7 +428,7 @@ serve(async (req: Request): Promise<Response> => {
                 
                 html = wrapInEmailTemplate({
                   companyName,
-                  companyLogo: company.document_logo_url || company.logo_url,
+                  companyLogo: company.email_logo_url || company.document_logo_url || company.logo_url,
                   companyPhone: company.phone,
                   companyWebsite: company.website,
                   companyEmail: company.email,
@@ -440,7 +441,7 @@ serve(async (req: Request): Promise<Response> => {
               // Fallback to hardcoded template
               const emailData = {
                 companyName,
-                companyLogo: company.document_logo_url || company.logo_url,
+                companyLogo: company.email_logo_url || company.document_logo_url || company.logo_url,
                 companyPhone: company.phone,
                 companyWebsite: company.website,
                 companyEmail: company.email,

@@ -1,26 +1,20 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Building2, CheckCircle2 } from "lucide-react";
 
 interface LogoPreviewSectionProps {
-  sidebarLogoUrl: string;
   documentLogoUrl: string;
+  emailLogoUrl: string;
   companyName: string;
-  displayType: 'logo' | 'icon';
-  iconName?: string;
 }
 
 export const LogoPreviewSection = ({
-  sidebarLogoUrl,
   documentLogoUrl,
+  emailLogoUrl,
   companyName,
 }: LogoPreviewSectionProps) => {
-  const initials = companyName
-    ? companyName.split(' ').map(word => word[0]).join('').substring(0, 2).toUpperCase()
-    : 'CO';
-
-  const effectiveDocumentLogo = documentLogoUrl || sidebarLogoUrl;
+  // Email preview uses emailLogoUrl, falling back to documentLogoUrl
+  const effectiveEmailLogo = emailLogoUrl || documentLogoUrl;
 
   return (
     <Card>
@@ -29,56 +23,11 @@ export const LogoPreviewSection = ({
         <CardDescription>See how your logos will appear in different contexts</CardDescription>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="sidebar" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-4">
-            <TabsTrigger value="sidebar">Sidebar</TabsTrigger>
+        <Tabs defaultValue="document" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-4">
             <TabsTrigger value="document">Document</TabsTrigger>
             <TabsTrigger value="email">Email</TabsTrigger>
           </TabsList>
-
-          {/* Sidebar Preview Tab */}
-          <TabsContent value="sidebar">
-            <div className="rounded-lg border bg-sidebar p-4">
-              <p className="text-xs font-medium text-sidebar-foreground/70 uppercase tracking-wider mb-3">
-                Sidebar Preview
-              </p>
-              <div className="rounded-lg bg-sidebar-accent/50 p-3 space-y-3">
-                {/* Logo and company name */}
-                <div className="flex items-center gap-2.5">
-                  {sidebarLogoUrl ? (
-                    <Avatar className="h-8 w-8 rounded-md">
-                      <AvatarImage src={sidebarLogoUrl} className="object-contain" />
-                      <AvatarFallback className="rounded-md bg-sidebar-primary text-sidebar-primary-foreground text-xs">
-                        {initials}
-                      </AvatarFallback>
-                    </Avatar>
-                  ) : (
-                    <div className="h-8 w-8 rounded-md bg-sidebar-primary flex items-center justify-center">
-                      <Building2 className="h-4 w-4 text-sidebar-primary-foreground" />
-                    </div>
-                  )}
-                  <span className="font-semibold text-sm text-sidebar-foreground truncate">
-                    {companyName || 'Company Name'}
-                  </span>
-                </div>
-                {/* Mock menu items */}
-                <div className="space-y-1">
-                  <div className="h-7 bg-sidebar-accent rounded-md flex items-center px-2.5 text-xs text-sidebar-foreground/80">
-                    Dashboard
-                  </div>
-                  <div className="h-7 bg-transparent rounded-md flex items-center px-2.5 text-xs text-sidebar-foreground/60">
-                    My Profile
-                  </div>
-                  <div className="h-7 bg-transparent rounded-md flex items-center px-2.5 text-xs text-sidebar-foreground/60">
-                    Directory
-                  </div>
-                </div>
-              </div>
-              <p className="text-xs text-sidebar-foreground/50 mt-3">
-                Shows in the navigation sidebar
-              </p>
-            </div>
-          </TabsContent>
 
           {/* Document Preview Tab */}
           <TabsContent value="document">
@@ -89,9 +38,9 @@ export const LogoPreviewSection = ({
               <div className="rounded-lg bg-background border shadow-sm p-4">
                 {/* Document header */}
                 <div className="flex items-start gap-3 border-b pb-3 mb-3">
-                  {effectiveDocumentLogo ? (
+                  {documentLogoUrl ? (
                     <img 
-                      src={effectiveDocumentLogo} 
+                      src={documentLogoUrl} 
                       alt="Document Logo"
                       className="h-10 w-auto max-w-[120px] object-contain"
                     />
@@ -114,7 +63,7 @@ export const LogoPreviewSection = ({
                 </div>
               </div>
               <p className="text-xs text-muted-foreground mt-3">
-                Used in generated documents and emails
+                Used in generated documents like payslips and offer letters
               </p>
             </div>
           </TabsContent>
@@ -129,12 +78,12 @@ export const LogoPreviewSection = ({
                 {/* Email header with gradient */}
                 <div 
                   className="p-4"
-                  style={{ background: 'linear-gradient(135deg, #804EEC 0%, #6B3FD4 100%)' }}
+                  style={{ background: 'linear-gradient(135deg, #0F2A28 0%, #0A1D1B 100%)' }}
                 >
                   <div className="flex items-center gap-3">
-                    {effectiveDocumentLogo ? (
+                    {effectiveEmailLogo ? (
                       <img 
-                        src={effectiveDocumentLogo} 
+                        src={effectiveEmailLogo} 
                         alt="Email Logo"
                         className="h-8 w-auto max-w-[80px] object-contain brightness-0 invert"
                       />
@@ -194,9 +143,9 @@ export const LogoPreviewSection = ({
         </Tabs>
 
         {/* Fallback notice */}
-        {!documentLogoUrl && sidebarLogoUrl && (
+        {!emailLogoUrl && documentLogoUrl && (
           <p className="text-xs text-muted-foreground mt-3 text-center italic">
-            Document and email previews are using the sidebar logo. Upload a document logo for a different appearance.
+            Email preview is using the document logo. Upload an email logo for a different appearance.
           </p>
         )}
       </CardContent>

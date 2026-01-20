@@ -1289,6 +1289,7 @@ export type Database = {
           date_format: string | null
           document_logo_url: string | null
           email: string | null
+          email_logo_url: string | null
           employee_can_view_compensation: boolean | null
           id: string
           industry: string | null
@@ -1322,6 +1323,7 @@ export type Database = {
           date_format?: string | null
           document_logo_url?: string | null
           email?: string | null
+          email_logo_url?: string | null
           employee_can_view_compensation?: boolean | null
           id?: string
           industry?: string | null
@@ -1355,6 +1357,7 @@ export type Database = {
           date_format?: string | null
           document_logo_url?: string | null
           email?: string | null
+          email_logo_url?: string | null
           employee_can_view_compensation?: boolean | null
           id?: string
           industry?: string | null
