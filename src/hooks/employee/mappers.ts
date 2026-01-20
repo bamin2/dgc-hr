@@ -19,6 +19,7 @@ export function mapDbEmployeeToEmployee(db: DbEmployeeBase): Employee {
 
   return {
     id: db.id,
+    userId: db.user_id || undefined,
     firstName,
     secondName,
     lastName,
