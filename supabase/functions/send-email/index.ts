@@ -196,12 +196,14 @@ serve(async (req: Request): Promise<Response> => {
         },
       };
 
-      // Get requester's user_id for notifications
-      const { data: requesterProfile } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("employee_id", leaveRequest.employee.id)
+      // Get requester's user_id for notifications (employees.user_id links to auth.users/profiles)
+      const { data: requesterEmployee } = await supabase
+        .from("employees")
+        .select("user_id")
+        .eq("id", leaveRequest.employee.id)
         .single();
+      
+      const requesterUserId = requesterEmployee?.user_id;
 
       if (type === "leave_request_submitted") {
         // Find the pending approval step from the approval workflow
@@ -225,21 +227,18 @@ serve(async (req: Request): Promise<Response> => {
         }
 
         if (pendingStep?.approver_user_id) {
-          // Get the approver's employee details via their user_id
-          const { data: approverProfile } = await supabase
-            .from("profiles")
-            .select("employee_id")
-            .eq("id", pendingStep.approver_user_id)
+          // Get the approver's employee details via their user_id (employees.user_id links to auth.users)
+          const { data: approver, error: approverError } = await supabase
+            .from("employees")
+            .select("id, first_name, last_name, email")
+            .eq("user_id", pendingStep.approver_user_id)
             .single();
 
-          if (approverProfile?.employee_id) {
-            const { data: approver } = await supabase
-              .from("employees")
-              .select("id, first_name, last_name, email")
-              .eq("id", approverProfile.employee_id)
-              .single();
+          if (approverError) {
+            console.log("Failed to find approver employee:", approverError.message);
+          }
 
-            if (approver?.email) {
+          if (approver?.email) {
               // Check approver's notification preferences
               const { data: prefs } = await supabase
                 .from("notification_preferences")
@@ -369,14 +368,13 @@ serve(async (req: Request): Promise<Response> => {
                   },
                 },
               });
-            }
           }
         }
 
         // Create confirmation notification for the requester with standardized metadata
-        if (requesterProfile?.id) {
+        if (requesterUserId) {
           await supabase.from("notifications").insert({
-            user_id: requesterProfile.id,
+            user_id: requesterUserId,
             type: "approval",
             title: "Leave Request Submitted",
             message: `Your ${leaveTypeName} request for ${leaveRequest.days_count} day${leaveRequest.days_count !== 1 ? "s" : ""} has been submitted and is pending approval`,
@@ -398,11 +396,11 @@ serve(async (req: Request): Promise<Response> => {
         }
       } else if (type === "leave_request_approved" || type === "leave_request_rejected") {
         // Notify employee
-        if (requesterProfile) {
+        if (requesterUserId) {
           const { data: prefs } = await supabase
             .from("notification_preferences")
             .select("email_leave_approvals")
-            .eq("user_id", requesterProfile.id)
+            .eq("user_id", requesterUserId)
             .single();
 
           if (prefs?.email_leave_approvals !== false) {
@@ -469,7 +467,7 @@ serve(async (req: Request): Promise<Response> => {
             // Log the email
             await supabase.from("email_logs").insert({
               recipient_email: employeeEmail,
-              recipient_user_id: requesterProfile.id,
+              recipient_user_id: requesterUserId,
               employee_id: leaveRequest.employee.id,
               email_type: type,
               subject,
@@ -489,7 +487,7 @@ serve(async (req: Request): Promise<Response> => {
             : `Your ${leaveTypeName} request has been rejected${leaveRequest.rejection_reason ? `: ${leaveRequest.rejection_reason}` : ""}`;
 
           await supabase.from("notifications").insert({
-            user_id: requesterProfile.id,
+            user_id: requesterUserId,
             type: "approval",
             title: notificationTitle,
             message: notificationMessage,
