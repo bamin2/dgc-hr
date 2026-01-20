@@ -264,11 +264,45 @@ async function processAction(
       .eq("action_type", "reject")
       .is("used_at", null);
 
+    // Fetch request details for the response page
+    let requestDetails: RequestDetails = {};
+    if (step.request_type === "time_off") {
+      const { data: detailsData } = await supabase
+        .from("leave_requests")
+        .select(`
+          start_date, end_date, days_count,
+          employees!inner(first_name, last_name),
+          leave_types!inner(name)
+        `)
+        .eq("id", step.request_id)
+        .single();
+
+      if (detailsData) {
+        const d = detailsData as unknown as {
+          start_date: string;
+          end_date: string;
+          days_count: number;
+          employees: { first_name: string; last_name: string };
+          leave_types: { name: string };
+        };
+        const emp = Array.isArray(d.employees) ? d.employees[0] : d.employees;
+        const lt = Array.isArray(d.leave_types) ? d.leave_types[0] : d.leave_types;
+        requestDetails = {
+          employeeName: `${emp.first_name} ${emp.last_name}`,
+          leaveType: lt.name,
+          startDate: new Date(d.start_date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }),
+          endDate: new Date(d.end_date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }),
+          daysCount: d.days_count,
+        };
+      }
+    }
+
     return generateHtmlResponse(
       "Request Approved",
       "The leave request has been approved successfully.",
       "success",
-      "/approvals"
+      "/approvals",
+      requestDetails
     );
 
   } else {
@@ -365,11 +399,46 @@ async function processAction(
       .eq("action_type", "approve")
       .is("used_at", null);
 
+    // Fetch request details for the response page
+    let rejectRequestDetails: RequestDetails = { rejectionReason };
+    if (step.request_type === "time_off") {
+      const { data: detailsData } = await supabase
+        .from("leave_requests")
+        .select(`
+          start_date, end_date, days_count,
+          employees!inner(first_name, last_name),
+          leave_types!inner(name)
+        `)
+        .eq("id", step.request_id)
+        .single();
+
+      if (detailsData) {
+        const d = detailsData as unknown as {
+          start_date: string;
+          end_date: string;
+          days_count: number;
+          employees: { first_name: string; last_name: string };
+          leave_types: { name: string };
+        };
+        const emp = Array.isArray(d.employees) ? d.employees[0] : d.employees;
+        const lt = Array.isArray(d.leave_types) ? d.leave_types[0] : d.leave_types;
+        rejectRequestDetails = {
+          ...rejectRequestDetails,
+          employeeName: `${emp.first_name} ${emp.last_name}`,
+          leaveType: lt.name,
+          startDate: new Date(d.start_date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }),
+          endDate: new Date(d.end_date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }),
+          daysCount: d.days_count,
+        };
+      }
+    }
+
     return generateHtmlResponse(
       "Request Rejected",
       "The leave request has been rejected.",
       "rejected",
-      "/approvals"
+      "/approvals",
+      rejectRequestDetails
     );
   }
 }
@@ -508,21 +577,54 @@ function generateRejectionForm(token: string, errorMessage?: string): Response {
   });
 }
 
+interface RequestDetails {
+  employeeName?: string;
+  leaveType?: string;
+  startDate?: string;
+  endDate?: string;
+  daysCount?: number;
+  rejectionReason?: string;
+}
+
 function generateHtmlResponse(
   title: string,
   message: string,
   type: "success" | "error" | "info" | "expired" | "rejected",
-  appUrl?: string
+  appUrl?: string,
+  details?: RequestDetails
 ): Response {
+  // SVG icons for cross-browser compatibility
+  const icons = {
+    success: `<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>`,
+    error: `<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>`,
+    info: `<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg>`,
+    expired: `<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>`,
+    rejected: `<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6m0-6l6 6"/></svg>`,
+  };
+
   const colors = {
-    success: { bg: "#f0fdf4", icon: "✓", iconBg: "#dcfce7", color: "#16a34a" },
-    error: { bg: "#fef2f2", icon: "!", iconBg: "#fee2e2", color: "#dc2626" },
-    info: { bg: "#f0f9ff", icon: "i", iconBg: "#dbeafe", color: "#2563eb" },
-    expired: { bg: "#fffbeb", icon: "⏱", iconBg: "#fef3c7", color: "#d97706" },
-    rejected: { bg: "#fef2f2", icon: "✗", iconBg: "#fee2e2", color: "#dc2626" },
+    success: { iconBg: "#dcfce7" },
+    error: { iconBg: "#fee2e2" },
+    info: { iconBg: "#dbeafe" },
+    expired: { iconBg: "#fef3c7" },
+    rejected: { iconBg: "#fee2e2" },
   };
 
   const c = colors[type];
+  const icon = icons[type];
+
+  // Build details card HTML if details are provided
+  let detailsHtml = "";
+  if (details && (details.employeeName || details.leaveType || details.startDate)) {
+    detailsHtml = `
+    <div class="details-card">
+      ${details.employeeName ? `<div class="detail-row"><span class="detail-label">Employee</span><span class="detail-value">${details.employeeName}</span></div>` : ""}
+      ${details.leaveType ? `<div class="detail-row"><span class="detail-label">Leave Type</span><span class="detail-value">${details.leaveType}</span></div>` : ""}
+      ${details.startDate && details.endDate ? `<div class="detail-row"><span class="detail-label">Dates</span><span class="detail-value">${details.startDate} - ${details.endDate}</span></div>` : ""}
+      ${details.daysCount ? `<div class="detail-row"><span class="detail-label">Duration</span><span class="detail-value">${details.daysCount} day${details.daysCount > 1 ? "s" : ""}</span></div>` : ""}
+      ${details.rejectionReason ? `<div class="detail-row rejection-reason"><span class="detail-label">Reason</span><span class="detail-value">${details.rejectionReason}</span></div>` : ""}
+    </div>`;
+  }
 
   const html = `
 <!DOCTYPE html>
@@ -542,12 +644,28 @@ function generateHtmlResponse(
       justify-content: center;
       padding: 20px;
     }
-    .container {
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    .card-wrapper {
       max-width: 480px;
       width: 100%;
+    }
+    .header {
+      background: ${DGC_DEEP_GREEN};
+      padding: 20px 24px;
+      border-radius: 16px 16px 0 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .header-logo {
+      color: ${DGC_GOLD};
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 2px;
+    }
+    .container {
+      background: white;
+      border-radius: 0 0 16px 16px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
       padding: 40px;
       text-align: center;
     }
@@ -560,20 +678,61 @@ function generateHtmlResponse(
       align-items: center;
       justify-content: center;
       margin: 0 auto 24px;
-      font-size: 36px;
-      color: ${c.color};
     }
     h1 {
       color: #18181b;
-      font-size: 28px;
+      font-size: 26px;
       font-weight: 600;
       margin-bottom: 12px;
     }
-    p {
+    .message {
       color: #71717a;
-      font-size: 16px;
+      font-size: 15px;
       line-height: 1.6;
-      margin-bottom: 32px;
+      margin-bottom: 24px;
+    }
+    .details-card {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 28px;
+      text-align: left;
+    }
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    .detail-row:last-child {
+      border-bottom: none;
+    }
+    .detail-label {
+      color: #6b7280;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .detail-value {
+      color: #111827;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .rejection-reason .detail-value {
+      color: #dc2626;
+    }
+    .notification-note {
+      color: #6b7280;
+      font-size: 13px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .notification-note svg {
+      flex-shrink: 0;
     }
     .btn {
       display: inline-block;
@@ -583,20 +742,32 @@ function generateHtmlResponse(
       padding: 14px 32px;
       border-radius: 8px;
       font-weight: 600;
-      font-size: 16px;
-      transition: opacity 0.2s;
+      font-size: 15px;
+      transition: all 0.2s;
     }
     .btn:hover {
       opacity: 0.9;
+      transform: translateY(-1px);
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="icon">${c.icon}</div>
-    <h1>${title}</h1>
-    <p>${message}</p>
-    ${appUrl ? `<a href="${appUrl}" class="btn">Open App</a>` : ""}
+  <div class="card-wrapper">
+    <div class="header">
+      <div class="header-logo">DGC</div>
+    </div>
+    <div class="container">
+      <div class="icon">${icon}</div>
+      <h1>${title}</h1>
+      <p class="message">${message}</p>
+      ${detailsHtml}
+      ${type === "success" || type === "rejected" ? `
+      <div class="notification-note">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        The employee has been notified
+      </div>` : ""}
+      ${appUrl ? `<a href="${appUrl}" class="btn">Open Dashboard</a>` : ""}
+    </div>
   </div>
 </body>
 </html>`;
