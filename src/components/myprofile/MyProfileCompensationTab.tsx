@@ -16,6 +16,7 @@ import { useEmployeeAllowances } from '@/hooks/useEmployeeAllowances';
 import { useEmployeeDeductions } from '@/hooks/useEmployeeDeductions';
 import { useCompanySettings } from '@/contexts/CompanySettingsContext';
 import { useState, useMemo } from 'react';
+import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { getCountryCodeByName } from '@/data/countries';
@@ -84,6 +85,7 @@ export function MyProfileCompensationTab({
   canViewCompensation = true,
   showLineItems = false 
 }: MyProfileCompensationTabProps) {
+  const [isCompensationVisible, setIsCompensationVisible] = useState(false);
   const { settings } = useCompanySettings();
   const { data: allowances, isLoading: loadingAllowances } = useEmployeeAllowances(employee.id);
   const { data: deductions, isLoading: loadingDeductions } = useEmployeeDeductions(employee.id);
@@ -221,12 +223,39 @@ export function MyProfileCompensationTab({
       {/* Salary Summary */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base font-medium flex items-center gap-2">
-            <Calculator className="h-4 w-4 text-primary" />
-            Compensation Summary
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base font-medium flex items-center gap-2">
+              <Calculator className="h-4 w-4 text-primary" />
+              Compensation Summary
+            </CardTitle>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsCompensationVisible(!isCompensationVisible)}
+              className="h-8 w-8"
+            >
+              {isCompensationVisible ? (
+                <EyeOff className="h-4 w-4 text-muted-foreground" />
+              ) : (
+                <Eye className="h-4 w-4 text-muted-foreground" />
+              )}
+            </Button>
+          </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 relative">
+          {/* Blur overlay when hidden */}
+          {!isCompensationVisible && (
+            <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-md rounded-lg z-10">
+              <button
+                onClick={() => setIsCompensationVisible(true)}
+                className="flex flex-col items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Eye className="h-8 w-8" />
+                <span className="text-sm font-medium">Click to reveal</span>
+              </button>
+            </div>
+          )}
+          <div className={!isCompensationVisible ? 'blur-md select-none' : ''}>
           {/* Base Salary */}
           <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
             <div className="flex items-center gap-2">
@@ -316,6 +345,7 @@ export function MyProfileCompensationTab({
                 {currency} {netPay.toLocaleString()}
               </span>
             </div>
+          </div>
           </div>
         </CardContent>
       </Card>

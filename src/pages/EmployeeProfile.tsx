@@ -22,6 +22,8 @@ import {
   Banknote,
   Heart,
   AlertTriangle,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { useEmployeeAllowances } from "@/hooks/useEmployeeAllowances";
 import { useEmployeeDeductions } from "@/hooks/useEmployeeDeductions";
@@ -87,6 +89,7 @@ export default function EmployeeProfile() {
   const [bankDialogOpen, setBankDialogOpen] = useState(false);
   const [roleChangeDialogOpen, setRoleChangeDialogOpen] = useState(false);
   const [pendingRole, setPendingRole] = useState<AppRole | null>(null);
+  const [isCompensationVisible, setIsCompensationVisible] = useState(false);
   const { data: workLocations } = useWorkLocations();
   const employeeRole = useMemo(() => {
     if (!employee) return 'employee';
@@ -541,59 +544,87 @@ export default function EmployeeProfile() {
             {hasFullAccess && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base font-medium flex items-center gap-2">
-                    <CreditCard className="h-4 w-4 text-primary" />
-                    Compensation
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <InfoRow label="Base Salary" value={formatCurrency(compensationBreakdown.baseSalary)} />
-                  
-                  {compensationBreakdown.allowanceItems.length > 0 && (
-                    <>
-                      <Separator />
-                      <p className="text-xs font-medium text-muted-foreground uppercase">Allowances</p>
-                      {compensationBreakdown.allowanceItems.map((item) => (
-                        <InfoRow key={item.id} label={item.name} value={formatCurrency(item.amount)} />
-                      ))}
-                    </>
-                  )}
-                  
-                  {compensationBreakdown.deductionItems.length > 0 && (
-                    <>
-                      <Separator />
-                      <p className="text-xs font-medium text-muted-foreground uppercase">Deductions</p>
-                      {compensationBreakdown.deductionItems.map((item) => (
-                        <InfoRow key={item.id} label={item.name} value={`-${formatCurrency(item.amount)}`} />
-                      ))}
-                    </>
-                  )}
-                  
-                  <Separator />
-                  <div className="flex justify-between items-center pt-2">
-                    <span className="text-sm font-medium">Net Monthly Salary</span>
-                    <span className="text-lg font-bold text-primary">{formatCurrency(compensationBreakdown.totalMonthlySalary)}</span>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base font-medium flex items-center gap-2">
+                      <CreditCard className="h-4 w-4 text-primary" />
+                      Compensation
+                    </CardTitle>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setIsCompensationVisible(!isCompensationVisible)}
+                      className="h-8 w-8"
+                    >
+                      {isCompensationVisible ? (
+                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </Button>
                   </div>
-                  
-                  {/* Employer GOSI Contribution - Informational */}
-                  {compensationBreakdown.employerGosiContribution > 0 && (
-                    <>
-                      <Separator />
-                      <div className="bg-muted/30 rounded-lg p-3 mt-2">
-                        <p className="text-xs font-medium text-muted-foreground uppercase mb-2">
-                          Employer Contributions
-                        </p>
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-muted-foreground">
-                            GOSI Employer Contribution ({compensationBreakdown.employerGosiRate}%)
-                          </span>
-                          <span className="text-sm font-medium text-muted-foreground">
-                            {formatCurrency(compensationBreakdown.employerGosiContribution)}
-                          </span>
-                        </div>
-                      </div>
-                    </>
+                </CardHeader>
+                <CardContent className="space-y-4 relative">
+                  {/* Blur overlay when hidden */}
+                  {!isCompensationVisible && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-md rounded-lg z-10">
+                      <button
+                        onClick={() => setIsCompensationVisible(true)}
+                        className="flex flex-col items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <Eye className="h-8 w-8" />
+                        <span className="text-sm font-medium">Click to reveal</span>
+                      </button>
+                    </div>
                   )}
+                  <div className={!isCompensationVisible ? 'blur-md select-none' : ''}>
+                    <InfoRow label="Base Salary" value={formatCurrency(compensationBreakdown.baseSalary)} />
+                    
+                    {compensationBreakdown.allowanceItems.length > 0 && (
+                      <>
+                        <Separator />
+                        <p className="text-xs font-medium text-muted-foreground uppercase">Allowances</p>
+                        {compensationBreakdown.allowanceItems.map((item) => (
+                          <InfoRow key={item.id} label={item.name} value={formatCurrency(item.amount)} />
+                        ))}
+                      </>
+                    )}
+                    
+                    {compensationBreakdown.deductionItems.length > 0 && (
+                      <>
+                        <Separator />
+                        <p className="text-xs font-medium text-muted-foreground uppercase">Deductions</p>
+                        {compensationBreakdown.deductionItems.map((item) => (
+                          <InfoRow key={item.id} label={item.name} value={`-${formatCurrency(item.amount)}`} />
+                        ))}
+                      </>
+                    )}
+                    
+                    <Separator />
+                    <div className="flex justify-between items-center pt-2">
+                      <span className="text-sm font-medium">Net Monthly Salary</span>
+                      <span className="text-lg font-bold text-primary">{formatCurrency(compensationBreakdown.totalMonthlySalary)}</span>
+                    </div>
+                    
+                    {/* Employer GOSI Contribution - Informational */}
+                    {compensationBreakdown.employerGosiContribution > 0 && (
+                      <>
+                        <Separator />
+                        <div className="bg-muted/30 rounded-lg p-3 mt-2">
+                          <p className="text-xs font-medium text-muted-foreground uppercase mb-2">
+                            Employer Contributions
+                          </p>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-muted-foreground">
+                              GOSI Employer Contribution ({compensationBreakdown.employerGosiRate}%)
+                            </span>
+                            <span className="text-sm font-medium text-muted-foreground">
+                              {formatCurrency(compensationBreakdown.employerGosiContribution)}
+                            </span>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             )}
