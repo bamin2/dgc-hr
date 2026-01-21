@@ -6,6 +6,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -52,7 +53,9 @@ interface FormData {
   lastName: string;
   email: string;
   phone: string;
+  mobileCountryCode: string;
   officePhone: string;
+  officeCountryCode: string;
   department: string;
   departmentId: string;
   position: string;
@@ -91,7 +94,9 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
     lastName: '',
     email: '',
     phone: '',
+    mobileCountryCode: 'BH',
     officePhone: '',
+    officeCountryCode: 'BH',
     department: '',
     departmentId: '',
     position: '',
@@ -127,7 +132,9 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
         lastName: employee.lastName || '',
         email: employee.email || '',
         phone: employee.phone || '',
+        mobileCountryCode: employee.mobileCountryCode || 'BH',
         officePhone: employee.officePhone || '',
+        officeCountryCode: employee.officeCountryCode || 'BH',
         department: employee.department || '',
         departmentId: employee.departmentId || '',
         position: employee.position || '',
@@ -152,7 +159,9 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
         lastName: '',
         email: '',
         phone: '',
+        mobileCountryCode: 'BH',
         officePhone: '',
+        officeCountryCode: 'BH',
         department: '',
         departmentId: '',
         position: '',
@@ -485,20 +494,22 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Mobile Number</Label>
-                  <Input
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) => handleChange('phone', e.target.value)}
+                  <Label>Mobile Number</Label>
+                  <PhoneInput
+                    countryCode={formData.mobileCountryCode}
+                    phoneNumber={formData.phone}
+                    onCountryCodeChange={(code) => handleChange('mobileCountryCode', code)}
+                    onPhoneNumberChange={(number) => handleChange('phone', number)}
                     placeholder="Enter mobile number"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="officePhone">Office Number</Label>
-                  <Input
-                    id="officePhone"
-                    value={formData.officePhone}
-                    onChange={(e) => handleChange('officePhone', e.target.value)}
+                  <Label>Office Number</Label>
+                  <PhoneInput
+                    countryCode={formData.officeCountryCode}
+                    phoneNumber={formData.officePhone}
+                    onCountryCodeChange={(code) => handleChange('officeCountryCode', code)}
+                    onPhoneNumberChange={(number) => handleChange('officePhone', number)}
                     placeholder="Enter office number"
                   />
                 </div>
