@@ -38,3 +38,16 @@ export function calculateOutstandingBalance(
     .filter(i => i.status === 'due')
     .reduce((sum, i) => sum + Number(i.amount), 0);
 }
+
+/**
+ * Get the maximum days from the first tier of salary deduction tiers
+ * Used for displaying tiered leave types (e.g., Sick Leave shows only first tier)
+ */
+export function getFirstTierMax(tiers: any[] | null): number | null {
+  if (!tiers || !Array.isArray(tiers) || tiers.length === 0) {
+    return null;
+  }
+  // Sort by from_days to ensure we get the first tier
+  const sorted = [...tiers].sort((a, b) => a.from_days - b.from_days);
+  return sorted[0]?.to_days ?? null;
+}

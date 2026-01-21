@@ -17,6 +17,7 @@ import { useMyLeaveBalances } from '@/hooks/useLeaveBalances';
 import { useLeaveRequests } from '@/hooks/useLeaveRequests';
 import { format } from 'date-fns';
 import { RequestTimeOffDialog } from '@/components/timeoff/RequestTimeOffDialog';
+import { getFirstTierMax } from '@/lib/dashboard/utils';
 
 interface MyProfileTimeOffTabProps {
   employeeId: string;
@@ -77,9 +78,23 @@ export function MyProfileTimeOffTab({ employeeId }: MyProfileTimeOffTabProps) {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {balances.map((balance) => {
-                const remaining = balance.total_days - balance.used_days - balance.pending_days;
-                const usedPercentage = (balance.used_days / balance.total_days) * 100;
-                const pendingPercentage = (balance.pending_days / balance.total_days) * 100;
+                const leaveType = balance.leave_type as any;
+                const hasTiers = leaveType?.has_salary_deduction && 
+                                 Array.isArray(leaveType?.salary_deduction_tiers) && 
+                                 leaveType.salary_deduction_tiers.length > 0;
+                
+                // For tiered leave types (like Sick Leave), use first tier max as display total
+                let displayTotal = balance.total_days;
+                if (hasTiers) {
+                  const firstTierMax = getFirstTierMax(leaveType.salary_deduction_tiers);
+                  if (firstTierMax !== null) {
+                    displayTotal = firstTierMax;
+                  }
+                }
+                
+                const remaining = Math.max(0, displayTotal - balance.used_days - balance.pending_days);
+                const usedPercentage = displayTotal > 0 ? (balance.used_days / displayTotal) * 100 : 0;
+                const pendingPercentage = displayTotal > 0 ? (balance.pending_days / displayTotal) * 100 : 0;
                 
                 return (
                   <div
@@ -111,7 +126,7 @@ export function MyProfileTimeOffTab({ employeeId }: MyProfileTimeOffTabProps) {
                       {balance.pending_days > 0 && (
                         <span className="text-amber-600">Pending: {balance.pending_days}</span>
                       )}
-                      <span>Total: {balance.total_days}</span>
+                      <span>Total: {displayTotal}</span>
                     </div>
                   </div>
                 );
