@@ -61,6 +61,7 @@ const SettingsPage = () => {
   // Local state for form editing
   const [companySettings, setCompanySettings] = useState<CompanySettings>(globalSettings);
   const [userPreferences, setUserPreferences] = useState<UserPreferences>(dbUserPreferences);
+  const [hasCompanySettingsLoaded, setHasCompanySettingsLoaded] = useState(false);
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>(dbNotificationSettings);
   const [activeTab, setActiveTab] = useState(() => {
     const tabFromUrl = searchParams.get('tab');
@@ -82,8 +83,11 @@ const SettingsPage = () => {
 
   // Sync local state with database when data loads
   useEffect(() => {
-    setCompanySettings(globalSettings);
-  }, [globalSettings]);
+    if (!companyLoading && globalSettings) {
+      setCompanySettings(globalSettings);
+      setHasCompanySettingsLoaded(true);
+    }
+  }, [globalSettings, companyLoading]);
 
   useEffect(() => {
     setUserPreferences(dbUserPreferences);
@@ -98,20 +102,34 @@ const SettingsPage = () => {
 
   const handleSave = async () => {
     try {
-      const updates: Promise<void>[] = [];
-      
-      // Save user preferences
-      updates.push(updatePreferences(userPreferences));
-      
-      // Save notification preferences
-      updates.push(updateNotifications(notificationSettings));
-      
-      // Save company settings if admin
-      if (canManageRoles) {
-        updates.push(updateGlobalSettings(companySettings));
+      // Only save data relevant to the current tab
+      switch (activeTab) {
+        case 'company':
+        case 'dashboard':
+        case 'selfservice':
+          // These tabs modify companySettings state
+          if (canManageRoles && hasCompanySettingsLoaded) {
+            await updateGlobalSettings(companySettings);
+          } else if (canManageRoles && !hasCompanySettingsLoaded) {
+            toast.error('Company settings are still loading. Please wait.');
+            return;
+          }
+          break;
+          
+        case 'preferences':
+          await updatePreferences(userPreferences);
+          break;
+          
+        case 'notifications':
+          await updateNotifications(notificationSettings);
+          break;
+          
+        // These tabs have their own save mechanisms:
+        // organization, approvals, email-templates, payroll, security
+        default:
+          return;
       }
-
-      await Promise.all(updates);
+      
       toast.success('Settings saved successfully');
     } catch (error) {
       console.error('Failed to save settings:', error);
@@ -218,6 +236,15 @@ const SettingsPage = () => {
     return <SettingsPageSkeleton />;
   }
 
+  // Determine if current tab needs the global save button
+  const tabsWithGlobalSave = ['company', 'dashboard', 'selfservice', 'preferences', 'notifications'];
+  const showGlobalSaveButton = tabsWithGlobalSave.includes(activeTab);
+  
+  // Disable save for company settings tabs until data is loaded
+  const companySettingsTabs = ['company', 'dashboard', 'selfservice'];
+  const isCompanySettingsTab = companySettingsTabs.includes(activeTab);
+  const canSave = isCompanySettingsTab ? (hasCompanySettingsLoaded && !isSaving) : !isSaving;
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -225,14 +252,16 @@ const SettingsPage = () => {
           title="Settings"
           subtitle="Manage your workspace and preferences"
           actions={
-            <Button onClick={handleSave} disabled={isSaving}>
-              {isSaving ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Save className="h-4 w-4 mr-2" />
-              )}
-              {isSaving ? 'Saving...' : 'Save Changes'}
-            </Button>
+            showGlobalSaveButton ? (
+              <Button onClick={handleSave} disabled={!canSave}>
+                {isSaving ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4 mr-2" />
+                )}
+                {isSaving ? 'Saving...' : 'Save Changes'}
+              </Button>
+            ) : undefined
           }
         />
 
