@@ -15,9 +15,6 @@ export function MyProfilePayslipsSection({ employeeId }: MyProfilePayslipsSectio
   const { data: payslips, isLoading, isError } = useMyPayslips(employeeId);
   const navigate = useNavigate();
 
-  const formatCurrency = (amount: number, currency: string) => {
-    return `${currency} ${new Intl.NumberFormat().format(amount)}`;
-  };
 
   const formatPayPeriod = (startDate: string, endDate: string) => {
     if (!startDate || !endDate) return 'N/A';
@@ -127,10 +124,6 @@ export function MyProfilePayslipsSection({ employeeId }: MyProfilePayslipsSectio
                   {formatPayPeriod(payslip.payPeriodStart, payslip.payPeriodEnd)}
                 </p>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <span className="font-medium text-foreground">
-                    {formatCurrency(payslip.netPay, payslip.currency)}
-                  </span>
-                  <span>•</span>
                   <Calendar className="h-3 w-3" />
                   <span>
                     {payslip.issuedAt ? format(new Date(payslip.issuedAt), 'MMM d, yyyy') : 'N/A'}
