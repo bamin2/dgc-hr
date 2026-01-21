@@ -152,7 +152,10 @@ export async function fetchEmployeeLeaveBalances(employeeId: string, year: numbe
     .from('leave_balances')
     .select(`
       *,
-      leave_type:leave_types!inner (id, name, color, visible_to_employees)
+      leave_type:leave_types!inner (
+        id, name, color, visible_to_employees,
+        has_salary_deduction, salary_deduction_tiers
+      )
     `)
     .eq('employee_id', employeeId)
     .eq('year', year)

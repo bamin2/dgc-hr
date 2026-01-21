@@ -7,6 +7,7 @@ import {
   getTodayString,
   getCurrentYear,
   calculateOutstandingBalance,
+  getFirstTierMax,
 } from '@/lib/dashboard';
 import {
   fetchCompanySettings,
@@ -105,15 +106,34 @@ export function usePersonalDashboard() {
       const loanCurrency = workLocation?.currency || 'SAR';
 
       // Process leave balances
-      const leaveBalances = (leaveBalancesRes.data || []).map((b: any) => ({
-        leaveTypeId: b.leave_type_id,
-        leaveTypeName: b.leave_type?.name || 'Unknown',
-        color: b.leave_type?.color || '#14b8a6',
-        total: b.total_days,
-        used: b.used_days || 0,
-        pending: b.pending_days || 0,
-        remaining: b.total_days - (b.used_days || 0) - (b.pending_days || 0),
-      }));
+      const leaveBalances = (leaveBalancesRes.data || []).map((b: any) => {
+        const leaveType = b.leave_type;
+        const hasTiers = leaveType?.has_salary_deduction && 
+                         Array.isArray(leaveType?.salary_deduction_tiers) && 
+                         leaveType.salary_deduction_tiers.length > 0;
+        
+        // For tiered leave types (like Sick Leave), use first tier's max as display total
+        let displayTotal = b.total_days;
+        if (hasTiers) {
+          const firstTierMax = getFirstTierMax(leaveType.salary_deduction_tiers);
+          if (firstTierMax !== null) {
+            displayTotal = firstTierMax;
+          }
+        }
+        
+        const used = b.used_days || 0;
+        const pending = b.pending_days || 0;
+        
+        return {
+          leaveTypeId: b.leave_type_id,
+          leaveTypeName: leaveType?.name || 'Unknown',
+          color: leaveType?.color || '#14b8a6',
+          total: displayTotal,
+          used: used,
+          pending: pending,
+          remaining: Math.max(0, displayTotal - used - pending),
+        };
+      });
 
       // Process requests summary - exclude public holidays
       const requests = (leaveRequestsRes.data || []).filter(

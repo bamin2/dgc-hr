@@ -68,7 +68,9 @@ export function useMyLeaveBalances(year?: number) {
             name,
             color,
             is_paid,
-            visible_to_employees
+            visible_to_employees,
+            has_salary_deduction,
+            salary_deduction_tiers
           )
         `)
         .eq('employee_id', employee.id)
