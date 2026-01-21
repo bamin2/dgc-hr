@@ -143,3 +143,21 @@ export function useAllUsers() {
     },
   });
 }
+
+// Get all active employees with user IDs for approver selection
+export function useEmployeesWithUserIds() {
+  return useQuery({
+    queryKey: [...queryKeys.employees.all, 'with-user-ids'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("employees")
+        .select("id, user_id, first_name, last_name, email")
+        .not("user_id", "is", null)
+        .neq("status", "terminated")
+        .order("first_name");
+
+      if (error) throw error;
+      return data || [];
+    },
+  });
+}
