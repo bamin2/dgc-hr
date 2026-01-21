@@ -38,7 +38,7 @@ export function employeeToOrgEmployee(employee: Employee): OrgEmployee {
     name: `${employee.firstName} ${employee.lastName}`,
     position: employee.position,
     department: employee.department,
-    location: employee.location || "Boston HQ",
+    location: employee.workLocationName || employee.location || "Not assigned",
     avatar: employee.avatar,
     children: [],
   };
