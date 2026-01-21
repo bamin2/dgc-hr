@@ -1,11 +1,13 @@
-import { TrendingUp, TrendingDown, DollarSign, Calendar, Plus, Minus } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign, Calendar, Plus, Minus, Eye, EyeOff } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSalaryHistory, SalaryChangeType, CompensationComponent } from "@/hooks/useSalaryHistory";
 import { format } from "date-fns";
 import { useCompanySettings } from "@/contexts/CompanySettingsContext";
+import { useState } from "react";
 
 interface SalaryHistoryCardProps {
   employeeId: string;
@@ -40,6 +42,7 @@ const changeTypeVariants: Record<SalaryChangeType, 'default' | 'secondary' | 'ou
 export function SalaryHistoryCard({ employeeId, currencyCode, maxItems = 5 }: SalaryHistoryCardProps) {
   const { data: history, isLoading } = useSalaryHistory(employeeId);
   const { formatCurrency, formatCurrencyWithCode } = useCompanySettings();
+  const [isHistoryVisible, setIsHistoryVisible] = useState(false);
 
   const formatSalaryCurrency = (amount: number) => {
     if (currencyCode) {
@@ -134,15 +137,43 @@ export function SalaryHistoryCard({ employeeId, currencyCode, maxItems = 5 }: Sa
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base font-medium flex items-center gap-2">
-          <DollarSign className="h-4 w-4 text-primary" />
-          Compensation History
-        </CardTitle>
-        <CardDescription>
-          {history?.length || 0} change(s) recorded
-        </CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-base font-medium flex items-center gap-2">
+              <DollarSign className="h-4 w-4 text-primary" />
+              Compensation History
+            </CardTitle>
+            <CardDescription>
+              {history?.length || 0} change(s) recorded
+            </CardDescription>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsHistoryVisible(!isHistoryVisible)}
+            className="h-8 w-8"
+          >
+            {isHistoryVisible ? (
+              <EyeOff className="h-4 w-4 text-muted-foreground" />
+            ) : (
+              <Eye className="h-4 w-4 text-muted-foreground" />
+            )}
+          </Button>
+        </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="relative">
+        {!isHistoryVisible && (
+          <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-md rounded-lg z-10">
+            <button
+              onClick={() => setIsHistoryVisible(true)}
+              className="flex flex-col items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Eye className="h-8 w-8" />
+              <span className="text-sm font-medium">Click to reveal</span>
+            </button>
+          </div>
+        )}
+        <div className={!isHistoryVisible ? 'blur-md select-none' : ''}>
         <ScrollArea className={displayHistory.length > 3 ? "h-[320px]" : undefined}>
           <div className="space-y-4">
             {displayHistory.map((record, index) => {
@@ -285,11 +316,12 @@ export function SalaryHistoryCard({ employeeId, currencyCode, maxItems = 5 }: Sa
           </div>
         </ScrollArea>
 
-        {hasMore && (
-          <p className="text-xs text-muted-foreground text-center mt-4 pt-4 border-t">
-            Showing {maxItems} of {history?.length} records
-          </p>
-        )}
+          {hasMore && (
+            <p className="text-xs text-muted-foreground text-center mt-4 pt-4 border-t">
+              Showing {maxItems} of {history?.length} records
+            </p>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
