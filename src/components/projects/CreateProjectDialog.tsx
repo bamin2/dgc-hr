@@ -5,7 +5,7 @@ import { ProjectStatus, ProjectPriority, projectStatuses, priorityConfig, usePro
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
+import { HierarchicalCalendar } from "@/components/ui/hierarchical-calendar";
 import {
   Dialog,
   DialogContent,
@@ -229,8 +229,7 @@ export function CreateProjectDialog({ open, onOpenChange, defaultStatus = 'todo'
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
+                  <HierarchicalCalendar
                     selected={startDate}
                     onSelect={setStartDate}
                     initialFocus
@@ -255,8 +254,7 @@ export function CreateProjectDialog({ open, onOpenChange, defaultStatus = 'todo'
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
+                  <HierarchicalCalendar
                     selected={endDate}
                     onSelect={setEndDate}
                     initialFocus

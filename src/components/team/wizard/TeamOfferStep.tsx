@@ -5,7 +5,7 @@ import { CalendarIcon, Eye, Download, Loader2, FileText, ChevronDown } from "luc
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
+import { HierarchicalCalendar } from "@/components/ui/hierarchical-calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "@/hooks/use-toast";
@@ -431,8 +431,7 @@ export function TeamOfferStep({
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
+                <HierarchicalCalendar
                   selected={data.expirationDate}
                   onSelect={(date) => updateField("expirationDate", date)}
                   disabled={(date) => date < new Date()}

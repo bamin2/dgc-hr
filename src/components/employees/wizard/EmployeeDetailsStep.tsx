@@ -3,7 +3,7 @@ import { CalendarIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
+import { HierarchicalCalendar } from "@/components/ui/hierarchical-calendar";
 import {
   Popover,
   PopoverContent,
@@ -158,12 +158,10 @@ export function EmployeeDetailsStep({ data, onChange }: EmployeeDetailsStepProps
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
+              <HierarchicalCalendar
                 selected={data.startDate || undefined}
                 onSelect={(date) => updateField("startDate", date || null)}
                 initialFocus
-                className="pointer-events-auto"
               />
             </PopoverContent>
           </Popover>

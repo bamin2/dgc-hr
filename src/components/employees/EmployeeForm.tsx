@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Upload, Loader2, AlertTriangle, CalendarIcon } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
-import { Calendar } from "@/components/ui/calendar";
+import { HierarchicalCalendar } from "@/components/ui/hierarchical-calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -423,13 +423,11 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
+                      <HierarchicalCalendar
                         selected={formData.dateOfBirth ? parseISO(formData.dateOfBirth) : undefined}
                         onSelect={(date) => handleChange('dateOfBirth', date ? format(date, "yyyy-MM-dd") : "")}
                         disabled={(date) => date > new Date()}
                         initialFocus
-                        className="pointer-events-auto"
                       />
                     </PopoverContent>
                   </Popover>
@@ -615,12 +613,10 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
+                      <HierarchicalCalendar
                         selected={formData.joinDate ? parseISO(formData.joinDate) : undefined}
                         onSelect={(date) => handleChange('joinDate', date ? format(date, "yyyy-MM-dd") : "")}
                         initialFocus
-                        className="pointer-events-auto"
                       />
                     </PopoverContent>
                   </Popover>

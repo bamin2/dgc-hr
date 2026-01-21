@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { MessageSquare, ClipboardList, Video, FileText, Users, CalendarIcon } from "lucide-react";
-import { Calendar } from "@/components/ui/calendar";
+import { HierarchicalCalendar } from "@/components/ui/hierarchical-calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -146,12 +146,10 @@ export function ExitInterviewStep({
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0 z-[100]" align="start">
-                  <Calendar
-                    mode="single"
+                  <HierarchicalCalendar
                     selected={interviewData.scheduledDate ? parseISO(interviewData.scheduledDate) : undefined}
                     onSelect={(date) => updateField("scheduledDate", date ? format(date, "yyyy-MM-dd") : "")}
                     initialFocus
-                    className="pointer-events-auto"
                   />
                 </PopoverContent>
               </Popover>

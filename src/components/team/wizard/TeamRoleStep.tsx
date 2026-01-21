@@ -2,7 +2,7 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
+import { HierarchicalCalendar } from "@/components/ui/hierarchical-calendar";
 import {
   Popover,
   PopoverContent,
@@ -212,8 +212,7 @@ export function TeamRoleStep({ data, onChange }: TeamRoleStepProps) {
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
+            <HierarchicalCalendar
               selected={data.startDate}
               onSelect={(date) => updateField("startDate", date)}
               initialFocus
