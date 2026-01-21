@@ -1,11 +1,14 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Receipt, Eye, Download, Calendar, Inbox } from 'lucide-react';
+import { Receipt, Eye, Download, Calendar, Inbox, Loader2 } from 'lucide-react';
 import { useMyPayslips } from '@/hooks/useMyPayslips';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { downloadPayslipPDF } from '@/hooks/usePayslipDocuments';
 
 interface MyProfilePayslipsSectionProps {
   employeeId: string;
@@ -13,6 +16,7 @@ interface MyProfilePayslipsSectionProps {
 
 export function MyProfilePayslipsSection({ employeeId }: MyProfilePayslipsSectionProps) {
   const { data: payslips, isLoading, isError } = useMyPayslips(employeeId);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const navigate = useNavigate();
 
 
@@ -32,11 +36,47 @@ export function MyProfilePayslipsSection({ employeeId }: MyProfilePayslipsSectio
     navigate(`/my-profile/payslip/${payslipId}`);
   };
 
-  const handleDownload = async (payslipId: string) => {
-    // Navigate to the payslip page which has download functionality
-    // In a future enhancement, we could trigger direct download here
-    toast.info('Opening payslip for download...');
-    navigate(`/my-profile/payslip/${payslipId}`);
+  const handleDownload = async (payslipId: string, periodStart: string, periodEnd: string) => {
+    try {
+      setDownloadingId(payslipId);
+      
+      // First, find the payroll_run_id from payroll_run_employees
+      const { data: runEmployee, error: runError } = await supabase
+        .from('payroll_run_employees')
+        .select('payroll_run_id')
+        .eq('id', payslipId)
+        .single();
+      
+      if (runError || !runEmployee) {
+        throw new Error('Could not find payroll run');
+      }
+      
+      // Then fetch the payslip document with PDF path
+      const { data: payslipDoc, error: docError } = await supabase
+        .from('payslip_documents')
+        .select('pdf_storage_path')
+        .eq('payroll_run_id', runEmployee.payroll_run_id)
+        .eq('employee_id', employeeId)
+        .eq('status', 'generated')
+        .single();
+      
+      if (docError || !payslipDoc?.pdf_storage_path) {
+        throw new Error('Payslip PDF not found');
+      }
+      
+      // Generate filename from period dates
+      const filename = `Payslip_${periodStart}_to_${periodEnd}.pdf`;
+      
+      // Download the PDF directly
+      await downloadPayslipPDF(payslipDoc.pdf_storage_path, filename);
+      
+      toast.success('Payslip downloaded');
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error('Failed to download payslip');
+    } finally {
+      setDownloadingId(null);
+    }
   };
 
   if (isLoading) {
@@ -145,10 +185,15 @@ export function MyProfilePayslipsSection({ employeeId }: MyProfilePayslipsSectio
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8"
-                onClick={() => handleDownload(payslip.id)}
+                onClick={() => handleDownload(payslip.id, payslip.payPeriodStart, payslip.payPeriodEnd)}
+                disabled={downloadingId === payslip.id}
                 title="Download payslip"
               >
-                <Download className="h-4 w-4" />
+                {downloadingId === payslip.id ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4" />
+                )}
               </Button>
             </div>
           </div>
