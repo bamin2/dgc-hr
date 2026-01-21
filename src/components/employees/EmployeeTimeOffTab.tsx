@@ -51,7 +51,15 @@ export function EmployeeTimeOffTab({ employeeId }: EmployeeTimeOffTabProps) {
     
     const totalTypes = balances.length;
     const daysTaken = balances.reduce((sum, b) => sum + (b.used_days || 0), 0);
-    const daysRemaining = balances.reduce((sum, b) => sum + (b.total_days - b.used_days - b.pending_days), 0);
+    
+    // Only show Annual Leave days remaining
+    const annualLeaveBalance = balances.find(
+      b => b.leave_type?.name?.toLowerCase() === 'annual leave'
+    );
+    const daysRemaining = annualLeaveBalance 
+      ? annualLeaveBalance.total_days - annualLeaveBalance.used_days - annualLeaveBalance.pending_days
+      : 0;
+    
     const pendingRequests = requests.filter(r => r.status === 'pending').length;
     
     return { totalTypes, daysTaken, daysRemaining, pendingRequests };
@@ -112,7 +120,7 @@ export function EmployeeTimeOffTab({ employeeId }: EmployeeTimeOffTabProps) {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Days Remaining</CardTitle>
+            <CardTitle className="text-sm font-medium">Annual Leave Remaining</CardTitle>
             <CalendarDays className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
