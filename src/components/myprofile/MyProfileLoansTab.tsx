@@ -16,6 +16,7 @@ import {
 import { useEmployeeLoansWithInstallments, LoanWithInstallmentsData } from '@/hooks/useEmployeeLoansWithInstallments';
 import { format } from 'date-fns';
 import { EmployeeRequestLoanDialog } from '@/components/loans/EmployeeRequestLoanDialog';
+import { useCompanySettings } from '@/contexts/CompanySettingsContext';
 
 interface MyProfileLoansTabProps {
   employeeId: string;
@@ -38,7 +39,7 @@ function calculateOutstandingBalance(loan: LoanWithInstallmentsData): number {
   return loan.principal_amount - paidAmount;
 }
 
-function LoanCard({ loan }: { loan: LoanWithInstallmentsData }) {
+function LoanCard({ loan, formatCurrency }: { loan: LoanWithInstallmentsData; formatCurrency: (amount: number) => string }) {
   const installments = loan.loan_installments || [];
   
   const paidInstallments = installments.filter(i => i.status === 'paid');
@@ -74,13 +75,13 @@ function LoanCard({ loan }: { loan: LoanWithInstallmentsData }) {
             <div>
               <p className="text-xs text-muted-foreground">Principal Amount</p>
               <p className="text-lg font-semibold">
-                ${loan.principal_amount.toLocaleString()}
+                {formatCurrency(loan.principal_amount)}
               </p>
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Outstanding Balance</p>
               <p className="text-lg font-semibold text-primary">
-                ${remainingAmount.toLocaleString()}
+                {formatCurrency(remainingAmount)}
               </p>
             </div>
           </div>
@@ -96,7 +97,7 @@ function LoanCard({ loan }: { loan: LoanWithInstallmentsData }) {
                 <Progress value={progressPercent} className="h-2" />
                 <div className="flex justify-between text-xs text-muted-foreground">
                   <span>{paidInstallments.length} of {totalInstallments} payments</span>
-                  <span>${paidAmount.toLocaleString()} paid</span>
+                  <span>{formatCurrency(paidAmount)} paid</span>
                 </div>
               </div>
 
@@ -113,7 +114,7 @@ function LoanCard({ loan }: { loan: LoanWithInstallmentsData }) {
                     </div>
                   </div>
                   <p className="font-semibold text-amber-700 dark:text-amber-400">
-                    ${nextDueInstallment.amount.toLocaleString()}
+                    {formatCurrency(nextDueInstallment.amount)}
                   </p>
                 </div>
               )}
@@ -133,7 +134,7 @@ function LoanCard({ loan }: { loan: LoanWithInstallmentsData }) {
                         {format(new Date(inst.paid_at!), 'MMM d, yyyy')}
                       </span>
                     </div>
-                    <span className="font-medium">${inst.amount.toLocaleString()}</span>
+                    <span className="font-medium">{formatCurrency(inst.amount)}</span>
                   </div>
                 ))}
               </div>
@@ -148,6 +149,7 @@ function LoanCard({ loan }: { loan: LoanWithInstallmentsData }) {
 export function MyProfileLoansTab({ employeeId }: MyProfileLoansTabProps) {
   const [showRequestDialog, setShowRequestDialog] = useState(false);
   const { data: loans, isLoading } = useEmployeeLoansWithInstallments(employeeId);
+  const { formatCurrency } = useCompanySettings();
 
   if (isLoading) {
     return (
@@ -195,7 +197,7 @@ export function MyProfileLoansTab({ employeeId }: MyProfileLoansTabProps) {
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Total Outstanding</p>
-                <p className="text-xl font-semibold">${totalOutstanding.toLocaleString()}</p>
+                <p className="text-xl font-semibold">{formatCurrency(totalOutstanding)}</p>
               </div>
             </CardContent>
           </Card>
@@ -218,7 +220,7 @@ export function MyProfileLoansTab({ employeeId }: MyProfileLoansTabProps) {
         <div className="space-y-4">
           <h3 className="text-sm font-medium text-muted-foreground">Active Loans</h3>
           {activeLoans.map((loan) => (
-            <LoanCard key={loan.id} loan={loan} />
+            <LoanCard key={loan.id} loan={loan} formatCurrency={formatCurrency} />
           ))}
         </div>
       )}
@@ -228,7 +230,7 @@ export function MyProfileLoansTab({ employeeId }: MyProfileLoansTabProps) {
         <div className="space-y-4">
           <h3 className="text-sm font-medium text-muted-foreground">Pending Requests</h3>
           {pendingLoans.map((loan) => (
-            <LoanCard key={loan.id} loan={loan} />
+            <LoanCard key={loan.id} loan={loan} formatCurrency={formatCurrency} />
           ))}
         </div>
       )}
@@ -238,7 +240,7 @@ export function MyProfileLoansTab({ employeeId }: MyProfileLoansTabProps) {
         <div className="space-y-4">
           <h3 className="text-sm font-medium text-muted-foreground">Loan History</h3>
           {closedLoans.slice(0, 5).map((loan) => (
-            <LoanCard key={loan.id} loan={loan} />
+            <LoanCard key={loan.id} loan={loan} formatCurrency={formatCurrency} />
           ))}
         </div>
       )}
