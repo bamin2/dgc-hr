@@ -13,6 +13,8 @@ export interface TeamBasicData {
   email: string;
   mobileCountryCode: string;
   mobileNumber: string;
+  officeCountryCode: string;
+  officeNumber: string;
 }
 
 interface TeamBasicStepProps {
@@ -118,7 +120,19 @@ export function TeamBasicStep({ data, onChange }: TeamBasicStepProps) {
           phoneNumber={data.mobileNumber}
           onCountryCodeChange={(code) => updateField("mobileCountryCode", code)}
           onPhoneNumberChange={(number) => updateField("mobileNumber", number)}
-          placeholder="Enter phone number"
+          placeholder="Enter mobile number"
+        />
+      </div>
+
+      {/* Office number */}
+      <div className="space-y-2">
+        <Label>Office number (optional)</Label>
+        <PhoneInput
+          countryCode={data.officeCountryCode}
+          phoneNumber={data.officeNumber}
+          onCountryCodeChange={(code) => updateField("officeCountryCode", code)}
+          onPhoneNumberChange={(number) => updateField("officeNumber", number)}
+          placeholder="Enter office number"
         />
       </div>
     </div>

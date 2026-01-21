@@ -52,6 +52,7 @@ interface FormData {
   lastName: string;
   email: string;
   phone: string;
+  officePhone: string;
   department: string;
   departmentId: string;
   position: string;
@@ -90,6 +91,7 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
     lastName: '',
     email: '',
     phone: '',
+    officePhone: '',
     department: '',
     departmentId: '',
     position: '',
@@ -125,6 +127,7 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
         lastName: employee.lastName || '',
         email: employee.email || '',
         phone: employee.phone || '',
+        officePhone: employee.officePhone || '',
         department: employee.department || '',
         departmentId: employee.departmentId || '',
         position: employee.position || '',
@@ -149,6 +152,7 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
         lastName: '',
         email: '',
         phone: '',
+        officePhone: '',
         department: '',
         departmentId: '',
         position: '',
@@ -481,14 +485,26 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number</Label>
+                  <Label htmlFor="phone">Mobile Number</Label>
                   <Input
                     id="phone"
                     value={formData.phone}
                     onChange={(e) => handleChange('phone', e.target.value)}
+                    placeholder="Enter mobile number"
                   />
                 </div>
-                <div className="space-y-2 sm:col-span-2">
+                <div className="space-y-2">
+                  <Label htmlFor="officePhone">Office Number</Label>
+                  <Input
+                    id="officePhone"
+                    value={formData.officePhone}
+                    onChange={(e) => handleChange('officePhone', e.target.value)}
+                    placeholder="Enter office number"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 gap-4">
+                <div className="space-y-2">
                   <Label htmlFor="address">Address</Label>
                   <Input
                     id="address"

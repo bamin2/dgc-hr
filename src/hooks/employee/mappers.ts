@@ -26,6 +26,7 @@ export function mapDbEmployeeToEmployee(db: DbEmployeeBase): Employee {
     fullName,
     email: db.email,
     phone: db.phone || "",
+    officePhone: (db as any).office_phone || undefined,
     avatar: db.avatar_url || "",
     department: db.department?.name || "Unknown",
     departmentId: db.department_id || undefined,

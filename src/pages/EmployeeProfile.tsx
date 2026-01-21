@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import {
   Mail,
   Phone,
+  Smartphone,
   MapPin,
   Calendar,
   Building2,
@@ -239,6 +240,7 @@ export default function EmployeeProfile() {
       last_name: data.lastName,
       email: data.email,
       phone: data.phone,
+      office_phone: data.officePhone || null,
       department_id: data.departmentId || null,
       position_id: data.positionId || null,
       status: data.status,
@@ -478,7 +480,8 @@ export default function EmployeeProfile() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <InfoRow label="Email" value={employee.email} icon={<Mail className="h-4 w-4" />} />
-                <InfoRow label="Phone" value={employee.phone} icon={<Phone className="h-4 w-4" />} />
+                <InfoRow label="Mobile" value={employee.phone} icon={<Smartphone className="h-4 w-4" />} />
+                <InfoRow label="Office" value={employee.officePhone} icon={<Phone className="h-4 w-4" />} />
                 <InfoRow 
                   label="Address" 
                   value={employee.address || 'Not specified'} 

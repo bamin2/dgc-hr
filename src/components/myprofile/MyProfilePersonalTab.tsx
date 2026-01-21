@@ -18,6 +18,8 @@ export function MyProfilePersonalTab({ employee }: MyProfilePersonalTabProps) {
       
       if (field === 'phone') {
         updateData.phone = value;
+      } else if (field === 'officePhone') {
+        updateData.office_phone = value;
       } else if (field === 'address') {
         updateData.address = value;
       } else if (field === 'emergencyContactName') {
@@ -65,10 +67,17 @@ export function MyProfilePersonalTab({ employee }: MyProfilePersonalTabProps) {
             </div>
             
             <EditableField
-              label="Phone"
+              label="Mobile"
               value={employee.phone}
               onSave={(value) => handleSaveField('phone', value)}
-              placeholder="Enter phone number"
+              placeholder="Enter mobile number"
+            />
+            
+            <EditableField
+              label="Office"
+              value={employee.officePhone || ''}
+              onSave={(value) => handleSaveField('officePhone', value)}
+              placeholder="Enter office number"
             />
           </div>
           
