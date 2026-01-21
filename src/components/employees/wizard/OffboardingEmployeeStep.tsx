@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar as CalendarIcon, User } from "lucide-react";
-import { Calendar } from "@/components/ui/calendar";
+import { HierarchicalCalendar } from "@/components/ui/hierarchical-calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -108,12 +108,10 @@ export function OffboardingEmployeeStep({
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0 z-[100]" align="start">
-                  <Calendar
-                    mode="single"
+                  <HierarchicalCalendar
                     selected={departureData.lastWorkingDay ? parseISO(departureData.lastWorkingDay) : undefined}
                     onSelect={(date) => updateField("lastWorkingDay", date ? format(date, "yyyy-MM-dd") : "")}
                     initialFocus
-                    className="pointer-events-auto"
                   />
                 </PopoverContent>
               </Popover>

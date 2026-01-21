@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PayrollRunData } from "@/components/payroll/PayrollRunCard";
-import { Calendar } from "@/components/ui/calendar";
+import { HierarchicalCalendar } from "@/components/ui/hierarchical-calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
@@ -104,12 +104,10 @@ export function PayPeriodStep({
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
+              <HierarchicalCalendar
                 selected={payPeriodStart ? parseISO(payPeriodStart) : undefined}
                 onSelect={(date) => onStartChange(date ? format(date, "yyyy-MM-dd") : "")}
                 initialFocus
-                className="pointer-events-auto"
               />
             </PopoverContent>
           </Popover>
@@ -130,12 +128,10 @@ export function PayPeriodStep({
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
+              <HierarchicalCalendar
                 selected={payPeriodEnd ? parseISO(payPeriodEnd) : undefined}
                 onSelect={(date) => onEndChange(date ? format(date, "yyyy-MM-dd") : "")}
                 initialFocus
-                className="pointer-events-auto"
               />
             </PopoverContent>
           </Popover>

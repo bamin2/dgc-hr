@@ -1,5 +1,5 @@
 import { Label } from "@/components/ui/label";
-import { Calendar } from "@/components/ui/calendar";
+import { HierarchicalCalendar } from "@/components/ui/hierarchical-calendar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CalendarDays, Info } from "lucide-react";
@@ -35,12 +35,10 @@ export function EffectiveDateStep({ data, onUpdateData }: EffectiveDateStepProps
       <div className="flex flex-col md:flex-row gap-6">
         <Card className="flex-1">
           <CardContent className="p-4">
-            <Calendar
-              mode="single"
+            <HierarchicalCalendar
               selected={data.effectiveDate || undefined}
               onSelect={(date) => onUpdateData('effectiveDate', date || null)}
               disabled={(date) => date < today}
-              className="rounded-md border-0"
             />
           </CardContent>
         </Card>

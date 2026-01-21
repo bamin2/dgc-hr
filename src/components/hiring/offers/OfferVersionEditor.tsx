@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
+import { HierarchicalCalendar } from "@/components/ui/hierarchical-calendar";
 import { cn, getResponsiveFontSize } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { useDepartmentsManagement } from "@/hooks/useDepartmentsManagement";
@@ -378,15 +378,13 @@ export function OfferVersionEditor({ version, offerId, candidateId, candidateNat
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
+                <HierarchicalCalendar
                   selected={formData.start_date ? new Date(formData.start_date) : undefined}
                   onSelect={(date) => setFormData(p => ({ 
                     ...p, 
                     start_date: date ? format(date, "yyyy-MM-dd") : "" 
                   }))}
                   initialFocus
-                  className="pointer-events-auto"
                 />
               </PopoverContent>
             </Popover>
@@ -411,8 +409,7 @@ export function OfferVersionEditor({ version, offerId, candidateId, candidateNat
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
+                <HierarchicalCalendar
                   selected={formData.offer_expiry_date ? new Date(formData.offer_expiry_date) : undefined}
                   onSelect={(date) => setFormData(p => ({ 
                     ...p, 
@@ -420,7 +417,6 @@ export function OfferVersionEditor({ version, offerId, candidateId, candidateNat
                   }))}
                   disabled={(date) => date < new Date()}
                   initialFocus
-                  className="p-3 pointer-events-auto"
                 />
               </PopoverContent>
             </Popover>

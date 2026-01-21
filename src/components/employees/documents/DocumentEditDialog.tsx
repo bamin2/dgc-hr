@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { CalendarIcon } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
-import { Calendar } from "@/components/ui/calendar";
+import { HierarchicalCalendar } from "@/components/ui/hierarchical-calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Dialog,
@@ -163,12 +163,10 @@ export function DocumentEditDialog({
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
+                  <HierarchicalCalendar
                     selected={issueDate ? parseISO(issueDate) : undefined}
                     onSelect={(date) => setIssueDate(date ? format(date, "yyyy-MM-dd") : "")}
                     initialFocus
-                    className="pointer-events-auto"
                   />
                 </PopoverContent>
               </Popover>
@@ -189,12 +187,10 @@ export function DocumentEditDialog({
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
+                  <HierarchicalCalendar
                     selected={expiryDate ? parseISO(expiryDate) : undefined}
                     onSelect={(date) => setExpiryDate(date ? format(date, "yyyy-MM-dd") : "")}
                     initialFocus
-                    className="pointer-events-auto"
                   />
                 </PopoverContent>
               </Popover>

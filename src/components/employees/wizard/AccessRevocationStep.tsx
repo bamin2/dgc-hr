@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ShieldOff, Plus, Trash2, Mail, Cloud, Building, Globe, KeyRound, CalendarIcon } from "lucide-react";
-import { Calendar } from "@/components/ui/calendar";
+import { HierarchicalCalendar } from "@/components/ui/hierarchical-calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -244,12 +244,10 @@ export function AccessRevocationStep({
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0 z-[100]" align="start">
-                        <Calendar
-                          mode="single"
+                        <HierarchicalCalendar
                           selected={system.revocationDate ? parseISO(system.revocationDate) : undefined}
                           onSelect={(date) => updateSystem(system.id, "revocationDate", date ? format(date, "yyyy-MM-dd") : "")}
                           initialFocus
-                          className="pointer-events-auto"
                         />
                       </PopoverContent>
                     </Popover>

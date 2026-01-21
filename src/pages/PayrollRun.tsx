@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Calendar } from "@/components/ui/calendar";
+import { HierarchicalCalendar } from "@/components/ui/hierarchical-calendar";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Popover,
@@ -166,8 +166,7 @@ export default function PayrollRun() {
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
+                      <HierarchicalCalendar
                         selected={payPeriod.startDate ? new Date(payPeriod.startDate) : undefined}
                         onSelect={(date) => {
                           if (date) {
@@ -185,7 +184,6 @@ export default function PayrollRun() {
                           payPeriod.endDate ? date > new Date(payPeriod.endDate) : false
                         }
                         initialFocus
-                        className="pointer-events-auto"
                       />
                     </PopoverContent>
                   </Popover>
@@ -208,8 +206,7 @@ export default function PayrollRun() {
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
+                      <HierarchicalCalendar
                         selected={payPeriod.endDate ? new Date(payPeriod.endDate) : undefined}
                         onSelect={(date) =>
                           setPayPeriod({
@@ -221,7 +218,6 @@ export default function PayrollRun() {
                           payPeriod.startDate ? date < new Date(payPeriod.startDate) : false
                         }
                         initialFocus
-                        className="pointer-events-auto"
                       />
                     </PopoverContent>
                   </Popover>

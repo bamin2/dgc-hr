@@ -15,7 +15,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
+import { HierarchicalCalendar } from "@/components/ui/hierarchical-calendar";
 import { cn } from "@/lib/utils";
 import type { AuditLogFilters, EntityType, ActionType } from "@/hooks/useAuditLogs";
 import { useEmployees } from "@/hooks/useEmployees";
@@ -173,8 +173,7 @@ export function AuditFilters({ filters, onFiltersChange }: AuditFiltersProps) {
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
+            <HierarchicalCalendar
               selected={filters.dateFrom}
               onSelect={(date) =>
                 onFiltersChange({ ...filters, dateFrom: date || undefined })
@@ -199,8 +198,7 @@ export function AuditFilters({ filters, onFiltersChange }: AuditFiltersProps) {
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
+            <HierarchicalCalendar
               selected={filters.dateTo}
               onSelect={(date) =>
                 onFiltersChange({ ...filters, dateTo: date || undefined })
