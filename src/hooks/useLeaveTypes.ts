@@ -79,6 +79,24 @@ export function useAllLeaveTypes() {
   });
 }
 
+// For admin contexts - all active leave types regardless of visibility
+export function useActiveLeaveTypes() {
+  return useQuery({
+    queryKey: [...queryKeys.leave.types, 'active'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('leave_types')
+        .select('*')
+        .eq('is_active', true)
+        .order('name');
+
+      if (error) throw error;
+      return (data || []).map(parseLeaveType);
+    },
+    ...queryPresets.referenceData,
+  });
+}
+
 export function useCreateLeaveType() {
   const queryClient = useQueryClient();
 

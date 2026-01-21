@@ -35,7 +35,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
-import { useLeaveTypes } from '@/hooks/useLeaveTypes';
+import { useActiveLeaveTypes } from '@/hooks/useLeaveTypes';
 import { useUpdateLeaveBalance, useLeaveBalances } from '@/hooks/useLeaveBalances';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -62,7 +62,7 @@ interface AdminAddLeaveDialogProps {
 export function AdminAddLeaveDialog({ open, onOpenChange, employeeId }: AdminAddLeaveDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const { data: leaveTypes, isLoading: loadingTypes } = useLeaveTypes();
+  const { data: leaveTypes, isLoading: loadingTypes } = useActiveLeaveTypes();
   const { data: balances } = useLeaveBalances(employeeId, new Date().getFullYear());
   const updateLeaveBalance = useUpdateLeaveBalance();
 
