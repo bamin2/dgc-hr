@@ -78,7 +78,7 @@ export function EmployeeCard({ employee, onView, onEdit, onDelete }: EmployeeCar
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Phone className="h-3.5 w-3.5" />
-            <span>{employee.phone}</span>
+            <span>{employee.phone || employee.officePhone || 'No phone'}</span>
           </div>
         </div>
       </CardContent>

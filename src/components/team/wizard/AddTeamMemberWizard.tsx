@@ -48,6 +48,8 @@ export function AddTeamMemberWizard() {
     email: "",
     mobileCountryCode: "US",
     mobileNumber: "",
+    officeCountryCode: "US",
+    officeNumber: "",
   });
 
   const [roleData, setRoleData] = useState<TeamRoleData>({
@@ -156,9 +158,14 @@ export function AddTeamMemberWizard() {
   const handleSubmit = async () => {
     try {
       // Combine phone with country code
-      const country = getCountryByCode(basicData.mobileCountryCode);
-      const fullPhone = basicData.mobileNumber 
-        ? `${country?.dialCode || ""} ${basicData.mobileNumber}`.trim()
+      const mobileCountry = getCountryByCode(basicData.mobileCountryCode);
+      const fullMobilePhone = basicData.mobileNumber 
+        ? `${mobileCountry?.dialCode || ""} ${basicData.mobileNumber}`.trim()
+        : null;
+
+      const officeCountry = getCountryByCode(basicData.officeCountryCode);
+      const fullOfficePhone = basicData.officeNumber 
+        ? `${officeCountry?.dialCode || ""} ${basicData.officeNumber}`.trim()
         : null;
 
       // Create the employee as Active (this wizard is for already hired employees)
@@ -166,7 +173,8 @@ export function AddTeamMemberWizard() {
         first_name: basicData.firstName,
         last_name: basicData.lastName,
         email: basicData.email,
-        phone: fullPhone,
+        phone: fullMobilePhone,
+        office_phone: fullOfficePhone,
         department_id: roleData.departmentId || null,
         position_id: roleData.positionId || null,
         manager_id: roleData.managerId || null,
