@@ -22,6 +22,8 @@ interface EnrollmentFormProps {
     coverageLevelId: string;
     coverageLevel: CoverageLevel;
     startDate: Date;
+    planType?: string;
+    entitlementConfig?: Record<string, unknown>;
     dependents?: Dependent[];
   }) => void;
   onCancel: () => void;
@@ -67,6 +69,8 @@ export const EnrollmentForm = ({ onSubmit, onCancel }: EnrollmentFormProps) => {
         coverageLevelId, 
         coverageLevel: selectedCoverage,
         startDate,
+        planType: selectedPlan?.type,
+        entitlementConfig: selectedPlan?.entitlement_config as Record<string, unknown> | undefined,
         dependents: dependents.length > 0 ? dependents : undefined,
       });
     }

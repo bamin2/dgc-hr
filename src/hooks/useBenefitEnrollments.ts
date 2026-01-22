@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { queryKeys } from '@/lib/queryKeys';
+import type { Json } from '@/integrations/supabase/types';
 
 export type EnrollmentStatus = 'active' | 'pending' | 'cancelled' | 'expired';
 
@@ -14,6 +15,7 @@ export interface BenefitEnrollment {
   end_date: string | null;
   employee_contribution: number;
   employer_contribution: number;
+  entitlement_data: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
   employee?: {
@@ -33,6 +35,7 @@ export interface BenefitEnrollment {
     type: string;
     provider: string;
     currency: string;
+    entitlement_config?: Record<string, unknown> | null;
   };
   coverage_level?: {
     id: string;
@@ -78,7 +81,8 @@ export function useBenefitEnrollments(filters?: {
             name,
             type,
             provider,
-            currency
+            currency,
+            entitlement_config
           ),
           coverage_level:benefit_coverage_levels!benefit_enrollments_coverage_level_id_fkey (
             id,
@@ -143,7 +147,8 @@ export function useBenefitEnrollment(enrollmentId: string | undefined) {
             provider,
             currency,
             description,
-            features
+            features,
+            entitlement_config
           ),
           coverage_level:benefit_coverage_levels!benefit_enrollments_coverage_level_id_fkey (
             id,
@@ -182,6 +187,7 @@ export function useCreateBenefitEnrollment() {
       end_date?: string;
       employee_contribution: number;
       employer_contribution: number;
+      entitlement_data?: Record<string, unknown>;
       beneficiaries?: Array<{
         name: string;
         relationship: string;
@@ -201,6 +207,7 @@ export function useCreateBenefitEnrollment() {
           end_date: enrollment.end_date,
           employee_contribution: enrollment.employee_contribution,
           employer_contribution: enrollment.employer_contribution,
+          entitlement_data: enrollment.entitlement_data as Json | undefined,
           status: 'active',
         })
         .select()

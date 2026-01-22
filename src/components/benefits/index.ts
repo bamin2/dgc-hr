@@ -16,3 +16,6 @@ export { EnrollmentDetailsDialog } from './EnrollmentDetailsDialog';
 export { EndEnrollmentDialog } from './EndEnrollmentDialog';
 export { EditEnrollmentDialog } from './EditEnrollmentDialog';
 export { AirTicketConfigFields, CarParkConfigFields, PhoneConfigFields } from './EntitlementConfigFields';
+export { AirTicketUsageDialog } from './AirTicketUsageDialog';
+export { PhonePaymentDialog } from './PhonePaymentDialog';
+export { EntitlementTrackingCard } from './EntitlementTrackingCard';

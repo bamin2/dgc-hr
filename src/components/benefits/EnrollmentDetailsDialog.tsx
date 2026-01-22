@@ -11,9 +11,11 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { BenefitTypeBadge } from './BenefitTypeBadge';
 import { BenefitStatusBadge } from './BenefitStatusBadge';
+import { EntitlementTrackingCard } from './EntitlementTrackingCard';
 import { format } from 'date-fns';
 import { Users, Calendar, DollarSign, Pencil } from 'lucide-react';
 import type { BenefitEnrollment } from '@/hooks/useBenefitEnrollments';
+import type { BenefitType, AirTicketConfig, CarParkConfig, PhoneConfig, AirTicketData, PhoneData } from '@/types/benefits';
 
 interface EnrollmentDetailsDialogProps {
   open: boolean;
@@ -34,6 +36,10 @@ export const EnrollmentDetailsDialog = ({
   const plan = enrollment.plan;
   const coverageLevel = enrollment.coverage_level;
   const beneficiaries = enrollment.beneficiaries || [];
+  const employeeName = `${employee?.first_name || ''} ${employee?.last_name || ''}`.trim();
+  
+  // Check if this is a specialized entitlement type
+  const isEntitlementType = ['air_ticket', 'car_park', 'phone'].includes(plan?.type || '');
   
   // Calculate costs including dependents (each dependent costs same as employee)
   const dependentsCount = beneficiaries.length;
@@ -116,6 +122,20 @@ export const EnrollmentDetailsDialog = ({
           </div>
 
           <Separator />
+
+          {/* Entitlement Tracking for specialized types */}
+          {isEntitlementType && plan?.entitlement_config && (
+            <>
+              <EntitlementTrackingCard
+                enrollmentId={enrollment.id}
+                employeeName={employeeName}
+                planType={plan.type as BenefitType}
+                entitlementConfig={plan.entitlement_config as AirTicketConfig | CarParkConfig | PhoneConfig}
+                entitlementData={enrollment.entitlement_data as unknown as AirTicketData | PhoneData | null}
+              />
+              <Separator />
+            </>
+          )}
 
           {/* Dates */}
           <div className="space-y-3">
