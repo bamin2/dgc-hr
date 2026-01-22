@@ -161,6 +161,37 @@ describe('dateUtils', () => {
       vi.setSystemTime(new Date('2024-12-20T12:00:00.000Z'));
       expect(calculateNextPayrollDate(15)).toBe('2025-01-15');
     });
+
+    // Weekend adjustment tests
+    it('returns Thursday when payroll falls on Friday', () => {
+      vi.setSystemTime(new Date('2026-01-01T12:00:00.000Z'));
+      // Jan 2, 2026 is Friday - should return Jan 1 (Thursday)
+      expect(calculateNextPayrollDate(2, [5, 6])).toBe('2026-01-01');
+    });
+
+    it('returns Thursday when payroll falls on Saturday', () => {
+      vi.setSystemTime(new Date('2026-01-01T12:00:00.000Z'));
+      // Jan 3, 2026 is Saturday - should return Jan 1 (Thursday)
+      expect(calculateNextPayrollDate(3, [5, 6])).toBe('2026-01-01');
+    });
+
+    it('returns original date when not on weekend', () => {
+      vi.setSystemTime(new Date('2026-01-20T12:00:00.000Z'));
+      // Jan 26, 2026 is Monday - should stay as Jan 26
+      expect(calculateNextPayrollDate(26, [5, 6])).toBe('2026-01-26');
+    });
+
+    it('handles custom weekend days (Fri-Sat is default)', () => {
+      vi.setSystemTime(new Date('2026-01-01T12:00:00.000Z'));
+      // Jan 4, 2026 is Sunday - with Sat-Sun weekend should return Jan 1 (Thursday)
+      expect(calculateNextPayrollDate(4, [0, 6])).toBe('2026-01-01');
+    });
+
+    it('does not adjust when weekend days is empty', () => {
+      vi.setSystemTime(new Date('2026-01-01T12:00:00.000Z'));
+      // Jan 2, 2026 is Friday - with empty weekend should stay as Jan 2
+      expect(calculateNextPayrollDate(2, [])).toBe('2026-01-02');
+    });
   });
 
   describe('getPayrollPeriod', () => {
