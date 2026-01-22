@@ -248,6 +248,7 @@ export function useUpdateBenefitEnrollment() {
   return useMutation({
     mutationFn: async ({
       id,
+      entitlement_data,
       ...updates
     }: {
       id: string;
@@ -257,10 +258,16 @@ export function useUpdateBenefitEnrollment() {
       end_date?: string | null;
       employee_contribution?: number;
       employer_contribution?: number;
+      entitlement_data?: Record<string, unknown> | null;
     }) => {
+      const updatePayload = {
+        ...updates,
+        ...(entitlement_data !== undefined && { entitlement_data: entitlement_data as Json }),
+      };
+      
       const { data, error } = await supabase
         .from('benefit_enrollments')
-        .update(updates)
+        .update(updatePayload)
         .eq('id', id)
         .select()
         .single();

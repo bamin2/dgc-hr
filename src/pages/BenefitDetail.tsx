@@ -123,14 +123,9 @@ const BenefitDetail = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {plan.entitlement_config && (plan.entitlement_config as CarParkConfig).spot_location && (
-                <div className="p-4 bg-background rounded-lg mb-4">
-                  <p className="text-sm text-muted-foreground">Default Location</p>
-                  <p className="text-lg font-medium">{(plan.entitlement_config as CarParkConfig).spot_location}</p>
-                </div>
-              )}
               <p className="text-sm text-muted-foreground">
                 Monthly parking allocation with employee/employer cost sharing defined in coverage levels.
+                Parking spot locations are assigned per-enrollment.
               </p>
             </CardContent>
           </Card>

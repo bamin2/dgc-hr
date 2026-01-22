@@ -15,7 +15,7 @@ import { EntitlementTrackingCard } from './EntitlementTrackingCard';
 import { format } from 'date-fns';
 import { Users, Calendar, DollarSign, Pencil } from 'lucide-react';
 import type { BenefitEnrollment } from '@/hooks/useBenefitEnrollments';
-import type { BenefitType, AirTicketConfig, CarParkConfig, PhoneConfig, AirTicketData, PhoneData } from '@/types/benefits';
+import type { BenefitType, AirTicketConfig, CarParkConfig, PhoneConfig, AirTicketData, PhoneData, CarParkData } from '@/types/benefits';
 
 interface EnrollmentDetailsDialogProps {
   open: boolean;
@@ -124,14 +124,15 @@ export const EnrollmentDetailsDialog = ({
           <Separator />
 
           {/* Entitlement Tracking for specialized types */}
-          {isEntitlementType && plan?.entitlement_config && (
+          {isEntitlementType && (plan?.entitlement_config || plan?.type === 'car_park') && (
             <>
               <EntitlementTrackingCard
                 enrollmentId={enrollment.id}
                 employeeName={employeeName}
                 planType={plan.type as BenefitType}
                 entitlementConfig={plan.entitlement_config as AirTicketConfig | CarParkConfig | PhoneConfig}
-                entitlementData={enrollment.entitlement_data as unknown as AirTicketData | PhoneData | null}
+                entitlementData={enrollment.entitlement_data as unknown as AirTicketData | PhoneData | CarParkData | null}
+                spotLocation={(enrollment.entitlement_data as CarParkData | null)?.spot_location}
               />
               <Separator />
             </>

@@ -47,7 +47,7 @@ import {
 } from '@/hooks/useBenefitPlans';
 import { useBenefitDocumentUpload } from '@/hooks/useBenefitDocumentUpload';
 import { FormSection, FormActions } from '@/components/ui/form-section';
-import { AirTicketConfigFields, CarParkConfigFields, PhoneConfigFields } from './EntitlementConfigFields';
+import { AirTicketConfigFields, PhoneConfigFields } from './EntitlementConfigFields';
 
 const formSchema = z.object({
   name: z.string().min(1, 'Plan name is required'),
@@ -85,9 +85,8 @@ export function CreateBenefitPlanDialog({ open, onOpenChange }: CreateBenefitPla
     tickets_per_period: 1,
     period_years: 2,
   });
-  const [carParkConfig, setCarParkConfig] = useState<CarParkConfig>({
-    spot_location: '',
-  });
+  // carParkConfig removed - car park plans use standard coverage levels only
+  // Spot location is assigned per-enrollment
   const [phoneConfig, setPhoneConfig] = useState<PhoneConfig>({
     total_device_cost: 0,
     monthly_installment: 0,
@@ -156,7 +155,8 @@ export function CreateBenefitPlanDialog({ open, onOpenChange }: CreateBenefitPla
       if (values.type === 'air_ticket') {
         entitlement_config = airTicketConfig;
       } else if (values.type === 'car_park') {
-        entitlement_config = carParkConfig;
+        // Car park plans don't need entitlement_config - they use standard coverage levels
+        entitlement_config = undefined;
       } else if (values.type === 'phone') {
         entitlement_config = phoneConfig;
       }
@@ -379,14 +379,7 @@ export function CreateBenefitPlanDialog({ open, onOpenChange }: CreateBenefitPla
               </FormSection>
             )}
 
-            {watchedType === 'car_park' && (
-              <FormSection title="Car Park Configuration" separator>
-                <CarParkConfigFields 
-                  config={carParkConfig} 
-                  onChange={setCarParkConfig} 
-                />
-              </FormSection>
-            )}
+            {/* Car Park plans use standard coverage levels - no special config needed */}
 
             {watchedType === 'phone' && (
               <FormSection title="Phone Configuration" separator>

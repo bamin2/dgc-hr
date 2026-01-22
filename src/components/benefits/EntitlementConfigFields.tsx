@@ -42,32 +42,8 @@ export function AirTicketConfigFields({ config, onChange }: AirTicketFieldsProps
   );
 }
 
-interface CarParkFieldsProps {
-  config: CarParkConfig;
-  onChange: (config: CarParkConfig) => void;
-}
-
-export function CarParkConfigFields({ config, onChange }: CarParkFieldsProps) {
-  return (
-    <div className="space-y-4 p-4 bg-indigo-50 dark:bg-indigo-950/20 rounded-lg border border-indigo-200 dark:border-indigo-800">
-      <div className="flex items-center gap-2 text-indigo-700 dark:text-indigo-400">
-        <Car className="h-4 w-4" />
-        <span className="text-sm font-medium">Car Park Entitlement</span>
-      </div>
-      <div className="space-y-2">
-        <FormLabel>Spot Location (Optional)</FormLabel>
-        <Input
-          placeholder="e.g., Building A - Level 2"
-          value={config.spot_location || ''}
-          onChange={(e) => onChange({ ...config, spot_location: e.target.value })}
-        />
-      </div>
-      <p className="text-xs text-muted-foreground">
-        Monthly cost will be tracked through coverage levels (employee/employer contribution)
-      </p>
-    </div>
-  );
-}
+// CarParkConfigFields removed - car park plans use standard coverage levels
+// Spot location is now assigned per-enrollment in the EnrollmentForm
 
 interface PhoneFieldsProps {
   config: PhoneConfig;
