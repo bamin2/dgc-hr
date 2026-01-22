@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { EnrollmentForm } from '@/components/benefits';
 import { useCreateBenefitEnrollment } from '@/hooks/useBenefitEnrollments';
+import { useBenefitPlan, type AirTicketConfig, type PhoneConfig } from '@/hooks/useBenefitPlans';
+import { initializeAirTicketData, initializePhoneData } from '@/hooks/useBenefitTracking';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
@@ -19,16 +21,30 @@ const BenefitEnrollment = () => {
     coverageLevelId: string;
     coverageLevel: { employee_cost: number; employer_cost: number };
     startDate: Date;
+    planType?: string;
+    entitlementConfig?: Record<string, unknown>;
     dependents?: Array<{ name: string; relationship: string; nationalId?: string }>;
   }) => {
+    // Initialize entitlement data based on plan type
+    let entitlementData: Record<string, unknown> | undefined;
+    const startDateStr = format(data.startDate, 'yyyy-MM-dd');
+    
+    if (data.planType === 'air_ticket' && data.entitlementConfig) {
+      entitlementData = initializeAirTicketData(startDateStr) as unknown as Record<string, unknown>;
+    } else if (data.planType === 'phone' && data.entitlementConfig) {
+      const config = data.entitlementConfig as unknown as PhoneConfig;
+      entitlementData = initializePhoneData(config.total_device_cost) as unknown as Record<string, unknown>;
+    }
+
     try {
       await createEnrollment.mutateAsync({
         employee_id: data.employeeId,
         plan_id: data.planId,
         coverage_level_id: data.coverageLevelId,
-        start_date: format(data.startDate, 'yyyy-MM-dd'),
+        start_date: startDateStr,
         employee_contribution: data.coverageLevel.employee_cost,
         employer_contribution: data.coverageLevel.employer_cost,
+        entitlement_data: entitlementData,
         beneficiaries: data.dependents?.map(d => ({
           name: d.name,
           relationship: d.relationship,
