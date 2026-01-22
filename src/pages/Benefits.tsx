@@ -168,12 +168,6 @@ const Benefits = () => {
         <PageHeader
           title="Benefits"
           subtitle="Manage employee benefits and enrollments"
-          actions={
-            <Button onClick={() => navigate('/benefits/enroll')}>
-              <Plus className="mr-2 h-4 w-4" />
-              New Enrollment
-            </Button>
-          }
         />
 
         {/* Tabs */}
@@ -273,13 +267,19 @@ const Benefits = () => {
 
           {/* Enrollments Tab */}
           <TabsContent value="enrollments" className="space-y-6 mt-6">
-            <BenefitsFilters
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              typeFilter={typeFilter}
-              onTypeChange={setTypeFilter}
-            />
-            <EnrollmentsTable 
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <BenefitsFilters
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                typeFilter={typeFilter}
+                onTypeChange={setTypeFilter}
+              />
+              <Button onClick={() => navigate('/benefits/enroll')}>
+                <Plus className="mr-2 h-4 w-4" />
+                New Enrollment
+              </Button>
+            </div>
+            <EnrollmentsTable
               enrollments={filteredEnrollments}
               onViewEnrollment={(enrollment) => {
                 setSelectedEnrollment(enrollment);
