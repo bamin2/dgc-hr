@@ -31,6 +31,11 @@ interface ResendResponse {
   error?: { message: string };
 }
 
+interface EmailAttachment {
+  filename: string;
+  content: string; // base64 encoded
+}
+
 interface CompanyData {
   name: string;
   email?: string;
@@ -64,14 +69,29 @@ function isCompleteHtmlTemplate(html: string): boolean {
   );
 }
 
-async function sendEmail(to: string[], subject: string, html: string, from: string): Promise<ResendResponse> {
+async function sendEmail(
+  to: string[], 
+  subject: string, 
+  html: string, 
+  from: string,
+  attachments?: EmailAttachment[]
+): Promise<ResendResponse> {
+  const payload: Record<string, unknown> = { from, to, subject, html };
+  
+  if (attachments && attachments.length > 0) {
+    payload.attachments = attachments.map(a => ({
+      filename: a.filename,
+      content: a.content,
+    }));
+  }
+
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "Authorization": `Bearer ${RESEND_API_KEY}`,
     },
-    body: JSON.stringify({ from, to, subject, html }),
+    body: JSON.stringify(payload),
   });
 
   const data = await response.json();
@@ -79,6 +99,37 @@ async function sendEmail(to: string[], subject: string, html: string, from: stri
     return { error: { message: data.message || "Failed to send email" } };
   }
   return { id: data.id };
+}
+
+// deno-lint-ignore no-explicit-any
+async function getPayslipPdfAsBase64(
+  supabase: any,
+  storagePath: string
+): Promise<{ content: string; filename: string } | null> {
+  try {
+    const { data, error } = await supabase.storage
+      .from("payslips")
+      .download(storagePath);
+    
+    if (error || !data) {
+      console.error("Failed to download payslip PDF:", error);
+      return null;
+    }
+
+    const arrayBuffer = await data.arrayBuffer();
+    const bytes = new Uint8Array(arrayBuffer);
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    const base64 = btoa(binary);
+    const filename = storagePath.split('/').pop() || 'payslip.pdf';
+    
+    return { content: base64, filename };
+  } catch (err) {
+    console.error("Error fetching payslip PDF:", err);
+    return null;
+  }
 }
 
 serve(async (req: Request): Promise<Response> => {
@@ -218,8 +269,26 @@ serve(async (req: Request): Promise<Response> => {
       }
 
       const employeeName = `${employee.first_name} ${employee.last_name}`;
-      const netPayFormatted = formatCurrency(pe.net_pay || 0, currency);
-      const grossPayFormatted = formatCurrency(pe.gross_pay || pe.base_salary || 0, currency);
+
+      // Fetch payslip PDF for attachment
+      const { data: payslipDoc } = await supabase
+        .from("payslip_documents")
+        .select("pdf_storage_path")
+        .eq("employee_id", employee.id)
+        .eq("payroll_run_id", payrollRunId)
+        .single();
+
+      let pdfAttachment: EmailAttachment | undefined;
+      if (payslipDoc?.pdf_storage_path) {
+        const pdfData = await getPayslipPdfAsBase64(supabase, payslipDoc.pdf_storage_path);
+        if (pdfData) {
+          const safeMonth = formatMonth(payrollRun.pay_period_start).replace(/\s+/g, '_');
+          pdfAttachment = {
+            filename: `Payslip_${employee.first_name}_${employee.last_name}_${safeMonth}.pdf`,
+            content: pdfData.content,
+          };
+        }
+      }
 
       let subject: string;
       let html: string;
@@ -299,13 +368,12 @@ serve(async (req: Request): Promise<Response> => {
           employeeName,
           payPeriodStart: payrollRun.pay_period_start,
           payPeriodEnd: payrollRun.pay_period_end,
-          netPay: (pe.net_pay || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-          currency,
+          hasAttachment: !!pdfAttachment,
         });
       }
 
       try {
-        const emailResult = await sendEmail([employee.email], subject, html, fromEmail);
+        const emailResult = await sendEmail([employee.email], subject, html, fromEmail, pdfAttachment ? [pdfAttachment] : undefined);
 
         await supabase.from("email_logs").insert({
           recipient_email: employee.email,
@@ -395,8 +463,7 @@ interface PayslipEmailData {
   employeeName: string;
   payPeriodStart: string;
   payPeriodEnd: string;
-  netPay: string;
-  currency: string;
+  hasAttachment: boolean;
 }
 
 function generateEmailHeader(data: { companyName: string; companyLogo?: string }): string {
@@ -484,23 +551,17 @@ function generatePayslipEmailHtml(data: PayslipEmailData): string {
         <h2 style="color:#18181b;margin:0 0 10px 0;font-size:22px;text-align:center;font-weight:600;">Your Payslip is Ready</h2>
         <p style="color:#52525b;margin:0 0 25px 0;line-height:1.6;text-align:center;font-size:15px;">Hi <strong style="color:#18181b;">${data.employeeName}</strong>, your payslip for <strong style="color:#18181b;">${formatMonth(data.payPeriodStart)}</strong> is now available.</p>
         
-        <!-- Net Pay Highlight -->
-        <div style="background:linear-gradient(135deg,${DGC_DEEP_GREEN} 0%,${DGC_DEEP_GREEN_DARK} 100%);border-radius:12px;padding:25px;margin-bottom:20px;text-align:center;">
-          <p style="color:rgba(255,255,255,0.8);margin:0 0 8px 0;font-size:12px;text-transform:uppercase;letter-spacing:1px;">Net Pay</p>
-          <p style="color:#ffffff;margin:0;font-size:32px;font-weight:700;">${data.currency} ${data.netPay}</p>
-        </div>
-        
         <!-- Pay Period Details -->
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#fafafa;border-radius:10px;border:1px solid #e5e7eb;margin-bottom:20px;">
           <tr><td style="padding:20px;">
             <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
               <tr><td style="padding:10px 0;color:#71717a;font-size:13px;">Pay Period</td><td style="padding:10px 0;color:#18181b;font-size:14px;text-align:right;font-weight:500;">${formatDate(data.payPeriodStart)} - ${formatDate(data.payPeriodEnd)}</td></tr>
-              <tr><td style="padding:10px 0;color:#71717a;font-size:13px;border-top:1px solid #e5e7eb;">Status</td><td style="padding:10px 0;text-align:right;border-top:1px solid #e5e7eb;"><span style="background-color:${DGC_GOLD}20;color:${DGC_GOLD};padding:4px 10px;border-radius:4px;font-size:12px;font-weight:600;">Issued</span></td></tr>
+              <tr><td style="padding:10px 0;color:#71717a;font-size:13px;border-top:1px solid #e5e7eb;">Status</td><td style="padding:10px 0;text-align:right;border-top:1px solid #e5e7eb;"><span style="background-color:rgba(198,164,94,0.15);color:${DGC_GOLD};padding:4px 10px;border-radius:4px;font-size:12px;font-weight:600;">Issued</span></td></tr>
             </table>
           </td></tr>
         </table>
         
-        <p style="color:#71717a;margin:0;font-size:13px;text-align:center;line-height:1.5;">Please log in to the HR portal to download your detailed payslip.<br />Contact HR if you have any questions about your compensation.</p>
+        <p style="color:#71717a;margin:0;font-size:13px;text-align:center;line-height:1.5;">${data.hasAttachment ? 'Your payslip is attached to this email for your convenience.<br />You can also access it anytime via the HR portal.' : 'Please log in to the HR portal to download your detailed payslip.'}<br />Contact HR if you have any questions about your compensation.</p>
       </td>
     </tr>
     ${generateEmailFooter(data)}
