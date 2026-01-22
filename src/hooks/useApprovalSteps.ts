@@ -251,6 +251,11 @@ export function useApproveStep() {
               reviewed_at: new Date().toISOString(),
             })
             .eq("id", step.request_id);
+          
+          // Send approval email notification
+          supabase.functions.invoke('send-email', {
+            body: { type: 'leave_request_approved', leaveRequestId: step.request_id }
+          }).catch(console.error);
         } else if (step.request_type === "business_trip") {
           await supabase
             .from("business_trips")
@@ -336,6 +341,11 @@ export function useRejectStep() {
             rejection_reason: comment,
           })
           .eq("id", step.request_id);
+        
+        // Send rejection email notification
+        supabase.functions.invoke('send-email', {
+          body: { type: 'leave_request_rejected', leaveRequestId: step.request_id }
+        }).catch(console.error);
       } else if (step.request_type === "business_trip") {
         await supabase
           .from("business_trips")
