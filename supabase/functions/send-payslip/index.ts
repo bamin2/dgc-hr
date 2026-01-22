@@ -44,6 +44,7 @@ interface EmailTemplate {
   subject: string;
   body_content: string;
   is_active: boolean;
+  use_default_template: boolean;
 }
 
 /**
@@ -152,11 +153,14 @@ serve(async (req: Request): Promise<Response> => {
     // Fetch email template from database
     const { data: emailTemplate } = await supabase
       .from("email_templates")
-      .select("subject, body_content, is_active")
+      .select("subject, body_content, is_active, use_default_template")
       .eq("type", "payslip_issued")
       .single();
 
-    const useCustomTemplate = emailTemplate?.is_active && emailTemplate?.body_content;
+    // Use custom template ONLY if active AND use_default_template is false
+    const useCustomTemplate = emailTemplate?.is_active && 
+                              emailTemplate?.body_content && 
+                              !emailTemplate?.use_default_template;
 
     let employeesQuery = supabase
       .from("payroll_run_employees")
