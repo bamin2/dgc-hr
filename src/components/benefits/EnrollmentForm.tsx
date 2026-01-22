@@ -43,7 +43,7 @@ export const EnrollmentForm = ({ onSubmit, onCancel }: EnrollmentFormProps) => {
 
   const { data: employees = [], isLoading: employeesLoading } = useEmployees();
   const { data: plans = [], isLoading: plansLoading } = useBenefitPlans('active');
-  const { formatCurrency } = useCompanySettings();
+  const { formatCurrency, isLoading: settingsLoading } = useCompanySettings();
 
   const activeEmployees = employees.filter(e => e.status === 'active');
   const selectedEmployee = activeEmployees.find(e => e.id === employeeId);
@@ -95,7 +95,7 @@ export const EnrollmentForm = ({ onSubmit, onCancel }: EnrollmentFormProps) => {
   };
 
   const isValid = employeeId && planId && coverageLevelId && startDate;
-  const isLoading = employeesLoading || plansLoading;
+  const isLoading = employeesLoading || plansLoading || settingsLoading;
 
   if (isLoading) {
     return (
