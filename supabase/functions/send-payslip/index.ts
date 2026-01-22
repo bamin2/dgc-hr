@@ -12,9 +12,11 @@ const corsHeaders = {
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-// DGC Brand colors (Gold)
-const BRAND_PRIMARY = "#C6A45E";
-const BRAND_PRIMARY_DARK = "#B8934D";
+// DGC Brand Colors (matching send-email)
+const DGC_DEEP_GREEN = "#0F2A28";
+const DGC_DEEP_GREEN_DARK = "#0A1D1B";
+const DGC_GOLD = "#C6A45E";
+const DGC_OFF_WHITE = "#F7F7F5";
 
 // Portal URL for employee access
 const PORTAL_BASE_URL = Deno.env.get("APP_BASE_URL") || "https://hr.dgcholding.com";
@@ -369,7 +371,7 @@ function wrapInEmailTemplate(data: EmailWrapperData): string {
 <!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background-color:#f4f4f5;">
+<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background-color:${DGC_OFF_WHITE};">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;padding:20px;">
     ${generateEmailHeader(data)}
     <tr>
@@ -398,18 +400,18 @@ interface PayslipEmailData {
 }
 
 function generateEmailHeader(data: { companyName: string; companyLogo?: string }): string {
+  // Logo only (no company name text) - matches leave email design
   const logoSection = data.companyLogo 
-    ? `<img src="${data.companyLogo}" alt="${data.companyName}" style="max-height:45px;max-width:150px;margin-right:15px;vertical-align:middle;" />`
-    : `<div style="display:inline-block;width:45px;height:45px;background:rgba(255,255,255,0.2);border-radius:8px;margin-right:15px;vertical-align:middle;text-align:center;line-height:45px;font-size:20px;font-weight:bold;color:white;">${data.companyName.charAt(0)}</div>`;
+    ? `<img src="${data.companyLogo}" alt="${data.companyName}" style="max-height:45px;max-width:150px;vertical-align:middle;background:transparent;" />`
+    : `<div style="display:inline-block;width:45px;height:45px;background:rgba(255,255,255,0.2);border-radius:8px;vertical-align:middle;text-align:center;line-height:45px;font-size:20px;font-weight:bold;color:white;">${data.companyName.charAt(0)}</div>`;
 
   return `
     <tr>
-      <td style="background:linear-gradient(135deg,${BRAND_PRIMARY} 0%,${BRAND_PRIMARY_DARK} 100%);padding:25px 30px;border-radius:12px 12px 0 0;">
+      <td style="background:linear-gradient(135deg,${DGC_DEEP_GREEN} 0%,${DGC_DEEP_GREEN_DARK} 100%);padding:25px 30px;border-radius:12px 12px 0 0;">
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
           <tr>
             <td style="vertical-align:middle;">
               ${logoSection}
-              <span style="color:#ffffff;font-size:22px;font-weight:600;vertical-align:middle;">${data.companyName}</span>
             </td>
           </tr>
         </table>
@@ -434,10 +436,10 @@ function generateEmailFooter(data: { companyName: string; companyPhone?: string;
               <p style="color:#71717a;margin:0 0 15px 0;font-size:12px;">
                 <a href="tel:${phone.replace(/\s/g, '')}" style="color:#71717a;text-decoration:none;">${phone}</a>
                 &nbsp;|&nbsp;
-                <a href="mailto:${email}" style="color:${BRAND_PRIMARY};text-decoration:none;">${email}</a>
+                <a href="mailto:${email}" style="color:${DGC_GOLD};text-decoration:none;">${email}</a>
               </p>
               <p style="margin:0 0 15px 0;">
-                <a href="https://${website}" style="color:${BRAND_PRIMARY};text-decoration:none;font-size:12px;font-weight:500;">${website}</a>
+                <a href="https://${website}" style="color:${DGC_GOLD};text-decoration:none;font-size:12px;font-weight:500;">${website}</a>
               </p>
               <hr style="border:none;border-top:1px solid #e5e7eb;margin:15px 0;" />
               <p style="color:#a1a1aa;margin:0;font-size:11px;line-height:1.5;">
@@ -456,13 +458,13 @@ function generatePayslipEmailHtml(data: PayslipEmailData): string {
 <!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background-color:#f4f4f5;">
+<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background-color:${DGC_OFF_WHITE};">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;padding:20px;">
     ${generateEmailHeader(data)}
     <tr>
       <td style="background-color:#ffffff;padding:30px;">
         <div style="text-align:center;margin-bottom:20px;">
-          <div style="display:inline-block;background:linear-gradient(135deg,${BRAND_PRIMARY}20 0%,${BRAND_PRIMARY}10 100%);border-radius:50%;width:70px;height:70px;line-height:70px;text-align:center;">
+          <div style="display:inline-block;background:linear-gradient(135deg,${DGC_DEEP_GREEN}20 0%,${DGC_DEEP_GREEN}10 100%);border-radius:50%;width:70px;height:70px;line-height:70px;text-align:center;">
             <span style="font-size:32px;">💰</span>
           </div>
         </div>
@@ -470,7 +472,7 @@ function generatePayslipEmailHtml(data: PayslipEmailData): string {
         <p style="color:#52525b;margin:0 0 25px 0;line-height:1.6;text-align:center;font-size:15px;">Hi <strong style="color:#18181b;">${data.employeeName}</strong>, your payslip for <strong style="color:#18181b;">${formatMonth(data.payPeriodStart)}</strong> is now available.</p>
         
         <!-- Net Pay Highlight -->
-        <div style="background:linear-gradient(135deg,${BRAND_PRIMARY} 0%,${BRAND_PRIMARY_DARK} 100%);border-radius:12px;padding:25px;margin-bottom:20px;text-align:center;">
+        <div style="background:linear-gradient(135deg,${DGC_DEEP_GREEN} 0%,${DGC_DEEP_GREEN_DARK} 100%);border-radius:12px;padding:25px;margin-bottom:20px;text-align:center;">
           <p style="color:rgba(255,255,255,0.8);margin:0 0 8px 0;font-size:12px;text-transform:uppercase;letter-spacing:1px;">Net Pay</p>
           <p style="color:#ffffff;margin:0;font-size:32px;font-weight:700;">${data.currency} ${data.netPay}</p>
         </div>
@@ -480,7 +482,7 @@ function generatePayslipEmailHtml(data: PayslipEmailData): string {
           <tr><td style="padding:20px;">
             <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
               <tr><td style="padding:10px 0;color:#71717a;font-size:13px;">Pay Period</td><td style="padding:10px 0;color:#18181b;font-size:14px;text-align:right;font-weight:500;">${formatDate(data.payPeriodStart)} - ${formatDate(data.payPeriodEnd)}</td></tr>
-              <tr><td style="padding:10px 0;color:#71717a;font-size:13px;border-top:1px solid #e5e7eb;">Status</td><td style="padding:10px 0;text-align:right;border-top:1px solid #e5e7eb;"><span style="background-color:#dcfce7;color:#16a34a;padding:4px 10px;border-radius:4px;font-size:12px;font-weight:600;">Issued</span></td></tr>
+              <tr><td style="padding:10px 0;color:#71717a;font-size:13px;border-top:1px solid #e5e7eb;">Status</td><td style="padding:10px 0;text-align:right;border-top:1px solid #e5e7eb;"><span style="background-color:${DGC_GOLD}20;color:${DGC_GOLD};padding:4px 10px;border-radius:4px;font-size:12px;font-weight:600;">Issued</span></td></tr>
             </table>
           </td></tr>
         </table>
