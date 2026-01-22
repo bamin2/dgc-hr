@@ -47,7 +47,7 @@ import { useBenefitDocumentUpload } from '@/hooks/useBenefitDocumentUpload';
 
 const formSchema = z.object({
   name: z.string().min(1, 'Plan name is required'),
-  type: z.enum(['health', 'dental', 'vision', 'life', 'disability', 'retirement', 'wellness', 'other'] as const),
+  type: z.enum(['health', 'dental', 'vision', 'life', 'disability', 'retirement', 'wellness', 'air_ticket', 'car_park', 'phone', 'other'] as const),
   provider: z.string().min(1, 'Provider is required'),
   description: z.string().optional(),
   status: z.enum(['active', 'inactive', 'pending'] as const),
@@ -263,6 +263,9 @@ export function EditBenefitPlanDialog({ open, onOpenChange, plan }: EditBenefitP
                           <SelectItem value="disability">Disability</SelectItem>
                           <SelectItem value="retirement">Retirement</SelectItem>
                           <SelectItem value="wellness">Wellness</SelectItem>
+                          <SelectItem value="air_ticket">Air Ticket</SelectItem>
+                          <SelectItem value="car_park">Car Park</SelectItem>
+                          <SelectItem value="phone">Phone</SelectItem>
                           <SelectItem value="other">Other</SelectItem>
                         </SelectContent>
                       </Select>

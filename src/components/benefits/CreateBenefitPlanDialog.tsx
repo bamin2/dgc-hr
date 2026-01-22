@@ -36,13 +36,21 @@ import { Calendar } from '@/components/ui/calendar';
 import { Plus, Trash2, Upload, Loader2, FileText, CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import { useCreateBenefitPlan, type BenefitType, type BenefitStatus } from '@/hooks/useBenefitPlans';
+import { 
+  useCreateBenefitPlan, 
+  type BenefitType, 
+  type BenefitStatus,
+  type AirTicketConfig,
+  type CarParkConfig,
+  type PhoneConfig,
+  type EntitlementConfig
+} from '@/hooks/useBenefitPlans';
 import { useBenefitDocumentUpload } from '@/hooks/useBenefitDocumentUpload';
 import { FormSection, FormActions } from '@/components/ui/form-section';
 
 const formSchema = z.object({
   name: z.string().min(1, 'Plan name is required'),
-  type: z.enum(['health', 'dental', 'vision', 'life', 'disability', 'retirement', 'wellness', 'other'] as const),
+  type: z.enum(['health', 'dental', 'vision', 'life', 'disability', 'retirement', 'wellness', 'air_ticket', 'car_park', 'phone', 'other'] as const),
   provider: z.string().min(1, 'Provider is required'),
   description: z.string().optional(),
   status: z.enum(['active', 'inactive', 'pending'] as const),
@@ -70,6 +78,20 @@ export function CreateBenefitPlanDialog({ open, onOpenChange }: CreateBenefitPla
   const [coverageLevels, setCoverageLevels] = useState<CoverageLevel[]>([]);
   const [policyFile, setPolicyFile] = useState<File | null>(null);
   const [expiryDate, setExpiryDate] = useState<Date | undefined>();
+  
+  // Type-specific configuration state
+  const [airTicketConfig, setAirTicketConfig] = useState<AirTicketConfig>({
+    tickets_per_period: 1,
+    period_years: 2,
+  });
+  const [carParkConfig, setCarParkConfig] = useState<CarParkConfig>({
+    spot_location: '',
+  });
+  const [phoneConfig, setPhoneConfig] = useState<PhoneConfig>({
+    total_device_cost: 0,
+    monthly_installment: 0,
+    installment_months: 24,
+  });
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -82,6 +104,9 @@ export function CreateBenefitPlanDialog({ open, onOpenChange }: CreateBenefitPla
       features: '',
     },
   });
+  
+  const watchedType = form.watch('type');
+  const isEntitlementType = ['air_ticket', 'car_park', 'phone'].includes(watchedType);
 
   const addCoverageLevel = () => {
     setCoverageLevels([...coverageLevels, { name: '', employee_cost: 0, employer_cost: 0 }]);
@@ -125,6 +150,16 @@ export function CreateBenefitPlanDialog({ open, onOpenChange }: CreateBenefitPla
         level => level.name.trim().length > 0
       );
 
+      // Build entitlement config based on type
+      let entitlement_config: EntitlementConfig | undefined;
+      if (values.type === 'air_ticket') {
+        entitlement_config = airTicketConfig;
+      } else if (values.type === 'car_park') {
+        entitlement_config = carParkConfig;
+      } else if (values.type === 'phone') {
+        entitlement_config = phoneConfig;
+      }
+
       // Create the plan first
       const plan = await createPlan.mutateAsync({
         name: values.name,
@@ -134,6 +169,7 @@ export function CreateBenefitPlanDialog({ open, onOpenChange }: CreateBenefitPla
         status: values.status as BenefitStatus,
         features,
         expiry_date: expiryDate ? format(expiryDate, 'yyyy-MM-dd') : undefined,
+        entitlement_config,
         coverageLevels: validCoverageLevels,
       });
 
@@ -217,6 +253,9 @@ export function CreateBenefitPlanDialog({ open, onOpenChange }: CreateBenefitPla
                         <SelectItem value="disability">Disability</SelectItem>
                         <SelectItem value="retirement">Retirement</SelectItem>
                         <SelectItem value="wellness">Wellness</SelectItem>
+                        <SelectItem value="air_ticket">Air Ticket</SelectItem>
+                        <SelectItem value="car_park">Car Park</SelectItem>
+                        <SelectItem value="phone">Phone</SelectItem>
                         <SelectItem value="other">Other</SelectItem>
                       </SelectContent>
                     </Select>

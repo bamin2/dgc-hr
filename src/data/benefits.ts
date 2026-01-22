@@ -1,6 +1,7 @@
 import { Employee, mockEmployees } from './employees';
 
-export type BenefitType = 'health' | 'dental' | 'vision' | '401k' | 'life' | 'disability';
+// Note: This is legacy mock data. The app now uses real types from @/types/benefits
+export type BenefitType = 'health' | 'dental' | 'vision' | 'retirement' | 'life' | 'disability' | 'wellness' | 'air_ticket' | 'car_park' | 'phone' | 'other';
 export type BenefitStatus = 'active' | 'inactive';
 export type EnrollmentStatus = 'active' | 'pending' | 'cancelled';
 export type ClaimStatus = 'pending' | 'processing' | 'approved' | 'denied';
@@ -119,7 +120,7 @@ export const benefitPlans: BenefitPlan[] = [
   {
     id: 'plan-4',
     name: '401(k) Retirement Plan',
-    type: '401k',
+    type: 'retirement',
     description: 'Tax-advantaged retirement savings with employer matching.',
     provider: 'Fidelity Investments',
     coverageLevels: [

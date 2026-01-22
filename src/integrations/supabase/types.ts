@@ -655,6 +655,7 @@ export type Database = {
           employee_id: string
           employer_contribution: number
           end_date: string | null
+          entitlement_data: Json | null
           id: string
           plan_id: string
           start_date: string
@@ -668,6 +669,7 @@ export type Database = {
           employee_id: string
           employer_contribution?: number
           end_date?: string | null
+          entitlement_data?: Json | null
           id?: string
           plan_id: string
           start_date: string
@@ -681,6 +683,7 @@ export type Database = {
           employee_id?: string
           employer_contribution?: number
           end_date?: string | null
+          entitlement_data?: Json | null
           id?: string
           plan_id?: string
           start_date?: string
@@ -738,6 +741,7 @@ export type Database = {
           currency: string
           description: string | null
           enrolled_count: number | null
+          entitlement_config: Json | null
           expiry_date: string | null
           features: string[] | null
           id: string
@@ -753,6 +757,7 @@ export type Database = {
           currency?: string
           description?: string | null
           enrolled_count?: number | null
+          entitlement_config?: Json | null
           expiry_date?: string | null
           features?: string[] | null
           id?: string
@@ -768,6 +773,7 @@ export type Database = {
           currency?: string
           description?: string | null
           enrolled_count?: number | null
+          entitlement_config?: Json | null
           expiry_date?: string | null
           features?: string[] | null
           id?: string
@@ -779,6 +785,69 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      benefit_ticket_usage: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          enrollment_id: string
+          id: string
+          notes: string | null
+          usage_date: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          enrollment_id: string
+          id?: string
+          notes?: string | null
+          usage_date: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          enrollment_id?: string
+          id?: string
+          notes?: string | null
+          usage_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "benefit_ticket_usage_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "employee_summary_mv"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "benefit_ticket_usage_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "employee_summary_mv"
+            referencedColumns: ["manager_id"]
+          },
+          {
+            foreignKeyName: "benefit_ticket_usage_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "benefit_ticket_usage_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "employees_safe_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "benefit_ticket_usage_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "benefit_enrollments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       business_trip_amendments: {
         Row: {
@@ -6479,6 +6548,9 @@ export type Database = {
         | "retirement"
         | "wellness"
         | "other"
+        | "air_ticket"
+        | "car_park"
+        | "phone"
       candidate_status:
         | "draft"
         | "in_process"
@@ -6715,6 +6787,9 @@ export const Constants = {
         "retirement",
         "wellness",
         "other",
+        "air_ticket",
+        "car_park",
+        "phone",
       ],
       candidate_status: [
         "draft",

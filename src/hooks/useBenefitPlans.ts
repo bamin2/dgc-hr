@@ -1,9 +1,43 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { queryKeys } from '@/lib/queryKeys';
+import type { Json } from '@/integrations/supabase/types';
 
-export type BenefitType = 'health' | 'dental' | 'vision' | 'life' | 'disability' | 'retirement' | 'wellness' | 'other';
+export type BenefitType = 'health' | 'dental' | 'vision' | 'life' | 'disability' | 'retirement' | 'wellness' | 'air_ticket' | 'car_park' | 'phone' | 'other';
 export type BenefitStatus = 'active' | 'inactive' | 'pending';
+
+// Type-specific configuration interfaces
+export interface AirTicketConfig {
+  tickets_per_period: number;
+  period_years: number;
+}
+
+export interface CarParkConfig {
+  spot_location?: string;
+}
+
+export interface PhoneConfig {
+  total_device_cost: number;
+  monthly_installment: number;
+  installment_months: number;
+}
+
+export type EntitlementConfig = AirTicketConfig | CarParkConfig | PhoneConfig;
+
+// Type-specific tracking data interfaces
+export interface AirTicketData {
+  tickets_used: number;
+  last_ticket_date: string | null;
+  entitlement_start_date: string;
+}
+
+export interface PhoneData {
+  installments_paid: number;
+  total_paid: number;
+  remaining_balance: number;
+}
+
+export type EntitlementData = AirTicketData | PhoneData;
 
 export interface CoverageLevel {
   id: string;
@@ -29,6 +63,7 @@ export interface BenefitPlan {
   created_at: string;
   updated_at: string;
   currency: string;
+  entitlement_config: EntitlementConfig | null;
   coverage_levels?: CoverageLevel[];
 }
 
@@ -90,6 +125,7 @@ export function useCreateBenefitPlan() {
       status?: BenefitStatus;
       features?: string[];
       expiry_date?: string;
+      entitlement_config?: EntitlementConfig;
       coverageLevels?: Array<{
         name: string;
         employee_cost: number;
@@ -108,7 +144,8 @@ export function useCreateBenefitPlan() {
           status: plan.status || 'active',
           features: plan.features || [],
           expiry_date: plan.expiry_date,
-        })
+          entitlement_config: plan.entitlement_config as Json | null,
+        } as never)
         .select()
         .single();
 
@@ -144,11 +181,18 @@ export function useUpdateBenefitPlan() {
   return useMutation({
     mutationFn: async ({
       id,
+      coverage_levels: _coverageLevels, // Exclude from update
       ...updates
     }: Partial<BenefitPlan> & { id: string }) => {
+      // Cast entitlement_config for JSON compatibility
+      const updatePayload = {
+        ...updates,
+        entitlement_config: updates.entitlement_config as Json | null | undefined,
+      };
+      
       const { data, error } = await supabase
         .from('benefit_plans')
-        .update(updates)
+        .update(updatePayload as never)
         .eq('id', id)
         .select()
         .single();

@@ -47,6 +47,9 @@ export const BenefitsFilters = ({
           <SelectItem value="life">Life</SelectItem>
           <SelectItem value="disability">Disability</SelectItem>
           <SelectItem value="wellness">Wellness</SelectItem>
+          <SelectItem value="air_ticket">Air Ticket</SelectItem>
+          <SelectItem value="car_park">Car Park</SelectItem>
+          <SelectItem value="phone">Phone</SelectItem>
           <SelectItem value="other">Other</SelectItem>
         </SelectContent>
       </Select>
