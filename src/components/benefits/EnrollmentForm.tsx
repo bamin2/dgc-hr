@@ -40,7 +40,6 @@ export const EnrollmentForm = ({ onSubmit, onCancel }: EnrollmentFormProps) => {
   
   const [dependents, setDependents] = useState<Dependent[]>([]);
   const [dependentsDialogOpen, setDependentsDialogOpen] = useState(false);
-  const [previousEmployeeId, setPreviousEmployeeId] = useState('');
 
   const { data: employees = [], isLoading: employeesLoading } = useEmployees();
   const { data: plans = [], isLoading: plansLoading } = useBenefitPlans('active');
@@ -51,14 +50,21 @@ export const EnrollmentForm = ({ onSubmit, onCancel }: EnrollmentFormProps) => {
   const selectedPlan = plans.find(p => p.id === planId);
   const selectedCoverage = selectedPlan?.coverage_levels?.find(c => c.id === coverageLevelId);
   const isCarParkPlan = selectedPlan?.type === 'car_park';
+  const isHealthPlan = selectedPlan?.type === 'health';
 
-  // Open dialog when employee is selected for the first time
+  // Open dialog when Health Insurance plan is selected and employee is already chosen
   useEffect(() => {
-    if (employeeId && employeeId !== previousEmployeeId) {
+    if (isHealthPlan && employeeId) {
       setDependentsDialogOpen(true);
-      setPreviousEmployeeId(employeeId);
     }
-  }, [employeeId, previousEmployeeId]);
+  }, [planId]); // Only trigger on plan change
+
+  // Reset dependents when switching to non-health plan
+  useEffect(() => {
+    if (selectedPlan && !isHealthPlan) {
+      setDependents([]);
+    }
+  }, [selectedPlan?.type, isHealthPlan]);
 
   const handleDependentsConfirm = (newDependents: Dependent[]) => {
     setDependents(newDependents);
@@ -124,8 +130,8 @@ export const EnrollmentForm = ({ onSubmit, onCancel }: EnrollmentFormProps) => {
               </Select>
             </div>
 
-            {/* Dependents Summary */}
-            {employeeId && (
+            {/* Dependents Summary - Only for Health Insurance */}
+            {employeeId && isHealthPlan && (
               <Card className="border-border/50 bg-muted/30">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
@@ -256,7 +262,7 @@ export const EnrollmentForm = ({ onSubmit, onCancel }: EnrollmentFormProps) => {
             <CardContent className="p-4">
               <h4 className="font-medium mb-3">Enrollment Summary</h4>
               {(() => {
-                const totalPersons = 1 + dependents.length;
+                const totalPersons = isHealthPlan ? (1 + dependents.length) : 1;
                 const baseEmployeeCost = selectedCoverage.employee_cost;
                 const baseEmployerCost = selectedCoverage.employer_cost;
                 const totalEmployeeCost = baseEmployeeCost * totalPersons;
