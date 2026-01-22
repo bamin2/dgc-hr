@@ -13,7 +13,7 @@ import { format, parseISO, differenceInDays, startOfMonth, endOfMonth, subMonths
  * Get today's date as ISO string (YYYY-MM-DD)
  */
 export function getTodayString(): string {
-  return new Date().toISOString().split('T')[0];
+  return format(new Date(), 'yyyy-MM-dd');
 }
 
 /**
@@ -21,8 +21,7 @@ export function getTodayString(): string {
  */
 export function getFirstDayOfCurrentMonth(): string {
   const today = new Date();
-  return new Date(today.getFullYear(), today.getMonth(), 1)
-    .toISOString().split('T')[0];
+  return format(new Date(today.getFullYear(), today.getMonth(), 1), 'yyyy-MM-dd');
 }
 
 /**
@@ -30,8 +29,7 @@ export function getFirstDayOfCurrentMonth(): string {
  */
 export function getLastDayOfCurrentMonth(): string {
   const today = new Date();
-  return new Date(today.getFullYear(), today.getMonth() + 1, 0)
-    .toISOString().split('T')[0];
+  return format(new Date(today.getFullYear(), today.getMonth() + 1, 0), 'yyyy-MM-dd');
 }
 
 /**
@@ -39,8 +37,7 @@ export function getLastDayOfCurrentMonth(): string {
  */
 export function getFirstDayOfLastMonth(): string {
   const today = new Date();
-  return new Date(today.getFullYear(), today.getMonth() - 1, 1)
-    .toISOString().split('T')[0];
+  return format(new Date(today.getFullYear(), today.getMonth() - 1, 1), 'yyyy-MM-dd');
 }
 
 /**
@@ -48,22 +45,21 @@ export function getFirstDayOfLastMonth(): string {
  */
 export function getLastDayOfLastMonth(): string {
   const today = new Date();
-  return new Date(today.getFullYear(), today.getMonth(), 0)
-    .toISOString().split('T')[0];
+  return format(new Date(today.getFullYear(), today.getMonth(), 0), 'yyyy-MM-dd');
 }
 
 /**
  * Get first day of a specific month as ISO string
  */
 export function getFirstDayOfMonth(date: Date): string {
-  return startOfMonth(date).toISOString().split('T')[0];
+  return format(startOfMonth(date), 'yyyy-MM-dd');
 }
 
 /**
  * Get last day of a specific month as ISO string
  */
 export function getLastDayOfMonth(date: Date): string {
-  return endOfMonth(date).toISOString().split('T')[0];
+  return format(endOfMonth(date), 'yyyy-MM-dd');
 }
 
 // ============================================
@@ -150,7 +146,7 @@ export function calculateNextPayrollDate(
     nextPayrollDate.setDate(nextPayrollDate.getDate() - daysToSubtract);
   }
 
-  return nextPayrollDate.toISOString().split('T')[0];
+  return format(nextPayrollDate, 'yyyy-MM-dd');
 }
 
 /**
@@ -174,8 +170,8 @@ export function getDateRangeMonthsBack(monthsBack: number): { start: string; end
   const today = new Date();
   const startDate = subMonths(startOfMonth(today), monthsBack - 1);
   return {
-    start: startDate.toISOString().split('T')[0],
-    end: today.toISOString().split('T')[0],
+    start: format(startDate, 'yyyy-MM-dd'),
+    end: format(today, 'yyyy-MM-dd'),
   };
 }
 
@@ -185,8 +181,8 @@ export function getDateRangeMonthsBack(monthsBack: number): { start: string; end
 export function getCurrentWeekRange(): { start: string; end: string } {
   const today = new Date();
   return {
-    start: startOfWeek(today, { weekStartsOn: 0 }).toISOString().split('T')[0],
-    end: endOfWeek(today, { weekStartsOn: 0 }).toISOString().split('T')[0],
+    start: format(startOfWeek(today, { weekStartsOn: 0 }), 'yyyy-MM-dd'),
+    end: format(endOfWeek(today, { weekStartsOn: 0 }), 'yyyy-MM-dd'),
   };
 }
 
@@ -196,8 +192,8 @@ export function getCurrentWeekRange(): { start: string; end: string } {
 export function getNextNDaysRange(days: number): { start: string; end: string } {
   const today = new Date();
   return {
-    start: today.toISOString().split('T')[0],
-    end: addDays(today, days).toISOString().split('T')[0],
+    start: format(today, 'yyyy-MM-dd'),
+    end: format(addDays(today, days), 'yyyy-MM-dd'),
   };
 }
 

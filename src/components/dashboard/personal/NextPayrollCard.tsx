@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Wallet, Calendar } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 
 interface NextPayrollCardProps {
   nextPayrollDate: string | null;
@@ -30,7 +30,7 @@ export function NextPayrollCard({
   }
 
   const formattedDate = nextPayrollDate 
-    ? format(new Date(nextPayrollDate), 'MMMM d, yyyy')
+    ? format(parseISO(nextPayrollDate), 'MMMM d, yyyy')
     : 'Not scheduled';
 
   const formattedSalary = lastNetSalary 
