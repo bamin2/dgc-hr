@@ -41,13 +41,13 @@ import {
   type BenefitType, 
   type BenefitStatus,
   type AirTicketConfig,
-  type CarParkConfig,
   type PhoneConfig,
-  type EntitlementConfig
+  type EntitlementConfig,
+  type CoverageLevelDetails
 } from '@/hooks/useBenefitPlans';
 import { useBenefitDocumentUpload } from '@/hooks/useBenefitDocumentUpload';
 import { FormSection, FormActions } from '@/components/ui/form-section';
-import { AirTicketConfigFields, PhoneConfigFields } from './EntitlementConfigFields';
+import { PhoneConfigFields } from './EntitlementConfigFields';
 
 const formSchema = z.object({
   name: z.string().min(1, 'Plan name is required'),
@@ -64,6 +64,9 @@ interface CoverageLevel {
   name: string;
   employee_cost: number;
   employer_cost: number;
+  // Air ticket specific fields stored in coverage_details
+  tickets_per_period?: number;
+  period_years?: number;
 }
 
 interface CreateBenefitPlanDialogProps {
@@ -80,13 +83,7 @@ export function CreateBenefitPlanDialog({ open, onOpenChange }: CreateBenefitPla
   const [policyFile, setPolicyFile] = useState<File | null>(null);
   const [expiryDate, setExpiryDate] = useState<Date | undefined>();
   
-  // Type-specific configuration state
-  const [airTicketConfig, setAirTicketConfig] = useState<AirTicketConfig>({
-    tickets_per_period: 1,
-    period_years: 2,
-  });
-  // carParkConfig removed - car park plans use standard coverage levels only
-  // Spot location is assigned per-enrollment
+  // Phone config state (plan-level)
   const [phoneConfig, setPhoneConfig] = useState<PhoneConfig>({
     total_device_cost: 0,
     monthly_installment: 0,
@@ -106,10 +103,18 @@ export function CreateBenefitPlanDialog({ open, onOpenChange }: CreateBenefitPla
   });
   
   const watchedType = form.watch('type');
+  const isAirTicketType = watchedType === 'air_ticket';
   const isEntitlementType = ['air_ticket', 'car_park', 'phone'].includes(watchedType);
 
   const addCoverageLevel = () => {
-    setCoverageLevels([...coverageLevels, { name: '', employee_cost: 0, employer_cost: 0 }]);
+    const newLevel: CoverageLevel = { 
+      name: '', 
+      employee_cost: 0, 
+      employer_cost: 0,
+      // Default air ticket values
+      ...(isAirTicketType ? { tickets_per_period: 1, period_years: 2 } : {})
+    };
+    setCoverageLevels([...coverageLevels, newLevel]);
   };
 
   const removeCoverageLevel = (index: number) => {
@@ -145,19 +150,30 @@ export function CreateBenefitPlanDialog({ open, onOpenChange }: CreateBenefitPla
         ? values.features.split('\n').map(f => f.trim()).filter(f => f.length > 0)
         : [];
 
-      // Filter out incomplete coverage levels
-      const validCoverageLevels = coverageLevels.filter(
-        level => level.name.trim().length > 0
-      );
+      // Filter out incomplete coverage levels and map to proper format
+      const validCoverageLevels = coverageLevels
+        .filter(level => level.name.trim().length > 0)
+        .map(level => {
+          // For air ticket plans, store config in coverage_details
+          const coverage_details: CoverageLevelDetails | undefined = 
+            values.type === 'air_ticket' 
+              ? {
+                  tickets_per_period: level.tickets_per_period || 1,
+                  period_years: level.period_years || 2,
+                }
+              : undefined;
 
-      // Build entitlement config based on type
+          return {
+            name: level.name,
+            employee_cost: level.employee_cost,
+            employer_cost: level.employer_cost,
+            coverage_details,
+          };
+        });
+
+      // Build entitlement config based on type (only for phone now - air ticket uses coverage level)
       let entitlement_config: EntitlementConfig | undefined;
-      if (values.type === 'air_ticket') {
-        entitlement_config = airTicketConfig;
-      } else if (values.type === 'car_park') {
-        // Car park plans don't need entitlement_config - they use standard coverage levels
-        entitlement_config = undefined;
-      } else if (values.type === 'phone') {
+      if (values.type === 'phone') {
         entitlement_config = phoneConfig;
       }
 
@@ -369,18 +385,7 @@ export function CreateBenefitPlanDialog({ open, onOpenChange }: CreateBenefitPla
               />
             </FormSection>
 
-            {/* Type-specific Configuration */}
-            {watchedType === 'air_ticket' && (
-              <FormSection title="Air Ticket Configuration" separator>
-                <AirTicketConfigFields 
-                  config={airTicketConfig} 
-                  onChange={setAirTicketConfig} 
-                />
-              </FormSection>
-            )}
-
-            {/* Car Park plans use standard coverage levels - no special config needed */}
-
+            {/* Phone Configuration (plan-level) */}
             {watchedType === 'phone' && (
               <FormSection title="Phone Configuration" separator>
                 <PhoneConfigFields 
@@ -392,8 +397,11 @@ export function CreateBenefitPlanDialog({ open, onOpenChange }: CreateBenefitPla
 
             {/* Coverage Levels */}
             <FormSection 
-              title="Coverage Levels" 
-              description="Define cost tiers for different coverage options"
+              title={isAirTicketType ? "Coverage Levels & Entitlements" : "Coverage Levels"} 
+              description={isAirTicketType 
+                ? "Define cost tiers and ticket entitlements for different coverage options" 
+                : "Define cost tiers for different coverage options"
+              }
               separator
             >
               <div className="space-y-4">
@@ -410,11 +418,26 @@ export function CreateBenefitPlanDialog({ open, onOpenChange }: CreateBenefitPla
                   </p>
                 ) : (
                   <div className="space-y-3">
+                    {/* Header row for air ticket plans */}
+                    {isAirTicketType && coverageLevels.length > 0 && (
+                      <div className="grid grid-cols-1 md:grid-cols-5 gap-3 px-3 text-xs font-medium text-muted-foreground">
+                        <span>Level Name</span>
+                        <span>Employee Cost</span>
+                        <span>Employer Cost</span>
+                        <span>Tickets</span>
+                        <span>Period (Years)</span>
+                      </div>
+                    )}
                     {coverageLevels.map((level, index) => (
                       <div key={index} className="flex items-start gap-3 p-3 bg-muted/30 rounded-lg">
-                        <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div className={cn(
+                          "flex-1 grid gap-3",
+                          isAirTicketType 
+                            ? "grid-cols-1 md:grid-cols-5" 
+                            : "grid-cols-1 md:grid-cols-3"
+                        )}>
                           <Input
-                            placeholder="Level name (e.g., Individual)"
+                            placeholder="Level name (e.g., Senior Staff)"
                             value={level.name}
                             onChange={(e) => updateCoverageLevel(index, 'name', e.target.value)}
                           />
@@ -430,6 +453,24 @@ export function CreateBenefitPlanDialog({ open, onOpenChange }: CreateBenefitPla
                             value={level.employer_cost || ''}
                             onChange={(e) => updateCoverageLevel(index, 'employer_cost', parseFloat(e.target.value) || 0)}
                           />
+                          {isAirTicketType && (
+                            <>
+                              <Input
+                                type="number"
+                                min={1}
+                                placeholder="Tickets"
+                                value={level.tickets_per_period || ''}
+                                onChange={(e) => updateCoverageLevel(index, 'tickets_per_period', parseInt(e.target.value) || 1)}
+                              />
+                              <Input
+                                type="number"
+                                min={1}
+                                placeholder="Years"
+                                value={level.period_years || ''}
+                                onChange={(e) => updateCoverageLevel(index, 'period_years', parseInt(e.target.value) || 1)}
+                              />
+                            </>
+                          )}
                         </div>
                         <Button
                           type="button"

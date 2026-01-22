@@ -46,13 +46,20 @@ export interface PhoneData {
 
 export type EntitlementData = AirTicketData | PhoneData;
 
+// Coverage level details can include air ticket config for per-level entitlements
+export interface CoverageLevelDetails {
+  tickets_per_period?: number;
+  period_years?: number;
+  [key: string]: string | number | boolean | null | undefined;
+}
+
 export interface CoverageLevel {
   id: string;
   plan_id: string;
   name: string;
   employee_cost: number;
   employer_cost: number;
-  coverage_details: Record<string, string | number | boolean | null> | null;
+  coverage_details: CoverageLevelDetails | null;
   created_at: string;
 }
 
@@ -168,6 +175,7 @@ export function useCreateBenefitPlan() {
               name: level.name,
               employee_cost: level.employee_cost,
               employer_cost: level.employer_cost,
+              coverage_details: (level.coverage_details || null) as Json,
             }))
           );
 
@@ -229,6 +237,7 @@ export function useUpdateCoverageLevels() {
         name: string;
         employee_cost: number;
         employer_cost: number;
+        coverage_details?: CoverageLevelDetails | null;
       }>;
       originalLevelIds: string[];
     }): Promise<{ skippedLevels: string[] }> => {
@@ -274,6 +283,7 @@ export function useUpdateCoverageLevels() {
             name: level.name,
             employee_cost: level.employee_cost,
             employer_cost: level.employer_cost,
+            coverage_details: (level.coverage_details || null) as Json,
           })
           .eq('id', level.id!);
         if (updateError) throw updateError;
@@ -289,6 +299,7 @@ export function useUpdateCoverageLevels() {
               name: level.name,
               employee_cost: level.employee_cost,
               employer_cost: level.employer_cost,
+              coverage_details: (level.coverage_details || null) as Json,
             }))
           );
         if (insertError) throw insertError;

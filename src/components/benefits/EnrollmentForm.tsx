@@ -11,7 +11,7 @@ import { CalendarIcon, Check, Loader2, Users, Edit2, Car } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useEmployees } from '@/hooks/useEmployees';
-import { useBenefitPlans, type CoverageLevel } from '@/hooks/useBenefitPlans';
+import { useBenefitPlans, type CoverageLevel, type CoverageLevelDetails } from '@/hooks/useBenefitPlans';
 import { useCompanySettings } from '@/contexts/CompanySettingsContext';
 import { BenefitTypeBadge } from './BenefitTypeBadge';
 import { DependentsDialog, type Dependent } from './DependentsDialog';
@@ -195,11 +195,20 @@ export const EnrollmentForm = ({ onSubmit, onCancel }: EnrollmentFormProps) => {
                     <SelectValue placeholder="Select coverage level" />
                   </SelectTrigger>
                   <SelectContent>
-                    {selectedPlan.coverage_levels.map((coverage) => (
-                      <SelectItem key={coverage.id} value={coverage.id}>
-                        {coverage.name} - {formatCurrency(coverage.employee_cost)}/mo
-                      </SelectItem>
-                    ))}
+                    {selectedPlan.coverage_levels.map((coverage) => {
+                      // For air ticket plans, show entitlement info
+                      const details = coverage.coverage_details as CoverageLevelDetails | null;
+                      const isAirTicket = selectedPlan.type === 'air_ticket';
+                      const ticketInfo = isAirTicket && details?.tickets_per_period
+                        ? ` (${details.tickets_per_period} ticket${details.tickets_per_period > 1 ? 's' : ''}/${details.period_years} yr${details.period_years && details.period_years > 1 ? 's' : ''})`
+                        : '';
+                      
+                      return (
+                        <SelectItem key={coverage.id} value={coverage.id}>
+                          {coverage.name} - {formatCurrency(coverage.employee_cost)}/mo{ticketInfo}
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
               </div>
