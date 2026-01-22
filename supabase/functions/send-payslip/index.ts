@@ -400,14 +400,23 @@ interface PayslipEmailData {
 }
 
 function generateEmailHeader(data: { companyName: string; companyLogo?: string }): string {
-  // Logo only (no company name text) - matches leave email design
-  const logoSection = data.companyLogo 
-    ? `<img src="${data.companyLogo}" alt="${data.companyName}" style="max-height:45px;max-width:150px;vertical-align:middle;background:transparent;" />`
-    : `<div style="display:inline-block;width:45px;height:45px;background:rgba(255,255,255,0.2);border-radius:8px;vertical-align:middle;text-align:center;line-height:45px;font-size:20px;font-weight:bold;color:white;">${data.companyName.charAt(0)}</div>`;
+  // Check if logo is SVG (poor email client support)
+  const isSvg = data.companyLogo?.toLowerCase().endsWith('.svg');
+  
+  // Use table-based fallback letter if no logo or if SVG
+  const logoSection = (data.companyLogo && !isSvg)
+    ? `<img src="${data.companyLogo}" alt="${data.companyName}" style="max-height:45px;max-width:150px;vertical-align:middle;" />`
+    : `<table role="presentation" cellspacing="0" cellpadding="0" style="display:inline-block;vertical-align:middle;">
+        <tr>
+          <td bgcolor="#1a3634" style="width:45px;height:45px;background-color:#1a3634;border-radius:8px;text-align:center;font-size:20px;font-weight:bold;color:#ffffff;font-family:Arial,sans-serif;">
+            ${data.companyName.charAt(0)}
+          </td>
+        </tr>
+       </table>`;
 
   return `
     <tr>
-      <td style="background:linear-gradient(135deg,${DGC_DEEP_GREEN} 0%,${DGC_DEEP_GREEN_DARK} 100%);padding:25px 30px;border-radius:12px 12px 0 0;">
+      <td bgcolor="${DGC_DEEP_GREEN}" style="background-color:${DGC_DEEP_GREEN};background:linear-gradient(135deg,${DGC_DEEP_GREEN} 0%,${DGC_DEEP_GREEN_DARK} 100%);padding:25px 30px;border-radius:12px 12px 0 0;">
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
           <tr>
             <td style="vertical-align:middle;">
@@ -464,9 +473,13 @@ function generatePayslipEmailHtml(data: PayslipEmailData): string {
     <tr>
       <td style="background-color:#ffffff;padding:30px;">
         <div style="text-align:center;margin-bottom:20px;">
-          <div style="display:inline-block;background:linear-gradient(135deg,${DGC_DEEP_GREEN}20 0%,${DGC_DEEP_GREEN}10 100%);border-radius:50%;width:70px;height:70px;line-height:70px;text-align:center;">
-            <span style="font-size:32px;">💰</span>
-          </div>
+          <table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 auto;">
+            <tr>
+              <td bgcolor="#e8edec" style="width:70px;height:70px;background-color:#e8edec;border-radius:50%;text-align:center;vertical-align:middle;font-size:32px;">
+                💰
+              </td>
+            </tr>
+          </table>
         </div>
         <h2 style="color:#18181b;margin:0 0 10px 0;font-size:22px;text-align:center;font-weight:600;">Your Payslip is Ready</h2>
         <p style="color:#52525b;margin:0 0 25px 0;line-height:1.6;text-align:center;font-size:15px;">Hi <strong style="color:#18181b;">${data.employeeName}</strong>, your payslip for <strong style="color:#18181b;">${formatMonth(data.payPeriodStart)}</strong> is now available.</p>
