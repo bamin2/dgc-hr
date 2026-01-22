@@ -172,16 +172,36 @@ export function useLeaveEmailTemplates() {
 }
 
 /**
- * Hook for non-leave email templates.
- * Filters out templates where type starts with 'leave_'.
+ * Hook for non-leave and non-payslip email templates.
+ * Filters out templates where type starts with 'leave_' or equals 'payslip_issued'.
  */
 export function useNonLeaveEmailTemplates() {
   const { templates, isLoading, error, updateTemplate } = useEmailTemplates();
   
-  const nonLeaveTemplates = templates?.filter((t) => !t.type.startsWith("leave_"));
+  // Filter out leave templates AND payslip templates (they have their own sections)
+  const nonLeaveTemplates = templates?.filter(
+    (t) => !t.type.startsWith("leave_") && t.type !== "payslip_issued"
+  );
   
   return {
     templates: nonLeaveTemplates,
+    isLoading,
+    error,
+    updateTemplate,
+  };
+}
+
+/**
+ * Hook for payslip email template specifically.
+ * Returns the single payslip_issued template.
+ */
+export function usePayslipEmailTemplate() {
+  const { templates, isLoading, error, updateTemplate } = useEmailTemplates();
+  
+  const payslipTemplate = templates?.find((t) => t.type === "payslip_issued");
+  
+  return {
+    template: payslipTemplate,
     isLoading,
     error,
     updateTemplate,

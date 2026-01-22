@@ -39,18 +39,25 @@ export function EmailTemplatesTab() {
         </p>
       </div>
 
-      {/* Info about leave templates */}
+      {/* Info about leave and payslip templates */}
       <Alert>
         <Info className="h-4 w-4" />
         <AlertDescription>
-          Leave request email templates have been moved to{" "}
+          <strong>Leave request</strong> email templates are in{" "}
           <Link 
             to="/time-management?tab=email-templates" 
             className="font-medium text-primary hover:underline"
           >
             Time Management → Email Templates
           </Link>
-          {" "}for better organization.
+          . <strong>Payslip</strong> email templates are in{" "}
+          <Link 
+            to="/payroll/templates?tab=email" 
+            className="font-medium text-primary hover:underline"
+          >
+            Payroll → Payslip Templates
+          </Link>
+          .
         </AlertDescription>
       </Alert>
 
