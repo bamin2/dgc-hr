@@ -41,9 +41,14 @@ import {
   useUpdateCoverageLevels,
   type BenefitPlan, 
   type BenefitType, 
-  type BenefitStatus 
+  type BenefitStatus,
+  type AirTicketConfig,
+  type CarParkConfig,
+  type PhoneConfig,
+  type EntitlementConfig
 } from '@/hooks/useBenefitPlans';
 import { useBenefitDocumentUpload } from '@/hooks/useBenefitDocumentUpload';
+import { AirTicketConfigFields, CarParkConfigFields, PhoneConfigFields } from './EntitlementConfigFields';
 
 const formSchema = z.object({
   name: z.string().min(1, 'Plan name is required'),
@@ -78,6 +83,20 @@ export function EditBenefitPlanDialog({ open, onOpenChange, plan }: EditBenefitP
   const [coverageLevels, setCoverageLevels] = useState<CoverageLevel[]>([]);
   const [policyFile, setPolicyFile] = useState<File | null>(null);
   const [expiryDate, setExpiryDate] = useState<Date | undefined>();
+  
+  // Type-specific configuration state
+  const [airTicketConfig, setAirTicketConfig] = useState<AirTicketConfig>({
+    tickets_per_period: 1,
+    period_years: 2,
+  });
+  const [carParkConfig, setCarParkConfig] = useState<CarParkConfig>({
+    spot_location: '',
+  });
+  const [phoneConfig, setPhoneConfig] = useState<PhoneConfig>({
+    total_device_cost: 0,
+    monthly_installment: 0,
+    installment_months: 24,
+  });
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -90,6 +109,8 @@ export function EditBenefitPlanDialog({ open, onOpenChange, plan }: EditBenefitP
       features: '',
     },
   });
+
+  const watchedType = form.watch('type');
 
   // Initialize form with plan data when dialog opens
   useEffect(() => {
@@ -114,6 +135,27 @@ export function EditBenefitPlanDialog({ open, onOpenChange, plan }: EditBenefitP
       
       setExpiryDate(plan.expiry_date ? parseISO(plan.expiry_date) : undefined);
       setPolicyFile(null);
+      
+      // Initialize entitlement config from plan
+      const config = plan.entitlement_config;
+      if (plan.type === 'air_ticket' && config) {
+        setAirTicketConfig({
+          tickets_per_period: (config as AirTicketConfig).tickets_per_period || 1,
+          period_years: (config as AirTicketConfig).period_years || 2,
+        });
+      }
+      if (plan.type === 'car_park' && config) {
+        setCarParkConfig({
+          spot_location: (config as CarParkConfig).spot_location || '',
+        });
+      }
+      if (plan.type === 'phone' && config) {
+        setPhoneConfig({
+          total_device_cost: (config as PhoneConfig).total_device_cost || 0,
+          monthly_installment: (config as PhoneConfig).monthly_installment || 0,
+          installment_months: (config as PhoneConfig).installment_months || 24,
+        });
+      }
     }
   }, [open, plan, form]);
 
@@ -159,6 +201,16 @@ export function EditBenefitPlanDialog({ open, onOpenChange, plan }: EditBenefitP
         level => level.name.trim().length > 0
       );
 
+      // Build entitlement config based on type
+      let entitlement_config: EntitlementConfig | undefined;
+      if (values.type === 'air_ticket') {
+        entitlement_config = airTicketConfig;
+      } else if (values.type === 'car_park') {
+        entitlement_config = carParkConfig;
+      } else if (values.type === 'phone') {
+        entitlement_config = phoneConfig;
+      }
+
       // Update the plan
       await updatePlan.mutateAsync({
         id: plan.id,
@@ -169,6 +221,7 @@ export function EditBenefitPlanDialog({ open, onOpenChange, plan }: EditBenefitP
         status: values.status as BenefitStatus,
         features,
         expiry_date: expiryDate ? format(expiryDate, 'yyyy-MM-dd') : null,
+        entitlement_config,
       });
 
       // Update coverage levels
@@ -432,6 +485,37 @@ export function EditBenefitPlanDialog({ open, onOpenChange, plan }: EditBenefitP
                 </div>
               )}
             </div>
+
+            {/* Type-specific Configuration */}
+            {watchedType === 'air_ticket' && (
+              <div className="space-y-4">
+                <h3 className="text-sm font-medium text-muted-foreground">Air Ticket Configuration</h3>
+                <AirTicketConfigFields 
+                  config={airTicketConfig} 
+                  onChange={setAirTicketConfig} 
+                />
+              </div>
+            )}
+
+            {watchedType === 'car_park' && (
+              <div className="space-y-4">
+                <h3 className="text-sm font-medium text-muted-foreground">Car Park Configuration</h3>
+                <CarParkConfigFields 
+                  config={carParkConfig} 
+                  onChange={setCarParkConfig} 
+                />
+              </div>
+            )}
+
+            {watchedType === 'phone' && (
+              <div className="space-y-4">
+                <h3 className="text-sm font-medium text-muted-foreground">Phone Configuration</h3>
+                <PhoneConfigFields 
+                  config={phoneConfig} 
+                  onChange={setPhoneConfig} 
+                />
+              </div>
+            )}
 
             {/* Policy Document Upload */}
             <div className="space-y-4">

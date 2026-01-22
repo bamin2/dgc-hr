@@ -2,9 +2,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { BenefitTypeBadge } from './BenefitTypeBadge';
 import { BenefitStatusBadge } from './BenefitStatusBadge';
-import { Eye, Users } from 'lucide-react';
+import { Eye, Users, Plane, Smartphone } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import type { BenefitPlan } from '@/hooks/useBenefitPlans';
+import type { BenefitPlan, AirTicketConfig, PhoneConfig } from '@/hooks/useBenefitPlans';
 
 interface BenefitsTableProps {
   plans: BenefitPlan[];
@@ -50,6 +50,47 @@ export const BenefitsTable = ({ plans }: BenefitsTableProps) => {
                 minimumFractionDigits: 0,
               }).format(amount);
 
+            // Render cost based on plan type
+            const renderCost = () => {
+              if (plan.type === 'air_ticket' && plan.entitlement_config) {
+                const config = plan.entitlement_config as AirTicketConfig;
+                return (
+                  <span className="flex items-center gap-1 text-sky-600 dark:text-sky-400">
+                    <Plane className="h-3.5 w-3.5" />
+                    {config.tickets_per_period} / {config.period_years}yr
+                  </span>
+                );
+              }
+              if (plan.type === 'phone' && plan.entitlement_config) {
+                const config = plan.entitlement_config as PhoneConfig;
+                return (
+                  <span className="flex items-center gap-1 text-violet-600 dark:text-violet-400">
+                    <Smartphone className="h-3.5 w-3.5" />
+                    {formatPlanCurrency(config.monthly_installment)}/mo
+                  </span>
+                );
+              }
+              if (plan.type === 'car_park') {
+                if (minCost === maxCost) {
+                  return <>{formatPlanCurrency(minCost)}/mo</>;
+                }
+                return (
+                  <>
+                    {formatPlanCurrency(minCost)} - {formatPlanCurrency(maxCost)}/mo
+                  </>
+                );
+              }
+              // Standard insurance-type benefits
+              if (minCost === maxCost) {
+                return <>{formatPlanCurrency(minCost)}/mo</>;
+              }
+              return (
+                <>
+                  {formatPlanCurrency(minCost)} - {formatPlanCurrency(maxCost)}/mo
+                </>
+              );
+            };
+
             return (
               <TableRow key={plan.id} className="hover:bg-muted/30">
                 <TableCell className="font-medium">{plan.name}</TableCell>
@@ -63,15 +104,7 @@ export const BenefitsTable = ({ plans }: BenefitsTableProps) => {
                     <span>{plan.enrolled_count}</span>
                   </div>
                 </TableCell>
-                <TableCell>
-                  {minCost === maxCost ? (
-                    <>{formatPlanCurrency(minCost)}/mo</>
-                  ) : (
-                    <>
-                      {formatPlanCurrency(minCost)} - {formatPlanCurrency(maxCost)}/mo
-                    </>
-                  )}
-                </TableCell>
+                <TableCell>{renderCost()}</TableCell>
                 <TableCell>
                   <BenefitStatusBadge status={plan.status} />
                 </TableCell>

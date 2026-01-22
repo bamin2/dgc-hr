@@ -47,6 +47,7 @@ import {
 } from '@/hooks/useBenefitPlans';
 import { useBenefitDocumentUpload } from '@/hooks/useBenefitDocumentUpload';
 import { FormSection, FormActions } from '@/components/ui/form-section';
+import { AirTicketConfigFields, CarParkConfigFields, PhoneConfigFields } from './EntitlementConfigFields';
 
 const formSchema = z.object({
   name: z.string().min(1, 'Plan name is required'),
@@ -367,6 +368,34 @@ export function CreateBenefitPlanDialog({ open, onOpenChange }: CreateBenefitPla
                 )}
               />
             </FormSection>
+
+            {/* Type-specific Configuration */}
+            {watchedType === 'air_ticket' && (
+              <FormSection title="Air Ticket Configuration" separator>
+                <AirTicketConfigFields 
+                  config={airTicketConfig} 
+                  onChange={setAirTicketConfig} 
+                />
+              </FormSection>
+            )}
+
+            {watchedType === 'car_park' && (
+              <FormSection title="Car Park Configuration" separator>
+                <CarParkConfigFields 
+                  config={carParkConfig} 
+                  onChange={setCarParkConfig} 
+                />
+              </FormSection>
+            )}
+
+            {watchedType === 'phone' && (
+              <FormSection title="Phone Configuration" separator>
+                <PhoneConfigFields 
+                  config={phoneConfig} 
+                  onChange={setPhoneConfig} 
+                />
+              </FormSection>
+            )}
 
             {/* Coverage Levels */}
             <FormSection 
