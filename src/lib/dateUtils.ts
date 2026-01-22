@@ -90,8 +90,15 @@ export function getCurrentMonth(): number {
 
 /**
  * Calculate the next payroll date based on the configured day of month
+ * If the date falls on a weekend day, move to the preceding Thursday
+ * 
+ * @param payrollDayOfMonth - The configured payroll day (1-31)
+ * @param weekendDays - Array of weekend day indices (0=Sunday, 5=Friday, 6=Saturday)
  */
-export function calculateNextPayrollDate(payrollDayOfMonth: number): string {
+export function calculateNextPayrollDate(
+  payrollDayOfMonth: number,
+  weekendDays: number[] = [5, 6]
+): string {
   const today = new Date();
   const currentDay = today.getDate();
   const currentMonth = today.getMonth();
@@ -116,6 +123,31 @@ export function calculateNextPayrollDate(payrollDayOfMonth: number): string {
   
   if (payrollDayOfMonth > lastDayOfMonth) {
     nextPayrollDate.setDate(lastDayOfMonth);
+  }
+
+  // Adjust for weekends: if payroll falls on a weekend, move to Thursday before
+  const dayOfWeek = nextPayrollDate.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
+  
+  if (weekendDays.includes(dayOfWeek)) {
+    // Calculate days to subtract to reach Thursday (day 4)
+    let daysToSubtract: number;
+    if (dayOfWeek === 5) {
+      // Friday → subtract 1 day to get Thursday
+      daysToSubtract = 1;
+    } else if (dayOfWeek === 6) {
+      // Saturday → subtract 2 days to get Thursday
+      daysToSubtract = 2;
+    } else if (dayOfWeek === 0) {
+      // Sunday (if included in weekendDays) → subtract 3 days to get Thursday
+      daysToSubtract = 3;
+    } else {
+      // Other weekend configurations: calculate distance to previous Thursday
+      // Thursday is day 4, so we need to go back (dayOfWeek - 4) days if dayOfWeek > 4
+      // or (dayOfWeek + 7 - 4) days if dayOfWeek < 4
+      daysToSubtract = dayOfWeek > 4 ? dayOfWeek - 4 : dayOfWeek + 3;
+    }
+    
+    nextPayrollDate.setDate(nextPayrollDate.getDate() - daysToSubtract);
   }
 
   return nextPayrollDate.toISOString().split('T')[0];

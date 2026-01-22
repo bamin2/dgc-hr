@@ -101,7 +101,8 @@ export function useAdminDashboard() {
       // Process payroll status
       const lastPayroll = payrollRes.data?.[0];
       const payrollDayOfMonth = companySettingsRes.data?.payroll_day_of_month || 25;
-      const nextPayrollDate = calculateNextPayrollDate(payrollDayOfMonth);
+      const weekendDays = companySettingsRes.data?.weekend_days || [5, 6];
+      const nextPayrollDate = calculateNextPayrollDate(payrollDayOfMonth, weekendDays);
 
       const payrollStatus = {
         lastRunDate: lastPayroll?.processed_date || null,

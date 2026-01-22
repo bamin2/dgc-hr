@@ -11,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 export async function fetchCompanySettings() {
   return supabase
     .from('company_settings')
-    .select('payroll_day_of_month')
+    .select('payroll_day_of_month, weekend_days')
     .limit(1)
     .single();
 }
