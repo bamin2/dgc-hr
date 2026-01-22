@@ -5,10 +5,48 @@
 
 import { Database } from '@/integrations/supabase/types';
 
-export type BenefitType = Database['public']['Enums']['benefit_type'];
+// Re-export types from the database, but also define them explicitly to include new types
+// that may not yet be in the auto-generated types file
+export type BenefitType = 
+  | 'health' | 'dental' | 'vision' | 'life' | 'disability' 
+  | 'retirement' | 'wellness' | 'air_ticket' | 'car_park' | 'phone' | 'other';
+
 export type BenefitStatus = Database['public']['Enums']['benefit_status'];
 export type EnrollmentStatus = Database['public']['Enums']['enrollment_status'];
 export type ClaimStatus = Database['public']['Enums']['claim_status'];
+
+// Type-specific configuration interfaces
+export interface AirTicketConfig {
+  tickets_per_period: number;
+  period_years: number;
+}
+
+export interface CarParkConfig {
+  spot_location?: string;
+}
+
+export interface PhoneConfig {
+  total_device_cost: number;
+  monthly_installment: number;
+  installment_months: number;
+}
+
+export type EntitlementConfig = AirTicketConfig | CarParkConfig | PhoneConfig;
+
+// Type-specific tracking data interfaces
+export interface AirTicketData {
+  tickets_used: number;
+  last_ticket_date: string | null;
+  entitlement_start_date: string;
+}
+
+export interface PhoneData {
+  installments_paid: number;
+  total_paid: number;
+  remaining_balance: number;
+}
+
+export type EntitlementData = AirTicketData | PhoneData;
 
 export interface BenefitPlan {
   id: string;

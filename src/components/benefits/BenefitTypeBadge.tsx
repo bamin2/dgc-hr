@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
-import { Heart, Smile, Eye, PiggyBank, Shield, Accessibility, Sparkles, HelpCircle } from 'lucide-react';
-import type { BenefitType } from '@/hooks/useBenefitPlans';
+import { Heart, Smile, Eye, PiggyBank, Shield, Accessibility, Sparkles, HelpCircle, Plane, Car, Smartphone } from 'lucide-react';
+import type { BenefitType } from '@/types/benefits';
 
 interface BenefitTypeBadgeProps {
   type: BenefitType;
@@ -43,6 +43,21 @@ const typeConfig: Record<BenefitType, { label: string; icon: typeof Heart; class
     label: 'Wellness',
     icon: Sparkles,
     className: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400'
+  },
+  air_ticket: {
+    label: 'Air Ticket',
+    icon: Plane,
+    className: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400'
+  },
+  car_park: {
+    label: 'Car Park',
+    icon: Car,
+    className: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400'
+  },
+  phone: {
+    label: 'Phone',
+    icon: Smartphone,
+    className: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400'
   },
   other: {
     label: 'Other',
