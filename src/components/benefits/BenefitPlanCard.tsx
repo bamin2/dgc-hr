@@ -2,9 +2,9 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BenefitTypeBadge } from './BenefitTypeBadge';
 import { BenefitStatusBadge } from './BenefitStatusBadge';
-import { Users, Check, ArrowRight } from 'lucide-react';
+import { Users, Check, ArrowRight, Plane, Car, Smartphone } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import type { BenefitPlan } from '@/hooks/useBenefitPlans';
+import type { BenefitPlan, AirTicketConfig, PhoneConfig } from '@/hooks/useBenefitPlans';
 
 interface BenefitPlanCardProps {
   plan: BenefitPlan;
@@ -43,19 +43,55 @@ export const BenefitPlanCard = ({ plan }: BenefitPlanCardProps) => {
           {plan.description || 'No description available'}
         </p>
         
-        <div className="flex items-center gap-4 text-sm">
-          <div className="flex items-center gap-1.5 text-muted-foreground">
+        {/* Type-specific info */}
+        {plan.type === 'air_ticket' && plan.entitlement_config && (
+          <div className="flex items-center gap-2 text-sm text-sky-700 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/20 px-3 py-2 rounded-md">
+            <Plane className="h-4 w-4" />
+            <span>
+              {(plan.entitlement_config as AirTicketConfig).tickets_per_period} ticket(s) every {(plan.entitlement_config as AirTicketConfig).period_years} year(s)
+            </span>
+          </div>
+        )}
+
+        {plan.type === 'phone' && plan.entitlement_config && (
+          <div className="flex items-center gap-2 text-sm text-violet-700 dark:text-violet-400 bg-violet-50 dark:bg-violet-950/20 px-3 py-2 rounded-md">
+            <Smartphone className="h-4 w-4" />
+            <span>
+              {formatPlanCurrency((plan.entitlement_config as PhoneConfig).total_device_cost)} over {(plan.entitlement_config as PhoneConfig).installment_months} months
+            </span>
+          </div>
+        )}
+
+        {plan.type === 'car_park' && (
+          <div className="flex items-center gap-2 text-sm text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/20 px-3 py-2 rounded-md">
+            <Car className="h-4 w-4" />
+            <span>Monthly parking allocation</span>
+          </div>
+        )}
+        
+        {/* Standard cost/enrolled info - hide for entitlement types */}
+        {!['air_ticket', 'car_park', 'phone'].includes(plan.type) && (
+          <div className="flex items-center gap-4 text-sm">
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <Users className="h-4 w-4" />
+              <span>{plan.enrolled_count} enrolled</span>
+            </div>
+            <div className="text-muted-foreground">
+              {lowestCost === highestCost ? (
+                <><span className="font-semibold text-foreground">{formatPlanCurrency(lowestCost)}</span>/mo</>
+              ) : (
+                <><span className="font-semibold text-foreground">{formatPlanCurrency(lowestCost)}</span> - <span className="font-semibold text-foreground">{formatPlanCurrency(highestCost)}</span>/mo</>
+              )}
+            </div>
+          </div>
+        )}
+
+        {['air_ticket', 'car_park', 'phone'].includes(plan.type) && (
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <Users className="h-4 w-4" />
             <span>{plan.enrolled_count} enrolled</span>
           </div>
-          <div className="text-muted-foreground">
-            {lowestCost === highestCost ? (
-              <><span className="font-semibold text-foreground">{formatPlanCurrency(lowestCost)}</span>/mo</>
-            ) : (
-              <><span className="font-semibold text-foreground">{formatPlanCurrency(lowestCost)}</span> - <span className="font-semibold text-foreground">{formatPlanCurrency(highestCost)}</span>/mo</>
-            )}
-          </div>
-        </div>
+        )}
 
         {plan.features && plan.features.length > 0 && (
           <div className="space-y-2">

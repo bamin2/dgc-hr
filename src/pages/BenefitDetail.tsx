@@ -4,9 +4,9 @@ import { DashboardLayout } from '@/components/dashboard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader } from '@/components/ui/page-header';
-import { Users, Check, Building2, Loader2, FileText, Pencil, ArrowLeft } from 'lucide-react';
+import { Users, Check, Building2, Loader2, FileText, Pencil, ArrowLeft, Plane, Car, Smartphone } from 'lucide-react';
 import { BenefitTypeBadge, BenefitStatusBadge, EnrollmentsTable, EditBenefitPlanDialog } from '@/components/benefits';
-import { useBenefitPlan } from '@/hooks/useBenefitPlans';
+import { useBenefitPlan, type AirTicketConfig, type CarParkConfig, type PhoneConfig } from '@/hooks/useBenefitPlans';
 import { useBenefitEnrollments } from '@/hooks/useBenefitEnrollments';
 import { useCompanySettings } from '@/contexts/CompanySettingsContext';
 
@@ -86,6 +86,85 @@ const BenefitDetail = () => {
             </span>
           </div>
         </PageHeader>
+
+        {/* Type-specific Configuration Display */}
+        {plan.type === 'air_ticket' && plan.entitlement_config && (
+          <Card className="border-border/50 border-sky-200 dark:border-sky-800 bg-sky-50/50 dark:bg-sky-950/20">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2 text-sky-700 dark:text-sky-400">
+                <Plane className="h-5 w-5" />
+                Air Ticket Entitlement
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 bg-background rounded-lg">
+                  <p className="text-sm text-muted-foreground">Tickets per Period</p>
+                  <p className="text-2xl font-semibold">{(plan.entitlement_config as AirTicketConfig).tickets_per_period}</p>
+                </div>
+                <div className="p-4 bg-background rounded-lg">
+                  <p className="text-sm text-muted-foreground">Period Duration</p>
+                  <p className="text-2xl font-semibold">{(plan.entitlement_config as AirTicketConfig).period_years} year(s)</p>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground mt-4">
+                Employees receive {(plan.entitlement_config as AirTicketConfig).tickets_per_period} air ticket(s) every {(plan.entitlement_config as AirTicketConfig).period_years} year(s). HR can mark tickets as used when claimed.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {plan.type === 'car_park' && (
+          <Card className="border-border/50 border-indigo-200 dark:border-indigo-800 bg-indigo-50/50 dark:bg-indigo-950/20">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2 text-indigo-700 dark:text-indigo-400">
+                <Car className="h-5 w-5" />
+                Car Park Entitlement
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {plan.entitlement_config && (plan.entitlement_config as CarParkConfig).spot_location && (
+                <div className="p-4 bg-background rounded-lg mb-4">
+                  <p className="text-sm text-muted-foreground">Default Location</p>
+                  <p className="text-lg font-medium">{(plan.entitlement_config as CarParkConfig).spot_location}</p>
+                </div>
+              )}
+              <p className="text-sm text-muted-foreground">
+                Monthly parking allocation with employee/employer cost sharing defined in coverage levels.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {plan.type === 'phone' && plan.entitlement_config && (
+          <Card className="border-border/50 border-violet-200 dark:border-violet-800 bg-violet-50/50 dark:bg-violet-950/20">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2 text-violet-700 dark:text-violet-400">
+                <Smartphone className="h-5 w-5" />
+                Phone Entitlement
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="p-4 bg-background rounded-lg">
+                  <p className="text-sm text-muted-foreground">Total Device Cost</p>
+                  <p className="text-2xl font-semibold">{formatCurrency((plan.entitlement_config as PhoneConfig).total_device_cost)}</p>
+                </div>
+                <div className="p-4 bg-background rounded-lg">
+                  <p className="text-sm text-muted-foreground">Monthly Installment</p>
+                  <p className="text-2xl font-semibold">{formatCurrency((plan.entitlement_config as PhoneConfig).monthly_installment)}</p>
+                </div>
+                <div className="p-4 bg-background rounded-lg">
+                  <p className="text-sm text-muted-foreground">Payment Duration</p>
+                  <p className="text-2xl font-semibold">{(plan.entitlement_config as PhoneConfig).installment_months} months</p>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground mt-4">
+                Phone benefit with payment tracking. Each employee's payment progress is tracked individually.
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Coverage Levels */}
         {coverageLevels.length > 0 && (
