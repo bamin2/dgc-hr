@@ -2,15 +2,16 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Check, Loader2, Users, Edit2 } from 'lucide-react';
+import { CalendarIcon, Check, Loader2, Users, Edit2, Car } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useEmployees } from '@/hooks/useEmployees';
-import { useBenefitPlans, type BenefitPlan, type CoverageLevel } from '@/hooks/useBenefitPlans';
+import { useBenefitPlans, type CoverageLevel } from '@/hooks/useBenefitPlans';
 import { useCompanySettings } from '@/contexts/CompanySettingsContext';
 import { BenefitTypeBadge } from './BenefitTypeBadge';
 import { DependentsDialog, type Dependent } from './DependentsDialog';
@@ -25,6 +26,7 @@ interface EnrollmentFormProps {
     planType?: string;
     entitlementConfig?: Record<string, unknown>;
     dependents?: Dependent[];
+    spotLocation?: string;
   }) => void;
   onCancel: () => void;
 }
@@ -34,6 +36,7 @@ export const EnrollmentForm = ({ onSubmit, onCancel }: EnrollmentFormProps) => {
   const [planId, setPlanId] = useState('');
   const [coverageLevelId, setCoverageLevelId] = useState('');
   const [startDate, setStartDate] = useState<Date>();
+  const [spotLocation, setSpotLocation] = useState('');
   
   const [dependents, setDependents] = useState<Dependent[]>([]);
   const [dependentsDialogOpen, setDependentsDialogOpen] = useState(false);
@@ -47,6 +50,7 @@ export const EnrollmentForm = ({ onSubmit, onCancel }: EnrollmentFormProps) => {
   const selectedEmployee = activeEmployees.find(e => e.id === employeeId);
   const selectedPlan = plans.find(p => p.id === planId);
   const selectedCoverage = selectedPlan?.coverage_levels?.find(c => c.id === coverageLevelId);
+  const isCarParkPlan = selectedPlan?.type === 'car_park';
 
   // Open dialog when employee is selected for the first time
   useEffect(() => {
@@ -60,6 +64,13 @@ export const EnrollmentForm = ({ onSubmit, onCancel }: EnrollmentFormProps) => {
     setDependents(newDependents);
   };
 
+  // Reset spot location when plan changes to non-car-park
+  useEffect(() => {
+    if (!isCarParkPlan) {
+      setSpotLocation('');
+    }
+  }, [isCarParkPlan]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (employeeId && planId && coverageLevelId && startDate && selectedCoverage) {
@@ -72,6 +83,7 @@ export const EnrollmentForm = ({ onSubmit, onCancel }: EnrollmentFormProps) => {
         planType: selectedPlan?.type,
         entitlementConfig: selectedPlan?.entitlement_config as Record<string, unknown> | undefined,
         dependents: dependents.length > 0 ? dependents : undefined,
+        spotLocation: isCarParkPlan && spotLocation ? spotLocation : undefined,
       });
     }
   };
@@ -212,6 +224,30 @@ export const EnrollmentForm = ({ onSubmit, onCancel }: EnrollmentFormProps) => {
                 </PopoverContent>
               </Popover>
             </div>
+
+            {/* Car Park Spot Location */}
+            {isCarParkPlan && (
+              <Card className="border-indigo-200 dark:border-indigo-800 bg-indigo-50/50 dark:bg-indigo-950/20">
+                <CardContent className="p-4 space-y-3">
+                  <div className="flex items-center gap-2 text-indigo-700 dark:text-indigo-400">
+                    <Car className="h-4 w-4" />
+                    <span className="text-sm font-medium">Car Park Assignment</span>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="spot-location">Assigned Parking Spot</Label>
+                    <Input
+                      id="spot-location"
+                      placeholder="e.g., Building A - Level 2, Spot 45"
+                      value={spotLocation}
+                      onChange={(e) => setSpotLocation(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      This will be stored with the employee's enrollment record.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </CardContent>
         </Card>
 

@@ -24,6 +24,7 @@ const BenefitEnrollment = () => {
     planType?: string;
     entitlementConfig?: Record<string, unknown>;
     dependents?: Array<{ name: string; relationship: string; nationalId?: string }>;
+    spotLocation?: string;
   }) => {
     // Initialize entitlement data based on plan type
     let entitlementData: Record<string, unknown> | undefined;
@@ -34,6 +35,11 @@ const BenefitEnrollment = () => {
     } else if (data.planType === 'phone' && data.entitlementConfig) {
       const config = data.entitlementConfig as unknown as PhoneConfig;
       entitlementData = initializePhoneData(config.total_device_cost) as unknown as Record<string, unknown>;
+    } else if (data.planType === 'car_park') {
+      // Store spot location in entitlement_data for car park enrollments
+      entitlementData = {
+        spot_location: data.spotLocation || null,
+      };
     }
 
     try {

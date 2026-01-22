@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Calendar } from '@/components/ui/calendar';
@@ -19,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { CalendarIcon, Loader2, Users, Pencil } from 'lucide-react';
+import { CalendarIcon, Loader2, Users, Pencil, Car } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { BenefitTypeBadge } from './BenefitTypeBadge';
@@ -28,6 +29,7 @@ import type { BenefitEnrollment } from '@/hooks/useBenefitEnrollments';
 import { useUpdateBenefitEnrollment, useUpdateBeneficiaries } from '@/hooks/useBenefitEnrollments';
 import { useBenefitPlan } from '@/hooks/useBenefitPlans';
 import { useToast } from '@/hooks/use-toast';
+import type { CarParkData } from '@/types/benefits';
 
 interface EditEnrollmentDialogProps {
   open: boolean;
@@ -53,6 +55,7 @@ export const EditEnrollmentDialog = ({
   const [endDate, setEndDate] = useState<Date | undefined>();
   const [beneficiaries, setBeneficiaries] = useState<Dependent[]>([]);
   const [dependentsDialogOpen, setDependentsDialogOpen] = useState(false);
+  const [spotLocation, setSpotLocation] = useState('');
 
   // Reset form when enrollment changes
   useEffect(() => {
@@ -67,6 +70,9 @@ export const EditEnrollmentDialog = ({
           nationalId: b.national_id || undefined,
         })) || []
       );
+      // Load spot location from entitlement_data for car park plans
+      const entitlementData = enrollment.entitlement_data as CarParkData | null;
+      setSpotLocation(entitlementData?.spot_location || '');
     }
   }, [enrollment]);
 
@@ -75,6 +81,7 @@ export const EditEnrollmentDialog = ({
   const employee = enrollment.employee;
   const plan = enrollment.plan;
   const coverageLevels = fullPlan?.coverage_levels || [];
+  const isCarParkPlan = plan?.type === 'car_park';
 
   // Get current selected coverage level
   const selectedCoverageLevel = coverageLevels.find(c => c.id === selectedCoverageLevelId);
@@ -96,6 +103,15 @@ export const EditEnrollmentDialog = ({
     if (!enrollment || !selectedCoverageLevelId || !startDate) return;
 
     try {
+      // Build entitlement_data for car park plans
+      let entitlementData = enrollment.entitlement_data;
+      if (isCarParkPlan) {
+        entitlementData = {
+          ...((entitlementData as Record<string, unknown>) || {}),
+          spot_location: spotLocation || null,
+        };
+      }
+
       // Update enrollment
       await updateEnrollment.mutateAsync({
         id: enrollment.id,
@@ -104,6 +120,7 @@ export const EditEnrollmentDialog = ({
         end_date: endDate ? format(endDate, 'yyyy-MM-dd') : null,
         employee_contribution: employeeCost,
         employer_contribution: employerCost,
+        entitlement_data: entitlementData,
       });
 
       // Update beneficiaries
@@ -257,6 +274,29 @@ export const EditEnrollmentDialog = ({
                 </Popover>
               </div>
             </div>
+
+            {/* Car Park Spot Location */}
+            {isCarParkPlan && (
+              <>
+                <Separator />
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-indigo-700 dark:text-indigo-400">
+                    <Car className="h-4 w-4" />
+                    <Label className="font-medium">Car Park Assignment</Label>
+                  </div>
+                  <div className="space-y-2">
+                    <Input
+                      placeholder="e.g., Building A - Level 2, Spot 45"
+                      value={spotLocation}
+                      onChange={(e) => setSpotLocation(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      The assigned parking spot location for this employee.
+                    </p>
+                  </div>
+                </div>
+              </>
+            )}
 
             <Separator />
 

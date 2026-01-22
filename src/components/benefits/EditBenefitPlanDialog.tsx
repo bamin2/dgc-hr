@@ -48,7 +48,7 @@ import {
   type EntitlementConfig
 } from '@/hooks/useBenefitPlans';
 import { useBenefitDocumentUpload } from '@/hooks/useBenefitDocumentUpload';
-import { AirTicketConfigFields, CarParkConfigFields, PhoneConfigFields } from './EntitlementConfigFields';
+import { AirTicketConfigFields, PhoneConfigFields } from './EntitlementConfigFields';
 
 const formSchema = z.object({
   name: z.string().min(1, 'Plan name is required'),
@@ -89,9 +89,8 @@ export function EditBenefitPlanDialog({ open, onOpenChange, plan }: EditBenefitP
     tickets_per_period: 1,
     period_years: 2,
   });
-  const [carParkConfig, setCarParkConfig] = useState<CarParkConfig>({
-    spot_location: '',
-  });
+  // carParkConfig removed - car park plans use standard coverage levels only
+  // Spot location is assigned per-enrollment
   const [phoneConfig, setPhoneConfig] = useState<PhoneConfig>({
     total_device_cost: 0,
     monthly_installment: 0,
@@ -144,11 +143,7 @@ export function EditBenefitPlanDialog({ open, onOpenChange, plan }: EditBenefitP
           period_years: (config as AirTicketConfig).period_years || 2,
         });
       }
-      if (plan.type === 'car_park' && config) {
-        setCarParkConfig({
-          spot_location: (config as CarParkConfig).spot_location || '',
-        });
-      }
+      // carParkConfig no longer used - car park plans use standard coverage levels only
       if (plan.type === 'phone' && config) {
         setPhoneConfig({
           total_device_cost: (config as PhoneConfig).total_device_cost || 0,
@@ -206,7 +201,8 @@ export function EditBenefitPlanDialog({ open, onOpenChange, plan }: EditBenefitP
       if (values.type === 'air_ticket') {
         entitlement_config = airTicketConfig;
       } else if (values.type === 'car_park') {
-        entitlement_config = carParkConfig;
+        // Car park plans don't need entitlement_config - they use standard coverage levels
+        entitlement_config = undefined;
       } else if (values.type === 'phone') {
         entitlement_config = phoneConfig;
       }
@@ -497,15 +493,7 @@ export function EditBenefitPlanDialog({ open, onOpenChange, plan }: EditBenefitP
               </div>
             )}
 
-            {watchedType === 'car_park' && (
-              <div className="space-y-4">
-                <h3 className="text-sm font-medium text-muted-foreground">Car Park Configuration</h3>
-                <CarParkConfigFields 
-                  config={carParkConfig} 
-                  onChange={setCarParkConfig} 
-                />
-              </div>
-            )}
+            {/* Car Park plans use standard coverage levels - no special config needed */}
 
             {watchedType === 'phone' && (
               <div className="space-y-4">

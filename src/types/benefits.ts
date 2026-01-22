@@ -21,7 +21,14 @@ export interface AirTicketConfig {
   period_years: number;
 }
 
+// CarParkConfig is intentionally empty - car park plans use standard coverage levels
+// Spot location is stored in enrollment.entitlement_data, not in the plan config
 export interface CarParkConfig {
+  // Reserved for future plan-level settings
+}
+
+// Car Park enrollment-specific data (stored in entitlement_data)
+export interface CarParkData {
   spot_location?: string;
 }
 

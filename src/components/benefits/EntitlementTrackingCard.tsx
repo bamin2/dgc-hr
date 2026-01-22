@@ -7,16 +7,17 @@ import { cn } from '@/lib/utils';
 import { useCompanySettings } from '@/contexts/CompanySettingsContext';
 import { AirTicketUsageDialog } from './AirTicketUsageDialog';
 import { PhonePaymentDialog } from './PhonePaymentDialog';
-import type { BenefitType, AirTicketConfig, CarParkConfig, PhoneConfig, AirTicketData, PhoneData } from '@/types/benefits';
+import type { BenefitType, AirTicketConfig, CarParkConfig, PhoneConfig, AirTicketData, PhoneData, CarParkData } from '@/types/benefits';
 
 interface EntitlementTrackingCardProps {
   enrollmentId: string;
   employeeName: string;
   planType: BenefitType;
   entitlementConfig: AirTicketConfig | CarParkConfig | PhoneConfig | null;
-  entitlementData: AirTicketData | PhoneData | null;
+  entitlementData: AirTicketData | PhoneData | CarParkData | null;
   compact?: boolean;
   showActions?: boolean;
+  spotLocation?: string;
 }
 
 export const EntitlementTrackingCard = ({
@@ -27,12 +28,14 @@ export const EntitlementTrackingCard = ({
   entitlementData,
   compact = false,
   showActions = true,
+  spotLocation,
 }: EntitlementTrackingCardProps) => {
   const [airTicketDialogOpen, setAirTicketDialogOpen] = useState(false);
   const [phoneDialogOpen, setPhoneDialogOpen] = useState(false);
   const { formatCurrency } = useCompanySettings();
 
-  if (!entitlementConfig) return null;
+  // For car park, we don't need entitlement_config
+  if (!entitlementConfig && planType !== 'car_park') return null;
 
   // Air Ticket Tracking
   if (planType === 'air_ticket') {
@@ -192,15 +195,13 @@ export const EntitlementTrackingCard = ({
     );
   }
 
-  // Car Park (simple display, no tracking)
+  // Car Park (simple display - spot location comes from entitlement_data via props)
   if (planType === 'car_park') {
-    const config = entitlementConfig as CarParkConfig;
-
     if (compact) {
       return (
         <div className="flex items-center gap-2 text-sm">
           <Car className="h-4 w-4 text-indigo-600" />
-          <span className="font-medium">Active</span>
+          <span className="font-medium">{spotLocation || 'Active'}</span>
         </div>
       );
     }
@@ -212,14 +213,16 @@ export const EntitlementTrackingCard = ({
             <Car className="h-5 w-5 text-indigo-600" />
             <span className="font-medium">Car Park Allocation</span>
           </div>
-          {config.spot_location && (
+          {spotLocation ? (
+            <p className="text-sm">
+              <span className="text-muted-foreground">Assigned Spot: </span>
+              <span className="font-medium">{spotLocation}</span>
+            </p>
+          ) : (
             <p className="text-sm text-muted-foreground">
-              Location: {config.spot_location}
+              No parking spot assigned
             </p>
           )}
-          <p className="text-sm text-muted-foreground">
-            Monthly allocation active
-          </p>
         </CardContent>
       </Card>
     );
