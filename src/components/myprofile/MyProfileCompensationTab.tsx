@@ -1,4 +1,3 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Wallet, 
@@ -21,6 +20,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { getCountryCodeByName } from '@/data/countries';
 import { GosiNationalityRate } from '@/hooks/useWorkLocations';
+import { BentoGrid, BentoCard } from '@/components/dashboard/bento';
 
 interface MyProfileCompensationTabProps {
   employee: Employee;
@@ -193,17 +193,19 @@ export function MyProfileCompensationTab({
 
   if (!canViewCompensation) {
     return (
-      <Card>
-        <CardContent className="p-8 text-center">
-          <Lock className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-muted-foreground">
-            Compensation Details Not Available
-          </h3>
-          <p className="text-sm text-muted-foreground/70 mt-1">
-            Contact your HR department for compensation information.
-          </p>
-        </CardContent>
-      </Card>
+      <BentoGrid noPadding>
+        <BentoCard colSpan={12}>
+          <div className="p-8 text-center">
+            <Lock className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-muted-foreground">
+              Compensation Details Not Available
+            </h3>
+            <p className="text-sm text-muted-foreground/70 mt-1">
+              Contact your HR department for compensation information.
+            </p>
+          </div>
+        </BentoCard>
+      </BentoGrid>
     );
   }
 
@@ -211,38 +213,41 @@ export function MyProfileCompensationTab({
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <Skeleton className="h-48 w-full" />
-        <Skeleton className="h-32 w-full" />
-      </div>
+      <BentoGrid noPadding>
+        <BentoCard colSpan={8}>
+          <Skeleton className="h-48 w-full" />
+        </BentoCard>
+        <BentoCard colSpan={4}>
+          <Skeleton className="h-32 w-full" />
+        </BentoCard>
+      </BentoGrid>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Salary Summary */}
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base font-medium flex items-center gap-2">
-              <Calculator className="h-4 w-4 text-primary" />
-              Compensation Summary
-            </CardTitle>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsCompensationVisible(!isCompensationVisible)}
-              className="h-8 w-8"
-            >
-              {isCompensationVisible ? (
-                <EyeOff className="h-4 w-4 text-muted-foreground" />
-              ) : (
-                <Eye className="h-4 w-4 text-muted-foreground" />
-              )}
-            </Button>
+    <BentoGrid noPadding>
+      {/* Salary Summary - Main Card */}
+      <BentoCard colSpan={8}>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Calculator className="h-4 w-4 text-primary" />
+            <h3 className="text-base font-medium">Compensation Summary</h3>
           </div>
-        </CardHeader>
-        <CardContent className="space-y-4 relative">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsCompensationVisible(!isCompensationVisible)}
+            className="h-8 w-8"
+          >
+            {isCompensationVisible ? (
+              <EyeOff className="h-4 w-4 text-muted-foreground" />
+            ) : (
+              <Eye className="h-4 w-4 text-muted-foreground" />
+            )}
+          </Button>
+        </div>
+        
+        <div className="space-y-4 relative">
           {/* Blur overlay when hidden */}
           {!isCompensationVisible && (
             <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-md rounded-lg z-10">
@@ -255,131 +260,128 @@ export function MyProfileCompensationTab({
               </button>
             </div>
           )}
+          
           <div className={!isCompensationVisible ? 'blur-md select-none' : ''}>
-          {/* Base Salary */}
-          <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-            <div className="flex items-center gap-2">
-              <Wallet className="h-4 w-4 text-primary" />
-              <span className="font-medium">Base Salary</span>
-            </div>
-            <span className="font-semibold text-lg">
-              {currency} {baseSalary.toLocaleString()}
-            </span>
-          </div>
-
-          {/* Allowances */}
-          <div className="border rounded-lg overflow-hidden">
-            <div className="flex justify-between items-center p-3 bg-green-50 dark:bg-green-950/20">
+            {/* Base Salary */}
+            <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
               <div className="flex items-center gap-2">
-                <Plus className="h-4 w-4 text-green-600" />
-                <span className="font-medium text-green-700 dark:text-green-400">
-                  Total Allowances
+                <Wallet className="h-4 w-4 text-primary" />
+                <span className="font-medium">Base Salary</span>
+              </div>
+              <span className="font-semibold text-lg">
+                {currency} {baseSalary.toLocaleString()}
+              </span>
+            </div>
+
+            {/* Allowances */}
+            <div className="border rounded-lg overflow-hidden mt-3">
+              <div className="flex justify-between items-center p-3 bg-green-50 dark:bg-green-950/20">
+                <div className="flex items-center gap-2">
+                  <Plus className="h-4 w-4 text-green-600" />
+                  <span className="font-medium text-green-700 dark:text-green-400">
+                    Total Allowances
+                  </span>
+                </div>
+                <span className="font-semibold text-green-700 dark:text-green-400">
+                  + {currency} {totalAllowances.toLocaleString()}
                 </span>
               </div>
-              <span className="font-semibold text-green-700 dark:text-green-400">
-                + {currency} {totalAllowances.toLocaleString()}
-              </span>
+              {showLineItems && allowanceItems.length > 0 && (
+                <div className="p-3 bg-background">
+                  {allowanceItems.map((item) => (
+                    <CompensationItem
+                      key={item.id}
+                      name={item.name}
+                      amount={item.amount}
+                      currency={currency}
+                      type="allowance"
+                    />
+                  ))}
+                </div>
+              )}
             </div>
-            {showLineItems && allowanceItems.length > 0 && (
-              <div className="p-3 bg-background">
-                {allowanceItems.map((item) => (
-                  <CompensationItem
-                    key={item.id}
-                    name={item.name}
-                    amount={item.amount}
-                    currency={currency}
-                    type="allowance"
-                  />
-                ))}
-              </div>
-            )}
-          </div>
 
-          {/* Deductions */}
-          <div className="border rounded-lg overflow-hidden">
-            <div className="flex justify-between items-center p-3 bg-red-50 dark:bg-red-950/20">
-              <div className="flex items-center gap-2">
-                <Minus className="h-4 w-4 text-red-600" />
-                <span className="font-medium text-red-700 dark:text-red-400">
-                  Total Deductions
+            {/* Deductions */}
+            <div className="border rounded-lg overflow-hidden mt-3">
+              <div className="flex justify-between items-center p-3 bg-red-50 dark:bg-red-950/20">
+                <div className="flex items-center gap-2">
+                  <Minus className="h-4 w-4 text-red-600" />
+                  <span className="font-medium text-red-700 dark:text-red-400">
+                    Total Deductions
+                  </span>
+                </div>
+                <span className="font-semibold text-red-700 dark:text-red-400">
+                  - {currency} {(totalDeductions + gosiDeduction).toLocaleString()}
                 </span>
               </div>
-              <span className="font-semibold text-red-700 dark:text-red-400">
-                - {currency} {(totalDeductions + gosiDeduction).toLocaleString()}
-              </span>
+              {showLineItems && (
+                <div className="p-3 bg-background">
+                  {deductionItems.map((item) => (
+                    <CompensationItem
+                      key={item.id}
+                      name={item.name}
+                      amount={item.amount}
+                      currency={currency}
+                      type="deduction"
+                    />
+                  ))}
+                  {gosiDeduction > 0 && (
+                    <CompensationItem
+                      name="GOSI (Social Insurance)"
+                      amount={gosiDeduction}
+                      currency={currency}
+                      type="deduction"
+                    />
+                  )}
+                </div>
+              )}
             </div>
-            {showLineItems && (
-              <div className="p-3 bg-background">
-                {deductionItems.map((item) => (
-                  <CompensationItem
-                    key={item.id}
-                    name={item.name}
-                    amount={item.amount}
-                    currency={currency}
-                    type="deduction"
-                  />
-                ))}
-                {gosiDeduction > 0 && (
-                  <CompensationItem
-                    name="GOSI (Social Insurance)"
-                    amount={gosiDeduction}
-                    currency={currency}
-                    type="deduction"
-                  />
-                )}
-              </div>
-            )}
-          </div>
 
-          {/* Totals */}
-          <div className="space-y-2 pt-2 border-t">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Gross Pay</span>
-              <span className="font-medium">
-                {currency} {grossPay.toLocaleString()}
-              </span>
-            </div>
-            <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg">
-              <span className="font-medium">Net Pay</span>
-              <span className="font-bold text-lg text-primary">
-                {currency} {netPay.toLocaleString()}
-              </span>
+            {/* Totals */}
+            <div className="space-y-2 pt-4 border-t mt-4">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Gross Pay</span>
+                <span className="font-medium">
+                  {currency} {grossPay.toLocaleString()}
+                </span>
+              </div>
+              <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg">
+                <span className="font-medium">Net Pay</span>
+                <span className="font-bold text-lg text-primary">
+                  {currency} {netPay.toLocaleString()}
+                </span>
+              </div>
             </div>
           </div>
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      </BentoCard>
 
       {/* Bank Details */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-medium flex items-center gap-2">
-            <CreditCard className="h-4 w-4 text-primary" />
-            Bank Details
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Bank Name</p>
-              <div className="flex items-center gap-2">
-                <Building2 className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">
-                  {employee.bankName || 'Not set'}
-                </span>
-              </div>
+      <BentoCard colSpan={4}>
+        <div className="flex items-center gap-2 mb-4">
+          <CreditCard className="h-4 w-4 text-primary" />
+          <h3 className="text-base font-medium">Bank Details</h3>
+        </div>
+        <div className="space-y-4">
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Bank Name</p>
+            <div className="flex items-center gap-2">
+              <Building2 className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium">
+                {employee.bankName || 'Not set'}
+              </span>
             </div>
-            <MaskedValue 
-              label="Account Number" 
-              value={employee.bankAccountNumber || ''} 
-            />
-            <MaskedValue 
-              label="IBAN" 
-              value={employee.iban || ''} 
-            />
           </div>
-        </CardContent>
-      </Card>
-    </div>
+          <MaskedValue 
+            label="Account Number" 
+            value={employee.bankAccountNumber || ''} 
+          />
+          <MaskedValue 
+            label="IBAN" 
+            value={employee.iban || ''} 
+          />
+        </div>
+      </BentoCard>
+    </BentoGrid>
   );
 }

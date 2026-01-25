@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 interface BentoCardProps {
   children: React.ReactNode;
   className?: string;
-  colSpan?: 4 | 5 | 7 | 8 | 12;
+  colSpan?: 4 | 5 | 6 | 7 | 8 | 12;
   onClick?: () => void;
   noPadding?: boolean;
 }
@@ -22,6 +22,7 @@ export function BentoCard({
   const colSpanClasses = {
     4: "col-span-12 lg:col-span-4",
     5: "col-span-12 lg:col-span-5",
+    6: "col-span-12 lg:col-span-6",
     7: "col-span-12 lg:col-span-7",
     8: "col-span-12 lg:col-span-8",
     12: "col-span-12",
