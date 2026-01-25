@@ -2,6 +2,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { queryKeys } from "@/lib/queryKeys";
 import { queryPresets } from "@/lib/queryOptions";
+
+export type ApprovalMode = 'auto_generate' | 'hr_approval' | 'admin_approval';
+
 export interface DocumentTemplate {
   id: string;
   name: string;
@@ -10,6 +13,9 @@ export interface DocumentTemplate {
   content: string;
   is_active: boolean;
   docx_template_url: string | null;
+  docx_storage_path: string | null;
+  docx_original_filename: string | null;
+  approval_mode: ApprovalMode;
   available_for_request: boolean;
   created_at: string;
   updated_at: string;

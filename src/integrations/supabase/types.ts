@@ -1710,11 +1710,14 @@ export type Database = {
       }
       document_templates: {
         Row: {
+          approval_mode: string
           available_for_request: boolean | null
           category: string
           content: string
           created_at: string
           description: string | null
+          docx_original_filename: string | null
+          docx_storage_path: string | null
           docx_template_url: string | null
           id: string
           is_active: boolean | null
@@ -1722,11 +1725,14 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          approval_mode?: string
           available_for_request?: boolean | null
           category: string
           content: string
           created_at?: string
           description?: string | null
+          docx_original_filename?: string | null
+          docx_storage_path?: string | null
           docx_template_url?: string | null
           id?: string
           is_active?: boolean | null
@@ -1734,11 +1740,14 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          approval_mode?: string
           available_for_request?: boolean | null
           category?: string
           content?: string
           created_at?: string
           description?: string | null
+          docx_original_filename?: string | null
+          docx_storage_path?: string | null
           docx_template_url?: string | null
           id?: string
           is_active?: boolean | null
@@ -2948,6 +2957,7 @@ export type Database = {
           generated_document_id: string | null
           id: string
           notes: string | null
+          pdf_storage_path: string | null
           processed_at: string | null
           processed_by: string | null
           rejection_reason: string | null
@@ -2961,6 +2971,7 @@ export type Database = {
           generated_document_id?: string | null
           id?: string
           notes?: string | null
+          pdf_storage_path?: string | null
           processed_at?: string | null
           processed_by?: string | null
           rejection_reason?: string | null
@@ -2974,6 +2985,7 @@ export type Database = {
           generated_document_id?: string | null
           id?: string
           notes?: string | null
+          pdf_storage_path?: string | null
           processed_at?: string | null
           processed_by?: string | null
           rejection_reason?: string | null

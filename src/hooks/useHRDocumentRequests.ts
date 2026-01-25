@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useRole } from "@/contexts/RoleContext";
+import { ApprovalMode } from "./useDocumentTemplates";
+
 export interface HRDocumentRequest {
   id: string;
   employee_id: string;
@@ -11,6 +13,7 @@ export interface HRDocumentRequest {
   rejection_reason: string | null;
   processed_by: string | null;
   processed_at: string | null;
+  pdf_storage_path: string | null;
   created_at: string;
   updated_at: string;
   // Joined data
@@ -18,11 +21,15 @@ export interface HRDocumentRequest {
     id: string;
     name: string;
     category: string;
+    approval_mode: ApprovalMode;
+    docx_storage_path: string | null;
   };
   employee?: {
     id: string;
     first_name: string;
     last_name: string;
+    email: string | null;
+    employee_code: string | null;
   };
 }
 
@@ -50,21 +57,42 @@ export function useMyHRDocumentRequests() {
   });
 }
 
-export function useAllHRDocumentRequests() {
+export function useAllHRDocumentRequests(statusFilter?: string) {
   return useQuery({
-    queryKey: ["hr-document-requests", "all"],
+    queryKey: ["hr-document-requests", "all", statusFilter],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("hr_document_requests")
         .select(`
           *,
-          template:document_templates(id, name, category),
-          employee:employees(id, first_name, last_name)
+          template:document_templates(id, name, category, approval_mode, docx_storage_path),
+          employee:employees(id, first_name, last_name, email, employee_code)
         `)
         .order("created_at", { ascending: false });
 
+      if (statusFilter && statusFilter !== "all") {
+        query = query.eq("status", statusFilter);
+      }
+
+      const { data, error } = await query;
+
       if (error) throw error;
       return data as HRDocumentRequest[];
+    },
+  });
+}
+
+export function usePendingHRDocumentRequestsCount() {
+  return useQuery({
+    queryKey: ["hr-document-requests", "pending-count"],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("hr_document_requests")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "pending");
+
+      if (error) throw error;
+      return count || 0;
     },
   });
 }

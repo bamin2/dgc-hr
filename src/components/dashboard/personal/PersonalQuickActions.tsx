@@ -7,14 +7,14 @@ import {
   FileText,
   Zap
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { RequestTimeOffDialog } from '@/components/timeoff/RequestTimeOffDialog';
 import { EmployeeRequestLoanDialog } from '@/components/loans/EmployeeRequestLoanDialog';
+import { RequestHRDocumentDialog } from '@/components/approvals/RequestHRDocumentDialog';
 
 export function PersonalQuickActions() {
-  const navigate = useNavigate();
   const [isTimeOffDialogOpen, setIsTimeOffDialogOpen] = useState(false);
   const [isLoanDialogOpen, setIsLoanDialogOpen] = useState(false);
+  const [isHRLetterDialogOpen, setIsHRLetterDialogOpen] = useState(false);
 
   const actions = [
     {
@@ -32,7 +32,7 @@ export function PersonalQuickActions() {
     {
       label: 'HR Letter',
       icon: FileText,
-      onClick: () => navigate('/documents?action=request'),
+      onClick: () => setIsHRLetterDialogOpen(true),
       variant: 'outline' as const,
     },
   ];
@@ -72,6 +72,11 @@ export function PersonalQuickActions() {
       <EmployeeRequestLoanDialog 
         open={isLoanDialogOpen} 
         onOpenChange={setIsLoanDialogOpen} 
+      />
+      
+      <RequestHRDocumentDialog 
+        open={isHRLetterDialogOpen} 
+        onOpenChange={setIsHRLetterDialogOpen} 
       />
     </Card>
   );
