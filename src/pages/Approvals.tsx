@@ -7,15 +7,18 @@ import {
   PendingApprovalsTab, 
   MyRequestsTab, 
   TeamRequestsTab,
-  AllPendingApprovalsTab 
+  AllPendingApprovalsTab,
+  MobileApprovalsHub 
 } from "@/components/approvals";
 import { useRole } from "@/contexts/RoleContext";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 const ApprovalsPage = () => {
   const [searchParams] = useSearchParams();
-  const { hasRole } = useRole();
+  const { hasRole, canAccessManagement } = useRole();
   const isManager = hasRole("manager") || hasRole("hr") || hasRole("admin");
   const isHrOrAdmin = hasRole("hr") || hasRole("admin");
+  const isMobile = useMediaQuery("(max-width: 1023px)");
 
   // Read initial tab from URL params
   const tabParam = searchParams.get("tab");
@@ -40,6 +43,15 @@ const ApprovalsPage = () => {
       setActiveTab("approvals");
     }
   }, [tabParam, isHrOrAdmin]);
+
+  // Mobile view for managers/HR/admin - optimized for quick approvals
+  if (isMobile && canAccessManagement) {
+    return (
+      <DashboardLayout>
+        <MobileApprovalsHub />
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
