@@ -137,13 +137,14 @@ async function fetchCTCReport(
 
   if (allowError) throw allowError;
 
-  // Fetch active benefit enrollments WITH dependent count
+  // Fetch active benefit enrollments WITH dependent count and plan type
   const { data: benefitEnrollments, error: benefitError } = await supabase
     .from('benefit_enrollments')
     .select(`
       employee_id, 
       employer_contribution,
-      benefit_beneficiaries(id)
+      benefit_beneficiaries(id),
+      plan:benefit_plans!benefit_enrollments_plan_id_fkey(type, name)
     `)
     .in('employee_id', filteredIds)
     .eq('status', 'active');
@@ -173,15 +174,24 @@ async function fetchCTCReport(
     }
   });
 
-  // Build benefits map - include cost for employee + dependents
+  // Build benefits map - only apply dependent multiplier to health-related plans
+  // Car park, phone, air ticket are per-employee costs that don't scale with dependents
   const benefitsMap = new Map<string, number>();
   (benefitEnrollments || []).forEach(be => {
     const current = benefitsMap.get(be.employee_id) || 0;
-    const dependentCount = Array.isArray(be.benefit_beneficiaries) 
-      ? be.benefit_beneficiaries.length 
-      : 0;
-    const totalPersons = 1 + dependentCount; // Employee + dependents
-    const totalEmployerCost = be.employer_contribution * totalPersons;
+    const planType = (be.plan as { type: string } | null)?.type;
+    
+    // Only apply dependent multiplier to health-related benefit types
+    const isHealthRelatedPlan = ['health', 'dental', 'vision', 'life', 'disability'].includes(planType || '');
+    
+    let totalEmployerCost = be.employer_contribution;
+    if (isHealthRelatedPlan) {
+      const dependentCount = Array.isArray(be.benefit_beneficiaries) 
+        ? be.benefit_beneficiaries.length 
+        : 0;
+      totalEmployerCost = be.employer_contribution * (1 + dependentCount);
+    }
+    
     benefitsMap.set(be.employee_id, current + totalEmployerCost);
   });
 
