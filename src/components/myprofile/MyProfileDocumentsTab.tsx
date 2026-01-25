@@ -77,48 +77,50 @@ export function MyProfileDocumentsTab({ employeeId }: MyProfileDocumentsTabProps
     <BentoGrid noPadding>
       {/* Documents Section */}
       <BentoCard colSpan={12}>
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex items-center gap-2 mb-5">
           <FileText className="h-4 w-4 text-primary" />
           <h3 className="text-base font-medium">Documents</h3>
         </div>
         
         {!hasDocuments ? (
-          <div className="py-6 text-center">
-            <Inbox className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
-            <h4 className="text-lg font-medium text-muted-foreground">
+          <div className="py-12 flex flex-col items-center justify-center text-center">
+            <div className="p-4 rounded-full bg-muted/30 mb-4">
+              <Inbox className="h-8 w-8 text-muted-foreground/40" />
+            </div>
+            <h4 className="text-base font-medium text-muted-foreground">
               No Documents Available
             </h4>
-            <p className="text-sm text-muted-foreground/70 mt-1">
+            <p className="text-sm text-muted-foreground/70 mt-1 max-w-xs">
               Documents shared with you will appear here.
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-5">
             {Object.entries(documentsByType).map(([type, docs]) => (
               <div key={type}>
-                <h4 className="text-sm font-medium text-muted-foreground mb-2">{type}</h4>
-                <div className="space-y-2">
+                <h4 className="text-sm font-medium text-muted-foreground mb-3">{type}</h4>
+                <div className="space-y-3">
                   {docs.map((doc) => (
                     <div
                       key={doc.id}
-                      className="flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors"
+                      className="flex items-center justify-between p-4 bg-muted/30 rounded-xl hover:bg-muted/40 transition-colors"
                     >
-                      <div className="flex items-center gap-3 min-w-0 flex-1">
-                        <div className="p-2 bg-background rounded-lg">
+                      <div className="flex items-center gap-4 min-w-0 flex-1">
+                        <div className="p-2.5 bg-background rounded-xl shrink-0">
                           <FileIcon className="h-5 w-5 text-primary" />
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-medium truncate">
                             {doc.document_name}
                           </p>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <Calendar className="h-3 w-3" />
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                            <Calendar className="h-3 w-3 shrink-0" />
                             <span>
                               {doc.created_at ? format(new Date(doc.created_at), 'MMM d, yyyy') : 'N/A'}
                             </span>
                             {doc.file_size && (
                               <>
-                                <span>•</span>
+                                <span className="text-muted-foreground/50">•</span>
                                 <span>
                                   {(doc.file_size / 1024).toFixed(1)} KB
                                 </span>
@@ -127,11 +129,11 @@ export function MyProfileDocumentsTab({ employeeId }: MyProfileDocumentsTabProps
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1 shrink-0">
+                      <div className="flex items-center gap-1 shrink-0 ml-4">
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8"
+                          className="h-9 w-9"
                           onClick={() => handleView(doc.file_url)}
                         >
                           <Eye className="h-4 w-4" />
@@ -139,7 +141,7 @@ export function MyProfileDocumentsTab({ employeeId }: MyProfileDocumentsTabProps
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8"
+                          className="h-9 w-9"
                           onClick={() => handleDownload(doc.file_url, doc.file_name)}
                         >
                           <Download className="h-4 w-4" />
@@ -154,13 +156,13 @@ export function MyProfileDocumentsTab({ employeeId }: MyProfileDocumentsTabProps
         )}
       </BentoCard>
 
-      {/* HR Letters Section */}
-      <BentoCard colSpan={6} noPadding>
+      {/* HR Letters Section - Full Width */}
+      <BentoCard colSpan={12} noPadding>
         <MyProfileHRLettersSection employeeId={employeeId} noBorder />
       </BentoCard>
 
-      {/* Payslips Section */}
-      <BentoCard colSpan={6} noPadding>
+      {/* Payslips Section - Full Width */}
+      <BentoCard colSpan={12} noPadding>
         <MyProfilePayslipsSection employeeId={employeeId} noBorder />
       </BentoCard>
     </BentoGrid>

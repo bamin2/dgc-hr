@@ -57,7 +57,7 @@ export function MyProfileHRLettersSection({ employeeId, noBorder = false }: MyPr
 
   const content = (
     <>
-      <div className={`flex items-center gap-2 ${noBorder ? 'p-5 pb-3' : ''}`}>
+      <div className={`flex items-center gap-2 ${noBorder ? 'p-5 pb-4' : ''}`}>
         <FileText className="h-4 w-4 text-primary" />
         <h3 className="text-base font-medium">HR Letters</h3>
       </div>
@@ -69,10 +69,15 @@ export function MyProfileHRLettersSection({ employeeId, noBorder = false }: MyPr
             ))}
           </div>
         ) : !letters || letters.length === 0 ? (
-          <div className="py-6 text-center">
-            <Inbox className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
-            <p className="text-sm text-muted-foreground">
-              No HR letters yet. Request one from your dashboard.
+          <div className="py-10 flex flex-col items-center justify-center text-center">
+            <div className="p-4 rounded-full bg-muted/30 mb-4">
+              <Inbox className="h-8 w-8 text-muted-foreground/40" />
+            </div>
+            <p className="text-sm font-medium text-muted-foreground">
+              No HR letters yet
+            </p>
+            <p className="text-xs text-muted-foreground/70 mt-1">
+              Request one from your dashboard.
             </p>
           </div>
         ) : (
@@ -80,18 +85,18 @@ export function MyProfileHRLettersSection({ employeeId, noBorder = false }: MyPr
             {letters.map((letter) => (
               <div
                 key={letter.id}
-                className="flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors"
+                className="flex items-center justify-between p-4 bg-muted/30 rounded-xl hover:bg-muted/40 transition-colors"
               >
-                <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <div className="p-2 bg-background rounded-lg">
+                <div className="flex items-center gap-4 min-w-0 flex-1">
+                  <div className="p-2.5 bg-background rounded-xl shrink-0">
                     <FileText className="h-5 w-5 text-primary" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium truncate">
                       {letter.template?.name || 'HR Letter'}
                     </p>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Calendar className="h-3 w-3" />
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                      <Calendar className="h-3 w-3 shrink-0" />
                       <span>
                         {letter.processed_at 
                           ? format(new Date(letter.processed_at), 'MMM d, yyyy')
@@ -101,11 +106,11 @@ export function MyProfileHRLettersSection({ employeeId, noBorder = false }: MyPr
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-1 shrink-0">
+                <div className="flex items-center gap-1 shrink-0 ml-4">
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8"
+                    className="h-9 w-9"
                     onClick={() => handleView(letter.pdf_storage_path)}
                   >
                     <Eye className="h-4 w-4" />
@@ -113,7 +118,7 @@ export function MyProfileHRLettersSection({ employeeId, noBorder = false }: MyPr
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8"
+                    className="h-9 w-9"
                     onClick={() => handleDownload(letter.pdf_storage_path, letter.template?.name || 'HR Letter')}
                   >
                     <Download className="h-4 w-4" />
