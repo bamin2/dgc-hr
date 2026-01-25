@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Generate PWA Icons</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    .icon-preview { margin: 20px 0; border: 1px solid #ccc; }
+    button { margin: 10px 5px; padding: 10px 20px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>PWA Icon Generator</h1>
+  <p>This page generates PWA icons from the DGC logo on a white background.</p>
+  
+  <h2>Preview</h2>
+  <div id="previews"></div>
+  
+  <h2>Download Icons</h2>
+  <button onclick="downloadIcon(512)">Download 512x512</button>
+  <button onclick="downloadIcon(192)">Download 192x192</button>
+  <button onclick="downloadIcon(180)">Download 180x180 (Apple Touch)</button>
+
+  <script>
+    const sizes = [512, 192, 180];
+    const logoUrl = '/dgc-logo-pwa.svg';
+    
+    async function generateIcon(size) {
+      return new Promise((resolve) => {
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        
+        // Fill with white background
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, size, size);
+        
+        // Load and draw the logo
+        const img = new Image();
+        img.onload = () => {
+          // Calculate dimensions to center logo with padding
+          const padding = size * 0.1; // 10% padding on each side
+          const availableWidth = size - (padding * 2);
+          const availableHeight = size - (padding * 2);
+          
+          // Logo aspect ratio (1080 x 507)
+          const logoAspect = 1080 / 507;
+          
+          let drawWidth, drawHeight;
+          if (availableWidth / logoAspect <= availableHeight) {
+            // Width is the limiting factor
+            drawWidth = availableWidth;
+            drawHeight = drawWidth / logoAspect;
+          } else {
+            // Height is the limiting factor
+            drawHeight = availableHeight;
+            drawWidth = drawHeight * logoAspect;
+          }
+          
+          const x = (size - drawWidth) / 2;
+          const y = (size - drawHeight) / 2;
+          
+          ctx.drawImage(img, x, y, drawWidth, drawHeight);
+          resolve(canvas);
+        };
+        img.src = logoUrl;
+      });
+    }
+    
+    async function showPreviews() {
+      const container = document.getElementById('previews');
+      for (const size of sizes) {
+        const canvas = await generateIcon(size);
+        canvas.className = 'icon-preview';
+        canvas.style.width = Math.min(size, 256) + 'px';
+        canvas.style.height = Math.min(size, 256) + 'px';
+        
+        const label = document.createElement('p');
+        label.textContent = `${size}x${size}px`;
+        container.appendChild(label);
+        container.appendChild(canvas);
+      }
+    }
+    
+    async function downloadIcon(size) {
+      const canvas = await generateIcon(size);
+      const link = document.createElement('a');
+      link.download = size === 180 ? 'apple-touch-icon.png' : `icon-${size}x${size}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+    
+    showPreviews();
+  </script>
+</body>
+</html>
