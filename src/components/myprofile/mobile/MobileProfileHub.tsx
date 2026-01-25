@@ -25,7 +25,8 @@ export function MobileProfileHub() {
   
   const [activeSheet, setActiveSheet] = useState<SheetType>(null);
 
-  if (employeeLoading) {
+  // Only show skeleton on initial load, not refetches (avoids flash when switching tabs)
+  if (employeeLoading && !employee) {
     return (
       <DashboardLayout>
         <div className="p-4 space-y-4">

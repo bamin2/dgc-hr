@@ -3,6 +3,10 @@ import { Home, FileText, CheckSquare, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRole } from "@/contexts/RoleContext";
 import { usePendingApprovalsCount } from "@/hooks/usePendingApprovalsCount";
+import { preloadRoute } from "@/lib/routePreloader";
+import { prefetchMobileRouteData } from "@/lib/mobileNavPreloader";
+import { useQueryClient } from "@tanstack/react-query";
+import { useCallback } from "react";
 
 interface NavItem {
   icon: React.ElementType;
@@ -24,8 +28,15 @@ interface NavItem {
  */
 export function MobileActionBar() {
   const location = useLocation();
-  const { canAccessManagement } = useRole();
+  const { canAccessManagement, currentUser } = useRole();
   const { data: pendingCount = 0 } = usePendingApprovalsCount();
+  const queryClient = useQueryClient();
+
+  // Prefetch route chunk and pre-warm data on touch/hover
+  const handlePrefetch = useCallback((path: string) => {
+    preloadRoute(path);
+    prefetchMobileRouteData(queryClient, path, currentUser?.id);
+  }, [queryClient, currentUser?.id]);
 
   // Build nav items dynamically based on role
   const navItems: NavItem[] = [
@@ -65,6 +76,8 @@ export function MobileActionBar() {
             <Link
               key={item.path}
               to={item.path}
+              onTouchStart={() => handlePrefetch(item.path)}
+              onMouseEnter={() => handlePrefetch(item.path)}
               className={cn(
                 "flex flex-col items-center justify-center flex-1",
                 "min-w-[72px] min-h-[56px] py-2",

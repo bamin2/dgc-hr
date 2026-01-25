@@ -5,6 +5,7 @@ const routeLoaders: Record<string, () => Promise<unknown>> = {
   '/calendar': () => import('@/pages/Calendar'),
   '/projects': () => import('@/pages/Projects'),
   '/time-off': () => import('@/pages/TimeOff'),
+  '/requests': () => import('@/pages/MobileRequestsPage'),
   '/approvals': () => import('@/pages/Approvals'),
   '/benefits': () => import('@/pages/Benefits'),
   '/my-profile': () => import('@/pages/MyProfile'),
