@@ -240,28 +240,28 @@ export function ComplianceSnapshotReport() {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <CardHeader className="pb-0">
             <TabsList>
-              <TabsTrigger value="missing" className="gap-1">
+              <TabsTrigger value="missing">
                 Missing Docs
                 {data?.summary?.missingDocsCount ? (
-                  <Badge variant="destructive" className="ml-1">{data.summary.missingDocsCount}</Badge>
+                  <Badge variant="destructive" className="ml-1 rounded-full">{data.summary.missingDocsCount}</Badge>
                 ) : null}
               </TabsTrigger>
-              <TabsTrigger value="expired" className="gap-1">
+              <TabsTrigger value="expired">
                 Expired
                 {data?.summary?.expiredDocsCount ? (
-                  <Badge variant="destructive" className="ml-1">{data.summary.expiredDocsCount}</Badge>
+                  <Badge variant="destructive" className="ml-1 rounded-full">{data.summary.expiredDocsCount}</Badge>
                 ) : null}
               </TabsTrigger>
-              <TabsTrigger value="expiring" className="gap-1">
+              <TabsTrigger value="expiring">
                 Expiring Soon
                 {data?.summary?.expiringDocsCount ? (
-                  <Badge variant="secondary" className="ml-1">{data.summary.expiringDocsCount}</Badge>
+                  <Badge variant="secondary" className="ml-1 rounded-full">{data.summary.expiringDocsCount}</Badge>
                 ) : null}
               </TabsTrigger>
-              <TabsTrigger value="gosi" className="gap-1">
+              <TabsTrigger value="gosi">
                 GOSI Issues
                 {data?.summary?.gosiMismatchCount ? (
-                  <Badge variant="secondary" className="ml-1">{data.summary.gosiMismatchCount}</Badge>
+                  <Badge variant="secondary" className="ml-1 rounded-full">{data.summary.gosiMismatchCount}</Badge>
                 ) : null}
               </TabsTrigger>
             </TabsList>

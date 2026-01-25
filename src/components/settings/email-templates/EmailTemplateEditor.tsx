@@ -185,12 +185,12 @@ export function EmailTemplateEditor({ template, open, onClose }: EmailTemplateEd
 
         <div className="flex-1 overflow-hidden p-6 pt-4">
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "edit" | "preview")} className="h-full flex flex-col">
-            <TabsList className="grid w-full max-w-xs grid-cols-2">
-              <TabsTrigger value="edit" className="gap-2">
+            <TabsList>
+              <TabsTrigger value="edit">
                 <Code className="h-4 w-4" />
                 Edit
               </TabsTrigger>
-              <TabsTrigger value="preview" className="gap-2">
+              <TabsTrigger value="preview">
                 <Eye className="h-4 w-4" />
                 Preview
               </TabsTrigger>

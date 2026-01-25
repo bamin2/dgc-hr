@@ -127,11 +127,11 @@ export function TemplatesTab() {
   return (
     <Tabs value={activeSubTab} onValueChange={setActiveSubTab} className="space-y-6">
       <TabsList>
-        <TabsTrigger value="all-templates" className="gap-2">
+        <TabsTrigger value="all-templates">
           <FileText className="h-4 w-4" />
           All Templates
         </TabsTrigger>
-        <TabsTrigger value="smart-tags" className="gap-2">
+        <TabsTrigger value="smart-tags">
           <Tags className="h-4 w-4" />
           Smart Tags
         </TabsTrigger>

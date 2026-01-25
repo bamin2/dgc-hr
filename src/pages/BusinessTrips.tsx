@@ -27,32 +27,32 @@ export default function BusinessTrips() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="flex flex-wrap h-auto gap-1">
-            <TabsTrigger value="my-trips" className="flex items-center gap-2">
+          <TabsList>
+            <TabsTrigger value="my-trips">
               <Plane className="h-4 w-4" />
-              My Trips
+              <span className="hidden sm:inline">My Trips</span>
             </TabsTrigger>
             
             {(isManager || isHROrAdmin) && (
-              <TabsTrigger value="approvals" className="flex items-center gap-2">
+              <TabsTrigger value="approvals">
                 <ClipboardCheck className="h-4 w-4" />
-                Approvals
+                <span className="hidden sm:inline">Approvals</span>
               </TabsTrigger>
             )}
             
             {isHROrAdmin && (
               <>
-                <TabsTrigger value="all-trips" className="flex items-center gap-2">
+                <TabsTrigger value="all-trips">
                   <ListFilter className="h-4 w-4" />
-                  All Trips
+                  <span className="hidden sm:inline">All Trips</span>
                 </TabsTrigger>
-                <TabsTrigger value="reports" className="flex items-center gap-2">
+                <TabsTrigger value="reports">
                   <BarChart3 className="h-4 w-4" />
-                  Reports
+                  <span className="hidden sm:inline">Reports</span>
                 </TabsTrigger>
-                <TabsTrigger value="settings" className="flex items-center gap-2">
+                <TabsTrigger value="settings">
                   <Settings className="h-4 w-4" />
-                  Settings
+                  <span className="hidden sm:inline">Settings</span>
                 </TabsTrigger>
               </>
             )}

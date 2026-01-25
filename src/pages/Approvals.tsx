@@ -50,7 +50,7 @@ const ApprovalsPage = () => {
         />
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList>
             <TabsTrigger value="my-requests">My Requests</TabsTrigger>
             <TabsTrigger value="approvals">Approvals</TabsTrigger>
