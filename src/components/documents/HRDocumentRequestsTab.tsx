@@ -162,10 +162,10 @@ export function HRDocumentRequestsTab() {
       {/* Status Filter Tabs */}
       <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
         <TabsList>
-          <TabsTrigger value="pending" className="gap-2">
+          <TabsTrigger value="pending">
             Pending
             {pendingCount > 0 && (
-              <Badge variant="secondary" className="ml-1 h-5 px-1.5">
+              <Badge variant="secondary" className="ml-1 h-5 px-1.5 rounded-full">
                 {pendingCount}
               </Badge>
             )}

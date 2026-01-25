@@ -29,23 +29,23 @@ export function CorrectionsTab() {
   return (
     <div className="space-y-4">
       <Tabs value={activeSubTab} onValueChange={setActiveSubTab}>
-        <TabsList className="bg-muted/50">
+        <TabsList>
           <TabsTrigger value="all">All Corrections</TabsTrigger>
           {(canReviewAsManager || isHROrAdmin) && (
-            <TabsTrigger value="pending-manager" className="gap-2">
+            <TabsTrigger value="pending-manager">
               Pending Manager
               {managerPendingCount > 0 && (
-                <Badge variant="secondary" className="h-5 px-1.5 text-xs">
+                <Badge variant="secondary" className="h-5 px-1.5 text-xs rounded-full">
                   {managerPendingCount}
                 </Badge>
               )}
             </TabsTrigger>
           )}
           {isHROrAdmin && (
-            <TabsTrigger value="pending-hr" className="gap-2">
+            <TabsTrigger value="pending-hr">
               Pending HR
               {hrPendingCount > 0 && (
-                <Badge variant="secondary" className="h-5 px-1.5 text-xs">
+                <Badge variant="secondary" className="h-5 px-1.5 text-xs rounded-full">
                   {hrPendingCount}
                 </Badge>
               )}

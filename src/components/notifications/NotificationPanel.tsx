@@ -43,37 +43,33 @@ export function NotificationPanel({
       </div>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full h-auto p-0 bg-transparent border-b border-border rounded-none">
-          <TabsTrigger
-            value="all"
-            className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none py-2"
-          >
-            All
-          </TabsTrigger>
-          <TabsTrigger
-            value="unread"
-            className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none py-2"
-          >
-            Unread ({unreadCount})
-          </TabsTrigger>
-        </TabsList>
+      <div className="px-4 pt-3">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="w-full">
+            <TabsTrigger value="all" className="flex-1">
+              All
+            </TabsTrigger>
+            <TabsTrigger value="unread" className="flex-1">
+              Unread ({unreadCount})
+            </TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="all" className="mt-0">
-          <NotificationList
-            notifications={displayNotifications}
-            onMarkAsRead={onMarkAsRead}
-          />
-        </TabsContent>
+          <TabsContent value="all" className="mt-0">
+            <NotificationList
+              notifications={displayNotifications}
+              onMarkAsRead={onMarkAsRead}
+            />
+          </TabsContent>
 
-        <TabsContent value="unread" className="mt-0">
-          <NotificationList
-            notifications={displayNotifications}
-            onMarkAsRead={onMarkAsRead}
-            emptyMessage="No unread notifications"
-          />
-        </TabsContent>
-      </Tabs>
+          <TabsContent value="unread" className="mt-0">
+            <NotificationList
+              notifications={displayNotifications}
+              onMarkAsRead={onMarkAsRead}
+              emptyMessage="No unread notifications"
+            />
+          </TabsContent>
+        </Tabs>
+      </div>
 
       {/* Footer */}
       <div className="border-t border-border px-4 py-3">

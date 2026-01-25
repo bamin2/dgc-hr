@@ -11,22 +11,22 @@ export function HiringTabs() {
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-      <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-flex">
-        <TabsTrigger value="candidates" className="gap-2">
-          <Users className="h-4 w-4 hidden sm:block" />
-          Candidates
+      <TabsList>
+        <TabsTrigger value="candidates">
+          <Users className="h-4 w-4" />
+          <span className="hidden sm:inline">Candidates</span>
         </TabsTrigger>
-        <TabsTrigger value="offers" className="gap-2">
-          <FileText className="h-4 w-4 hidden sm:block" />
-          Offers
+        <TabsTrigger value="offers">
+          <FileText className="h-4 w-4" />
+          <span className="hidden sm:inline">Offers</span>
         </TabsTrigger>
-        <TabsTrigger value="templates" className="gap-2">
-          <FileStack className="h-4 w-4 hidden sm:block" />
-          Templates
+        <TabsTrigger value="templates">
+          <FileStack className="h-4 w-4" />
+          <span className="hidden sm:inline">Templates</span>
         </TabsTrigger>
-        <TabsTrigger value="reports" className="gap-2">
-          <BarChart3 className="h-4 w-4 hidden sm:block" />
-          Reports
+        <TabsTrigger value="reports">
+          <BarChart3 className="h-4 w-4" />
+          <span className="hidden sm:inline">Reports</span>
         </TabsTrigger>
       </TabsList>
 

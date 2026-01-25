@@ -20,30 +20,30 @@ export default function Documents() {
 
       <Tabs defaultValue="templates" className="space-y-6">
         <TabsList>
-          <TabsTrigger value="templates" className="gap-2">
+          <TabsTrigger value="templates">
             <FileText className="h-4 w-4" />
-            Templates
+            <span className="hidden sm:inline">Templates</span>
           </TabsTrigger>
-          <TabsTrigger value="hr-requests" className="gap-2">
+          <TabsTrigger value="hr-requests">
             <Inbox className="h-4 w-4" />
-            HR Requests
+            <span className="hidden sm:inline">HR Requests</span>
             {pendingCount && pendingCount > 0 && (
-              <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
+              <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs rounded-full">
                 {pendingCount}
               </Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="generated-letters" className="gap-2">
+          <TabsTrigger value="generated-letters">
             <FileOutput className="h-4 w-4" />
-            Generated Letters
+            <span className="hidden sm:inline">Generated Letters</span>
           </TabsTrigger>
-          <TabsTrigger value="employee-documents" disabled className="gap-2">
+          <TabsTrigger value="employee-documents" disabled>
             <Files className="h-4 w-4" />
-            Employee Documents
+            <span className="hidden sm:inline">Employee Documents</span>
           </TabsTrigger>
-          <TabsTrigger value="contracts" disabled className="gap-2">
+          <TabsTrigger value="contracts" disabled>
             <FileSignature className="h-4 w-4" />
-            Contracts
+            <span className="hidden sm:inline">Contracts</span>
           </TabsTrigger>
         </TabsList>
 

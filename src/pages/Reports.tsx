@@ -170,41 +170,41 @@ const Reports = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={handleTabChange}>
-          <TabsList className="w-full sm:w-auto overflow-x-auto flex-wrap h-auto">
+          <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="payroll" className="gap-1">
-              <DollarSign className="h-3.5 w-3.5" />
-              Payroll
+            <TabsTrigger value="payroll">
+              <DollarSign className="h-4 w-4" />
+              <span className="hidden sm:inline">Payroll</span>
             </TabsTrigger>
-            <TabsTrigger value="salary" className="gap-1">
-              <DollarSign className="h-3.5 w-3.5" />
-              Salary
+            <TabsTrigger value="salary">
+              <DollarSign className="h-4 w-4" />
+              <span className="hidden sm:inline">Salary</span>
             </TabsTrigger>
-            <TabsTrigger value="leave" className="gap-1">
-              <Calendar className="h-3.5 w-3.5" />
-              Leave
+            <TabsTrigger value="leave">
+              <Calendar className="h-4 w-4" />
+              <span className="hidden sm:inline">Leave</span>
             </TabsTrigger>
-            <TabsTrigger value="loans" className="gap-1">
-              <CreditCard className="h-3.5 w-3.5" />
-              Loans
+            <TabsTrigger value="loans">
+              <CreditCard className="h-4 w-4" />
+              <span className="hidden sm:inline">Loans</span>
             </TabsTrigger>
-            <TabsTrigger value="compliance" className="gap-1">
-              <Shield className="h-3.5 w-3.5" />
-              Compliance
+            <TabsTrigger value="compliance">
+              <Shield className="h-4 w-4" />
+              <span className="hidden sm:inline">Compliance</span>
             </TabsTrigger>
             {canViewCostReports && (
-              <TabsTrigger value="cost" className="gap-1">
-                <BadgeDollarSign className="h-3.5 w-3.5" />
-                Compliance & Cost
+              <TabsTrigger value="cost">
+                <BadgeDollarSign className="h-4 w-4" />
+                <span className="hidden sm:inline">Cost</span>
               </TabsTrigger>
             )}
-            <TabsTrigger value="employees" className="gap-1">
-              <Users className="h-3.5 w-3.5" />
-              Employees
+            <TabsTrigger value="employees">
+              <Users className="h-4 w-4" />
+              <span className="hidden sm:inline">Employees</span>
             </TabsTrigger>
-            <TabsTrigger value="all-reports" className="gap-1">
-              <FileText className="h-3.5 w-3.5" />
-              All Reports
+            <TabsTrigger value="all-reports">
+              <FileText className="h-4 w-4" />
+              <span className="hidden sm:inline">All Reports</span>
             </TabsTrigger>
           </TabsList>
 

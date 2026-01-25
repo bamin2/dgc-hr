@@ -95,11 +95,11 @@ export default function PayslipTemplates() {
 
         <Tabs value={currentTab} onValueChange={handleTabChange}>
           <TabsList>
-            <TabsTrigger value="templates" className="gap-2">
+            <TabsTrigger value="templates">
               <FileText className="h-4 w-4" />
               DOCX Templates
             </TabsTrigger>
-            <TabsTrigger value="email" className="gap-2">
+            <TabsTrigger value="email">
               <Mail className="h-4 w-4" />
               Email Notification
             </TabsTrigger>

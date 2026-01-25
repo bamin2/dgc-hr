@@ -44,12 +44,11 @@ export function FAQSection({ searchQuery }: FAQSectionProps) {
 
   return (
     <Tabs defaultValue={filteredCategories[0]?.id} className="w-full">
-      <TabsList className="w-full flex-wrap h-auto gap-2 bg-transparent justify-start mb-6">
+      <TabsList className="mb-6">
         {filteredCategories.map((category) => (
           <TabsTrigger
             key={category.id}
             value={category.id}
-            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
           >
             {category.label}
             {searchQuery && (

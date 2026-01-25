@@ -243,10 +243,10 @@ export function LoanDetailSheet({ loanId, open, onOpenChange }: LoanDetailSheetP
             {/* Installments & History Tabs */}
             {loan.installments && loan.installments.length > 0 && (
               <Tabs defaultValue="schedule" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
+                <TabsList>
                   <TabsTrigger value="schedule">Installment Schedule</TabsTrigger>
-                  <TabsTrigger value="history" className="flex items-center gap-1">
-                    <History className="h-3 w-3" />
+                  <TabsTrigger value="history">
+                    <History className="h-4 w-4" />
                     History
                   </TabsTrigger>
                 </TabsList>

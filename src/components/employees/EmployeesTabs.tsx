@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Users, Building2, Archive } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export type EmployeesTabType = "directory" | "org-chart" | "former-employees";
 
@@ -35,27 +35,23 @@ export function EmployeesTabs({
   }, [canViewFormerEmployees]);
 
   return (
-    <div className="border-b mb-6 overflow-x-auto">
-      <div className="flex gap-4 sm:gap-6 min-w-max">
+    <div className="mb-6">
+      <TabsList>
         {tabs.map((tab) => {
           const Icon = tab.icon;
           return (
-            <button
+            <TabsTrigger
               key={tab.id}
+              value={tab.id}
+              data-state={activeTab === tab.id ? "active" : "inactive"}
               onClick={() => onTabChange(tab.id)}
-              className={cn(
-                "flex items-center gap-2 pb-3 text-sm font-medium border-b-2 transition-colors",
-                activeTab === tab.id
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
-              )}
             >
               <Icon className="h-4 w-4" />
               {tab.label}
-            </button>
+            </TabsTrigger>
           );
         })}
-      </div>
+      </TabsList>
     </div>
   );
 }

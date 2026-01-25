@@ -16,26 +16,17 @@ export default function TimeManagement() {
 
       {/* Main Tabs */}
       <Tabs defaultValue="attendance" className="space-y-6">
-        <TabsList className="bg-transparent border-b rounded-none p-0 h-auto w-full justify-start gap-6">
-          <TabsTrigger
-            value="attendance"
-            className="relative rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none pb-3 px-0 text-muted-foreground data-[state=active]:text-primary"
-          >
-            <ClipboardCheck className="w-4 h-4 mr-2" />
+        <TabsList>
+          <TabsTrigger value="attendance">
+            <ClipboardCheck className="h-4 w-4" />
             Attendance
           </TabsTrigger>
-          <TabsTrigger
-            value="leaves"
-            className="relative rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none pb-3 px-0 text-muted-foreground data-[state=active]:text-primary"
-          >
-            <CalendarDays className="w-4 h-4 mr-2" />
+          <TabsTrigger value="leaves">
+            <CalendarDays className="h-4 w-4" />
             Leaves
           </TabsTrigger>
-          <TabsTrigger
-            value="email-templates"
-            className="relative rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none pb-3 px-0 text-muted-foreground data-[state=active]:text-primary"
-          >
-            <Mail className="w-4 h-4 mr-2" />
+          <TabsTrigger value="email-templates">
+            <Mail className="h-4 w-4" />
             Email Templates
           </TabsTrigger>
         </TabsList>

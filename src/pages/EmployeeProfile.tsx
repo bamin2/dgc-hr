@@ -408,40 +408,40 @@ export default function EmployeeProfile() {
 
       {/* Tabs Section */}
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="bg-muted/50">
-          <TabsTrigger value="overview" className="gap-2">
+        <TabsList>
+          <TabsTrigger value="overview">
             <User className="h-4 w-4" />
-            Overview
+            <span className="hidden sm:inline">Overview</span>
           </TabsTrigger>
-          <TabsTrigger value="employment" className="gap-2">
+          <TabsTrigger value="employment">
             <Briefcase className="h-4 w-4" />
-            Employment
+            <span className="hidden sm:inline">Employment</span>
           </TabsTrigger>
           {hasFullAccess && (
             <>
-              <TabsTrigger value="documents" className="gap-2">
+              <TabsTrigger value="documents">
                 <FileText className="h-4 w-4" />
-                Documents
+                <span className="hidden sm:inline">Documents</span>
               </TabsTrigger>
-              <TabsTrigger value="loans" className="gap-2">
+              <TabsTrigger value="loans">
                 <Banknote className="h-4 w-4" />
-                Loans
+                <span className="hidden sm:inline">Loans</span>
               </TabsTrigger>
-              <TabsTrigger value="benefits" className="gap-2">
+              <TabsTrigger value="benefits">
                 <Heart className="h-4 w-4" />
-                Benefits
+                <span className="hidden sm:inline">Benefits</span>
               </TabsTrigger>
-              <TabsTrigger value="timeoff" className="gap-2">
+              <TabsTrigger value="timeoff">
                 <Clock className="h-4 w-4" />
-                Time Off
+                <span className="hidden sm:inline">Time Off</span>
               </TabsTrigger>
-              <TabsTrigger value="activity" className="gap-2">
+              <TabsTrigger value="activity">
                 <Activity className="h-4 w-4" />
-                Activity
+                <span className="hidden sm:inline">Activity</span>
               </TabsTrigger>
-              <TabsTrigger value="roles" className="gap-2">
+              <TabsTrigger value="roles">
                 <Shield className="h-4 w-4" />
-                Roles
+                <span className="hidden sm:inline">Roles</span>
               </TabsTrigger>
             </>
           )}
