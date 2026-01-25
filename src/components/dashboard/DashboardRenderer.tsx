@@ -11,7 +11,8 @@ import {
   BusinessTripsCard,
   MyTeamCard,
   ScheduleCard,
-  MobileQuickActionsCard,
+  MobileGreetingCard,
+  MobileStatusCards,
 } from './bento';
 
 function CardSkeleton({ colSpan = 4 }: { colSpan?: 4 | 5 | 7 | 8 | 12 }) {
@@ -26,23 +27,21 @@ function CardSkeleton({ colSpan = 4 }: { colSpan?: 4 | 5 | 7 | 8 | 12 }) {
 }
 
 /**
- * Mobile Dashboard - Slim, action-focused companion
- * Shows only employee-first workflows with large touch targets
+ * Mobile Dashboard - Lightweight status-focused companion
+ * Shows greeting, quick status cards, and recent notifications
+ * No charts, reports, or configuration widgets
  */
 function MobileDashboard() {
   return (
     <BentoGrid>
-      {/* Quick Actions Grid - 2x2 large touch targets */}
-      <MobileQuickActionsCard />
+      {/* Greeting + Current Date */}
+      <MobileGreetingCard />
       
-      {/* Time Off Balance - Compact inline view */}
-      <TimeOffSnapshotCard variant="compact" />
+      {/* Quick Status Cards - Next Leave, Pending, Loan Balance */}
+      <MobileStatusCards />
       
-      {/* Business Trips - Next trip or quick action */}
-      <BusinessTripsCard variant="compact" />
-      
-      {/* Notifications - Condensed list */}
-      <NotificationsCard variant="compact" />
+      {/* Recent Notifications - 4 items with large touch targets */}
+      <NotificationsCard variant="compact" itemCount={4} />
     </BentoGrid>
   );
 }
