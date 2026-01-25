@@ -30,7 +30,7 @@ export function MobileActionBar() {
   // Build nav items dynamically based on role
   const navItems: NavItem[] = [
     { icon: Home, label: "Home", path: "/" },
-    { icon: FileText, label: "Requests", path: "/time-off" },
+    { icon: FileText, label: "Requests", path: "/requests" },
     // Only show Approvals for managers/HR/admin
     ...(canAccessManagement ? [{
       icon: CheckSquare,
