@@ -226,9 +226,9 @@ export function MyProfileCompensationTab({
 
   return (
     <BentoGrid noPadding>
-      {/* Salary Summary - Main Card */}
-      <BentoCard colSpan={8}>
-        <div className="flex items-center justify-between mb-4">
+      {/* Compensation Summary - Full Width */}
+      <BentoCard colSpan={12}>
+        <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
             <Calculator className="h-4 w-4 text-primary" />
             <h3 className="text-base font-medium">Compensation Summary</h3>
@@ -247,107 +247,112 @@ export function MyProfileCompensationTab({
           </Button>
         </div>
         
-        <div className="space-y-4 relative">
-          {/* Blur overlay when hidden */}
+        <div className="relative min-h-[280px]">
+          {/* Blur overlay when hidden - centered reveal */}
           {!isCompensationVisible && (
-            <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-md rounded-lg z-10">
+            <div className="absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-md rounded-xl z-10">
               <button
                 onClick={() => setIsCompensationVisible(true)}
-                className="flex flex-col items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+                className="flex flex-col items-center gap-3 text-muted-foreground hover:text-foreground transition-colors p-6"
               >
-                <Eye className="h-8 w-8" />
-                <span className="text-sm font-medium">Click to reveal</span>
+                <div className="p-4 rounded-full bg-muted/50">
+                  <Eye className="h-6 w-6" />
+                </div>
+                <span className="text-sm font-medium">Click to reveal compensation</span>
               </button>
             </div>
           )}
           
-          <div className={!isCompensationVisible ? 'blur-md select-none' : ''}>
+          <div className={!isCompensationVisible ? 'blur-md select-none pointer-events-none' : ''}>
             {/* Base Salary */}
-            <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+            <div className="flex justify-between items-center p-4 bg-muted/30 rounded-xl">
               <div className="flex items-center gap-2">
                 <Wallet className="h-4 w-4 text-primary" />
                 <span className="font-medium">Base Salary</span>
               </div>
-              <span className="font-semibold text-lg">
+              <span className="font-semibold text-lg tabular-nums">
                 {currency} {baseSalary.toLocaleString()}
               </span>
             </div>
 
-            {/* Allowances */}
-            <div className="border rounded-lg overflow-hidden mt-3">
-              <div className="flex justify-between items-center p-3 bg-green-50 dark:bg-green-950/20">
-                <div className="flex items-center gap-2">
-                  <Plus className="h-4 w-4 text-green-600" />
-                  <span className="font-medium text-green-700 dark:text-green-400">
-                    Total Allowances
+            {/* Allowances & Deductions - Side by side on desktop */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              {/* Allowances */}
+              <div className="border border-green-200/50 dark:border-green-900/30 rounded-xl overflow-hidden">
+                <div className="flex justify-between items-center p-4 bg-green-50/50 dark:bg-green-950/20">
+                  <div className="flex items-center gap-2">
+                    <Plus className="h-4 w-4 text-green-600 dark:text-green-400" />
+                    <span className="font-medium text-green-700 dark:text-green-400">
+                      Allowances
+                    </span>
+                  </div>
+                  <span className="font-semibold text-green-700 dark:text-green-400 tabular-nums">
+                    + {currency} {totalAllowances.toLocaleString()}
                   </span>
                 </div>
-                <span className="font-semibold text-green-700 dark:text-green-400">
-                  + {currency} {totalAllowances.toLocaleString()}
-                </span>
+                {showLineItems && allowanceItems.length > 0 && (
+                  <div className="p-4 bg-background space-y-1">
+                    {allowanceItems.map((item) => (
+                      <CompensationItem
+                        key={item.id}
+                        name={item.name}
+                        amount={item.amount}
+                        currency={currency}
+                        type="allowance"
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
-              {showLineItems && allowanceItems.length > 0 && (
-                <div className="p-3 bg-background">
-                  {allowanceItems.map((item) => (
-                    <CompensationItem
-                      key={item.id}
-                      name={item.name}
-                      amount={item.amount}
-                      currency={currency}
-                      type="allowance"
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
 
-            {/* Deductions */}
-            <div className="border rounded-lg overflow-hidden mt-3">
-              <div className="flex justify-between items-center p-3 bg-red-50 dark:bg-red-950/20">
-                <div className="flex items-center gap-2">
-                  <Minus className="h-4 w-4 text-red-600" />
-                  <span className="font-medium text-red-700 dark:text-red-400">
-                    Total Deductions
+              {/* Deductions */}
+              <div className="border border-red-200/50 dark:border-red-900/30 rounded-xl overflow-hidden">
+                <div className="flex justify-between items-center p-4 bg-red-50/50 dark:bg-red-950/20">
+                  <div className="flex items-center gap-2">
+                    <Minus className="h-4 w-4 text-red-600 dark:text-red-400" />
+                    <span className="font-medium text-red-700 dark:text-red-400">
+                      Deductions
+                    </span>
+                  </div>
+                  <span className="font-semibold text-red-700 dark:text-red-400 tabular-nums">
+                    - {currency} {(totalDeductions + gosiDeduction).toLocaleString()}
                   </span>
                 </div>
-                <span className="font-semibold text-red-700 dark:text-red-400">
-                  - {currency} {(totalDeductions + gosiDeduction).toLocaleString()}
-                </span>
+                {showLineItems && (
+                  <div className="p-4 bg-background space-y-1">
+                    {deductionItems.map((item) => (
+                      <CompensationItem
+                        key={item.id}
+                        name={item.name}
+                        amount={item.amount}
+                        currency={currency}
+                        type="deduction"
+                      />
+                    ))}
+                    {gosiDeduction > 0 && (
+                      <CompensationItem
+                        name="GOSI (Social Insurance)"
+                        amount={gosiDeduction}
+                        currency={currency}
+                        type="deduction"
+                      />
+                    )}
+                  </div>
+                )}
               </div>
-              {showLineItems && (
-                <div className="p-3 bg-background">
-                  {deductionItems.map((item) => (
-                    <CompensationItem
-                      key={item.id}
-                      name={item.name}
-                      amount={item.amount}
-                      currency={currency}
-                      type="deduction"
-                    />
-                  ))}
-                  {gosiDeduction > 0 && (
-                    <CompensationItem
-                      name="GOSI (Social Insurance)"
-                      amount={gosiDeduction}
-                      currency={currency}
-                      type="deduction"
-                    />
-                  )}
-                </div>
-              )}
             </div>
 
             {/* Totals */}
-            <div className="space-y-2 pt-4 border-t mt-4">
-              <div className="flex justify-between items-center">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-5 border-t mt-5">
+              <div className="flex justify-between items-center p-4 bg-muted/20 rounded-xl">
                 <span className="text-sm text-muted-foreground">Gross Pay</span>
-                <span className="font-medium">
+                <span className="font-medium tabular-nums">
                   {currency} {grossPay.toLocaleString()}
                 </span>
               </div>
-              <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg">
+              <div className="flex justify-between items-center p-4 bg-primary/10 rounded-xl">
                 <span className="font-medium">Net Pay</span>
-                <span className="font-bold text-lg text-primary">
+                <span className="font-bold text-lg text-primary tabular-nums">
                   {currency} {netPay.toLocaleString()}
                 </span>
               </div>
@@ -356,30 +361,47 @@ export function MyProfileCompensationTab({
         </div>
       </BentoCard>
 
-      {/* Bank Details */}
-      <BentoCard colSpan={4}>
-        <div className="flex items-center gap-2 mb-4">
-          <CreditCard className="h-4 w-4 text-primary" />
-          <h3 className="text-base font-medium">Bank Details</h3>
+      {/* Bank Details - Full Width */}
+      <BentoCard colSpan={12}>
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-2">
+            <CreditCard className="h-4 w-4 text-primary" />
+            <h3 className="text-base font-medium">Bank Details</h3>
+          </div>
+          <div className="flex items-center gap-1 text-muted-foreground">
+            <Lock className="h-3 w-3" />
+            <span className="text-xs">Sensitive</span>
+          </div>
         </div>
-        <div className="space-y-4">
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Bank Name</p>
+        
+        {/* Two-column grid on desktop, stacked on mobile */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {/* Bank Name */}
+          <div className="bg-muted/30 rounded-xl p-5">
+            <p className="text-xs text-muted-foreground mb-1.5">Bank Name</p>
             <div className="flex items-center gap-2">
-              <Building2 className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">
+              <Building2 className="h-4 w-4 text-muted-foreground/70" />
+              <span className="text-base font-medium">
                 {employee.bankName || 'Not set'}
               </span>
             </div>
           </div>
-          <MaskedValue 
-            label="Account Number" 
-            value={employee.bankAccountNumber || ''} 
-          />
-          <MaskedValue 
-            label="IBAN" 
-            value={employee.iban || ''} 
-          />
+          
+          {/* Account Number */}
+          <div className="bg-muted/30 rounded-xl p-5">
+            <MaskedValue 
+              label="Account Number" 
+              value={employee.bankAccountNumber || ''} 
+            />
+          </div>
+          
+          {/* IBAN */}
+          <div className="bg-muted/30 rounded-xl p-5 sm:col-span-2 lg:col-span-1">
+            <MaskedValue 
+              label="IBAN" 
+              value={employee.iban || ''} 
+            />
+          </div>
         </div>
       </BentoCard>
     </BentoGrid>
