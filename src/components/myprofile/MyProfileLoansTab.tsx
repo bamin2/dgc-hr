@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -17,6 +17,7 @@ import { useEmployeeLoansWithInstallments, LoanWithInstallmentsData } from '@/ho
 import { format } from 'date-fns';
 import { EmployeeRequestLoanDialog } from '@/components/loans/EmployeeRequestLoanDialog';
 import { useCompanySettings } from '@/contexts/CompanySettingsContext';
+import { BentoGrid, BentoCard } from '@/components/dashboard/bento';
 
 interface MyProfileLoansTabProps {
   employeeId: string;
@@ -153,10 +154,12 @@ export function MyProfileLoansTab({ employeeId }: MyProfileLoansTabProps) {
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <Skeleton className="h-48 w-full" />
-        <Skeleton className="h-48 w-full" />
-      </div>
+      <BentoGrid noPadding>
+        <BentoCard colSpan={4}><Skeleton className="h-24 w-full" /></BentoCard>
+        <BentoCard colSpan={4}><Skeleton className="h-24 w-full" /></BentoCard>
+        <BentoCard colSpan={4}><Skeleton className="h-24 w-full" /></BentoCard>
+        <BentoCard colSpan={12}><Skeleton className="h-48 w-full" /></BentoCard>
+      </BentoGrid>
     );
   }
 
@@ -166,21 +169,23 @@ export function MyProfileLoansTab({ employeeId }: MyProfileLoansTabProps) {
 
   const totalOutstanding = activeLoans.reduce((sum, loan) => sum + calculateOutstandingBalance(loan), 0);
 
+  const hasAnyLoans = loans && loans.length > 0;
+
   return (
-    <div className="space-y-6">
+    <BentoGrid noPadding>
       {/* Action Button */}
-      <div className="flex justify-end">
+      <BentoCard colSpan={12} className="flex justify-end">
         <Button onClick={() => setShowRequestDialog(true)} className="gap-2">
           <Plus className="h-4 w-4" />
           Request Loan
         </Button>
-      </div>
+      </BentoCard>
 
-      {/* Summary */}
-      {(activeLoans.length > 0 || pendingLoans.length > 0) && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card>
-            <CardContent className="p-4 flex items-center gap-3">
+      {/* Summary Stats */}
+      {hasAnyLoans && (
+        <>
+          <BentoCard colSpan={4}>
+            <div className="flex items-center gap-3">
               <div className="p-2 bg-primary/10 rounded-lg">
                 <Wallet className="h-5 w-5 text-primary" />
               </div>
@@ -188,10 +193,10 @@ export function MyProfileLoansTab({ employeeId }: MyProfileLoansTabProps) {
                 <p className="text-xs text-muted-foreground">Active Loans</p>
                 <p className="text-xl font-semibold">{activeLoans.length}</p>
               </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 flex items-center gap-3">
+            </div>
+          </BentoCard>
+          <BentoCard colSpan={4}>
+            <div className="flex items-center gap-3">
               <div className="p-2 bg-amber-100 dark:bg-amber-950/30 rounded-lg">
                 <TrendingDown className="h-5 w-5 text-amber-600" />
               </div>
@@ -199,10 +204,10 @@ export function MyProfileLoansTab({ employeeId }: MyProfileLoansTabProps) {
                 <p className="text-xs text-muted-foreground">Total Outstanding</p>
                 <p className="text-xl font-semibold">{formatCurrency(totalOutstanding)}</p>
               </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 flex items-center gap-3">
+            </div>
+          </BentoCard>
+          <BentoCard colSpan={4}>
+            <div className="flex items-center gap-3">
               <div className="p-2 bg-blue-100 dark:bg-blue-950/30 rounded-lg">
                 <Clock className="h-5 w-5 text-blue-600" />
               </div>
@@ -210,45 +215,51 @@ export function MyProfileLoansTab({ employeeId }: MyProfileLoansTabProps) {
                 <p className="text-xs text-muted-foreground">Pending Requests</p>
                 <p className="text-xl font-semibold">{pendingLoans.length}</p>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </BentoCard>
+        </>
       )}
 
       {/* Active Loans */}
       {activeLoans.length > 0 && (
-        <div className="space-y-4">
-          <h3 className="text-sm font-medium text-muted-foreground">Active Loans</h3>
-          {activeLoans.map((loan) => (
-            <LoanCard key={loan.id} loan={loan} formatCurrency={formatCurrency} />
-          ))}
-        </div>
+        <BentoCard colSpan={12}>
+          <CardTitle className="text-sm font-medium text-muted-foreground mb-4">Active Loans</CardTitle>
+          <div className="space-y-4">
+            {activeLoans.map((loan) => (
+              <LoanCard key={loan.id} loan={loan} formatCurrency={formatCurrency} />
+            ))}
+          </div>
+        </BentoCard>
       )}
 
       {/* Pending Loans */}
       {pendingLoans.length > 0 && (
-        <div className="space-y-4">
-          <h3 className="text-sm font-medium text-muted-foreground">Pending Requests</h3>
-          {pendingLoans.map((loan) => (
-            <LoanCard key={loan.id} loan={loan} formatCurrency={formatCurrency} />
-          ))}
-        </div>
+        <BentoCard colSpan={6}>
+          <CardTitle className="text-sm font-medium text-muted-foreground mb-4">Pending Requests</CardTitle>
+          <div className="space-y-4">
+            {pendingLoans.map((loan) => (
+              <LoanCard key={loan.id} loan={loan} formatCurrency={formatCurrency} />
+            ))}
+          </div>
+        </BentoCard>
       )}
 
       {/* Closed Loans */}
       {closedLoans.length > 0 && (
-        <div className="space-y-4">
-          <h3 className="text-sm font-medium text-muted-foreground">Loan History</h3>
-          {closedLoans.slice(0, 5).map((loan) => (
-            <LoanCard key={loan.id} loan={loan} formatCurrency={formatCurrency} />
-          ))}
-        </div>
+        <BentoCard colSpan={pendingLoans.length > 0 ? 6 : 12}>
+          <CardTitle className="text-sm font-medium text-muted-foreground mb-4">Loan History</CardTitle>
+          <div className="space-y-4">
+            {closedLoans.slice(0, 5).map((loan) => (
+              <LoanCard key={loan.id} loan={loan} formatCurrency={formatCurrency} />
+            ))}
+          </div>
+        </BentoCard>
       )}
 
       {/* Empty State */}
-      {!loans || loans.length === 0 ? (
-        <Card>
-          <CardContent className="p-8 text-center">
+      {!hasAnyLoans && (
+        <BentoCard colSpan={12}>
+          <div className="p-8 text-center">
             <Inbox className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-muted-foreground">
               No Loans
@@ -256,15 +267,15 @@ export function MyProfileLoansTab({ employeeId }: MyProfileLoansTabProps) {
             <p className="text-sm text-muted-foreground/70 mt-1">
               You don't have any active or past loans.
             </p>
-          </CardContent>
-        </Card>
-      ) : null}
+          </div>
+        </BentoCard>
+      )}
 
       {/* Request Dialog */}
       <EmployeeRequestLoanDialog
         open={showRequestDialog}
         onOpenChange={setShowRequestDialog}
       />
-    </div>
+    </BentoGrid>
   );
 }

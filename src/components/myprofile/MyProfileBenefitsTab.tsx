@@ -1,4 +1,4 @@
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
@@ -20,6 +20,7 @@ import { useState } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
 import { BenefitType } from '@/types/benefits';
+import { BentoGrid, BentoCard } from '@/components/dashboard/bento';
 
 const HEALTH_PLAN_TYPES = ['health', 'dental', 'vision', 'life', 'disability'];
 
@@ -217,15 +218,11 @@ export function MyProfileBenefitsTab({ employeeId }: MyProfileBenefitsTabProps) 
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Skeleton className="h-24 w-full" />
-          <Skeleton className="h-24 w-full" />
-          <Skeleton className="h-24 w-full" />
-        </div>
-        <Skeleton className="h-48 w-full" />
-        <Skeleton className="h-48 w-full" />
-      </div>
+      <BentoGrid noPadding>
+        <BentoCard colSpan={6}><Skeleton className="h-24 w-full" /></BentoCard>
+        <BentoCard colSpan={6}><Skeleton className="h-24 w-full" /></BentoCard>
+        <BentoCard colSpan={12}><Skeleton className="h-48 w-full" /></BentoCard>
+      </BentoGrid>
     );
   }
 
@@ -238,13 +235,15 @@ export function MyProfileBenefitsTab({ employeeId }: MyProfileBenefitsTabProps) 
     .filter(e => e.end_date)
     .sort((a, b) => new Date(a.end_date!).getTime() - new Date(b.end_date!).getTime())[0];
 
+  const hasAnyEnrollments = enrollments && enrollments.length > 0;
+
   return (
-    <div className="space-y-6">
+    <BentoGrid noPadding>
       {/* Summary Cards */}
-      {(activeEnrollments.length > 0 || pendingEnrollments.length > 0) && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Card>
-            <CardContent className="p-4 flex items-center gap-3">
+      {hasAnyEnrollments && (
+        <>
+          <BentoCard colSpan={6}>
+            <div className="flex items-center gap-3">
               <div className="p-2 bg-primary/10 rounded-lg">
                 <Shield className="h-5 w-5 text-primary" />
               </div>
@@ -252,10 +251,10 @@ export function MyProfileBenefitsTab({ employeeId }: MyProfileBenefitsTabProps) 
                 <p className="text-xs text-muted-foreground">Active Plans</p>
                 <p className="text-xl font-semibold">{activeEnrollments.length}</p>
               </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 flex items-center gap-3">
+            </div>
+          </BentoCard>
+          <BentoCard colSpan={6}>
+            <div className="flex items-center gap-3">
               <div className="p-2 bg-blue-100 dark:bg-blue-950/30 rounded-lg">
                 <Calendar className="h-5 w-5 text-blue-600" />
               </div>
@@ -268,45 +267,51 @@ export function MyProfileBenefitsTab({ employeeId }: MyProfileBenefitsTabProps) 
                   }
                 </p>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </BentoCard>
+        </>
       )}
 
       {/* Active Enrollments */}
       {activeEnrollments.length > 0 && (
-        <div className="space-y-4">
-          <h3 className="text-sm font-medium text-muted-foreground">Active Benefits</h3>
-          {activeEnrollments.map((enrollment) => (
-            <EnrollmentCard key={enrollment.id} enrollment={enrollment} />
-          ))}
-        </div>
+        <BentoCard colSpan={12}>
+          <CardTitle className="text-sm font-medium text-muted-foreground mb-4">Active Benefits</CardTitle>
+          <div className="space-y-4">
+            {activeEnrollments.map((enrollment) => (
+              <EnrollmentCard key={enrollment.id} enrollment={enrollment} />
+            ))}
+          </div>
+        </BentoCard>
       )}
 
       {/* Pending Enrollments */}
       {pendingEnrollments.length > 0 && (
-        <div className="space-y-4">
-          <h3 className="text-sm font-medium text-muted-foreground">Pending Enrollments</h3>
-          {pendingEnrollments.map((enrollment) => (
-            <EnrollmentCard key={enrollment.id} enrollment={enrollment} />
-          ))}
-        </div>
+        <BentoCard colSpan={6}>
+          <CardTitle className="text-sm font-medium text-muted-foreground mb-4">Pending Enrollments</CardTitle>
+          <div className="space-y-4">
+            {pendingEnrollments.map((enrollment) => (
+              <EnrollmentCard key={enrollment.id} enrollment={enrollment} />
+            ))}
+          </div>
+        </BentoCard>
       )}
 
       {/* Past Enrollments */}
       {otherEnrollments.length > 0 && (
-        <div className="space-y-4">
-          <h3 className="text-sm font-medium text-muted-foreground">Past Enrollments</h3>
-          {otherEnrollments.slice(0, 5).map((enrollment) => (
-            <EnrollmentCard key={enrollment.id} enrollment={enrollment} />
-          ))}
-        </div>
+        <BentoCard colSpan={pendingEnrollments.length > 0 ? 6 : 12}>
+          <CardTitle className="text-sm font-medium text-muted-foreground mb-4">Past Enrollments</CardTitle>
+          <div className="space-y-4">
+            {otherEnrollments.slice(0, 5).map((enrollment) => (
+              <EnrollmentCard key={enrollment.id} enrollment={enrollment} />
+            ))}
+          </div>
+        </BentoCard>
       )}
 
       {/* Empty State */}
-      {(!enrollments || enrollments.length === 0) && (
-        <Card>
-          <CardContent className="p-8 text-center">
+      {!hasAnyEnrollments && (
+        <BentoCard colSpan={12}>
+          <div className="p-8 text-center">
             <Inbox className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-muted-foreground">
               No Benefits Enrolled
@@ -314,9 +319,9 @@ export function MyProfileBenefitsTab({ employeeId }: MyProfileBenefitsTabProps) 
             <p className="text-sm text-muted-foreground/70 mt-1">
               You are not currently enrolled in any benefit plans.
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </BentoCard>
       )}
-    </div>
+    </BentoGrid>
   );
 }
