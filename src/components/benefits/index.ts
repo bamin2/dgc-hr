@@ -19,3 +19,4 @@ export { AirTicketConfigFields, PhoneConfigFields } from './EntitlementConfigFie
 export { AirTicketUsageDialog } from './AirTicketUsageDialog';
 export { PhonePaymentDialog } from './PhonePaymentDialog';
 export { EntitlementTrackingCard } from './EntitlementTrackingCard';
+export { InsuranceCardUpload } from './InsuranceCardUpload';

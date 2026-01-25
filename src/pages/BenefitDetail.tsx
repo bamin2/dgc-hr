@@ -5,19 +5,33 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader } from '@/components/ui/page-header';
 import { Users, Check, Building2, Loader2, FileText, Pencil, ArrowLeft, Plane, Car, Smartphone } from 'lucide-react';
-import { BenefitTypeBadge, BenefitStatusBadge, EnrollmentsTable, EditBenefitPlanDialog } from '@/components/benefits';
+import { BenefitTypeBadge, BenefitStatusBadge, EnrollmentsTable, EditBenefitPlanDialog, EnrollmentDetailsDialog, EditEnrollmentDialog } from '@/components/benefits';
 import { useBenefitPlan, type AirTicketConfig, type CarParkConfig, type PhoneConfig } from '@/hooks/useBenefitPlans';
-import { useBenefitEnrollments } from '@/hooks/useBenefitEnrollments';
+import { useBenefitEnrollments, type BenefitEnrollment } from '@/hooks/useBenefitEnrollments';
 import { useCompanySettings } from '@/contexts/CompanySettingsContext';
 
 const BenefitDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editPlanDialogOpen, setEditPlanDialogOpen] = useState(false);
+  const [selectedEnrollment, setSelectedEnrollment] = useState<BenefitEnrollment | null>(null);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [editEnrollmentDialogOpen, setEditEnrollmentDialogOpen] = useState(false);
   const { formatCurrency } = useCompanySettings();
 
   const { data: plan, isLoading: planLoading } = useBenefitPlan(id);
   const { data: enrollments = [], isLoading: enrollmentsLoading } = useBenefitEnrollments({ planId: id });
+
+  const handleViewEnrollment = (enrollment: BenefitEnrollment) => {
+    setSelectedEnrollment(enrollment);
+    setDetailsDialogOpen(true);
+  };
+
+  const handleEditEnrollment = (enrollment: BenefitEnrollment) => {
+    setSelectedEnrollment(enrollment);
+    setDetailsDialogOpen(false);
+    setEditEnrollmentDialogOpen(true);
+  };
 
   const isLoading = planLoading || enrollmentsLoading;
 
@@ -63,7 +77,7 @@ const BenefitDetail = () => {
           ]}
           actions={
             <>
-              <Button variant="outline" onClick={() => setEditDialogOpen(true)}>
+              <Button variant="outline" onClick={() => setEditPlanDialogOpen(true)}>
                 <Pencil className="mr-2 h-4 w-4" />
                 Edit Plan
               </Button>
@@ -244,19 +258,37 @@ const BenefitDetail = () => {
               <CardTitle className="text-lg">Enrolled Employees ({enrollments.length})</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <EnrollmentsTable enrollments={enrollments} />
+              <EnrollmentsTable 
+                enrollments={enrollments}
+                onViewEnrollment={handleViewEnrollment}
+              />
             </CardContent>
           </Card>
         )}
 
-        {/* Edit Dialog */}
+        {/* Plan Edit Dialog */}
         {plan && (
           <EditBenefitPlanDialog
-            open={editDialogOpen}
-            onOpenChange={setEditDialogOpen}
+            open={editPlanDialogOpen}
+            onOpenChange={setEditPlanDialogOpen}
             plan={plan}
           />
         )}
+
+        {/* Enrollment Details Dialog */}
+        <EnrollmentDetailsDialog
+          open={detailsDialogOpen}
+          onOpenChange={setDetailsDialogOpen}
+          enrollment={selectedEnrollment}
+          onEdit={handleEditEnrollment}
+        />
+
+        {/* Edit Enrollment Dialog */}
+        <EditEnrollmentDialog
+          open={editEnrollmentDialogOpen}
+          onOpenChange={setEditEnrollmentDialogOpen}
+          enrollment={selectedEnrollment}
+        />
       </div>
     </DashboardLayout>
   );
