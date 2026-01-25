@@ -1,12 +1,5 @@
 import { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import { ResponsiveDialog, ResponsiveDialogFooter } from "@/components/ui/responsive-dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,7 +14,7 @@ import { useRequestableTemplates } from "@/hooks/useDocumentTemplates";
 import { useCreateHRDocumentRequest } from "@/hooks/useHRDocumentRequests";
 import { useMyEmployee } from "@/hooks/useMyEmployee";
 import { toast } from "sonner";
-import { Loader2, FileText } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 interface RequestHRDocumentDialogProps {
   open: boolean;
@@ -65,59 +58,14 @@ export function RequestHRDocumentDialog({ open, onOpenChange }: RequestHRDocumen
   const isLoading = templatesLoading || employeeLoading;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Request HR Document
-          </DialogTitle>
-          <DialogDescription>
-            Select the type of document you need and provide any additional notes.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="document-type">Document Type *</Label>
-            {isLoading ? (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Loading available documents...
-              </div>
-            ) : templates && templates.length > 0 ? (
-              <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
-                <SelectTrigger id="document-type">
-                  <SelectValue placeholder="Select a document..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {templates.map((template) => (
-                    <SelectItem key={template.id} value={template.id}>
-                      {template.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                No documents are currently available for request.
-              </p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes (optional)</Label>
-            <Textarea
-              id="notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Add any additional information or special requests..."
-              rows={3}
-            />
-          </div>
-        </div>
-
-        <DialogFooter>
+    <ResponsiveDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Request HR Document"
+      description="Select the type of document you need and provide any additional notes."
+      size="md"
+      footer={
+        <ResponsiveDialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
@@ -134,8 +82,49 @@ export function RequestHRDocumentDialog({ open, onOpenChange }: RequestHRDocumen
               "Submit Request"
             )}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </ResponsiveDialogFooter>
+      }
+    >
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="document-type">Document Type *</Label>
+          {isLoading ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Loading available documents...
+            </div>
+          ) : templates && templates.length > 0 ? (
+            <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
+              <SelectTrigger id="document-type" className="h-12 sm:h-10">
+                <SelectValue placeholder="Select a document..." />
+              </SelectTrigger>
+              <SelectContent>
+                {templates.map((template) => (
+                  <SelectItem key={template.id} value={template.id}>
+                    {template.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              No documents are currently available for request.
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="notes">Notes (optional)</Label>
+          <Textarea
+            id="notes"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Add any additional information or special requests..."
+            rows={3}
+            className="min-h-[100px]"
+          />
+        </div>
+      </div>
+    </ResponsiveDialog>
   );
 }

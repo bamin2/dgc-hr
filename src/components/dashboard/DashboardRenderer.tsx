@@ -1,4 +1,5 @@
 import { useRole } from '@/contexts/RoleContext';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   BentoGrid,
@@ -10,6 +11,7 @@ import {
   BusinessTripsCard,
   MyTeamCard,
   ScheduleCard,
+  MobileQuickActionsCard,
 } from './bento';
 
 function CardSkeleton({ colSpan = 4 }: { colSpan?: 4 | 5 | 7 | 8 | 12 }) {
@@ -23,13 +25,38 @@ function CardSkeleton({ colSpan = 4 }: { colSpan?: 4 | 5 | 7 | 8 | 12 }) {
   );
 }
 
-export function DashboardRenderer() {
+/**
+ * Mobile Dashboard - Slim, action-focused companion
+ * Shows only employee-first workflows with large touch targets
+ */
+function MobileDashboard() {
+  return (
+    <BentoGrid>
+      {/* Quick Actions Grid - 2x2 large touch targets */}
+      <MobileQuickActionsCard />
+      
+      {/* Time Off Balance - Compact inline view */}
+      <TimeOffSnapshotCard variant="compact" />
+      
+      {/* Business Trips - Next trip or quick action */}
+      <BusinessTripsCard variant="compact" />
+      
+      {/* Notifications - Condensed list */}
+      <NotificationsCard variant="compact" />
+    </BentoGrid>
+  );
+}
+
+/**
+ * Desktop Dashboard - Full control center
+ * Shows all cards including manager/admin sections
+ */
+function DesktopDashboard() {
   const { 
     effectiveTeamMemberIds, 
     canEditEmployees, 
     isManager,
     isImpersonating, 
-    isLoading 
   } = useRole();
 
   // Show team section if effective user has direct reports
@@ -37,20 +64,6 @@ export function DashboardRenderer() {
   
   // Show approvals section if user has manager/HR/Admin role AND not impersonating
   const showApprovalsSection = (isManager || canEditEmployees) && !isImpersonating;
-
-  if (isLoading) {
-    return (
-      <BentoGrid>
-        <CardSkeleton colSpan={7} />
-        <CardSkeleton colSpan={5} />
-        <CardSkeleton colSpan={4} />
-        <CardSkeleton colSpan={4} />
-        <CardSkeleton colSpan={4} />
-        <CardSkeleton colSpan={8} />
-        <CardSkeleton colSpan={4} />
-      </BentoGrid>
-    );
-  }
 
   return (
     <BentoGrid>
@@ -68,4 +81,41 @@ export function DashboardRenderer() {
       {showTeamSection && <MyTeamCard />}
     </BentoGrid>
   );
+}
+
+export function DashboardRenderer() {
+  const { isLoading } = useRole();
+  const isMobile = useIsMobile();
+
+  if (isLoading) {
+    return (
+      <BentoGrid>
+        {isMobile ? (
+          <>
+            <CardSkeleton colSpan={12} />
+            <CardSkeleton colSpan={12} />
+            <CardSkeleton colSpan={12} />
+          </>
+        ) : (
+          <>
+            <CardSkeleton colSpan={7} />
+            <CardSkeleton colSpan={5} />
+            <CardSkeleton colSpan={4} />
+            <CardSkeleton colSpan={4} />
+            <CardSkeleton colSpan={4} />
+            <CardSkeleton colSpan={8} />
+            <CardSkeleton colSpan={4} />
+          </>
+        )}
+      </BentoGrid>
+    );
+  }
+
+  // Mobile: Slim, action-focused companion
+  if (isMobile) {
+    return <MobileDashboard />;
+  }
+
+  // Desktop: Full control center
+  return <DesktopDashboard />;
 }

@@ -11,3 +11,4 @@ export { TimeOffSnapshotCard } from './TimeOffSnapshotCard';
 export { BusinessTripsCard } from './BusinessTripsCard';
 export { MyTeamCard } from './MyTeamCard';
 export { ScheduleCard } from './ScheduleCard';
+export { MobileQuickActionsCard } from './MobileQuickActionsCard';

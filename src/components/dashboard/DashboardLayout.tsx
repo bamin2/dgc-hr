@@ -1,6 +1,8 @@
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { ImpersonationBanner } from "./ImpersonationBanner";
+import { MobileActionBar } from "./MobileActionBar";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
 interface DashboardLayoutProps {
@@ -16,6 +18,8 @@ export function DashboardLayout({
   fullWidth = false,
   noPadding = false 
 }: DashboardLayoutProps) {
+  const isMobile = useIsMobile();
+
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
       <Sidebar />
@@ -27,13 +31,18 @@ export function DashboardLayout({
             className={cn(
               "w-full min-h-full",
               !noPadding && "px-4 sm:px-6 lg:px-8 xl:px-12 py-4 sm:py-6",
-              !fullWidth && "max-w-[1600px] mx-auto"
+              !fullWidth && "max-w-[1600px] mx-auto",
+              // Add bottom padding on mobile for the action bar
+              isMobile && "pb-20"
             )}
           >
             {children}
           </div>
         </main>
       </div>
+      
+      {/* Mobile Bottom Navigation Bar */}
+      <MobileActionBar />
     </div>
   );
 }

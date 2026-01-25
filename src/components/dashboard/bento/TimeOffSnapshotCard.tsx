@@ -4,8 +4,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { BentoCard } from "./BentoCard";
 import { usePersonalDashboard } from "@/hooks/usePersonalDashboard";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
-export function TimeOffSnapshotCard() {
+interface TimeOffSnapshotCardProps {
+  /** Compact variant for mobile - shows only balance with inline action */
+  variant?: "default" | "compact";
+}
+
+export function TimeOffSnapshotCard({ variant = "default" }: TimeOffSnapshotCardProps) {
   const navigate = useNavigate();
   const { data, isLoading } = usePersonalDashboard();
 
@@ -20,21 +26,58 @@ export function TimeOffSnapshotCard() {
   // Get next upcoming time off
   const nextTimeOff = data?.upcomingTimeOff[0];
 
+  const isCompact = variant === "compact";
+
   if (isLoading) {
     return (
-      <BentoCard colSpan={4}>
+      <BentoCard colSpan={isCompact ? 12 : 4}>
         <div className="flex items-center gap-2 mb-4">
           <Skeleton className="w-5 h-5 rounded" />
           <Skeleton className="h-5 w-24" />
         </div>
         <div className="space-y-3">
-          <Skeleton className="h-16 w-full rounded-xl" />
-          <Skeleton className="h-12 w-full rounded-xl" />
+          <Skeleton className={cn("w-full rounded-xl", isCompact ? "h-12" : "h-16")} />
+          {!isCompact && <Skeleton className="h-12 w-full rounded-xl" />}
         </div>
       </BentoCard>
     );
   }
 
+  // Compact mobile variant
+  if (isCompact) {
+    return (
+      <BentoCard 
+        colSpan={12} 
+        onClick={() => navigate("/time-off")}
+        className="cursor-pointer p-4"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <Palmtree className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Annual Leave</p>
+              <p className="text-lg font-bold text-foreground">
+                {annualLeave?.remaining ?? 0}
+                <span className="text-sm font-normal text-muted-foreground ml-1">
+                  / {annualLeave?.total ?? 0} days
+                </span>
+              </p>
+            </div>
+          </div>
+          {pendingRequests > 0 && (
+            <div className="flex items-center gap-1 text-amber-600 bg-amber-500/10 px-2.5 py-1 rounded-full">
+              <Clock className="w-3.5 h-3.5" />
+              <span className="text-xs font-medium">{pendingRequests} pending</span>
+            </div>
+          )}
+        </div>
+      </BentoCard>
+    );
+  }
+
+  // Default desktop variant
   return (
     <BentoCard 
       colSpan={4} 

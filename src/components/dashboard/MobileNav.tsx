@@ -2,54 +2,41 @@ import { useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import {
   LayoutDashboard,
-  Users,
-  Wallet,
-  Gift,
-  FileText,
-  Settings,
   Clock,
-  Briefcase,
-  FileStack,
-  HelpCircle,
-  BookUser,
-  History,
   Menu,
   X,
   UserCircle,
+  Bell,
+  ChevronRight,
+  Settings,
+  HelpCircle,
+  BookUser,
+  Briefcase,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useRole } from "@/contexts/RoleContext";
-import { useCompanySettings } from "@/contexts/CompanySettingsContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { RoleBadge } from "@/components/employees/RoleBadge";
 import dgcLogoLight from "@/assets/dgc-logo-light.svg";
 
-// MAIN - Visible to all employees
-const mainMenuItems = [
+// PRIMARY - Core employee actions (always visible, larger touch targets)
+const primaryMenuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
   { icon: UserCircle, label: "My Profile", path: "/my-profile" },
+  { icon: Clock, label: "Time Off", path: "/time-off" },
+  { icon: Bell, label: "Notifications", path: "/notifications" },
+];
+
+// SECONDARY - Less frequent actions (grouped in "More")
+const secondaryMenuItems = [
   { icon: BookUser, label: "Directory", path: "/directory" },
   { icon: Briefcase, label: "Projects", path: "/projects" },
-  { icon: Clock, label: "Time Off", path: "/time-off" },
   { icon: Settings, label: "Settings", path: "/settings" },
   { icon: HelpCircle, label: "Help Center", path: "/help-center" },
-];
-
-// MANAGEMENT - HR & Manager roles only
-const managementMenuItems = [
-  { icon: Users, label: "Employee Management", path: "/employees" },
-  { icon: Clock, label: "Time Management", path: "/time-management" },
-  { icon: FileText, label: "Reports", path: "/reports" },
-  { icon: Wallet, label: "Payrolls", path: "/payroll" },
-  { icon: Gift, label: "Benefits", path: "/benefits" },
-];
-
-// COMPANY - HR & Manager roles only
-const companyMenuItems = [
-  { icon: FileStack, label: "Documents", path: "/documents" },
-  { icon: History, label: "Audit Trail", path: "/audit-trail" },
 ];
 
 interface NavItemProps {
@@ -58,79 +45,47 @@ interface NavItemProps {
   path: string;
   isActive: boolean;
   onClick: () => void;
-  comingSoon?: boolean;
+  large?: boolean;
 }
 
-function NavItem({ icon: Icon, label, path, isActive, onClick, comingSoon }: NavItemProps) {
-  if (comingSoon) {
-    return (
-      <div
-        className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-foreground/40 cursor-not-allowed"
-      >
-        <Icon className="w-5 h-5" />
-        <span className="font-medium">{label}</span>
-        <span className="ml-auto text-[10px] font-medium bg-sidebar-accent text-sidebar-muted px-1.5 py-0.5 rounded">
-          Soon
-        </span>
-      </div>
-    );
-  }
-
+function NavItem({ icon: Icon, label, path, isActive, onClick, large = false }: NavItemProps) {
   return (
     <Link
       to={path}
       onClick={onClick}
       className={cn(
-        "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors",
+        "flex items-center gap-3 rounded-xl transition-all touch-manipulation",
+        large ? "px-4 py-3.5 min-h-[52px]" : "px-3 py-2.5",
         isActive
-          ? "bg-sidebar-accent text-sidebar-primary border-l-2 border-sidebar-primary"
-          : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+          ? "bg-sidebar-accent text-sidebar-primary"
+          : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 active:bg-sidebar-accent"
       )}
     >
-      <Icon className={cn("w-5 h-5", isActive && "text-sidebar-primary")} />
-      <span className={cn("font-medium", isActive && "text-sidebar-foreground")}>{label}</span>
-    </Link>
-  );
-}
-
-interface NavSectionProps {
-  label: string;
-  items: Array<{
-    icon: React.ElementType;
-    label: string;
-    path: string;
-    comingSoon?: boolean;
-  }>;
-  currentPath: string;
-  onItemClick: () => void;
-}
-
-function NavSection({ label, items, currentPath, onItemClick }: NavSectionProps) {
-  return (
-    <div className="space-y-1">
-      <p className="px-3 text-xs font-semibold text-sidebar-muted uppercase tracking-wider mb-2">
+      <Icon className={cn(
+        large ? "w-5 h-5" : "w-4 h-4",
+        isActive && "text-sidebar-primary"
+      )} />
+      <span className={cn(
+        "font-medium flex-1",
+        large ? "text-base" : "text-sm",
+        isActive && "text-sidebar-foreground"
+      )}>
         {label}
-      </p>
-      {items.map((item) => (
-        <NavItem
-          key={item.path}
-          icon={item.icon}
-          label={item.label}
-          path={item.path}
-          isActive={!item.comingSoon && currentPath === item.path}
-          onClick={onItemClick}
-          comingSoon={item.comingSoon}
-        />
-      ))}
-    </div>
+      </span>
+      <ChevronRight className={cn(
+        "w-4 h-4 text-sidebar-foreground/30",
+        isActive && "text-sidebar-primary/50"
+      )} />
+    </Link>
   );
 }
 
 export function MobileNav() {
   const [open, setOpen] = useState(false);
+  const [showMore, setShowMore] = useState(false);
   const location = useLocation();
-  const { currentUser, canAccessManagement, canAccessCompany } = useRole();
-  const { settings } = useCompanySettings();
+  const { currentUser } = useRole();
+  const { signOut } = useAuth();
 
   const initials = currentUser.name
     .split(" ")
@@ -138,7 +93,15 @@ export function MobileNav() {
     .join("")
     .toUpperCase();
 
-  const handleClose = () => setOpen(false);
+  const handleClose = () => {
+    setOpen(false);
+    setShowMore(false);
+  };
+
+  const handleSignOut = async () => {
+    handleClose();
+    await signOut();
+  };
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -146,13 +109,16 @@ export function MobileNav() {
         <Button
           variant="ghost"
           size="icon"
-          className="lg:hidden h-10 w-10"
+          className="lg:hidden h-11 w-11 touch-manipulation"
           aria-label="Open navigation menu"
         >
           <Menu className="h-5 w-5" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-72 p-0 bg-sidebar text-sidebar-foreground flex flex-col overflow-hidden">
+      <SheetContent 
+        side="left" 
+        className="w-[85vw] max-w-[320px] p-0 bg-sidebar text-sidebar-foreground flex flex-col overflow-hidden"
+      >
         {/* Logo Section - DGC Branding */}
         <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
           <div className="flex flex-col">
@@ -169,54 +135,96 @@ export function MobileNav() {
             variant="ghost"
             size="icon"
             onClick={handleClose}
-            className="text-sidebar-foreground hover:bg-sidebar-accent"
+            className="h-11 w-11 text-sidebar-foreground hover:bg-sidebar-accent touch-manipulation"
           >
             <X className="h-5 w-5" />
           </Button>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 py-4 px-3 overflow-y-auto space-y-6 min-h-0">
-          <NavSection
-            label="Main"
-            items={mainMenuItems}
-            currentPath={location.pathname}
-            onItemClick={handleClose}
-          />
-
-          {canAccessManagement && (
-            <NavSection
-              label="Management"
-              items={managementMenuItems}
-              currentPath={location.pathname}
-              onItemClick={handleClose}
-            />
-          )}
-
-          {canAccessCompany && (
-            <NavSection
-              label="Company"
-              items={companyMenuItems}
-              currentPath={location.pathname}
-              onItemClick={handleClose}
-            />
-          )}
-        </nav>
-
-        {/* User Profile */}
-        <div className="p-4 border-t border-sidebar-border mt-auto">
-          <div className="flex items-center gap-3">
-            <Avatar className="w-10 h-10 ring-2 ring-sidebar-primary/30">
+        {/* User Profile - Moved to top for prominence */}
+        <div className="p-4 border-b border-sidebar-border">
+          <Link 
+            to="/my-profile" 
+            onClick={handleClose}
+            className="flex items-center gap-3 touch-manipulation"
+          >
+            <Avatar className="w-12 h-12 ring-2 ring-sidebar-primary/30">
               <AvatarImage src={currentUser.avatar} />
-              <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground">
+              <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground text-lg">
                 {initials}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold truncate">{currentUser.name}</p>
+              <p className="text-base font-semibold truncate">{currentUser.name}</p>
               <RoleBadge role={currentUser.role} showIcon={false} className="mt-1 text-xs h-5" />
             </div>
+            <ChevronRight className="w-4 h-4 text-sidebar-foreground/30" />
+          </Link>
+        </div>
+
+        {/* Primary Navigation - Large touch targets */}
+        <nav className="flex-1 py-4 px-3 overflow-y-auto space-y-1 min-h-0">
+          {primaryMenuItems.map((item) => (
+            <NavItem
+              key={item.path}
+              icon={item.icon}
+              label={item.label}
+              path={item.path}
+              isActive={location.pathname === item.path}
+              onClick={handleClose}
+              large
+            />
+          ))}
+
+          {/* More Section - Expandable */}
+          <div className="pt-4 mt-4 border-t border-sidebar-border/50">
+            <button
+              onClick={() => setShowMore(!showMore)}
+              className={cn(
+                "flex items-center gap-3 w-full px-4 py-3 rounded-xl",
+                "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 active:bg-sidebar-accent",
+                "transition-all touch-manipulation"
+              )}
+            >
+              <span className="text-xs font-semibold uppercase tracking-wider flex-1 text-left">
+                More
+              </span>
+              <ChevronRight className={cn(
+                "w-4 h-4 text-sidebar-foreground/30 transition-transform",
+                showMore && "rotate-90"
+              )} />
+            </button>
+
+            {showMore && (
+              <div className="mt-1 space-y-1 animate-in slide-in-from-top-2 duration-200">
+                {secondaryMenuItems.map((item) => (
+                  <NavItem
+                    key={item.path}
+                    icon={item.icon}
+                    label={item.label}
+                    path={item.path}
+                    isActive={location.pathname === item.path}
+                    onClick={handleClose}
+                  />
+                ))}
+              </div>
+            )}
           </div>
+        </nav>
+
+        {/* Sign Out Button */}
+        <div className="p-4 border-t border-sidebar-border">
+          <button
+            onClick={handleSignOut}
+            className={cn(
+              "flex items-center gap-3 w-full px-4 py-3 rounded-xl",
+              "text-sidebar-foreground/70 hover:bg-red-500/10 hover:text-red-400",
+              "transition-all touch-manipulation"
+            )}
+          >
+            <LogOut className="w-5 h-5" />
+            <span className="font-medium">Sign Out</span>
+          </button>
         </div>
       </SheetContent>
     </Sheet>

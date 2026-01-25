@@ -2,12 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { format, differenceInCalendarDays } from "date-fns";
 import { DateRange } from "react-day-picker";
 import { Calendar as CalendarIcon, Paperclip, Upload, X, Folder, AlertTriangle } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { ResponsiveDialog, ResponsiveDialogFooter } from "@/components/ui/responsive-dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -175,14 +170,33 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
     };
   }, [leaveTypeId, myBalances, daysCount, selectedLeaveType]);
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="lg" className="max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-xl">Request time off</DialogTitle>
-        </DialogHeader>
+  const footerContent = (
+    <ResponsiveDialogFooter>
+      <Button
+        variant="outline"
+        onClick={() => onOpenChange(false)}
+        disabled={isSubmitting}
+      >
+        Cancel
+      </Button>
+      <Button 
+        onClick={handleSubmit}
+        disabled={isSubmitting || !dateRange?.from || !leaveTypeId}
+      >
+        {isSubmitting ? "Submitting..." : "Request time off"}
+      </Button>
+    </ResponsiveDialogFooter>
+  );
 
-        <div className="space-y-5 mt-4">
+  return (
+    <ResponsiveDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Request time off"
+      size="lg"
+      footer={footerContent}
+    >
+      <div className="space-y-5">
           {/* Leave Balance Summary */}
           <div className="space-y-2">
             <Label className="text-sm font-medium">Your Leave Balances</Label>
@@ -408,26 +422,8 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
             )}
           </div>
 
-          {/* Actions */}
-          <div className="flex gap-3 pt-2">
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={() => onOpenChange(false)}
-              disabled={isSubmitting}
-            >
-              Cancel
-            </Button>
-            <Button 
-              className="flex-1" 
-              onClick={handleSubmit}
-              disabled={isSubmitting || !dateRange?.from || !leaveTypeId}
-            >
-              {isSubmitting ? "Submitting..." : "Request time off"}
-            </Button>
-          </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </ResponsiveDialog>
   );
 }
