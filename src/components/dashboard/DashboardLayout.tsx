@@ -26,8 +26,8 @@ export function DashboardLayout({
           <div 
             className={cn(
               "w-full min-h-full",
-              !noPadding && "px-4 sm:px-6 lg:px-8 py-4 sm:py-6",
-              !fullWidth && "max-w-[1400px] mx-auto"
+              !noPadding && "px-4 sm:px-6 lg:px-8 xl:px-12 py-4 sm:py-6",
+              !fullWidth && "max-w-[1600px] mx-auto"
             )}
           >
             {children}
