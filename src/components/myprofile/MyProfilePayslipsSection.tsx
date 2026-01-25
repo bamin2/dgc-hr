@@ -80,20 +80,24 @@ export function MyProfilePayslipsSection({ employeeId, noBorder = false }: MyPro
     }
   };
 
+  const wrapperClass = noBorder ? "p-4" : "";
+  const headerClass = noBorder ? "pb-3" : "pb-3";
+  const contentClass = noBorder ? "space-y-3 pt-2" : "space-y-3";
+
   const Wrapper = noBorder ? 'div' : Card;
   const HeaderWrapper = noBorder ? 'div' : CardHeader;
   const ContentWrapper = noBorder ? 'div' : CardContent;
 
   if (isLoading) {
     return (
-      <Wrapper>
-        <HeaderWrapper className="pb-3">
+      <Wrapper className={wrapperClass}>
+        <HeaderWrapper className={headerClass}>
           <CardTitle className="text-base font-medium flex items-center gap-2">
             <Receipt className="h-4 w-4 text-primary" />
             Payslips
           </CardTitle>
         </HeaderWrapper>
-        <ContentWrapper className="space-y-3">
+        <ContentWrapper className={contentClass}>
           {[1, 2, 3].map((i) => (
             <Skeleton key={i} className="h-16 w-full" />
           ))}
@@ -104,14 +108,14 @@ export function MyProfilePayslipsSection({ employeeId, noBorder = false }: MyPro
 
   if (isError) {
     return (
-      <Wrapper>
-        <HeaderWrapper className="pb-3">
+      <Wrapper className={wrapperClass}>
+        <HeaderWrapper className={headerClass}>
           <CardTitle className="text-base font-medium flex items-center gap-2">
             <Receipt className="h-4 w-4 text-primary" />
             Payslips
           </CardTitle>
         </HeaderWrapper>
-        <ContentWrapper className="p-8 text-center">
+        <ContentWrapper className="py-8 text-center">
           <Inbox className="h-12 w-12 text-destructive/30 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-muted-foreground">
             Could not load payslips
@@ -126,14 +130,14 @@ export function MyProfilePayslipsSection({ employeeId, noBorder = false }: MyPro
 
   if (!payslips || payslips.length === 0) {
     return (
-      <Wrapper>
-        <HeaderWrapper className="pb-3">
+      <Wrapper className={wrapperClass}>
+        <HeaderWrapper className={headerClass}>
           <CardTitle className="text-base font-medium flex items-center gap-2">
             <Receipt className="h-4 w-4 text-primary" />
             Payslips
           </CardTitle>
         </HeaderWrapper>
-        <ContentWrapper className="p-8 text-center">
+        <ContentWrapper className="py-8 text-center">
           <Inbox className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-muted-foreground">
             No Payslips Available
@@ -147,14 +151,14 @@ export function MyProfilePayslipsSection({ employeeId, noBorder = false }: MyPro
   }
 
   return (
-    <Wrapper>
-      <HeaderWrapper className="pb-3">
+    <Wrapper className={wrapperClass}>
+      <HeaderWrapper className={headerClass}>
         <CardTitle className="text-base font-medium flex items-center gap-2">
           <Receipt className="h-4 w-4 text-primary" />
           Payslips
         </CardTitle>
       </HeaderWrapper>
-      <ContentWrapper className={noBorder ? "space-y-3" : "space-y-3"}>
+      <ContentWrapper className={contentClass}>
         {payslips.map((payslip) => (
           <div
             key={payslip.id}
