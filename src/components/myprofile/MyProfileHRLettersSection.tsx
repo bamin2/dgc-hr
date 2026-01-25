@@ -33,12 +33,22 @@ export function MyProfileHRLettersSection({ employeeId }: MyProfileHRLettersSect
   const handleDownload = async (storagePath: string, templateName: string) => {
     try {
       const signedUrl = await getLetterUrl.mutateAsync(storagePath);
+      
+      // Fetch the PDF as a blob to force download
+      const response = await fetch(signedUrl);
+      const blob = await response.blob();
+      
+      // Create a blob URL and trigger download
+      const blobUrl = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.href = signedUrl;
+      link.href = blobUrl;
       link.download = `${templateName}.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      
+      // Clean up the blob URL
+      window.URL.revokeObjectURL(blobUrl);
     } catch (error) {
       toast.error('Failed to download letter');
     }
