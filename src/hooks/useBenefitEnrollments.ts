@@ -17,6 +17,7 @@ export interface BenefitEnrollment {
   employer_contribution: number;
   entitlement_data: Record<string, unknown> | null;
   insurance_card_url: string | null;
+  insurance_card_expiry_date: string | null;
   created_at: string;
   updated_at: string;
   employee?: {
@@ -52,6 +53,7 @@ export interface BenefitEnrollment {
     percentage: number;
     national_id?: string | null;
     insurance_card_url?: string | null;
+    insurance_card_expiry_date?: string | null;
   }>;
 }
 
@@ -99,7 +101,8 @@ export function useBenefitEnrollments(filters?: {
             date_of_birth,
             percentage,
             national_id,
-            insurance_card_url
+            insurance_card_url,
+            insurance_card_expiry_date
           )
         `)
         .order('created_at', { ascending: false });
@@ -166,7 +169,8 @@ export function useBenefitEnrollment(enrollmentId: string | undefined) {
             date_of_birth,
             percentage,
             national_id,
-            insurance_card_url
+            insurance_card_url,
+            insurance_card_expiry_date
           )
         `)
         .eq('id', enrollmentId)
@@ -359,13 +363,17 @@ export function useUpdateEnrollmentInsuranceCard() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ enrollmentId, insuranceCardUrl }: {
+    mutationFn: async ({ enrollmentId, insuranceCardUrl, expiryDate }: {
       enrollmentId: string;
       insuranceCardUrl: string;
+      expiryDate?: string | null;
     }) => {
       const { error } = await supabase
         .from('benefit_enrollments')
-        .update({ insurance_card_url: insuranceCardUrl })
+        .update({ 
+          insurance_card_url: insuranceCardUrl,
+          insurance_card_expiry_date: expiryDate ?? null,
+        })
         .eq('id', enrollmentId);
       if (error) throw error;
     },
@@ -379,13 +387,17 @@ export function useUpdateBeneficiaryInsuranceCard() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ beneficiaryId, insuranceCardUrl }: {
+    mutationFn: async ({ beneficiaryId, insuranceCardUrl, expiryDate }: {
       beneficiaryId: string;
       insuranceCardUrl: string;
+      expiryDate?: string | null;
     }) => {
       const { error } = await supabase
         .from('benefit_beneficiaries')
-        .update({ insurance_card_url: insuranceCardUrl })
+        .update({ 
+          insurance_card_url: insuranceCardUrl,
+          insurance_card_expiry_date: expiryDate ?? null,
+        })
         .eq('id', beneficiaryId);
       if (error) throw error;
     },

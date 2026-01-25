@@ -69,17 +69,19 @@ export const EnrollmentDetailsDialog = ({
     }).format(amount);
   };
 
-  const handleEmployeeCardUpload = (url: string) => {
+  const handleEmployeeCardUpload = (url: string, expiryDate?: string) => {
     updateEmployeeCard.mutate({
       enrollmentId: enrollment.id,
       insuranceCardUrl: url,
+      expiryDate,
     });
   };
 
-  const handleBeneficiaryCardUpload = (beneficiaryId: string, url: string) => {
+  const handleBeneficiaryCardUpload = (beneficiaryId: string, url: string, expiryDate?: string) => {
     updateBeneficiaryCard.mutate({
       beneficiaryId,
       insuranceCardUrl: url,
+      expiryDate,
     });
   };
 
@@ -278,6 +280,7 @@ export const EnrollmentDetailsDialog = ({
                   <InsuranceCardUpload
                     label={`${employeeName}'s Card`}
                     currentUrl={enrollment.insurance_card_url}
+                    currentExpiryDate={enrollment.insurance_card_expiry_date}
                     enrollmentId={enrollment.id}
                     onUploadComplete={handleEmployeeCardUpload}
                   />
@@ -288,9 +291,10 @@ export const EnrollmentDetailsDialog = ({
                       key={beneficiary.id}
                       label={`${beneficiary.name}'s Card (${beneficiary.relationship})`}
                       currentUrl={beneficiary.insurance_card_url}
+                      currentExpiryDate={beneficiary.insurance_card_expiry_date}
                       enrollmentId={enrollment.id}
                       beneficiaryId={beneficiary.id}
-                      onUploadComplete={(url) => handleBeneficiaryCardUpload(beneficiary.id, url)}
+                      onUploadComplete={(url, expiryDate) => handleBeneficiaryCardUpload(beneficiary.id, url, expiryDate)}
                     />
                   ))}
                 </div>
