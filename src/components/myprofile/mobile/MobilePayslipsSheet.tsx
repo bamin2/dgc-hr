@@ -29,12 +29,12 @@ export function MobilePayslipsSheet({
   const { data: payslips, isLoading } = useMyPayslips(employeeId);
   const [loadingId, setLoadingId] = useState<string | null>(null);
 
-  // Get payroll_run_id and PDF path for a payslip
+  // Get PDF path for a payslip using payroll_run_id + employee_id
   const getPayslipPdfPath = async (payslipId: string): Promise<string> => {
-    // First get the payroll_run_id from payroll_run_employees
+    // Get both payroll_run_id and employee_id from payroll_run_employees
     const { data: employeeRecord, error: employeeError } = await supabase
       .from('payroll_run_employees')
-      .select('payroll_run_id')
+      .select('payroll_run_id, employee_id')
       .eq('id', payslipId)
       .single();
 
@@ -42,19 +42,19 @@ export function MobilePayslipsSheet({
       throw new Error('Payslip record not found');
     }
 
-    // Then get the PDF path from payslip_documents
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const docResult = await (supabase as any)
+    // Query payslip_documents using the correct columns
+    const { data: docData, error: docError } = await supabase
       .from('payslip_documents')
       .select('pdf_storage_path')
-      .eq('payroll_run_employee_id', payslipId)
+      .eq('payroll_run_id', employeeRecord.payroll_run_id)
+      .eq('employee_id', employeeRecord.employee_id)
       .single();
 
-    if (docResult.error || !docResult.data?.pdf_storage_path) {
+    if (docError || !docData?.pdf_storage_path) {
       throw new Error('Payslip PDF not found');
     }
 
-    return docResult.data.pdf_storage_path as string;
+    return docData.pdf_storage_path;
   };
 
   const handleView = async (payslipId: string) => {
