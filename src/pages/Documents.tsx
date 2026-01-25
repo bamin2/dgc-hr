@@ -1,11 +1,12 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TemplatesTab } from "@/components/documents";
 import { HRDocumentRequestsTab } from "@/components/documents/HRDocumentRequestsTab";
+import { GeneratedHRLettersTab } from "@/components/documents/GeneratedHRLettersTab";
 import { DashboardLayout } from "@/components/dashboard";
 import { PageHeader } from "@/components/ui/page-header";
 import { usePendingHRDocumentRequestsCount } from "@/hooks/useHRDocumentRequests";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Inbox, Files, FileSignature } from "lucide-react";
+import { FileText, Inbox, Files, FileSignature, FileOutput } from "lucide-react";
 
 export default function Documents() {
   const { data: pendingCount } = usePendingHRDocumentRequestsCount();
@@ -32,6 +33,10 @@ export default function Documents() {
               </Badge>
             )}
           </TabsTrigger>
+          <TabsTrigger value="generated-letters" className="gap-2">
+            <FileOutput className="h-4 w-4" />
+            Generated Letters
+          </TabsTrigger>
           <TabsTrigger value="employee-documents" disabled className="gap-2">
             <Files className="h-4 w-4" />
             Employee Documents
@@ -48,6 +53,10 @@ export default function Documents() {
 
         <TabsContent value="hr-requests">
           <HRDocumentRequestsTab />
+        </TabsContent>
+
+        <TabsContent value="generated-letters">
+          <GeneratedHRLettersTab />
         </TabsContent>
 
         <TabsContent value="employee-documents">
