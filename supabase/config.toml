@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.preview-payslip-template]
 verify_jwt = false
+
+[functions.generate-hr-letter]
+verify_jwt = false

@@ -5,9 +5,10 @@ import { useMemo } from "react";
 
 interface SmartTagsPanelProps {
   onInsertTag: (tag: string) => void;
+  copyMode?: boolean;
 }
 
-export function SmartTagsPanel({ onInsertTag }: SmartTagsPanelProps) {
+export function SmartTagsPanel({ onInsertTag, copyMode = false }: SmartTagsPanelProps) {
   const { data: smartTags, isLoading } = useActiveSmartTags();
 
   const categories = useMemo(() => {
@@ -26,7 +27,9 @@ export function SmartTagsPanel({ onInsertTag }: SmartTagsPanelProps) {
 
   return (
     <div className="border rounded-lg p-4 bg-muted/30">
-      <h4 className="text-sm font-medium mb-3">Smart Tags (click to insert)</h4>
+      <h4 className="text-sm font-medium mb-3">
+        Smart Tags ({copyMode ? "click to copy" : "click to insert"})
+      </h4>
       <ScrollArea className="h-[200px]">
         <div className="space-y-4">
           {categories.map((category) => (
