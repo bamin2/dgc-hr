@@ -200,6 +200,10 @@ export const EVENT_KEYS = {
   CORRECTION_APPROVED: 'correction.approved',
   CORRECTION_REJECTED: 'correction.rejected',
   
+  // Insurance Cards
+  INSURANCE_CARD_EXPIRING: 'insurance_card.expiring_soon',
+  INSURANCE_CARD_EXPIRED: 'insurance_card.expired',
+  
   // System
   SYSTEM_MAINTENANCE: 'system.maintenance',
   SYSTEM_ANNOUNCEMENT: 'system.announcement',

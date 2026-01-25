@@ -443,6 +443,7 @@ export type Database = {
           date_of_birth: string | null
           enrollment_id: string
           id: string
+          insurance_card_expiry_date: string | null
           insurance_card_url: string | null
           name: string
           national_id: string | null
@@ -454,6 +455,7 @@ export type Database = {
           date_of_birth?: string | null
           enrollment_id: string
           id?: string
+          insurance_card_expiry_date?: string | null
           insurance_card_url?: string | null
           name: string
           national_id?: string | null
@@ -465,6 +467,7 @@ export type Database = {
           date_of_birth?: string | null
           enrollment_id?: string
           id?: string
+          insurance_card_expiry_date?: string | null
           insurance_card_url?: string | null
           name?: string
           national_id?: string | null
@@ -660,6 +663,7 @@ export type Database = {
           end_date: string | null
           entitlement_data: Json | null
           id: string
+          insurance_card_expiry_date: string | null
           insurance_card_url: string | null
           plan_id: string
           start_date: string
@@ -675,6 +679,7 @@ export type Database = {
           end_date?: string | null
           entitlement_data?: Json | null
           id?: string
+          insurance_card_expiry_date?: string | null
           insurance_card_url?: string | null
           plan_id: string
           start_date: string
@@ -690,6 +695,7 @@ export type Database = {
           end_date?: string | null
           entitlement_data?: Json | null
           id?: string
+          insurance_card_expiry_date?: string | null
           insurance_card_url?: string | null
           plan_id?: string
           start_date?: string
