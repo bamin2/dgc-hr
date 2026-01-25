@@ -1,5 +1,5 @@
 import { LayoutGrid, List, GanttChart } from "lucide-react";
-import { TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export type ProjectViewMode = 'board' | 'list' | 'timeline';
 
@@ -16,21 +16,18 @@ const viewModes: { id: ProjectViewMode; label: string; icon: React.ElementType }
 
 export function ProjectViewTabs({ viewMode, onViewModeChange }: ProjectViewTabsProps) {
   return (
-    <TabsList>
-      {viewModes.map((mode) => {
-        const Icon = mode.icon;
-        return (
-          <TabsTrigger
-            key={mode.id}
-            value={mode.id}
-            data-state={viewMode === mode.id ? "active" : "inactive"}
-            onClick={() => onViewModeChange(mode.id)}
-          >
-            <Icon className="h-4 w-4" />
-            {mode.label}
-          </TabsTrigger>
-        );
-      })}
-    </TabsList>
+    <Tabs value={viewMode} onValueChange={(value) => onViewModeChange(value as ProjectViewMode)}>
+      <TabsList>
+        {viewModes.map((mode) => {
+          const Icon = mode.icon;
+          return (
+            <TabsTrigger key={mode.id} value={mode.id}>
+              <Icon className="h-4 w-4" />
+              {mode.label}
+            </TabsTrigger>
+          );
+        })}
+      </TabsList>
+    </Tabs>
   );
 }
