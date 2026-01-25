@@ -3,7 +3,7 @@
  * Types for audit logging and activity tracking
  */
 
-export type EntityType = 'employee' | 'leave_request' | 'loan' | 'document' | 'compensation' | 'leave_balance';
+export type EntityType = 'employee' | 'leave_request' | 'loan' | 'document' | 'compensation' | 'leave_balance' | 'hr_document_request';
 export type ActionType = 'create' | 'update' | 'delete' | 'approve' | 'reject' | 'skip' | 'upload';
 
 export interface AuditLog {

@@ -9,6 +9,7 @@ import {
   ArrowRight,
   ChevronLeft,
   ChevronRight,
+  FileOutput,
 } from "lucide-react";
 import {
   Table,
@@ -41,6 +42,7 @@ const ENTITY_TYPE_CONFIG: Record<EntityType, { label: string; icon: React.Elemen
   document: { label: 'Document', icon: FileText, color: 'bg-stone-100 text-stone-700 dark:bg-stone-900/30 dark:text-stone-400' },
   compensation: { label: 'Compensation', icon: DollarSign, color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
   leave_balance: { label: 'Balance', icon: Scale, color: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400' },
+  hr_document_request: { label: 'HR Letter', icon: FileOutput, color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' },
 };
 
 const ACTION_CONFIG: Record<ActionType, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {

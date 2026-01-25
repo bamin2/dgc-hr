@@ -34,6 +34,7 @@ const ENTITY_TYPE_OPTIONS: { value: EntityType | 'all'; label: string }[] = [
   { value: 'leave_balance', label: 'Leave Balances' },
   { value: 'loan', label: 'Loans' },
   { value: 'document', label: 'Documents' },
+  { value: 'hr_document_request', label: 'HR Letter Requests' },
 ];
 
 const ACTION_TYPE_OPTIONS: { value: ActionType | 'all'; label: string }[] = [
