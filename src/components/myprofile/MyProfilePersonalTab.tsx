@@ -106,12 +106,12 @@ export function MyProfilePersonalTab({ employee }: MyProfilePersonalTabProps) {
         </div>
         
         {/* Mini Bento Tiles - 2-column grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Date of Birth Tile */}
-          <div className="bg-muted/30 rounded-xl p-4">
+          <div className="bg-muted/30 rounded-xl p-5">
             <p className="text-xs text-muted-foreground mb-1">Date of Birth</p>
             <p className={cn(
-              "text-sm font-medium",
+              "text-base font-medium",
               !dateOfBirth && "text-muted-foreground"
             )}>
               {dateOfBirth || 'Not set'}
@@ -119,10 +119,10 @@ export function MyProfilePersonalTab({ employee }: MyProfilePersonalTabProps) {
           </div>
           
           {/* Nationality Tile */}
-          <div className="bg-muted/30 rounded-xl p-4">
+          <div className="bg-muted/30 rounded-xl p-5">
             <p className="text-xs text-muted-foreground mb-1">Nationality</p>
             <p className={cn(
-              "text-sm font-medium",
+              "text-base font-medium",
               !employee.nationality && "text-muted-foreground"
             )}>
               {employee.nationality || 'Not set'}
@@ -130,10 +130,10 @@ export function MyProfilePersonalTab({ employee }: MyProfilePersonalTabProps) {
           </div>
           
           {/* Gender Tile - spans full width for balance */}
-          <div className="bg-muted/30 rounded-xl p-4 sm:col-span-2">
+          <div className="bg-muted/30 rounded-xl p-5 sm:col-span-2">
             <p className="text-xs text-muted-foreground mb-1">Gender</p>
             <p className={cn(
-              "text-sm font-medium capitalize",
+              "text-base font-medium capitalize",
               !employee.gender && "text-muted-foreground"
             )}>
               {employee.gender || 'Not set'}
