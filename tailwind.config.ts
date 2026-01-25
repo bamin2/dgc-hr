@@ -9,10 +9,19 @@ export default {
       center: true,
       padding: "2rem",
       screens: {
-        "2xl": "1400px",
+        "2xl": "1600px",
       },
     },
     extend: {
+      /* Typography - standardized sizes */
+      fontSize: {
+        xs: ["0.75rem", { lineHeight: "1rem" }],      // 12px
+        sm: ["0.875rem", { lineHeight: "1.25rem" }],  // 14px
+        base: ["1rem", { lineHeight: "1.5rem" }],     // 16px
+        lg: ["1.25rem", { lineHeight: "1.75rem" }],   // 20px
+        xl: ["1.75rem", { lineHeight: "2.25rem" }],   // 28px
+        "2xl": ["2rem", { lineHeight: "2.5rem" }],    // 32px
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -78,10 +87,23 @@ export default {
           5: "hsl(var(--chart-5))",
         },
       },
+      /* Border radius - 20px cards, 14px inputs */
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        xl: "var(--radius)",           // 20px - cards, modals
+        lg: "calc(var(--radius) - 6px)", // 14px - inputs, buttons
+        md: "calc(var(--radius) - 8px)", // 12px
+        sm: "var(--radius-xs)",          // 8px
+      },
+      /* Spacing - 8pt grid */
+      spacing: {
+        "4.5": "1.125rem", // 18px
+        "13": "3.25rem",   // 52px
+        "15": "3.75rem",   // 60px
+        "18": "4.5rem",    // 72px
+      },
+      /* Gap presets for 8pt grid */
+      gap: {
+        "grid": "var(--spacing-md)", // 24px default grid gap
       },
       keyframes: {
         "accordion-down": {
@@ -102,6 +124,12 @@ export default {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "pulse-ring": "pulse-ring 2s ease-in-out infinite",
+      },
+      /* Max-width for large screens */
+      maxWidth: {
+        "8xl": "88rem",  // 1408px
+        "9xl": "96rem",  // 1536px
+        "content": "1600px", // Max content width for large displays
       },
     },
   },
