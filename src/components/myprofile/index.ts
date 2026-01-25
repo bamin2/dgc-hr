@@ -8,3 +8,4 @@ export { MyProfileTimeOffTab } from './MyProfileTimeOffTab';
 export { MyProfileLoansTab } from './MyProfileLoansTab';
 export { MyProfilePayslipsSection } from './MyProfilePayslipsSection';
 export { MyProfileBenefitsTab } from './MyProfileBenefitsTab';
+export { MyProfileHRLettersSection } from './MyProfileHRLettersSection';

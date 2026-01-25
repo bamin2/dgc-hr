@@ -1,390 +1,416 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
-import PizZip from "npm:pizzip@3.2.0";
-import Docxtemplater from "npm:docxtemplater@3.67.6";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import Docxtemplater from "https://esm.sh/docxtemplater@3.50.0";
+import PizZip from "https://esm.sh/pizzip@3.1.7";
+import { format } from "https://esm.sh/date-fns@3.6.0";
+import { Resend } from "https://esm.sh/resend@2.0.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const CLOUDCONVERT_API_KEY = Deno.env.get("CLOUDCONVERT_API_KEY");
+// DGC Brand Colors for email
+const DGC_DEEP_GREEN = "#0F2A28";
+const DGC_DEEP_GREEN_DARK = "#0A1D1B";
+const DGC_GOLD = "#C6A45E";
+const DGC_OFF_WHITE = "#F7F7F5";
 
-interface GenerateHRLetterRequest {
-  request_id: string;
-}
-
-// Format date as readable string
-function formatDate(dateStr: string | null | undefined): string {
-  if (!dateStr) return "";
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("en-US", { day: "numeric", month: "long", year: "numeric" });
-}
-
-// Format currency
-function formatCurrency(amount: number | null | undefined, currency: string = "SAR"): string {
-  const value = Number(amount) || 0;
-  return `${currency} ${value.toFixed(2)}`;
-}
-
-// Get ordinal suffix
-function getOrdinalSuffix(day: number): string {
-  if (day > 3 && day < 21) return "th";
-  switch (day % 10) {
-    case 1: return "st";
-    case 2: return "nd";
-    case 3: return "rd";
-    default: return "th";
+function uint8ArrayToBase64(uint8Array: Uint8Array): string {
+  let binary = '';
+  const len = uint8Array.byteLength;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(uint8Array[i]);
   }
+  return btoa(binary);
 }
 
-// Custom parser for docxtemplater
-function angularParser(tag: string) {
-  tag = tag.replace(/^\s+|\s+$/g, "");
-  return {
-    get: function (scope: Record<string, string>) {
-      if (tag === ".") return scope;
-      return scope[tag] ?? "";
-    },
-  };
-}
+// deno-lint-ignore no-explicit-any
+async function fetchSmartTags(supabaseClient: any): Promise<Map<string, { field: string; source: string }>> {
+  const { data: tags, error } = await supabaseClient
+    .from("smart_tags")
+    .select("tag, field, source")
+    .eq("is_active", true);
 
-// Convert Uint8Array to base64 in chunks to avoid stack overflow
-function uint8ArrayToBase64(bytes: Uint8Array): string {
-  const chunkSize = 0x8000;
-  let result = "";
-  for (let i = 0; i < bytes.length; i += chunkSize) {
-    const chunk = bytes.subarray(i, i + chunkSize);
-    result += String.fromCharCode.apply(null, Array.from(chunk));
+  if (error) {
+    console.error("Error fetching smart tags:", error);
+    return new Map();
   }
-  return btoa(result);
+
+  const tagMap = new Map<string, { field: string; source: string }>();
+  // deno-lint-ignore no-explicit-any
+  for (const tag of (tags || []) as any[]) {
+    const cleanTag = tag.tag.replace(/<<|>>/g, "");
+    tagMap.set(cleanTag, { field: tag.field, source: tag.source });
+  }
+  return tagMap;
 }
 
-// Convert DOCX to PDF using CloudConvert
+// deno-lint-ignore no-explicit-any
+async function fetchEmployeeData(supabaseClient: any, employeeId: string) {
+  const { data: employee, error: empError } = await supabaseClient
+    .from("employees")
+    .select(`
+      *,
+      department:departments(id, name),
+      position:positions(id, title),
+      manager:employees!employees_manager_id_fkey(id, first_name, last_name),
+      work_location:work_locations(id, name, country, currency)
+    `)
+    .eq("id", employeeId)
+    .single();
+
+  if (empError) throw new Error(`Failed to fetch employee: ${empError.message}`);
+  return employee;
+}
+
+// deno-lint-ignore no-explicit-any
+async function fetchCompanySettings(supabaseClient: any) {
+  const { data: company, error: companyError } = await supabaseClient
+    .from("company_settings")
+    .select("*")
+    .limit(1)
+    .single();
+
+  if (companyError) throw new Error(`Failed to fetch company: ${companyError.message}`);
+  return company;
+}
+
+// deno-lint-ignore no-explicit-any
+async function fetchEmployeeAllowances(supabaseClient: any, employeeId: string) {
+  const { data: allowances } = await supabaseClient
+    .from("employee_allowances")
+    .select(`
+      *,
+      template:allowance_templates(name, amount, amount_type)
+    `)
+    .eq("employee_id", employeeId);
+
+  return allowances || [];
+}
+
+function buildTagData(
+  // deno-lint-ignore no-explicit-any
+  employee: any,
+  // deno-lint-ignore no-explicit-any
+  company: any,
+  // deno-lint-ignore no-explicit-any
+  allowances: any[],
+  smartTags: Map<string, { field: string; source: string }>
+): Record<string, string> {
+  const tagData: Record<string, string> = {};
+  const baseSalary = Number(employee.salary) || 0;
+  const currency = (employee.work_location as Record<string, unknown>)?.currency as string || employee.salary_currency_code as string || "BHD";
+
+  // Calculate totals
+  let totalAllowances = 0;
+  for (const allowance of allowances) {
+    totalAllowances += allowance.custom_amount || allowance.template?.amount || 0;
+  }
+  const grossSalary = baseSalary + totalAllowances;
+
+  // Build full company address
+  const addressParts = [
+    company.address_street,
+    company.address_city,
+    company.address_state,
+    company.address_zip_code,
+    company.address_country
+  ].filter(Boolean);
+  const fullAddress = addressParts.join(", ");
+
+  // Process each smart tag
+  for (const [tagName, { field, source }] of smartTags) {
+    let value = "";
+
+    if (source === "employee") {
+      switch (field) {
+        case "full_name":
+          value = employee.full_name as string || `${employee.first_name} ${employee.last_name}`;
+          break;
+        case "basic_salary":
+          value = `${currency} ${baseSalary.toLocaleString()}`;
+          break;
+        case "gross_salary":
+          value = `${currency} ${grossSalary.toLocaleString()}`;
+          break;
+        case "total_allowances":
+        case "net_allowances":
+          value = `${currency} ${totalAllowances.toLocaleString()}`;
+          break;
+        case "net_salary":
+          value = `${currency} ${grossSalary.toLocaleString()}`;
+          break;
+        case "salary":
+          value = `${currency} ${baseSalary.toLocaleString()}`;
+          break;
+        case "join_date":
+          value = employee.join_date ? format(new Date(employee.join_date as string), "MMMM d, yyyy") : "";
+          break;
+        case "date_of_birth":
+          value = employee.date_of_birth ? format(new Date(employee.date_of_birth as string), "MMMM d, yyyy") : "";
+          break;
+        default:
+          value = String(employee[field] || "");
+      }
+    } else if (source === "department") {
+      const dept = employee.department as Record<string, unknown> | null;
+      if (field === "department") value = dept?.name as string || "";
+      else value = String(dept?.[field] || "");
+    } else if (source === "position") {
+      const pos = employee.position as Record<string, unknown> | null;
+      if (field === "job_title" || field === "position") value = pos?.title as string || "";
+      else value = String(pos?.[field] || "");
+    } else if (source === "work_location") {
+      const loc = employee.work_location as Record<string, unknown> | null;
+      if (field === "currency") value = loc?.currency as string || currency;
+      else value = String(loc?.[field] || "");
+    } else if (source === "company") {
+      switch (field) {
+        case "company_name":
+          value = company.name as string || "";
+          break;
+        case "company_legal_name":
+          value = company.legal_name as string || company.name as string || "";
+          break;
+        case "company_full_address":
+          value = fullAddress;
+          break;
+        case "company_email":
+          value = company.email as string || "";
+          break;
+        case "company_phone":
+          value = company.phone as string || "";
+          break;
+        case "company_logo_url":
+          value = company.document_logo_url as string || company.logo_url as string || "";
+          break;
+        default:
+          value = String(company[field] || "");
+      }
+    } else if (source === "system") {
+      switch (field) {
+        case "current_date":
+          value = format(new Date(), "MMMM d, yyyy");
+          break;
+        case "current_year":
+          value = new Date().getFullYear().toString();
+          break;
+        default:
+          value = "";
+      }
+    }
+
+    tagData[tagName] = value;
+  }
+
+  return tagData;
+}
+
+async function processDocxTemplate(templateBuffer: ArrayBuffer, tagData: Record<string, string>): Promise<Uint8Array> {
+  const zip = new PizZip(templateBuffer);
+  const doc = new Docxtemplater(zip, {
+    paragraphLoop: true,
+    linebreaks: true,
+    delimiters: { start: "<<", end: ">>" },
+  });
+
+  doc.render(tagData);
+  const output = doc.getZip().generate({ type: "uint8array" });
+  return output;
+}
+
 async function convertDocxToPdf(docxBuffer: Uint8Array): Promise<Uint8Array> {
-  if (!CLOUDCONVERT_API_KEY) {
-    throw new Error("CLOUDCONVERT_API_KEY not configured");
-  }
+  const cloudConvertApiKey = Deno.env.get("CLOUDCONVERT_API_KEY");
+  if (!cloudConvertApiKey) throw new Error("CLOUDCONVERT_API_KEY not configured");
 
-  const base64Docx = uint8ArrayToBase64(docxBuffer);
-
-  const createJobResponse = await fetch("https://api.cloudconvert.com/v2/jobs", {
+  // Create job
+  const jobResponse = await fetch("https://api.cloudconvert.com/v2/jobs", {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${CLOUDCONVERT_API_KEY}`,
+      Authorization: `Bearer ${cloudConvertApiKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
       tasks: {
-        "import-file": {
-          operation: "import/base64",
-          file: base64Docx,
-          filename: "document.docx",
-        },
-        "convert-to-pdf": {
-          operation: "convert",
-          input: "import-file",
-          output_format: "pdf",
-        },
-        "export-file": {
-          operation: "export/url",
-          input: "convert-to-pdf",
-        },
+        "import-my-file": { operation: "import/base64", file: uint8ArrayToBase64(docxBuffer), filename: "document.docx" },
+        "convert-my-file": { operation: "convert", input: "import-my-file", output_format: "pdf" },
+        "export-my-file": { operation: "export/url", input: "convert-my-file" },
       },
     }),
   });
 
-  if (!createJobResponse.ok) {
-    const error = await createJobResponse.json();
-    console.error("CloudConvert job creation failed:", error);
-    throw new Error(`CloudConvert job creation failed: ${JSON.stringify(error)}`);
-  }
+  if (!jobResponse.ok) throw new Error(`CloudConvert job creation failed: ${await jobResponse.text()}`);
+  const jobData = await jobResponse.json();
+  const jobId = jobData.data.id;
 
-  const job = await createJobResponse.json();
-  const jobId = job.data.id;
-
-  // Poll for job completion
+  // Poll for completion
   let attempts = 0;
   const maxAttempts = 60;
-
   while (attempts < maxAttempts) {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
+    await new Promise((resolve) => setTimeout(resolve, 2000));
     const statusResponse = await fetch(`https://api.cloudconvert.com/v2/jobs/${jobId}`, {
-      headers: {
-        "Authorization": `Bearer ${CLOUDCONVERT_API_KEY}`,
-      },
+      headers: { Authorization: `Bearer ${cloudConvertApiKey}` },
     });
-
-    if (!statusResponse.ok) {
-      throw new Error("Failed to check job status");
-    }
-
     const statusData = await statusResponse.json();
-    const status = statusData.data.status;
 
-    if (status === "finished") {
-      const exportTask = statusData.data.tasks.find(
-        (t: { name: string; status: string }) => t.name === "export-file" && t.status === "finished"
-      );
-
-      if (!exportTask?.result?.files?.[0]?.url) {
-        throw new Error("Export task completed but no file URL found");
+    if (statusData.data.status === "finished") {
+      const exportTask = statusData.data.tasks.find((t: { name: string }) => t.name === "export-my-file");
+      if (exportTask?.result?.files?.[0]?.url) {
+        const pdfResponse = await fetch(exportTask.result.files[0].url);
+        return new Uint8Array(await pdfResponse.arrayBuffer());
       }
-
-      const pdfResponse = await fetch(exportTask.result.files[0].url);
-      if (!pdfResponse.ok) {
-        throw new Error("Failed to download converted PDF");
-      }
-
-      const pdfBuffer = await pdfResponse.arrayBuffer();
-      return new Uint8Array(pdfBuffer);
+      throw new Error("No PDF file in export");
+    } else if (statusData.data.status === "error") {
+      throw new Error(`CloudConvert error: ${JSON.stringify(statusData.data.tasks)}`);
     }
-
-    if (status === "error") {
-      const errorTask = statusData.data.tasks.find((t: { status: string }) => t.status === "error");
-      throw new Error(`Conversion failed: ${errorTask?.message || "Unknown error"}`);
-    }
-
     attempts++;
   }
-
-  throw new Error("Conversion timed out");
+  throw new Error("CloudConvert timeout");
 }
 
-// Process DOCX template with smart tags
-async function processDocxTemplate(
-  templateBuffer: ArrayBuffer,
-  tagData: Record<string, string>
-): Promise<Uint8Array> {
-  const zip = new PizZip(templateBuffer);
+function generateHRLetterEmail(
+  employeeName: string,
+  templateName: string,
+  // deno-lint-ignore no-explicit-any
+  company: any
+): string {
+  const logoUrl = company.email_logo_url || company.document_logo_url || company.logo_url;
+  const logoSection = logoUrl 
+    ? `<img src="${logoUrl}" alt="${company.name}" style="max-height:45px;max-width:150px;margin-right:15px;vertical-align:middle;" />`
+    : `<div style="display:inline-block;width:45px;height:45px;background:rgba(255,255,255,0.2);border-radius:8px;margin-right:15px;vertical-align:middle;text-align:center;line-height:45px;font-size:20px;font-weight:bold;color:white;">${(company.name as string || "C").charAt(0)}</div>`;
 
-  try {
-    const doc = new Docxtemplater(zip, {
-      delimiters: { start: "<<", end: ">>" },
-      paragraphLoop: true,
-      linebreaks: true,
-      parser: angularParser,
-    });
-
-    doc.render(tagData);
-
-    const output = doc.getZip().generate({
-      type: "uint8array",
-      mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    });
-
-    return output;
-  } catch (error: any) {
-    if (error.properties && error.properties.errors) {
-      const errorDetails = error.properties.errors.map((e: any) => ({
-        message: e.message,
-        id: e.properties?.id,
-        explanation: e.properties?.explanation,
-      }));
-      console.error("Template errors:", JSON.stringify(errorDetails, null, 2));
-      throw new Error(`Template error: ${errorDetails[0]?.message || "Unknown error"}`);
-    }
-    throw error;
-  }
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background-color:${DGC_OFF_WHITE};">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;padding:20px;">
+    <tr>
+      <td style="background:linear-gradient(135deg,${DGC_DEEP_GREEN} 0%,${DGC_DEEP_GREEN_DARK} 100%);padding:25px 30px;border-radius:12px 12px 0 0;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+          <tr>
+            <td style="vertical-align:middle;">
+              ${logoSection}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+    <tr>
+      <td style="background-color:#ffffff;padding:30px;">
+        <div style="text-align:center;margin-bottom:20px;">
+          <div style="display:inline-block;background:linear-gradient(135deg,${DGC_GOLD}20 0%,${DGC_GOLD}10 100%);border-radius:50%;width:70px;height:70px;line-height:70px;text-align:center;">
+            <span style="font-size:32px;">📄</span>
+          </div>
+        </div>
+        
+        <h2 style="color:#18181b;margin:0 0 10px 0;font-size:22px;text-align:center;font-weight:600;">Your ${templateName} is Ready</h2>
+        
+        <p style="color:#52525b;margin:0 0 25px 0;line-height:1.6;text-align:center;font-size:15px;">
+          Hi <strong style="color:#18181b;">${employeeName}</strong>, your requested <strong style="color:${DGC_GOLD};">${templateName}</strong> has been generated and is attached to this email.
+        </p>
+        
+        <div style="background-color:#f0fdf4;border-radius:10px;border:1px solid #bbf7d0;padding:15px 20px;margin-bottom:20px;text-align:center;">
+          <p style="color:#16a34a;margin:0;font-size:14px;font-weight:500;">
+            ✓ Document attached as PDF
+          </p>
+        </div>
+        
+        <p style="color:#71717a;margin:0;font-size:13px;text-align:center;line-height:1.5;">
+          You can also view and download this document from your profile in the HR portal.
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td style="background-color:#f9fafb;padding:25px 30px;border-top:1px solid #e5e7eb;border-radius:0 0 12px 12px;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+          <tr>
+            <td style="text-align:center;">
+              <p style="color:#18181b;margin:0 0 8px 0;font-size:14px;font-weight:600;">${company.name}</p>
+              <p style="color:#a1a1aa;margin:0;font-size:11px;line-height:1.5;">
+                This is an automated notification. Please do not reply directly to this email.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+`;
 }
 
-const handler = async (req: Request): Promise<Response> => {
+serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Verify authentication
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: "Unauthorized" }),
-        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
-    }
+    const { request_id } = await req.json();
+    if (!request_id) throw new Error("request_id is required");
 
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      { auth: { persistSession: false } }
-    );
+    console.log(`Processing HR letter request: ${request_id}`);
 
-    // Verify the caller's JWT
-    const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseClient = createClient(supabaseUrl, supabaseServiceKey);
 
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: "Invalid or expired token" }),
-        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
-    }
-
-    // Check if caller has HR or Admin role
-    const { data: roleData, error: roleError } = await supabaseClient
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id)
-      .in("role", ["hr", "admin"])
-      .limit(1)
-      .maybeSingle();
-
-    if (roleError || !roleData) {
-      return new Response(
-        JSON.stringify({ error: "Forbidden: HR or Admin role required" }),
-        { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
-    }
-
-    const { request_id }: GenerateHRLetterRequest = await req.json();
-
-    if (!request_id) {
-      return new Response(
-        JSON.stringify({ error: "request_id is required" }),
-        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
-    }
-
-    // Get the HR document request with template and employee data
+    // Fetch request with template
     const { data: request, error: requestError } = await supabaseClient
       .from("hr_document_requests")
       .select(`
         *,
-        template:document_templates(*),
-        employee:employees(
-          id, first_name, second_name, last_name, email, phone, employee_code,
-          date_of_birth, nationality, gender, join_date, address, country,
-          iban, bank_name, bank_account_number, salary, salary_currency_code,
-          housing_allowance, transportation_allowance, gosi_registered_salary,
-          department:departments!employees_department_id_fkey(id, name),
-          position:positions(id, title),
-          work_location:work_locations(id, name, address, city, country, currency),
-          manager:employees!employees_manager_id_fkey(id, first_name, last_name)
-        )
+        template:document_templates(id, name, category, docx_storage_path),
+        employee:employees(id, user_id, first_name, last_name, email, full_name)
       `)
       .eq("id", request_id)
       .single();
 
-    if (requestError || !request) {
-      console.error("Request fetch error:", requestError);
-      return new Response(
-        JSON.stringify({ error: "Request not found" }),
-        { status: 404, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
-    }
+    if (requestError || !request) throw new Error(`Request not found: ${requestError?.message}`);
 
-    const template = request.template;
-    const employee = request.employee;
+    const template = request.template as { id: string; name: string; docx_storage_path?: string } | null;
+    const employee = request.employee as { id: string; user_id: string; first_name: string; last_name: string; email: string; full_name?: string } | null;
 
-    if (!template?.docx_storage_path) {
-      return new Response(
-        JSON.stringify({ error: "Template does not have a DOCX file configured" }),
-        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
-    }
+    if (!template?.docx_storage_path) throw new Error("Template has no DOCX file");
+    if (!employee) throw new Error("Employee not found");
 
-    // Download the DOCX template
+    console.log(`Template: ${template.name}, Employee: ${employee.first_name} ${employee.last_name}`);
+
+    // Download DOCX template
     const { data: templateFile, error: downloadError } = await supabaseClient.storage
       .from("docx-templates")
       .download(template.docx_storage_path);
 
-    if (downloadError || !templateFile) {
-      console.error("Template download error:", downloadError);
-      return new Response(
-        JSON.stringify({ error: `Failed to download template: ${downloadError?.message}` }),
-        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
-    }
+    if (downloadError || !templateFile) throw new Error(`Failed to download template: ${downloadError?.message}`);
 
-    const templateBuffer = await templateFile.arrayBuffer();
-    console.log(`Template downloaded, size: ${templateBuffer.byteLength} bytes`);
+    // Fetch data for tag replacement
+    const [smartTags, employeeData, companySettings, allowances] = await Promise.all([
+      fetchSmartTags(supabaseClient),
+      fetchEmployeeData(supabaseClient, employee.id),
+      fetchCompanySettings(supabaseClient),
+      fetchEmployeeAllowances(supabaseClient, employee.id),
+    ]);
 
-    // Get company settings
-    const { data: companySettings } = await supabaseClient
-      .from("company_settings")
-      .select("*")
-      .single();
+    // Build tag data and process template
+    const tagData = buildTagData(employeeData, companySettings, allowances, smartTags);
+    console.log("Processing template with tags...");
 
-    const currencyCode = employee?.salary_currency_code || employee?.work_location?.currency || "SAR";
-    const today = new Date();
-    const dayOfMonth = today.getDate();
+    const filledDocx = await processDocxTemplate(await templateFile.arrayBuffer(), tagData);
+    console.log("Template filled, converting to PDF...");
 
-    // Build comprehensive tag data
-    const tagData: Record<string, string> = {
-      // Employee - Basic Info
-      "First Name": employee?.first_name || "",
-      "Second Name": employee?.second_name || "",
-      "Last Name": employee?.last_name || "",
-      "Full Name": [employee?.first_name, employee?.second_name, employee?.last_name].filter(Boolean).join(" "),
-      "Email": employee?.email || "",
-      "Phone": employee?.phone || "",
-      "Employee Code": employee?.employee_code || "",
-      "Date of Birth": formatDate(employee?.date_of_birth),
-      "Nationality": employee?.nationality || "",
-      "Gender": employee?.gender || "",
-      "Address": employee?.address || "",
-      "Country": employee?.country || "",
-
-      // Employee - Employment Info
-      "Join Date": formatDate(employee?.join_date),
-      "Job Title": employee?.position?.title || "",
-      "Department": employee?.department?.name || "",
-      "Work Location": employee?.work_location?.name || "",
-      "Manager Name": employee?.manager ? `${employee.manager.first_name} ${employee.manager.last_name}` : "",
-
-      // Employee - Financial Info
-      "Salary": formatCurrency(employee?.salary, currencyCode),
-      "Currency": currencyCode,
-      "IBAN": employee?.iban || "",
-      "Bank Name": employee?.bank_name || "",
-      "Bank Account Number": employee?.bank_account_number || "",
-      "Housing Allowance": formatCurrency(employee?.housing_allowance, currencyCode),
-      "Transportation Allowance": formatCurrency(employee?.transportation_allowance, currencyCode),
-      "GOSI Registered Salary": formatCurrency(employee?.gosi_registered_salary, currencyCode),
-
-      // Company Info
-      "Company Name": companySettings?.name || "",
-      "Company Legal Name": companySettings?.legal_name || companySettings?.name || "",
-      "Company Email": companySettings?.email || "",
-      "Company Phone": companySettings?.phone || "",
-      "Company Address": [
-        companySettings?.address_street,
-        companySettings?.address_city,
-        companySettings?.address_state,
-        companySettings?.address_country,
-      ].filter(Boolean).join(", ") || "",
-      "Company Website": companySettings?.website || "",
-
-      // Dates
-      "Current Date": formatDate(today.toISOString()),
-      "Current Day": `${dayOfMonth}${getOrdinalSuffix(dayOfMonth)}`,
-      "Current Month": today.toLocaleDateString("en-US", { month: "long" }),
-      "Current Year": today.getFullYear().toString(),
-
-      // Signature placeholders
-      "Signature Title": "Human Resources",
-      "Signature Name": companySettings?.name || "HR Department",
-    };
-
-    console.log(`Processing HR letter for ${tagData["Full Name"]}...`);
-
-    // Process DOCX template with tag data
-    const filledDocx = await processDocxTemplate(templateBuffer, tagData);
-    console.log(`Template filled, size: ${filledDocx.byteLength} bytes`);
-
-    // Convert DOCX to PDF
-    console.log("Converting to PDF...");
     const pdfBuffer = await convertDocxToPdf(filledDocx);
-    console.log(`PDF generated, size: ${pdfBuffer.byteLength} bytes`);
+    console.log("PDF generated successfully");
 
-    // Generate storage path and filename
-    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const sanitizedName = template.name.replace(/[^a-zA-Z0-9]/g, "_");
-    const storagePath = `${employee?.id}/${timestamp}_${sanitizedName}.pdf`;
+    // Upload PDF to storage
+    const timestamp = Date.now();
+    const safeTemplateName = template.name.replace(/[^a-zA-Z0-9]/g, "_");
+    const storagePath = `${employee.user_id}/${timestamp}_${safeTemplateName}.pdf`;
 
-    // Upload PDF to hr-letters bucket
     const { error: uploadError } = await supabaseClient.storage
       .from("hr-letters")
       .upload(storagePath, pdfBuffer, {
@@ -392,52 +418,58 @@ const handler = async (req: Request): Promise<Response> => {
         upsert: false,
       });
 
-    if (uploadError) {
-      console.error("PDF upload error:", uploadError);
-      return new Response(
-        JSON.stringify({ error: `Failed to upload PDF: ${uploadError.message}` }),
-        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
-    }
-
+    if (uploadError) throw new Error(`Failed to upload PDF: ${uploadError.message}`);
     console.log(`PDF uploaded to: ${storagePath}`);
 
-    // Update the request with approved status and PDF path
+    // Update request status
     const { error: updateError } = await supabaseClient
       .from("hr_document_requests")
       .update({
         status: "approved",
         pdf_storage_path: storagePath,
-        processed_by: user.id,
         processed_at: new Date().toISOString(),
       })
       .eq("id", request_id);
 
-    if (updateError) {
-      console.error("Request update error:", updateError);
-      return new Response(
-        JSON.stringify({ error: `Failed to update request: ${updateError.message}` }),
-        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
+    if (updateError) throw new Error(`Failed to update request: ${updateError.message}`);
+
+    // Send email with PDF attachment
+    const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    if (resendApiKey && employee.email) {
+      try {
+        const resend = new Resend(resendApiKey);
+        const employeeName = employee.full_name || `${employee.first_name} ${employee.last_name}`;
+        const emailHtml = generateHRLetterEmail(employeeName, template.name, companySettings);
+
+        await resend.emails.send({
+          from: `HR <noreply@${companySettings.website?.replace('www.', '') || 'dgcholding.com'}>`,
+          to: [employee.email],
+          subject: `Your ${template.name} is Ready`,
+          html: emailHtml,
+          attachments: [
+            {
+              filename: `${template.name}.pdf`,
+              content: uint8ArrayToBase64(pdfBuffer),
+            },
+          ],
+        });
+        console.log(`Email sent to ${employee.email}`);
+      } catch (emailError) {
+        console.error("Failed to send email:", emailError);
+        // Don't fail the request if email fails
+      }
     }
 
-    console.log(`Request ${request_id} approved and document generated`);
-
     return new Response(
-      JSON.stringify({
-        success: true,
-        pdf_storage_path: storagePath,
-        message: "Document generated successfully",
-      }),
-      { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      JSON.stringify({ success: true, pdf_storage_path: storagePath }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     console.error("Error generating HR letter:", error);
     return new Response(
-      JSON.stringify({ error: error.message || "Failed to generate document" }),
-      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      JSON.stringify({ error: errorMessage }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
-};
-
-serve(handler);
+});

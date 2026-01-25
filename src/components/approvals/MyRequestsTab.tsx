@@ -2,17 +2,51 @@ import { format } from "date-fns";
 import { useMyRequests } from "@/hooks/useApprovalSteps";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar, Clock, FileText } from "lucide-react";
+import { Calendar, Clock, FileText, Download, Eye, Loader2 } from "lucide-react";
 import { ApprovalProgressSteps } from "./ApprovalProgressSteps";
 import { NewRequestDropdown } from "./NewRequestDropdown";
-import { useMyHRDocumentRequests, HRDocumentRequest } from "@/hooks/useHRDocumentRequests";
+import { useMyHRDocumentRequests, useGetHRLetterUrl } from "@/hooks/useHRDocumentRequests";
+import { toast } from "sonner";
+import { useState } from "react";
 
 export function MyRequestsTab() {
   const { data: requests, isLoading } = useMyRequests();
   const { data: hrDocRequests, isLoading: hrDocLoading } = useMyHRDocumentRequests();
+  const getLetterUrl = useGetHRLetterUrl();
+  const [loadingPdf, setLoadingPdf] = useState<string | null>(null);
 
   const isLoadingAll = isLoading || hrDocLoading;
+
+  const handleViewPdf = async (storagePath: string, requestId: string) => {
+    setLoadingPdf(requestId);
+    try {
+      const signedUrl = await getLetterUrl.mutateAsync(storagePath);
+      window.open(signedUrl, '_blank');
+    } catch (error) {
+      toast.error('Failed to open document');
+    } finally {
+      setLoadingPdf(null);
+    }
+  };
+
+  const handleDownloadPdf = async (storagePath: string, templateName: string, requestId: string) => {
+    setLoadingPdf(requestId);
+    try {
+      const signedUrl = await getLetterUrl.mutateAsync(storagePath);
+      const link = document.createElement('a');
+      link.href = signedUrl;
+      link.download = `${templateName}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      toast.error('Failed to download document');
+    } finally {
+      setLoadingPdf(null);
+    }
+  };
   
   // Filter out public holidays from leave requests
   const filteredRequests = requests?.filter(
@@ -145,6 +179,38 @@ export function MyRequestsTab() {
 
             {request.notes && (
               <p className="text-sm text-muted-foreground mb-3">{request.notes}</p>
+            )}
+
+            {/* Download buttons for approved requests with PDF */}
+            {request.status === 'approved' && request.pdf_storage_path && (
+              <div className="flex items-center gap-2 mt-3 pt-3 border-t">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={loadingPdf === request.id}
+                  onClick={() => handleViewPdf(request.pdf_storage_path!, request.id)}
+                >
+                  {loadingPdf === request.id ? (
+                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                  ) : (
+                    <Eye className="h-4 w-4 mr-1" />
+                  )}
+                  View
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={loadingPdf === request.id}
+                  onClick={() => handleDownloadPdf(request.pdf_storage_path!, request.template?.name || 'HR Letter', request.id)}
+                >
+                  {loadingPdf === request.id ? (
+                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                  ) : (
+                    <Download className="h-4 w-4 mr-1" />
+                  )}
+                  Download
+                </Button>
+              </div>
             )}
 
             {request.rejection_reason && (

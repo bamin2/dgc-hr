@@ -14,6 +14,7 @@ import { useGetDocumentUrl } from '@/hooks/useEmployeeDocuments';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { MyProfilePayslipsSection } from './MyProfilePayslipsSection';
+import { MyProfileHRLettersSection } from './MyProfileHRLettersSection';
 
 interface MyProfileDocumentsTabProps {
   employeeId: string;
@@ -146,6 +147,9 @@ export function MyProfileDocumentsTab({ employeeId }: MyProfileDocumentsTabProps
           </CardContent>
         </Card>
       ))}
+
+      {/* HR Letters Section */}
+      <MyProfileHRLettersSection employeeId={employeeId} />
 
       {/* Payslips Section */}
       <MyProfilePayslipsSection employeeId={employeeId} />

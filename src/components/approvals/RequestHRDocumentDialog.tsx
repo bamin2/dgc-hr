@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { useRequestableTemplates } from "@/hooks/useDocumentTemplates";
 import { useCreateHRDocumentRequest } from "@/hooks/useHRDocumentRequests";
+import { useMyEmployee } from "@/hooks/useMyEmployee";
 import { toast } from "sonner";
 import { Loader2, FileText } from "lucide-react";
 
@@ -31,6 +32,7 @@ export function RequestHRDocumentDialog({ open, onOpenChange }: RequestHRDocumen
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
   const [notes, setNotes] = useState("");
 
+  const { data: employee, isLoading: employeeLoading } = useMyEmployee();
   const { data: templates, isLoading: templatesLoading } = useRequestableTemplates();
   const createRequest = useCreateHRDocumentRequest();
 
@@ -40,8 +42,14 @@ export function RequestHRDocumentDialog({ open, onOpenChange }: RequestHRDocumen
       return;
     }
 
+    if (!employee?.id) {
+      toast.error("Unable to identify your employee profile");
+      return;
+    }
+
     try {
       await createRequest.mutateAsync({
+        employeeId: employee.id,
         templateId: selectedTemplateId,
         notes: notes || undefined,
       });
@@ -53,6 +61,8 @@ export function RequestHRDocumentDialog({ open, onOpenChange }: RequestHRDocumen
       toast.error("Failed to submit request");
     }
   };
+
+  const isLoading = templatesLoading || employeeLoading;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -70,7 +80,7 @@ export function RequestHRDocumentDialog({ open, onOpenChange }: RequestHRDocumen
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <Label htmlFor="document-type">Document Type *</Label>
-            {templatesLoading ? (
+            {isLoading ? (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Loading available documents...
@@ -113,7 +123,7 @@ export function RequestHRDocumentDialog({ open, onOpenChange }: RequestHRDocumen
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={!selectedTemplateId || createRequest.isPending}
+            disabled={!selectedTemplateId || createRequest.isPending || !employee?.id}
           >
             {createRequest.isPending ? (
               <>
