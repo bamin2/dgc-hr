@@ -99,27 +99,61 @@ export function usePendingHRDocumentRequestsCount() {
 
 export function useCreateHRDocumentRequest() {
   const queryClient = useQueryClient();
-  const { effectiveEmployeeId } = useRole();
 
   return useMutation({
-    mutationFn: async ({ templateId, notes }: { templateId: string; notes?: string }) => {
-      if (!effectiveEmployeeId) throw new Error("No employee found");
-
+    mutationFn: async ({ employeeId, templateId, notes }: { 
+      employeeId: string; 
+      templateId: string; 
+      notes?: string;
+    }) => {
+      // First, insert the request
       const { data, error } = await supabase
         .from("hr_document_requests")
         .insert({
-          employee_id: effectiveEmployeeId,
+          employee_id: employeeId,
           template_id: templateId,
-          notes: notes || null,
+          notes,
         })
-        .select()
+        .select(`
+          *,
+          template:document_templates(id, name, approval_mode, docx_storage_path)
+        `)
         .single();
 
       if (error) throw error;
+
+      // Check if auto-generate is enabled
+      const template = data.template as { approval_mode?: string; docx_storage_path?: string } | null;
+      if (template?.approval_mode === 'auto_generate' && template?.docx_storage_path) {
+        // Trigger automatic generation
+        const { error: generateError } = await supabase.functions.invoke('generate-hr-letter', {
+          body: { request_id: data.id }
+        });
+        
+        if (generateError) {
+          console.error('Auto-generate failed:', generateError);
+          // Don't throw - request is still created, HR can manually process it
+        }
+      }
+
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["hr-document-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["my-hr-document-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-hr-document-requests"] });
+    },
+  });
+}
+
+export function useGetHRLetterUrl() {
+  return useMutation({
+    mutationFn: async (storagePath: string) => {
+      const { data, error } = await supabase.storage
+        .from('hr-letters')
+        .createSignedUrl(storagePath, 3600);
+      
+      if (error) throw error;
+      return data.signedUrl;
     },
   });
 }
