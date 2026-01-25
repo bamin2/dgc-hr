@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { User } from 'lucide-react';
 import { useMyEmployee } from '@/hooks/useMyEmployee';
 import { useCompanySettings } from '@/contexts/CompanySettingsContext';
+import { useMediaQuery } from '@/hooks/use-media-query';
 import {
   MyProfileHeader,
   MyProfileOverviewTab,
@@ -16,6 +17,7 @@ import {
   MyProfileLoansTab,
   MyProfileBenefitsTab,
 } from '@/components/myprofile';
+import { MobileProfileHub } from '@/components/myprofile/mobile';
 
 const MyProfileSkeleton = () => (
   <DashboardLayout>
@@ -33,6 +35,7 @@ const MyProfilePage = () => {
   const [activeTab, setActiveTab] = useState(tabFromUrl || 'overview');
   const { data: employee, isLoading, error } = useMyEmployee();
   const { settings, isLoading: settingsLoading } = useCompanySettings();
+  const isMobile = useMediaQuery("(max-width: 1023px)");
 
   // Update active tab when URL parameter changes
   useEffect(() => {
@@ -47,6 +50,11 @@ const MyProfilePage = () => {
 
   if (isLoading || settingsLoading) {
     return <MyProfileSkeleton />;
+  }
+
+  // Render mobile hub for smaller screens
+  if (isMobile) {
+    return <MobileProfileHub />;
   }
 
   if (error || !employee) {
