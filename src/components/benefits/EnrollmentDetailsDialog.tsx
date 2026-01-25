@@ -88,7 +88,7 @@ export const EnrollmentDetailsDialog = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent size="lg">
-        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pr-8">
           <DialogTitle>Enrollment Details</DialogTitle>
           {enrollment.status === 'active' && onEdit && (
             <Button 
