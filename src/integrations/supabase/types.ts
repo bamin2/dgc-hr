@@ -737,6 +737,7 @@ export type Database = {
       }
       benefit_plans: {
         Row: {
+          cost_frequency: Database["public"]["Enums"]["cost_frequency"]
           created_at: string
           currency: string
           description: string | null
@@ -753,6 +754,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          cost_frequency?: Database["public"]["Enums"]["cost_frequency"]
           created_at?: string
           currency?: string
           description?: string | null
@@ -769,6 +771,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          cost_frequency?: Database["public"]["Enums"]["cost_frequency"]
           created_at?: string
           currency?: string
           description?: string | null
@@ -6576,6 +6579,7 @@ export type Database = {
         | "pending_hr"
         | "approved"
         | "rejected"
+      cost_frequency: "monthly" | "yearly"
       departure_reason:
         | "resignation"
         | "termination"
@@ -6818,6 +6822,7 @@ export const Constants = {
         "approved",
         "rejected",
       ],
+      cost_frequency: ["monthly", "yearly"],
       departure_reason: [
         "resignation",
         "termination",

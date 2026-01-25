@@ -14,6 +14,7 @@ export type BenefitType =
 export type BenefitStatus = Database['public']['Enums']['benefit_status'];
 export type EnrollmentStatus = Database['public']['Enums']['enrollment_status'];
 export type ClaimStatus = Database['public']['Enums']['claim_status'];
+export type CostFrequency = 'monthly' | 'yearly';
 
 // Type-specific configuration interfaces
 export interface AirTicketConfig {
@@ -66,6 +67,7 @@ export interface BenefitPlan {
   enrolled_count: number | null;
   policy_document_url: string | null;
   expiry_date: string | null;
+  cost_frequency: CostFrequency;
   created_at: string;
   updated_at: string;
   coverage_levels?: BenefitCoverageLevel[];

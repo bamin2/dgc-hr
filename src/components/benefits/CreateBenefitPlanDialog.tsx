@@ -40,6 +40,7 @@ import {
   useCreateBenefitPlan, 
   type BenefitType, 
   type BenefitStatus,
+  type CostFrequency,
   type AirTicketConfig,
   type PhoneConfig,
   type EntitlementConfig,
@@ -55,6 +56,7 @@ const formSchema = z.object({
   provider: z.string().min(1, 'Provider is required'),
   description: z.string().optional(),
   status: z.enum(['active', 'inactive', 'pending'] as const),
+  cost_frequency: z.enum(['monthly', 'yearly'] as const),
   features: z.string().optional(),
 });
 
@@ -98,6 +100,7 @@ export function CreateBenefitPlanDialog({ open, onOpenChange }: CreateBenefitPla
       provider: '',
       description: '',
       status: 'active',
+      cost_frequency: 'yearly', // Default for health type
       features: '',
     },
   });
@@ -105,6 +108,14 @@ export function CreateBenefitPlanDialog({ open, onOpenChange }: CreateBenefitPla
   const watchedType = form.watch('type');
   const isAirTicketType = watchedType === 'air_ticket';
   const isEntitlementType = ['air_ticket', 'car_park', 'phone'].includes(watchedType);
+
+  // Helper to get suggested cost frequency based on plan type
+  const getSuggestedFrequency = (type: string): CostFrequency => {
+    if (['health', 'dental', 'vision', 'life', 'disability'].includes(type)) {
+      return 'yearly';
+    }
+    return 'monthly';
+  };
 
   const addCoverageLevel = () => {
     const newLevel: CoverageLevel = { 
@@ -186,6 +197,7 @@ export function CreateBenefitPlanDialog({ open, onOpenChange }: CreateBenefitPla
         status: values.status as BenefitStatus,
         features,
         expiry_date: expiryDate ? format(expiryDate, 'yyyy-MM-dd') : undefined,
+        cost_frequency: values.cost_frequency as CostFrequency,
         entitlement_config,
         coverageLevels: validCoverageLevels,
       });
@@ -256,7 +268,14 @@ export function CreateBenefitPlanDialog({ open, onOpenChange }: CreateBenefitPla
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Plan Type *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select 
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        // Auto-update cost_frequency based on type
+                        form.setValue('cost_frequency', getSuggestedFrequency(value));
+                      }} 
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select type" />
@@ -274,6 +293,28 @@ export function CreateBenefitPlanDialog({ open, onOpenChange }: CreateBenefitPla
                         <SelectItem value="car_park">Car Park</SelectItem>
                         <SelectItem value="phone">Phone</SelectItem>
                         <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="cost_frequency"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cost Frequency *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select frequency" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="monthly">Monthly</SelectItem>
+                        <SelectItem value="yearly">Yearly</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

@@ -73,7 +73,7 @@ const BenefitDetail = () => {
             </>
           }
         >
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <BenefitTypeBadge type={plan.type} />
             <BenefitStatusBadge status={plan.status} />
             <span className="text-sm text-muted-foreground flex items-center gap-1.5">
@@ -83,6 +83,9 @@ const BenefitDetail = () => {
             <span className="text-sm text-muted-foreground flex items-center gap-1.5">
               <Users className="h-4 w-4" />
               {plan.enrolled_count} enrolled
+            </span>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+              {plan.cost_frequency === 'yearly' ? 'Yearly Cost' : 'Monthly Cost'}
             </span>
           </div>
         </PageHeader>
