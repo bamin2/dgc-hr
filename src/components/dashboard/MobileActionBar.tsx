@@ -80,13 +80,14 @@ export function MobileActionBar() {
                   "w-6 h-6 transition-transform duration-150",
                   active && "scale-110"
                 )} />
-                {item.badge && item.badge > 0 && (
+                {/* Badge on icon - only when count > 0, subtle styling */}
+                {typeof item.badge === 'number' && item.badge > 0 && (
                   <span className={cn(
-                    "absolute -top-1.5 -right-2 min-w-[18px] h-[18px]",
+                    "absolute -top-1 -right-1.5",
+                    "min-w-[16px] h-[16px] px-1",
                     "flex items-center justify-center",
-                    "bg-primary text-primary-foreground",
-                    "text-[10px] font-bold rounded-full px-1",
-                    "shadow-sm"
+                    "bg-destructive/90 text-destructive-foreground",
+                    "text-[9px] font-medium rounded-full"
                   )}>
                     {item.badge > 99 ? "99+" : item.badge}
                   </span>
