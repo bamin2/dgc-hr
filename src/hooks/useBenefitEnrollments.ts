@@ -16,6 +16,7 @@ export interface BenefitEnrollment {
   employee_contribution: number;
   employer_contribution: number;
   entitlement_data: Record<string, unknown> | null;
+  insurance_card_url: string | null;
   created_at: string;
   updated_at: string;
   employee?: {
@@ -50,6 +51,7 @@ export interface BenefitEnrollment {
     date_of_birth: string | null;
     percentage: number;
     national_id?: string | null;
+    insurance_card_url?: string | null;
   }>;
 }
 
@@ -96,7 +98,8 @@ export function useBenefitEnrollments(filters?: {
             relationship,
             date_of_birth,
             percentage,
-            national_id
+            national_id,
+            insurance_card_url
           )
         `)
         .order('created_at', { ascending: false });
@@ -162,7 +165,8 @@ export function useBenefitEnrollment(enrollmentId: string | undefined) {
             relationship,
             date_of_birth,
             percentage,
-            national_id
+            national_id,
+            insurance_card_url
           )
         `)
         .eq('id', enrollmentId)
@@ -347,6 +351,46 @@ export function useCancelBenefitEnrollment() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.benefits.enrollments.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.benefits.plans.all });
+    },
+  });
+}
+
+export function useUpdateEnrollmentInsuranceCard() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ enrollmentId, insuranceCardUrl }: {
+      enrollmentId: string;
+      insuranceCardUrl: string;
+    }) => {
+      const { error } = await supabase
+        .from('benefit_enrollments')
+        .update({ insurance_card_url: insuranceCardUrl })
+        .eq('id', enrollmentId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.benefits.enrollments.all });
+    },
+  });
+}
+
+export function useUpdateBeneficiaryInsuranceCard() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ beneficiaryId, insuranceCardUrl }: {
+      beneficiaryId: string;
+      insuranceCardUrl: string;
+    }) => {
+      const { error } = await supabase
+        .from('benefit_beneficiaries')
+        .update({ insurance_card_url: insuranceCardUrl })
+        .eq('id', beneficiaryId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.benefits.enrollments.all });
     },
   });
 }

@@ -12,9 +12,11 @@ import { Separator } from '@/components/ui/separator';
 import { BenefitTypeBadge } from './BenefitTypeBadge';
 import { BenefitStatusBadge } from './BenefitStatusBadge';
 import { EntitlementTrackingCard } from './EntitlementTrackingCard';
+import { InsuranceCardUpload } from './InsuranceCardUpload';
 import { format } from 'date-fns';
-import { Users, Calendar, DollarSign, Pencil } from 'lucide-react';
+import { Users, Calendar, DollarSign, Pencil, CreditCard } from 'lucide-react';
 import type { BenefitEnrollment } from '@/hooks/useBenefitEnrollments';
+import { useUpdateEnrollmentInsuranceCard, useUpdateBeneficiaryInsuranceCard } from '@/hooks/useBenefitEnrollments';
 import type { BenefitType, AirTicketConfig, CarParkConfig, PhoneConfig, AirTicketData, PhoneData, CarParkData } from '@/types/benefits';
 
 interface EnrollmentDetailsDialogProps {
@@ -38,8 +40,15 @@ export const EnrollmentDetailsDialog = ({
   const beneficiaries = enrollment.beneficiaries || [];
   const employeeName = `${employee?.first_name || ''} ${employee?.last_name || ''}`.trim();
   
+  // Mutations for insurance card updates
+  const updateEmployeeCard = useUpdateEnrollmentInsuranceCard();
+  const updateBeneficiaryCard = useUpdateBeneficiaryInsuranceCard();
+  
   // Check if this is a specialized entitlement type
   const isEntitlementType = ['air_ticket', 'car_park', 'phone'].includes(plan?.type || '');
+  
+  // Check if this is a health-related plan that should show insurance cards
+  const isHealthPlan = ['health', 'dental', 'vision', 'life', 'disability'].includes(plan?.type || '');
   
   // Calculate costs including dependents (each dependent costs same as employee)
   const dependentsCount = beneficiaries.length;
@@ -58,6 +67,20 @@ export const EnrollmentDetailsDialog = ({
       currency: planCurrency,
       minimumFractionDigits: 2,
     }).format(amount);
+  };
+
+  const handleEmployeeCardUpload = (url: string) => {
+    updateEmployeeCard.mutate({
+      enrollmentId: enrollment.id,
+      insuranceCardUrl: url,
+    });
+  };
+
+  const handleBeneficiaryCardUpload = (beneficiaryId: string, url: string) => {
+    updateBeneficiaryCard.mutate({
+      beneficiaryId,
+      insuranceCardUrl: url,
+    });
   };
 
   return (
@@ -235,6 +258,40 @@ export const EnrollmentDetailsDialog = ({
                         <Badge variant="secondary">{beneficiary.percentage}%</Badge>
                       )}
                     </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Insurance Cards - Only for health-related plans */}
+          {isHealthPlan && (
+            <>
+              <Separator />
+              <div className="space-y-3">
+                <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                  <CreditCard className="h-4 w-4" />
+                  Insurance Cards
+                </h4>
+                <div className="space-y-2">
+                  {/* Employee's Card */}
+                  <InsuranceCardUpload
+                    label={`${employeeName}'s Card`}
+                    currentUrl={enrollment.insurance_card_url}
+                    enrollmentId={enrollment.id}
+                    onUploadComplete={handleEmployeeCardUpload}
+                  />
+                  
+                  {/* Dependents' Cards */}
+                  {beneficiaries.map((beneficiary) => (
+                    <InsuranceCardUpload
+                      key={beneficiary.id}
+                      label={`${beneficiary.name}'s Card (${beneficiary.relationship})`}
+                      currentUrl={beneficiary.insurance_card_url}
+                      enrollmentId={enrollment.id}
+                      beneficiaryId={beneficiary.id}
+                      onUploadComplete={(url) => handleBeneficiaryCardUpload(beneficiary.id, url)}
+                    />
                   ))}
                 </div>
               </div>
