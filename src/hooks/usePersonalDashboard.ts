@@ -53,6 +53,9 @@ export interface PersonalDashboardData {
   nextPayroll: {
     date: string | null;
     lastNetSalary: number | null;
+    wasAdjusted?: boolean;
+    originalDay?: number;
+    adjustmentReason?: string;
   };
 }
 
@@ -177,7 +180,7 @@ export function usePersonalDashboard() {
       // Calculate next payroll (adjust for weekends)
       const payrollDayOfMonth = companySettingsRes.data?.payroll_day_of_month || 25;
       const weekendDays = companySettingsRes.data?.weekend_days || [5, 6];
-      const nextPayrollDate = calculateNextPayrollDate(payrollDayOfMonth, weekendDays);
+      const payrollResult = calculateNextPayrollDate(payrollDayOfMonth, weekendDays);
 
       return {
         employeeId,
@@ -187,8 +190,11 @@ export function usePersonalDashboard() {
         activeLoans,
         loanCurrency,
         nextPayroll: {
-          date: nextPayrollDate,
+          date: payrollResult.date,
           lastNetSalary: null,
+          wasAdjusted: payrollResult.wasAdjusted,
+          originalDay: payrollResult.originalDay,
+          adjustmentReason: payrollResult.adjustmentReason,
         },
       };
     },

@@ -85,6 +85,16 @@ export function getCurrentMonth(): number {
 // ============================================
 
 /**
+ * Result of payroll date calculation including adjustment metadata
+ */
+export interface PayrollDateResult {
+  date: string;
+  wasAdjusted: boolean;
+  originalDay: number;
+  adjustmentReason?: string;
+}
+
+/**
  * Calculate the next payroll date based on the configured day of month
  * If the date falls on a weekend day, move to the preceding Thursday
  * 
@@ -94,7 +104,7 @@ export function getCurrentMonth(): number {
 export function calculateNextPayrollDate(
   payrollDayOfMonth: number,
   weekendDays: number[] = [5, 6]
-): string {
+): PayrollDateResult {
   const today = new Date();
   const currentDay = today.getDate();
   const currentMonth = today.getMonth();
@@ -121,10 +131,20 @@ export function calculateNextPayrollDate(
     nextPayrollDate.setDate(lastDayOfMonth);
   }
 
+  // Track adjustment info
+  let wasAdjusted = false;
+  let adjustmentReason: string | undefined;
+
   // Adjust for weekends: if payroll falls on a weekend, move to Thursday before
   const dayOfWeek = nextPayrollDate.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
   
   if (weekendDays.includes(dayOfWeek)) {
+    wasAdjusted = true;
+    
+    // Determine the day name for the reason
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    adjustmentReason = dayNames[dayOfWeek];
+    
     // Calculate days to subtract to reach Thursday (day 4)
     let daysToSubtract: number;
     if (dayOfWeek === 5) {
@@ -146,7 +166,12 @@ export function calculateNextPayrollDate(
     nextPayrollDate.setDate(nextPayrollDate.getDate() - daysToSubtract);
   }
 
-  return format(nextPayrollDate, 'yyyy-MM-dd');
+  return {
+    date: format(nextPayrollDate, 'yyyy-MM-dd'),
+    wasAdjusted,
+    originalDay: payrollDayOfMonth,
+    adjustmentReason,
+  };
 }
 
 /**

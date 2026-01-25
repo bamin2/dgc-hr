@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Wallet, Calendar } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Wallet, Calendar, Info } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 
 interface NextPayrollCardProps {
@@ -8,13 +9,29 @@ interface NextPayrollCardProps {
   lastNetSalary: number | null;
   isLoading?: boolean;
   currency?: string;
+  wasAdjusted?: boolean;
+  originalDay?: number;
+  adjustmentReason?: string;
+}
+
+function getOrdinalSuffix(day: number): string {
+  if (day >= 11 && day <= 13) return 'th';
+  switch (day % 10) {
+    case 1: return 'st';
+    case 2: return 'nd';
+    case 3: return 'rd';
+    default: return 'th';
+  }
 }
 
 export function NextPayrollCard({ 
   nextPayrollDate, 
   lastNetSalary, 
   isLoading,
-  currency = 'SAR'
+  currency = 'SAR',
+  wasAdjusted,
+  originalDay,
+  adjustmentReason,
 }: NextPayrollCardProps) {
   if (isLoading) {
     return (
@@ -55,7 +72,24 @@ export function NextPayrollCard({
             <Calendar className="h-6 w-6 text-primary" />
           </div>
           <div>
-            <p className="text-lg font-semibold">{formattedDate}</p>
+            <p className="text-lg font-semibold flex items-center gap-1.5">
+              {formattedDate}
+              {wasAdjusted && originalDay && adjustmentReason && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-[280px]">
+                      <p className="text-sm">
+                        Adjusted from the {originalDay}{getOrdinalSuffix(originalDay)} because it falls on a {adjustmentReason}. 
+                        Payroll is moved to the Thursday before.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </p>
             {formattedSalary && (
               <p className="text-sm text-muted-foreground">
                 Last: {formattedSalary}
