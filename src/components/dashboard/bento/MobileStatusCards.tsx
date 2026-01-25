@@ -29,7 +29,7 @@ function StatusCard({ icon: Icon, label, value, subValue, highlight, onClick, co
       )}
     >
       <div className={cn(
-        "w-9 h-9 rounded-xl flex items-center justify-center",
+        "w-10 h-10 rounded-xl flex items-center justify-center",
         color
       )}>
         <Icon className="w-5 h-5" />
@@ -53,7 +53,7 @@ function StatusCard({ icon: Icon, label, value, subValue, highlight, onClick, co
 function StatusCardSkeleton() {
   return (
     <div className="flex flex-col items-start gap-2 p-4 rounded-2xl bg-card/80 border border-border/50 min-h-[88px]">
-      <Skeleton className="w-9 h-9 rounded-xl" />
+      <Skeleton className="w-10 h-10 rounded-xl" />
       <div className="space-y-1">
         <Skeleton className="h-3 w-16" />
         <Skeleton className="h-4 w-20" />

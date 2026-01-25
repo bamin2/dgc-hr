@@ -52,30 +52,30 @@ function RequestIcon({ type, icon }: { type: UnifiedRequest["type"]; icon: strin
       // For leave, icon is a color - show a colored dot
       return (
         <div 
-          className="h-8 w-8 rounded-full flex items-center justify-center"
+          className="h-10 w-10 rounded-xl flex items-center justify-center"
           style={{ backgroundColor: `${icon}20` }}
         >
           <div 
-            className="h-3 w-3 rounded-full"
+            className="h-3.5 w-3.5 rounded-full"
             style={{ backgroundColor: icon }}
           />
         </div>
       );
     case "business_trip":
       return (
-        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+        <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
           <Plane className={cn(iconClass, "text-primary")} />
         </div>
       );
     case "hr_document":
       return (
-        <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
+        <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center">
           <FileText className={cn(iconClass, "text-muted-foreground")} />
         </div>
       );
     case "loan":
       return (
-        <div className="h-8 w-8 rounded-full bg-success/10 flex items-center justify-center">
+        <div className="h-10 w-10 rounded-xl bg-success/10 flex items-center justify-center">
           <Banknote className={cn(iconClass, "text-success")} />
         </div>
       );
@@ -90,9 +90,9 @@ export function MobileRequestCard({ request, onClick }: MobileRequestCardProps) 
       type="button"
       onClick={onClick}
       className={cn(
-        "w-full flex items-center gap-3 p-4 rounded-xl",
+        "w-full flex items-center gap-3 p-4 rounded-2xl",
         "bg-card border border-border/50",
-        "min-h-[80px] text-left",
+        "min-h-[88px] text-left",
         "active:scale-[0.98] transition-transform duration-100",
         "touch-manipulation"
       )}

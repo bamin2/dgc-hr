@@ -132,10 +132,10 @@ export function MobilePayslipsSheet({
               {recentPayslips.map((payslip) => (
                 <div
                   key={payslip.id}
-                  className="rounded-xl border bg-card p-4 space-y-3"
+                  className="rounded-2xl border bg-card p-4 space-y-3"
                 >
                   <div className="flex items-start gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                    <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                       <Receipt className="h-5 w-5 text-primary" />
                     </div>
                     
@@ -160,7 +160,7 @@ export function MobilePayslipsSheet({
                     <Button
                       variant="outline"
                       size="sm"
-                      className="flex-1 h-10"
+                      className="flex-1 h-11"
                       onClick={() => handleView(payslip.id)}
                       disabled={loadingId === payslip.id}
                     >
@@ -177,7 +177,7 @@ export function MobilePayslipsSheet({
                     <Button
                       variant="outline"
                       size="sm"
-                      className="flex-1 h-10"
+                      className="flex-1 h-11"
                       onClick={() => handleDownload(payslip.id, payslip.payPeriodStart)}
                       disabled={loadingId === payslip.id + '-download'}
                     >

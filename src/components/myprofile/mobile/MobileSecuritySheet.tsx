@@ -88,10 +88,10 @@ export function MobileSecuritySheet({
                 return (
                   <div
                     key={session.id}
-                    className="rounded-xl border bg-card p-4"
+                    className="rounded-2xl border bg-card p-4"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                      <div className="h-11 w-11 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
                         <DeviceIcon className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -159,10 +159,10 @@ export function MobileSecuritySheet({
                   return (
                     <div
                       key={session.id}
-                      className="rounded-xl border bg-card p-4"
+                      className="rounded-2xl border bg-card p-4"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center shrink-0">
+                        <div className="h-11 w-11 rounded-xl bg-muted flex items-center justify-center shrink-0">
                           <DeviceIcon className="h-5 w-5 text-muted-foreground" />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -179,7 +179,7 @@ export function MobileSecuritySheet({
                           size="icon"
                           onClick={() => handleRevokeSession(session.id)}
                           disabled={isRevoking}
-                          className="h-10 w-10 shrink-0"
+                          className="h-11 w-11 shrink-0"
                         >
                           <X className="h-4 w-4" />
                         </Button>

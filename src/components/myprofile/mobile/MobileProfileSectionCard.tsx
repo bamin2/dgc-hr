@@ -22,14 +22,14 @@ export function MobileProfileSectionCard({
     <button
       onClick={onClick}
       className={cn(
-        "w-full flex items-center gap-4 p-4 rounded-xl border bg-card text-left transition-all",
+        "w-full flex items-center gap-4 p-4 rounded-2xl border bg-card text-left transition-all min-h-[60px]",
         "active:scale-[0.98] hover:bg-accent/50",
         variant === 'destructive' && "border-destructive/20 hover:bg-destructive/5"
       )}
     >
       <div
         className={cn(
-          "h-10 w-10 rounded-full flex items-center justify-center shrink-0",
+          "h-11 w-11 rounded-xl flex items-center justify-center shrink-0",
           variant === 'default' && "bg-primary/10 text-primary",
           variant === 'destructive' && "bg-destructive/10 text-destructive"
         )}

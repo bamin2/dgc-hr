@@ -90,13 +90,13 @@ export function MobileQuickActionsCard() {
                 onClick={action.onClick}
                 className={cn(
                   "flex flex-col items-center justify-center gap-2",
-                  "min-h-[88px] rounded-xl p-4",
+                  "min-h-[88px] rounded-2xl p-4",
                   "bg-secondary/50 hover:bg-secondary/80 active:scale-[0.98]",
                   "transition-all duration-150 touch-manipulation"
                 )}
               >
                 <div className={cn(
-                  "w-11 h-11 rounded-full flex items-center justify-center",
+                  "w-11 h-11 rounded-xl flex items-center justify-center",
                   action.color
                 )}>
                   <Icon className="h-5 w-5" />

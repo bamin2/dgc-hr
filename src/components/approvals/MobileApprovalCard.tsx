@@ -78,7 +78,7 @@ export function MobileApprovalCard({ approval }: MobileApprovalCardProps) {
 
             {/* Warning for negative balance */}
             {hasNegativeBalance && (
-              <div className="flex items-center gap-2 px-3 py-2 bg-destructive/10 border border-destructive/20 rounded-lg">
+              <div className="flex items-center gap-2 px-3 py-2 bg-destructive/10 border border-destructive/20 rounded-xl">
                 <AlertTriangle className="h-4 w-4 text-destructive shrink-0" />
                 <span className="text-xs text-destructive font-medium">
                   Negative balance warning
@@ -115,7 +115,7 @@ export function MobileApprovalCard({ approval }: MobileApprovalCardProps) {
                   <span>{reasonExpanded ? "Hide" : "Show"} reason</span>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                  <div className="mt-2 p-3 bg-muted/50 rounded-lg text-sm text-muted-foreground">
+                  <div className="mt-2 p-3 bg-muted/50 rounded-xl text-sm text-muted-foreground">
                     {leave_request.reason}
                   </div>
                 </CollapsibleContent>
@@ -297,7 +297,7 @@ export function MobileApprovalCard({ approval }: MobileApprovalCardProps) {
                   <span>{reasonExpanded ? "Hide" : "Show"} notes</span>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                  <div className="mt-2 p-3 bg-muted/50 rounded-lg text-sm text-muted-foreground">
+                  <div className="mt-2 p-3 bg-muted/50 rounded-xl text-sm text-muted-foreground">
                     {loan.notes}
                   </div>
                 </CollapsibleContent>
