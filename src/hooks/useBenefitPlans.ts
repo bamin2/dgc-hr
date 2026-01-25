@@ -5,6 +5,7 @@ import type { Json } from '@/integrations/supabase/types';
 
 export type BenefitType = 'health' | 'dental' | 'vision' | 'life' | 'disability' | 'retirement' | 'wellness' | 'air_ticket' | 'car_park' | 'phone' | 'other';
 export type BenefitStatus = 'active' | 'inactive' | 'pending';
+export type CostFrequency = 'monthly' | 'yearly';
 
 // Type-specific configuration interfaces
 export interface AirTicketConfig {
@@ -74,6 +75,7 @@ export interface BenefitPlan {
   features: string[];
   policy_document_url: string | null;
   expiry_date: string | null;
+  cost_frequency: CostFrequency;
   created_at: string;
   updated_at: string;
   currency: string;
@@ -139,6 +141,7 @@ export function useCreateBenefitPlan() {
       status?: BenefitStatus;
       features?: string[];
       expiry_date?: string;
+      cost_frequency?: CostFrequency;
       entitlement_config?: EntitlementConfig;
       coverageLevels?: Array<{
         name: string;
@@ -158,6 +161,7 @@ export function useCreateBenefitPlan() {
           status: plan.status || 'active',
           features: plan.features || [],
           expiry_date: plan.expiry_date,
+          cost_frequency: plan.cost_frequency || 'monthly',
           entitlement_config: plan.entitlement_config as Json | null,
         } as never)
         .select()

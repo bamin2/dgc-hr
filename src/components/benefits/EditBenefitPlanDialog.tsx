@@ -42,6 +42,7 @@ import {
   type BenefitPlan, 
   type BenefitType, 
   type BenefitStatus,
+  type CostFrequency,
   type AirTicketConfig,
   type PhoneConfig,
   type EntitlementConfig,
@@ -56,6 +57,7 @@ const formSchema = z.object({
   provider: z.string().min(1, 'Provider is required'),
   description: z.string().optional(),
   status: z.enum(['active', 'inactive', 'pending'] as const),
+  cost_frequency: z.enum(['monthly', 'yearly'] as const),
   features: z.string().optional(),
 });
 
@@ -118,6 +120,7 @@ export function EditBenefitPlanDialog({ open, onOpenChange, plan }: EditBenefitP
         provider: plan.provider,
         description: plan.description || '',
         status: plan.status,
+        cost_frequency: plan.cost_frequency || 'monthly',
         features: plan.features?.join('\n') || '',
       });
       
@@ -233,6 +236,7 @@ export function EditBenefitPlanDialog({ open, onOpenChange, plan }: EditBenefitP
         status: values.status as BenefitStatus,
         features,
         expiry_date: expiryDate ? format(expiryDate, 'yyyy-MM-dd') : null,
+        cost_frequency: values.cost_frequency as CostFrequency,
         entitlement_config,
       });
 
@@ -332,6 +336,28 @@ export function EditBenefitPlanDialog({ open, onOpenChange, plan }: EditBenefitP
                           <SelectItem value="car_park">Car Park</SelectItem>
                           <SelectItem value="phone">Phone</SelectItem>
                           <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="cost_frequency"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cost Frequency *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select frequency" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="monthly">Monthly</SelectItem>
+                          <SelectItem value="yearly">Yearly</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />

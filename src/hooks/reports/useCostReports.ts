@@ -137,14 +137,14 @@ async function fetchCTCReport(
 
   if (allowError) throw allowError;
 
-  // Fetch active benefit enrollments WITH dependent count and plan type
+  // Fetch active benefit enrollments WITH dependent count and plan cost_frequency
   const { data: benefitEnrollments, error: benefitError } = await supabase
     .from('benefit_enrollments')
     .select(`
       employee_id, 
       employer_contribution,
       benefit_beneficiaries(id),
-      plan:benefit_plans!benefit_enrollments_plan_id_fkey(type, name)
+      plan:benefit_plans!benefit_enrollments_plan_id_fkey(type, name, cost_frequency)
     `)
     .in('employee_id', filteredIds)
     .eq('status', 'active');
@@ -174,15 +174,15 @@ async function fetchCTCReport(
     }
   });
 
-  // Build benefits map - normalize all costs to MONTHLY values
-  // Health-related plans are yearly costs, car park/phone are monthly
+  // Build benefits map - normalize all costs to MONTHLY values using explicit cost_frequency field
   const benefitsMap = new Map<string, number>();
   (benefitEnrollments || []).forEach(be => {
     const current = benefitsMap.get(be.employee_id) || 0;
-    const planType = (be.plan as { type: string } | null)?.type;
+    const planData = be.plan as { type: string; cost_frequency: string } | null;
+    const costFrequency = planData?.cost_frequency || 'monthly';
     
-    // Health-related plans have yearly costs and scale with dependents
-    const isYearlyCostPlan = ['health', 'dental', 'vision', 'life', 'disability'].includes(planType || '');
+    // Use explicit cost_frequency field instead of inferring from type
+    const isYearlyCostPlan = costFrequency === 'yearly';
     
     let monthlyEmployerCost = be.employer_contribution;
     
@@ -194,7 +194,7 @@ async function fetchCTCReport(
       const yearlyCost = be.employer_contribution * (1 + dependentCount);
       monthlyEmployerCost = yearlyCost / 12;
     }
-    // Car park, phone, air ticket are already monthly costs - use as-is
+    // Monthly cost plans (car park, phone, etc.) use employer_contribution as-is
     
     benefitsMap.set(be.employee_id, current + monthlyEmployerCost);
   });
