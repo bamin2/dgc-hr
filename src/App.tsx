@@ -8,7 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { RoleProvider } from "@/contexts/RoleContext";
 import { CompanySettingsProvider } from "@/contexts/CompanySettingsContext";
 import { CompactModeProvider } from "@/contexts/CompactModeContext";
-import { ProtectedRoute, PublicRoute } from "@/components/auth";
+import { ProtectedRoute, PublicRoute, MobileRestrictedRoute } from "@/components/auth";
 import { PageLoader } from "@/components/ui/page-loader";
 import { DashboardPageLoader } from "@/components/dashboard/DashboardPageLoader";
 import { OfflineIndicator } from "@/components/pwa/OfflineIndicator";
@@ -121,12 +121,12 @@ const App = () => (
                 <Route path="/employees/:id" element={<ProtectedRoute requiredRoles={['hr', 'admin', 'manager']}><DashboardLazyPage><EmployeeProfile /></DashboardLazyPage></ProtectedRoute>} />
                 <Route path="/employees/onboarding/new" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><NewOnboarding /></DashboardLazyPage></ProtectedRoute>} />
                 <Route path="/employees/onboarding/:id" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><OnboardingDetail /></DashboardLazyPage></ProtectedRoute>} />
-                <Route path="/payroll" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><Payroll /></DashboardLazyPage></ProtectedRoute>} />
-                <Route path="/payroll/run" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><PayrollRun /></DashboardLazyPage></ProtectedRoute>} />
-                <Route path="/payroll/templates" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><PayslipTemplates /></DashboardLazyPage></ProtectedRoute>} />
-                <Route path="/payroll/templates/new" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><PayslipTemplateEditor /></DashboardLazyPage></ProtectedRoute>} />
-                <Route path="/payroll/templates/:id" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><PayslipTemplateEditor /></DashboardLazyPage></ProtectedRoute>} />
-                <Route path="/payroll/payslip/:id" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><Payslip /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/payroll" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><MobileRestrictedRoute featureName="Payroll"><DashboardLazyPage><Payroll /></DashboardLazyPage></MobileRestrictedRoute></ProtectedRoute>} />
+                <Route path="/payroll/run" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><MobileRestrictedRoute featureName="Payroll Run"><DashboardLazyPage><PayrollRun /></DashboardLazyPage></MobileRestrictedRoute></ProtectedRoute>} />
+                <Route path="/payroll/templates" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><MobileRestrictedRoute featureName="Payslip Templates"><DashboardLazyPage><PayslipTemplates /></DashboardLazyPage></MobileRestrictedRoute></ProtectedRoute>} />
+                <Route path="/payroll/templates/new" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><MobileRestrictedRoute featureName="Payslip Templates"><DashboardLazyPage><PayslipTemplateEditor /></DashboardLazyPage></MobileRestrictedRoute></ProtectedRoute>} />
+                <Route path="/payroll/templates/:id" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><MobileRestrictedRoute featureName="Payslip Templates"><DashboardLazyPage><PayslipTemplateEditor /></DashboardLazyPage></MobileRestrictedRoute></ProtectedRoute>} />
+                <Route path="/payroll/payslip/:id" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><MobileRestrictedRoute featureName="Payslip Details"><DashboardLazyPage><Payslip /></DashboardLazyPage></MobileRestrictedRoute></ProtectedRoute>} />
                 <Route path="/loans" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><Loans /></DashboardLazyPage></ProtectedRoute>} />
                 <Route path="/hiring" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><Hiring /></DashboardLazyPage></ProtectedRoute>} />
                 <Route path="/hiring/candidates/:id" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><CandidateDetail /></DashboardLazyPage></ProtectedRoute>} />
@@ -134,13 +134,13 @@ const App = () => (
                 
                 {/* Protected routes - Manager, HR & Admin */}
                 <Route path="/team/add" element={<ProtectedRoute requiredRoles={['manager', 'hr', 'admin']}><DashboardLazyPage><AddTeamMember /></DashboardLazyPage></ProtectedRoute>} />
-                <Route path="/team/bulk-salary-update" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><BulkSalaryUpdate /></DashboardLazyPage></ProtectedRoute>} />
-                <Route path="/reports" element={<ProtectedRoute requiredRoles={['manager', 'hr', 'admin']}><DashboardLazyPage><Reports /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/team/bulk-salary-update" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><MobileRestrictedRoute featureName="Bulk Salary Update"><DashboardLazyPage><BulkSalaryUpdate /></DashboardLazyPage></MobileRestrictedRoute></ProtectedRoute>} />
+                <Route path="/reports" element={<ProtectedRoute requiredRoles={['manager', 'hr', 'admin']}><MobileRestrictedRoute featureName="Reports & Analytics"><DashboardLazyPage><Reports /></DashboardLazyPage></MobileRestrictedRoute></ProtectedRoute>} />
                 <Route path="/time-management" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><TimeManagement /></DashboardLazyPage></ProtectedRoute>} />
                 
                 {/* Protected routes - Admin only */}
                 <Route path="/documents" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><Documents /></DashboardLazyPage></ProtectedRoute>} />
-                <Route path="/audit-trail" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><AuditTrail /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/audit-trail" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><MobileRestrictedRoute featureName="Audit Trail"><DashboardLazyPage><AuditTrail /></DashboardLazyPage></MobileRestrictedRoute></ProtectedRoute>} />
                 <Route path="/settings" element={<ProtectedRoute><DashboardLazyPage><Settings /></DashboardLazyPage></ProtectedRoute>} />
                 
                 {/* Help Center - All authenticated users */}

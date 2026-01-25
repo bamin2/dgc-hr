@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/dashboard';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
@@ -27,9 +27,13 @@ import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { useNotificationPreferences } from '@/hooks/useNotificationPreferences';
 import { useUserSessions } from '@/hooks/useUserSessions';
 import { useRole } from '@/contexts/RoleContext';
+import { useMediaQuery } from '@/hooks/use-media-query';
 import { Settings, Building2, User, Bell, Shield, Save, Wallet, Loader2, Network, LayoutDashboard, GitBranch, UserCircle, Mail } from 'lucide-react';
 import { DashboardCardVisibility, defaultDashboardCardVisibility } from '@/data/settings';
 import { toast } from 'sonner';
+
+// Admin tabs that are restricted on mobile
+const ADMIN_TABS = ['company', 'organization', 'dashboard', 'selfservice', 'approvals', 'email-templates', 'payroll'];
 
 const SettingsPageSkeleton = () => (
   <DashboardLayout>
@@ -51,12 +55,14 @@ const SettingsPageSkeleton = () => (
 );
 
 const SettingsPage = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { settings: globalSettings, updateSettings: updateGlobalSettings, isLoading: companyLoading, isSaving: companySaving } = useCompanySettings();
   const { preferences: dbUserPreferences, updatePreferences, isLoading: prefsLoading, isSaving: prefsSaving, jobTitleFromEmployee } = useUserPreferences();
   const { settings: dbNotificationSettings, updateSettings: updateNotifications, isLoading: notifLoading, isSaving: notifSaving } = useNotificationPreferences();
   const { sessions, isLoading: sessionsLoading, revokeSession, revokeAllSessions } = useUserSessions();
   const { canManageRoles } = useRole();
+  const isMobile = useMediaQuery("(max-width: 1023px)");
   
   // Local state for form editing
   const [companySettings, setCompanySettings] = useState<CompanySettings>(globalSettings);
@@ -72,14 +78,31 @@ const SettingsPage = () => {
     return canManageRoles ? 'company' : 'preferences';
   });
 
+  // Handle mobile restrictions for admin tabs accessed via deep link
+  useEffect(() => {
+    if (isMobile) {
+      const tabFromUrl = searchParams.get('tab');
+      if (tabFromUrl && ADMIN_TABS.includes(tabFromUrl)) {
+        // Redirect to preferences with a toast
+        setSearchParams({ tab: 'preferences' });
+        toast.info('Admin settings are only available on desktop');
+      }
+    }
+  }, [isMobile, searchParams, setSearchParams]);
+
   // Update active tab when URL changes
   useEffect(() => {
     const tabFromUrl = searchParams.get('tab');
     const validTabs = ['company', 'organization', 'dashboard', 'selfservice', 'approvals', 'email-templates', 'payroll', 'preferences', 'notifications', 'security'];
     if (tabFromUrl && validTabs.includes(tabFromUrl)) {
-      setActiveTab(tabFromUrl);
+      // On mobile, only allow personal tabs
+      if (isMobile && ADMIN_TABS.includes(tabFromUrl)) {
+        setActiveTab('preferences');
+      } else {
+        setActiveTab(tabFromUrl);
+      }
     }
-  }, [searchParams]);
+  }, [searchParams, isMobile]);
 
   // Sync local state with database when data loads
   useEffect(() => {
@@ -165,7 +188,14 @@ const SettingsPage = () => {
     { value: 'security', label: 'Security', icon: Shield, requiresAdmin: false }
   ];
 
-  const visibleTabs = allTabs.filter(tab => !tab.requiresAdmin || canManageRoles);
+  // On mobile, only show personal tabs (hide admin tabs entirely)
+  const visibleTabs = allTabs.filter(tab => {
+    if (tab.requiresAdmin) {
+      // Admin tabs: show only if user has permission AND not on mobile
+      return canManageRoles && !isMobile;
+    }
+    return true; // Personal tabs always visible
+  });
   const adminTabs = visibleTabs.filter(tab => tab.requiresAdmin);
   const personalTabs = visibleTabs.filter(tab => !tab.requiresAdmin);
 
