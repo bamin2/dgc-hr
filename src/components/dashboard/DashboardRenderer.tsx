@@ -1,19 +1,25 @@
 import { useRole } from '@/contexts/RoleContext';
-import { PersonalSection } from './personal';
-import { TeamSection } from './team';
-import { AdminSection } from './admin';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  BentoGrid,
+  BentoCard,
+  WelcomeCard,
+  NotificationsCard,
+  ApprovalsSummaryCard,
+  TimeOffSnapshotCard,
+  BusinessTripsCard,
+  MyTeamCard,
+  ScheduleCard,
+} from './bento';
 
-function SectionSkeleton() {
+function CardSkeleton({ colSpan = 4 }: { colSpan?: 4 | 5 | 7 | 8 | 12 }) {
   return (
-    <div className="space-y-4">
-      <Skeleton className="h-6 w-32" />
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <Skeleton className="h-40" />
-        <Skeleton className="h-40" />
-        <Skeleton className="h-40" />
+    <BentoCard colSpan={colSpan}>
+      <div className="space-y-4">
+        <Skeleton className="h-5 w-32" />
+        <Skeleton className="h-20 w-full rounded-xl" />
       </div>
-    </div>
+    </BentoCard>
   );
 }
 
@@ -21,6 +27,7 @@ export function DashboardRenderer() {
   const { 
     effectiveTeamMemberIds, 
     canEditEmployees, 
+    isManager,
     isImpersonating, 
     isLoading 
   } = useRole();
@@ -28,30 +35,37 @@ export function DashboardRenderer() {
   // Show team section if effective user has direct reports
   const showTeamSection = effectiveTeamMemberIds.length > 0;
   
-  // Show admin section if user has HR or Admin role AND not impersonating
-  const showAdminSection = canEditEmployees && !isImpersonating;
+  // Show approvals section if user has manager/HR/Admin role AND not impersonating
+  const showApprovalsSection = (isManager || canEditEmployees) && !isImpersonating;
+
+  if (isLoading) {
+    return (
+      <BentoGrid>
+        <CardSkeleton colSpan={7} />
+        <CardSkeleton colSpan={5} />
+        <CardSkeleton colSpan={4} />
+        <CardSkeleton colSpan={4} />
+        <CardSkeleton colSpan={4} />
+        <CardSkeleton colSpan={8} />
+        <CardSkeleton colSpan={4} />
+      </BentoGrid>
+    );
+  }
 
   return (
-    <div className="space-y-8">
-      {/* Personal Section - Always visible for all users */}
-      {/* Shows immediately - has its own loading states */}
-      <PersonalSection />
+    <BentoGrid>
+      {/* Row 1: Welcome + Notifications */}
+      <WelcomeCard />
+      <NotificationsCard />
 
-      {/* Team Section - Visible if effective user manages employees */}
-      {/* Shows placeholder while role is loading, then renders or hides */}
-      {isLoading ? (
-        <SectionSkeleton />
-      ) : (
-        showTeamSection && <TeamSection teamMemberIds={effectiveTeamMemberIds} />
-      )}
+      {/* Row 2: Approvals (conditional) + Time Off + Business Trips */}
+      {showApprovalsSection && <ApprovalsSummaryCard />}
+      <TimeOffSnapshotCard />
+      <BusinessTripsCard />
 
-      {/* Admin Section - Visible if user has HR or Admin role (hidden during impersonation) */}
-      {/* Shows placeholder while role is loading, then renders or hides */}
-      {isLoading ? (
-        <SectionSkeleton />
-      ) : (
-        showAdminSection && <AdminSection />
-      )}
-    </div>
+      {/* Row 3: Schedule + My Team (conditional) */}
+      <ScheduleCard />
+      {showTeamSection && <MyTeamCard />}
+    </BentoGrid>
   );
 }
