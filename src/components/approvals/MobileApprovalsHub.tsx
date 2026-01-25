@@ -6,7 +6,8 @@ import { CheckCircle } from "lucide-react";
 export function MobileApprovalsHub() {
   const { data: pendingApprovals, isLoading } = usePendingApprovals();
 
-  if (isLoading) {
+  // Only show skeleton on initial load, not refetches (avoids flash when switching tabs)
+  if (isLoading && !pendingApprovals) {
     return (
       <div className="space-y-4 px-4 pb-24">
         <div className="pt-2">
