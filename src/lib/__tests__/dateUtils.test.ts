@@ -138,59 +138,83 @@ describe('dateUtils', () => {
   describe('calculateNextPayrollDate', () => {
     it('returns this month if payroll day is ahead', () => {
       // Current day is 15, payroll day is 25
-      expect(calculateNextPayrollDate(25)).toBe('2024-06-25');
+      const result = calculateNextPayrollDate(25);
+      expect(result.date).toBe('2024-06-25');
+      expect(result.wasAdjusted).toBe(false);
+      expect(result.originalDay).toBe(25);
     });
 
     it('returns next month if payroll day has passed', () => {
       // Current day is 15, payroll day is 10
-      expect(calculateNextPayrollDate(10)).toBe('2024-07-10');
+      const result = calculateNextPayrollDate(10);
+      expect(result.date).toBe('2024-07-10');
+      expect(result.wasAdjusted).toBe(false);
     });
 
     it('handles payroll day equal to current day', () => {
       // Current day is 15, payroll day is 15
-      expect(calculateNextPayrollDate(15)).toBe('2024-07-15');
+      const result = calculateNextPayrollDate(15);
+      expect(result.date).toBe('2024-07-15');
     });
 
     it('handles months with fewer days (e.g., Feb)', () => {
       vi.setSystemTime(new Date('2024-01-31T12:00:00.000Z'));
       // Payroll day 31, February only has 29 days (leap year)
-      expect(calculateNextPayrollDate(31)).toBe('2024-02-29');
+      const result = calculateNextPayrollDate(31);
+      expect(result.date).toBe('2024-02-29');
     });
 
     it('handles end of year rollover', () => {
       vi.setSystemTime(new Date('2024-12-20T12:00:00.000Z'));
-      expect(calculateNextPayrollDate(15)).toBe('2025-01-15');
+      const result = calculateNextPayrollDate(15);
+      expect(result.date).toBe('2025-01-15');
     });
 
     // Weekend adjustment tests
-    it('returns Thursday when payroll falls on Friday', () => {
+    it('returns Thursday when payroll falls on Friday with adjustment info', () => {
       vi.setSystemTime(new Date('2026-01-01T12:00:00.000Z'));
       // Jan 2, 2026 is Friday - should return Jan 1 (Thursday)
-      expect(calculateNextPayrollDate(2, [5, 6])).toBe('2026-01-01');
+      const result = calculateNextPayrollDate(2, [5, 6]);
+      expect(result.date).toBe('2026-01-01');
+      expect(result.wasAdjusted).toBe(true);
+      expect(result.originalDay).toBe(2);
+      expect(result.adjustmentReason).toBe('Friday');
     });
 
-    it('returns Thursday when payroll falls on Saturday', () => {
+    it('returns Thursday when payroll falls on Saturday with adjustment info', () => {
       vi.setSystemTime(new Date('2026-01-01T12:00:00.000Z'));
       // Jan 3, 2026 is Saturday - should return Jan 1 (Thursday)
-      expect(calculateNextPayrollDate(3, [5, 6])).toBe('2026-01-01');
+      const result = calculateNextPayrollDate(3, [5, 6]);
+      expect(result.date).toBe('2026-01-01');
+      expect(result.wasAdjusted).toBe(true);
+      expect(result.originalDay).toBe(3);
+      expect(result.adjustmentReason).toBe('Saturday');
     });
 
-    it('returns original date when not on weekend', () => {
+    it('returns original date when not on weekend with no adjustment', () => {
       vi.setSystemTime(new Date('2026-01-20T12:00:00.000Z'));
       // Jan 26, 2026 is Monday - should stay as Jan 26
-      expect(calculateNextPayrollDate(26, [5, 6])).toBe('2026-01-26');
+      const result = calculateNextPayrollDate(26, [5, 6]);
+      expect(result.date).toBe('2026-01-26');
+      expect(result.wasAdjusted).toBe(false);
+      expect(result.adjustmentReason).toBeUndefined();
     });
 
     it('handles custom weekend days (Fri-Sat is default)', () => {
       vi.setSystemTime(new Date('2026-01-01T12:00:00.000Z'));
       // Jan 4, 2026 is Sunday - with Sat-Sun weekend should return Jan 1 (Thursday)
-      expect(calculateNextPayrollDate(4, [0, 6])).toBe('2026-01-01');
+      const result = calculateNextPayrollDate(4, [0, 6]);
+      expect(result.date).toBe('2026-01-01');
+      expect(result.wasAdjusted).toBe(true);
+      expect(result.adjustmentReason).toBe('Sunday');
     });
 
     it('does not adjust when weekend days is empty', () => {
       vi.setSystemTime(new Date('2026-01-01T12:00:00.000Z'));
       // Jan 2, 2026 is Friday - with empty weekend should stay as Jan 2
-      expect(calculateNextPayrollDate(2, [])).toBe('2026-01-02');
+      const result = calculateNextPayrollDate(2, []);
+      expect(result.date).toBe('2026-01-02');
+      expect(result.wasAdjusted).toBe(false);
     });
   });
 

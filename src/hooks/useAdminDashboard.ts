@@ -32,6 +32,9 @@ export interface AdminDashboardData {
     lastRunDate: string | null;
     lastRunAmount: number | null;
     nextPayrollDate: string | null;
+    wasAdjusted?: boolean;
+    originalDay?: number;
+    adjustmentReason?: string;
   };
   pendingApprovals: {
     leaveRequests: number;
@@ -102,12 +105,15 @@ export function useAdminDashboard() {
       const lastPayroll = payrollRes.data?.[0];
       const payrollDayOfMonth = companySettingsRes.data?.payroll_day_of_month || 25;
       const weekendDays = companySettingsRes.data?.weekend_days || [5, 6];
-      const nextPayrollDate = calculateNextPayrollDate(payrollDayOfMonth, weekendDays);
+      const payrollResult = calculateNextPayrollDate(payrollDayOfMonth, weekendDays);
 
       const payrollStatus = {
         lastRunDate: lastPayroll?.processed_date || null,
         lastRunAmount: lastPayroll?.total_amount ? Number(lastPayroll.total_amount) : null,
-        nextPayrollDate,
+        nextPayrollDate: payrollResult.date,
+        wasAdjusted: payrollResult.wasAdjusted,
+        originalDay: payrollResult.originalDay,
+        adjustmentReason: payrollResult.adjustmentReason,
       };
 
       // Process pending approvals
