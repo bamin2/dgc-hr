@@ -17,7 +17,10 @@ export { DashboardRenderer } from "./DashboardRenderer";
 export { DashboardLayout } from "./DashboardLayout";
 export { DashboardPageLoader } from "./DashboardPageLoader";
 
-// Section exports
+// Bento grid components
+export * from "./bento";
+
+// Section exports (legacy - kept for backwards compatibility)
 export * from "./personal";
 export * from "./team";
 export * from "./admin";
