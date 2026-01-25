@@ -8,16 +8,19 @@ import { formatDistanceToNow } from "date-fns";
 import { NotificationTypeBadge } from "@/components/notifications/NotificationTypeBadge";
 
 interface NotificationsCardProps {
-  /** Compact variant for mobile - shows 2 items with larger touch targets */
+  /** Compact variant for mobile - shows items with larger touch targets */
   variant?: "default" | "compact";
+  /** Number of items to display (default: 3 for default, 4 for compact) */
+  itemCount?: number;
 }
 
-export function NotificationsCard({ variant = "default" }: NotificationsCardProps) {
+export function NotificationsCard({ variant = "default", itemCount }: NotificationsCardProps) {
   const { notifications, isLoading } = useNotifications();
   const isCompact = variant === "compact";
 
-  // Get notifications based on variant
-  const displayCount = isCompact ? 2 : 3;
+  // Get notifications based on variant and itemCount prop
+  const defaultCount = isCompact ? 4 : 3;
+  const displayCount = itemCount ?? defaultCount;
   const displayNotifications = notifications.slice(0, displayCount);
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
