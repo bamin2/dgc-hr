@@ -12,9 +12,10 @@ import { downloadPayslipPDF } from '@/hooks/usePayslipDocuments';
 
 interface MyProfilePayslipsSectionProps {
   employeeId: string;
+  noBorder?: boolean;
 }
 
-export function MyProfilePayslipsSection({ employeeId }: MyProfilePayslipsSectionProps) {
+export function MyProfilePayslipsSection({ employeeId, noBorder = false }: MyProfilePayslipsSectionProps) {
   const { data: payslips, isLoading, isError } = useMyPayslips(employeeId);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -79,34 +80,38 @@ export function MyProfilePayslipsSection({ employeeId }: MyProfilePayslipsSectio
     }
   };
 
+  const Wrapper = noBorder ? 'div' : Card;
+  const HeaderWrapper = noBorder ? 'div' : CardHeader;
+  const ContentWrapper = noBorder ? 'div' : CardContent;
+
   if (isLoading) {
     return (
-      <Card>
-        <CardHeader className="pb-3">
+      <Wrapper>
+        <HeaderWrapper className="pb-3">
           <CardTitle className="text-base font-medium flex items-center gap-2">
             <Receipt className="h-4 w-4 text-primary" />
             Payslips
           </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
+        </HeaderWrapper>
+        <ContentWrapper className="space-y-3">
           {[1, 2, 3].map((i) => (
             <Skeleton key={i} className="h-16 w-full" />
           ))}
-        </CardContent>
-      </Card>
+        </ContentWrapper>
+      </Wrapper>
     );
   }
 
   if (isError) {
     return (
-      <Card>
-        <CardHeader className="pb-3">
+      <Wrapper>
+        <HeaderWrapper className="pb-3">
           <CardTitle className="text-base font-medium flex items-center gap-2">
             <Receipt className="h-4 w-4 text-primary" />
             Payslips
           </CardTitle>
-        </CardHeader>
-        <CardContent className="p-8 text-center">
+        </HeaderWrapper>
+        <ContentWrapper className="p-8 text-center">
           <Inbox className="h-12 w-12 text-destructive/30 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-muted-foreground">
             Could not load payslips
@@ -114,21 +119,21 @@ export function MyProfilePayslipsSection({ employeeId }: MyProfilePayslipsSectio
           <p className="text-sm text-muted-foreground/70 mt-1">
             Please try refreshing the page.
           </p>
-        </CardContent>
-      </Card>
+        </ContentWrapper>
+      </Wrapper>
     );
   }
 
   if (!payslips || payslips.length === 0) {
     return (
-      <Card>
-        <CardHeader className="pb-3">
+      <Wrapper>
+        <HeaderWrapper className="pb-3">
           <CardTitle className="text-base font-medium flex items-center gap-2">
             <Receipt className="h-4 w-4 text-primary" />
             Payslips
           </CardTitle>
-        </CardHeader>
-        <CardContent className="p-8 text-center">
+        </HeaderWrapper>
+        <ContentWrapper className="p-8 text-center">
           <Inbox className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-muted-foreground">
             No Payslips Available
@@ -136,20 +141,20 @@ export function MyProfilePayslipsSection({ employeeId }: MyProfilePayslipsSectio
           <p className="text-sm text-muted-foreground/70 mt-1">
             Your issued payslips will appear here.
           </p>
-        </CardContent>
-      </Card>
+        </ContentWrapper>
+      </Wrapper>
     );
   }
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
+    <Wrapper>
+      <HeaderWrapper className="pb-3">
         <CardTitle className="text-base font-medium flex items-center gap-2">
           <Receipt className="h-4 w-4 text-primary" />
           Payslips
         </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
+      </HeaderWrapper>
+      <ContentWrapper className={noBorder ? "space-y-3" : "space-y-3"}>
         {payslips.map((payslip) => (
           <div
             key={payslip.id}
@@ -198,7 +203,7 @@ export function MyProfilePayslipsSection({ employeeId }: MyProfilePayslipsSectio
             </div>
           </div>
         ))}
-      </CardContent>
-    </Card>
+      </ContentWrapper>
+    </Wrapper>
   );
 }
