@@ -1,23 +1,42 @@
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { 
   Building2, 
-  MapPin, 
+  Briefcase,
   Users,
   Calendar,
-  Clock
+  IdCard
 } from 'lucide-react';
 import { Employee } from '@/hooks/useEmployees';
 import { format } from 'date-fns';
 import { BentoGrid, BentoCard } from '@/components/dashboard/bento';
+import { cn } from '@/lib/utils';
 
 interface MyProfileOverviewTabProps {
   employee: Employee;
 }
 
+// Helper component for consistent info display
+function InfoRow({ label, value, mono, muted }: { 
+  label: string; 
+  value?: string; 
+  mono?: boolean;
+  muted?: boolean;
+}) {
+  return (
+    <div className="flex justify-between items-center">
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <span className={cn(
+        "text-sm font-medium text-right",
+        mono && "font-mono",
+        muted && "text-muted-foreground"
+      )}>
+        {value || 'Not set'}
+      </span>
+    </div>
+  );
+}
+
 export function MyProfileOverviewTab({ employee }: MyProfileOverviewTabProps) {
-  const initials = `${employee.firstName[0]}${employee.lastName[0]}`.toUpperCase();
-  
   const joinDate = employee.joinDate 
     ? format(new Date(employee.joinDate), 'MMMM d, yyyy')
     : 'Not set';
@@ -42,130 +61,62 @@ export function MyProfileOverviewTab({ employee }: MyProfileOverviewTabProps) {
     <BentoGrid noPadding>
       {/* ROW 1 */}
       
-      {/* Employee Overview Card */}
-      <BentoCard colSpan={8}>
-        <div className="flex items-start gap-4">
-          <Avatar className="h-16 w-16 border-2 border-border shrink-0">
-            <AvatarImage src={employee.avatar} alt={employee.fullName} />
-            <AvatarFallback className="text-lg font-semibold bg-primary text-primary-foreground">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
-
-          <div className="flex-1 min-w-0 space-y-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-lg font-semibold truncate">{employee.fullName}</h2>
-              <Badge variant={statusVariants[employee.status] || 'default'}>
-                {statusLabels[employee.status] || employee.status}
-              </Badge>
-            </div>
-            
-            <p className="text-sm text-muted-foreground">{employee.position || 'No position'}</p>
-            <p className="text-sm text-muted-foreground">{employee.department || 'No department'}</p>
-            
-            <p className="text-xs text-muted-foreground font-mono">
-              ID: {employee.employeeId}
-            </p>
-          </div>
+      {/* Role & Organization Card */}
+      <BentoCard colSpan={6}>
+        <div className="flex items-center gap-2 mb-4">
+          <Briefcase className="h-4 w-4 text-primary" />
+          <h3 className="text-sm font-medium">Role & Organization</h3>
+        </div>
+        <div className="space-y-3">
+          <InfoRow label="Job Title" value={employee.position} />
+          <InfoRow label="Department" value={employee.department} />
+          <InfoRow label="Employment Type" value="Full-time" />
+          <InfoRow label="Work Location" value={employee.workLocationName || employee.location} />
         </div>
       </BentoCard>
 
-      {/* Quick Stats Card */}
-      <BentoCard colSpan={4}>
-        <h3 className="text-sm font-medium mb-4">Quick Stats</h3>
+      {/* Employment Details Card */}
+      <BentoCard colSpan={6}>
+        <div className="flex items-center gap-2 mb-4">
+          <IdCard className="h-4 w-4 text-primary" />
+          <h3 className="text-sm font-medium">Employment Details</h3>
+        </div>
         <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-muted-foreground" />
-            <div>
-              <p className="text-xs text-muted-foreground">Employment Type</p>
-              <p className="text-sm font-medium">Full-time</p>
-            </div>
+          <InfoRow label="Employee ID" value={employee.employeeId} mono />
+          <InfoRow label="Join Date" value={joinDate} />
+          <div className="flex justify-between items-center">
+            <span className="text-xs text-muted-foreground">Status</span>
+            <Badge variant={statusVariants[employee.status] || 'default'}>
+              {statusLabels[employee.status] || employee.status}
+            </Badge>
           </div>
-          <div className="flex items-center gap-2">
-            <MapPin className="h-4 w-4 text-muted-foreground" />
-            <div>
-              <p className="text-xs text-muted-foreground">Work Location</p>
-              <p className="text-sm font-medium truncate">
-                {employee.workLocationName || employee.location || 'Not set'}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-muted-foreground" />
-            <div>
-              <p className="text-xs text-muted-foreground">Manager</p>
-              <p className="text-sm font-medium truncate">{employee.manager || 'Not assigned'}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-            <div>
-              <p className="text-xs text-muted-foreground">Join Date</p>
-              <p className="text-sm font-medium">{joinDate}</p>
-            </div>
-          </div>
+          <InfoRow label="Direct Manager" value={employee.manager || 'Not assigned'} />
         </div>
       </BentoCard>
 
       {/* ROW 2 */}
 
-      {/* Department Card */}
-      <BentoCard colSpan={4}>
-        <div className="flex items-center gap-2 mb-3">
+      {/* Department Details Card */}
+      <BentoCard colSpan={6}>
+        <div className="flex items-center gap-2 mb-4">
           <Building2 className="h-4 w-4 text-primary" />
-          <h3 className="text-sm font-medium">Department</h3>
+          <h3 className="text-sm font-medium">Department Details</h3>
         </div>
-        <div className="space-y-2">
-          <div>
-            <p className="text-xs text-muted-foreground">Department</p>
-            <p className="text-sm font-medium">{employee.department || 'Not set'}</p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Position</p>
-            <p className="text-sm font-medium">{employee.position || 'Not set'}</p>
-          </div>
+        <div className="space-y-3">
+          <InfoRow label="Department" value={employee.department} />
+          <InfoRow label="Position" value={employee.position} />
         </div>
       </BentoCard>
 
-      {/* Work Location Card */}
-      <BentoCard colSpan={4}>
-        <div className="flex items-center gap-2 mb-3">
-          <MapPin className="h-4 w-4 text-primary" />
-          <h3 className="text-sm font-medium">Work Location</h3>
-        </div>
-        <div className="space-y-2">
-          <div>
-            <p className="text-xs text-muted-foreground">Location</p>
-            <p className="text-sm font-medium">
-              {employee.workLocationName || employee.location || 'Not set'}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Country</p>
-            <p className="text-sm font-medium">
-              {employee.workLocationCountry || 'Not set'}
-            </p>
-          </div>
-        </div>
-      </BentoCard>
-
-      {/* Manager Card */}
-      <BentoCard colSpan={4}>
-        <div className="flex items-center gap-2 mb-3">
+      {/* Reporting Line Card */}
+      <BentoCard colSpan={6}>
+        <div className="flex items-center gap-2 mb-4">
           <Users className="h-4 w-4 text-primary" />
-          <h3 className="text-sm font-medium">Manager</h3>
+          <h3 className="text-sm font-medium">Reporting Line</h3>
         </div>
-        <div className="space-y-2">
-          <div>
-            <p className="text-xs text-muted-foreground">Manager Name</p>
-            <p className="text-sm font-medium">{employee.manager || 'Not assigned'}</p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Manager Role</p>
-            <p className="text-sm font-medium text-muted-foreground">
-              Direct Supervisor
-            </p>
-          </div>
+        <div className="space-y-3">
+          <InfoRow label="Manager Name" value={employee.manager || 'Not assigned'} />
+          <InfoRow label="Manager Role" value="Direct Supervisor" muted />
         </div>
       </BentoCard>
     </BentoGrid>
