@@ -174,25 +174,29 @@ async function fetchCTCReport(
     }
   });
 
-  // Build benefits map - only apply dependent multiplier to health-related plans
-  // Car park, phone, air ticket are per-employee costs that don't scale with dependents
+  // Build benefits map - normalize all costs to MONTHLY values
+  // Health-related plans are yearly costs, car park/phone are monthly
   const benefitsMap = new Map<string, number>();
   (benefitEnrollments || []).forEach(be => {
     const current = benefitsMap.get(be.employee_id) || 0;
     const planType = (be.plan as { type: string } | null)?.type;
     
-    // Only apply dependent multiplier to health-related benefit types
-    const isHealthRelatedPlan = ['health', 'dental', 'vision', 'life', 'disability'].includes(planType || '');
+    // Health-related plans have yearly costs and scale with dependents
+    const isYearlyCostPlan = ['health', 'dental', 'vision', 'life', 'disability'].includes(planType || '');
     
-    let totalEmployerCost = be.employer_contribution;
-    if (isHealthRelatedPlan) {
+    let monthlyEmployerCost = be.employer_contribution;
+    
+    if (isYearlyCostPlan) {
+      // Apply dependent multiplier and convert yearly to monthly
       const dependentCount = Array.isArray(be.benefit_beneficiaries) 
         ? be.benefit_beneficiaries.length 
         : 0;
-      totalEmployerCost = be.employer_contribution * (1 + dependentCount);
+      const yearlyCost = be.employer_contribution * (1 + dependentCount);
+      monthlyEmployerCost = yearlyCost / 12;
     }
+    // Car park, phone, air ticket are already monthly costs - use as-is
     
-    benefitsMap.set(be.employee_id, current + totalEmployerCost);
+    benefitsMap.set(be.employee_id, current + monthlyEmployerCost);
   });
 
   // Build CTC records
