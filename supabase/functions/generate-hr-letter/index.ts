@@ -54,7 +54,7 @@ async function fetchEmployeeData(supabaseClient: any, employeeId: string) {
       *,
       department:departments!employees_department_id_fkey(id, name),
       position:positions!employees_position_id_fkey(id, title),
-      manager:employees!employees_manager_id_fkey(id, first_name, last_name),
+      manager(id, first_name, last_name),
       work_location:work_locations!employees_work_location_id_fkey(id, name, country, currency)
     `)
     .eq("id", employeeId)
