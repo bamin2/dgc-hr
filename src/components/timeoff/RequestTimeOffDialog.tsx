@@ -423,7 +423,6 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
           </div>
 
         </div>
-      </div>
     </ResponsiveDialog>
   );
 }
