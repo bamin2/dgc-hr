@@ -7,15 +7,38 @@ import {
   Inbox,
   Users,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  CreditCard,
+  ExternalLink,
+  Download
 } from 'lucide-react';
 import { useBenefitEnrollments, BenefitEnrollment } from '@/hooks/useBenefitEnrollments';
 import { BenefitTypeBadge } from '@/components/benefits/BenefitTypeBadge';
+import { InsuranceCardExpiryBadge } from '@/components/benefits/InsuranceCardExpiryBadge';
 import { format } from 'date-fns';
 import { useState } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
 import { BenefitType } from '@/types/benefits';
+
+const HEALTH_PLAN_TYPES = ['health', 'dental', 'vision', 'life', 'disability'];
+
+const handleDownload = async (url: string, fileName: string) => {
+  try {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(downloadUrl);
+  } catch (error) {
+    console.error('Download failed:', error);
+  }
+};
 
 interface MyProfileBenefitsTabProps {
   employeeId: string;
@@ -33,6 +56,11 @@ function EnrollmentCard({ enrollment }: { enrollment: BenefitEnrollment }) {
   const config = statusConfig[enrollment.status] || statusConfig.pending;
   const beneficiaries = enrollment.beneficiaries || [];
   const hasBeneficiaries = beneficiaries.length > 0;
+  
+  const isHealthPlan = HEALTH_PLAN_TYPES.includes(enrollment.plan?.type || '');
+  const hasAnyInsuranceCard = 
+    enrollment.insurance_card_url || 
+    beneficiaries.some(b => b.insurance_card_url);
 
   return (
     <Card>
@@ -104,6 +132,77 @@ function EnrollmentCard({ enrollment }: { enrollment: BenefitEnrollment }) {
                 </div>
               </CollapsibleContent>
             </Collapsible>
+          )}
+
+          {/* Insurance Cards Section - Only for health-related plans */}
+          {isHealthPlan && hasAnyInsuranceCard && (
+            <div className="border-t pt-4 space-y-3">
+              <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                <CreditCard className="h-3.5 w-3.5" />
+                Insurance Cards
+              </h4>
+              
+              {/* Employee's Card */}
+              {enrollment.insurance_card_url && (
+                <div className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">My Card</span>
+                    <InsuranceCardExpiryBadge expiryDate={enrollment.insurance_card_expiry_date} />
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8"
+                      onClick={() => window.open(enrollment.insurance_card_url!, '_blank')}
+                      title="View"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8"
+                      onClick={() => handleDownload(enrollment.insurance_card_url!, 'my-insurance-card')}
+                      title="Download"
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+              
+              {/* Dependent Cards */}
+              {beneficiaries.filter(b => b.insurance_card_url).map((beneficiary) => (
+                <div key={beneficiary.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <span className="text-sm font-medium truncate">{beneficiary.name}</span>
+                    <span className="text-xs text-muted-foreground shrink-0">({beneficiary.relationship})</span>
+                    <InsuranceCardExpiryBadge expiryDate={beneficiary.insurance_card_expiry_date} />
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8"
+                      onClick={() => window.open(beneficiary.insurance_card_url!, '_blank')}
+                      title="View"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8"
+                      onClick={() => handleDownload(beneficiary.insurance_card_url!, `${beneficiary.name}-insurance-card`)}
+                      title="Download"
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </CardContent>
