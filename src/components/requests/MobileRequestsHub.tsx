@@ -47,8 +47,8 @@ export function MobileRequestsHub() {
               type="button"
               onClick={() => setStatusFilter(option.value)}
               className={cn(
-                "px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap",
-                "min-h-[40px] transition-colors touch-manipulation",
+                "px-4 py-2.5 rounded-full text-sm font-medium whitespace-nowrap",
+                "min-h-[44px] transition-colors touch-manipulation",
                 statusFilter === option.value
                   ? "bg-primary text-primary-foreground"
                   : "bg-muted text-muted-foreground active:bg-muted/80"
@@ -65,7 +65,7 @@ export function MobileRequestsHub() {
         {isLoading ? (
           <div className="space-y-3">
             {[1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} className="h-[80px] rounded-xl" />
+              <Skeleton key={i} className="h-[88px] rounded-2xl" />
             ))}
           </div>
         ) : requests && requests.length > 0 ? (
@@ -76,7 +76,7 @@ export function MobileRequestsHub() {
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
+            <div className="h-16 w-16 rounded-2xl bg-muted flex items-center justify-center mb-4">
               <Inbox className="h-8 w-8 text-muted-foreground" />
             </div>
             <h3 className="text-base font-medium mb-1">No requests found</h3>

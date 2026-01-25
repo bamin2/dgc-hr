@@ -19,7 +19,7 @@ export function MobileProfileHeader({ employee }: MobileProfileHeaderProps) {
   };
 
   return (
-    <div className="bg-gradient-to-b from-primary/5 to-primary/10 rounded-xl p-6">
+    <div className="bg-gradient-to-b from-primary/5 to-primary/10 rounded-2xl p-6">
       <div className="flex items-center gap-4">
         <Avatar className="h-16 w-16 border-2 border-background shadow-sm">
           <AvatarImage src={employee.avatar || undefined} alt={fullName} />
