@@ -3,7 +3,6 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import Docxtemplater from "https://esm.sh/docxtemplater@3.50.0";
 import PizZip from "https://esm.sh/pizzip@3.1.7";
 import { format } from "https://esm.sh/date-fns@3.6.0";
-import { Resend } from "https://esm.sh/resend@2.0.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -437,12 +436,18 @@ serve(async (req) => {
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
     if (resendApiKey && employee.email) {
       try {
-        const resend = new Resend(resendApiKey);
         const employeeName = employee.full_name || `${employee.first_name} ${employee.last_name}`;
         const emailHtml = generateHRLetterEmail(employeeName, template.name, companySettings);
+        
+        // Clean domain from website URL
+        const fromDomain = companySettings.website
+          ?.replace('www.', '')
+          .replace('https://', '')
+          .replace('http://', '')
+          .split('/')[0] || 'dgcholding.com';
 
-        await resend.emails.send({
-          from: `HR <noreply@${companySettings.website?.replace('www.', '') || 'dgcholding.com'}>`,
+        const emailPayload = {
+          from: `HR <noreply@${fromDomain}>`,
           to: [employee.email],
           subject: `Your ${template.name} is Ready`,
           html: emailHtml,
@@ -452,8 +457,24 @@ serve(async (req) => {
               content: uint8ArrayToBase64(pdfBuffer),
             },
           ],
+        };
+
+        const emailResponse = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${resendApiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(emailPayload),
         });
-        console.log(`Email sent to ${employee.email}`);
+
+        const emailResult = await emailResponse.json();
+
+        if (!emailResponse.ok) {
+          console.error("Resend API error:", emailResult);
+        } else {
+          console.log(`Email sent to ${employee.email}, Resend ID: ${emailResult.id}`);
+        }
       } catch (emailError) {
         console.error("Failed to send email:", emailError);
         // Don't fail the request if email fails
