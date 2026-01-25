@@ -137,14 +137,12 @@ export function MyProfilePayslipsSection({ employeeId, noBorder = false }: MyPro
             Payslips
           </CardTitle>
         </HeaderWrapper>
-        <ContentWrapper className="py-10 flex flex-col items-center justify-center text-center">
-          <div className="p-4 rounded-full bg-muted/30 mb-4">
-            <Inbox className="h-8 w-8 text-muted-foreground/40" />
-          </div>
-          <h3 className="text-sm font-medium text-muted-foreground">
+        <ContentWrapper className="py-8 text-center">
+          <Inbox className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-muted-foreground">
             No Payslips Available
           </h3>
-          <p className="text-xs text-muted-foreground/70 mt-1">
+          <p className="text-sm text-muted-foreground/70 mt-1">
             Your issued payslips will appear here.
           </p>
         </ContentWrapper>
@@ -164,29 +162,29 @@ export function MyProfilePayslipsSection({ employeeId, noBorder = false }: MyPro
         {payslips.map((payslip) => (
           <div
             key={payslip.id}
-            className="flex items-center justify-between p-4 bg-muted/30 rounded-xl hover:bg-muted/40 transition-colors"
+            className="flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors"
           >
-            <div className="flex items-center gap-4 min-w-0 flex-1">
-              <div className="p-2.5 bg-background rounded-xl shrink-0">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <div className="p-2 bg-background rounded-lg">
                 <Receipt className="h-5 w-5 text-primary" />
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium">
                   {formatPayPeriod(payslip.payPeriodStart, payslip.payPeriodEnd)}
                 </p>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                  <Calendar className="h-3 w-3 shrink-0" />
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Calendar className="h-3 w-3" />
                   <span>
                     {payslip.issuedAt ? format(new Date(payslip.issuedAt), 'MMM d, yyyy') : 'N/A'}
                   </span>
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-1 shrink-0 ml-4">
+            <div className="flex items-center gap-1 shrink-0">
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9"
+                className="h-8 w-8"
                 onClick={() => handleView(payslip.id)}
                 title="View payslip"
               >
@@ -195,7 +193,7 @@ export function MyProfilePayslipsSection({ employeeId, noBorder = false }: MyPro
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9"
+                className="h-8 w-8"
                 onClick={() => handleDownload(payslip.id, payslip.payPeriodStart, payslip.payPeriodEnd)}
                 disabled={downloadingId === payslip.id}
                 title="Download payslip"
