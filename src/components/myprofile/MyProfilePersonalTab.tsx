@@ -46,7 +46,7 @@ export function MyProfilePersonalTab({ employee }: MyProfilePersonalTabProps) {
   return (
     <BentoGrid noPadding>
       {/* Contact Information */}
-      <BentoCard colSpan={6}>
+      <BentoCard colSpan={8}>
         <CardTitle className="text-base font-medium flex items-center gap-2 mb-4">
           <Phone className="h-4 w-4 text-primary" />
           Contact Information
@@ -91,7 +91,7 @@ export function MyProfilePersonalTab({ employee }: MyProfilePersonalTabProps) {
       </BentoCard>
 
       {/* Personal Information */}
-      <BentoCard colSpan={6}>
+      <BentoCard colSpan={4}>
         <CardTitle className="text-base font-medium flex items-center gap-2 mb-4">
           <User className="h-4 w-4 text-primary" />
           Personal Information
