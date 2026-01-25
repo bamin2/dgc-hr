@@ -136,6 +136,7 @@ export function SignInForm() {
               <Input
                 id="email"
                 type="email"
+                autoComplete="username"
                 placeholder="you@dgcholding.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -171,6 +172,7 @@ export function SignInForm() {
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
