@@ -1,5 +1,6 @@
 import { CardTitle } from '@/components/ui/card';
-import { Phone, AlertTriangle, User } from 'lucide-react';
+import { Phone, AlertTriangle, User, Lock } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { Employee, useUpdateEmployee } from '@/hooks/useEmployees';
 import { EditableField } from './EditableField';
 import { toast } from 'sonner';
@@ -92,51 +93,51 @@ export function MyProfilePersonalTab({ employee }: MyProfilePersonalTabProps) {
 
       {/* Personal Information */}
       <BentoCard colSpan={4}>
-        <CardTitle className="text-base font-medium flex items-center gap-2 mb-4">
-          <User className="h-4 w-4 text-primary" />
-          Personal Information
-        </CardTitle>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-foreground">Date of Birth</label>
-              <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
-                Read-only
-              </span>
-            </div>
-            <div className="p-2.5 bg-muted/50 rounded-md min-h-[40px]">
-              <span className={`text-sm ${dateOfBirth ? '' : 'text-muted-foreground'}`}>
-                {dateOfBirth || 'Not set'}
-              </span>
-            </div>
+        {/* Header with single Read-only indicator */}
+        <div className="flex items-center justify-between mb-4">
+          <CardTitle className="text-base font-medium flex items-center gap-2">
+            <User className="h-4 w-4 text-primary" />
+            Personal Information
+          </CardTitle>
+          <div className="flex items-center gap-1 text-muted-foreground">
+            <Lock className="h-3 w-3" />
+            <span className="text-xs">Read-only</span>
           </div>
-
-          <div className="space-y-1">
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-foreground">Nationality</label>
-              <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
-                Read-only
-              </span>
-            </div>
-            <div className="p-2.5 bg-muted/50 rounded-md min-h-[40px]">
-              <span className={`text-sm ${employee.nationality ? '' : 'text-muted-foreground'}`}>
-                {employee.nationality || 'Not set'}
-              </span>
-            </div>
+        </div>
+        
+        {/* Mini Bento Tiles - 2-column grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* Date of Birth Tile */}
+          <div className="bg-muted/30 rounded-xl p-4">
+            <p className="text-xs text-muted-foreground mb-1">Date of Birth</p>
+            <p className={cn(
+              "text-sm font-medium",
+              !dateOfBirth && "text-muted-foreground"
+            )}>
+              {dateOfBirth || 'Not set'}
+            </p>
           </div>
-
-          <div className="space-y-1">
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-foreground">Gender</label>
-              <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
-                Read-only
-              </span>
-            </div>
-            <div className="p-2.5 bg-muted/50 rounded-md min-h-[40px]">
-              <span className={`text-sm ${employee.gender ? '' : 'text-muted-foreground'} capitalize`}>
-                {employee.gender || 'Not set'}
-              </span>
-            </div>
+          
+          {/* Nationality Tile */}
+          <div className="bg-muted/30 rounded-xl p-4">
+            <p className="text-xs text-muted-foreground mb-1">Nationality</p>
+            <p className={cn(
+              "text-sm font-medium",
+              !employee.nationality && "text-muted-foreground"
+            )}>
+              {employee.nationality || 'Not set'}
+            </p>
+          </div>
+          
+          {/* Gender Tile - spans full width for balance */}
+          <div className="bg-muted/30 rounded-xl p-4 sm:col-span-2">
+            <p className="text-xs text-muted-foreground mb-1">Gender</p>
+            <p className={cn(
+              "text-sm font-medium capitalize",
+              !employee.gender && "text-muted-foreground"
+            )}>
+              {employee.gender || 'Not set'}
+            </p>
           </div>
         </div>
       </BentoCard>
