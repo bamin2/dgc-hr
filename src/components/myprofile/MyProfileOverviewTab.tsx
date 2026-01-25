@@ -1,11 +1,10 @@
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { 
-  User, 
   Building2, 
-  Briefcase, 
   MapPin, 
-  Calendar, 
   Users,
+  Calendar,
   Clock
 } from 'lucide-react';
 import { Employee } from '@/hooks/useEmployees';
@@ -16,29 +15,9 @@ interface MyProfileOverviewTabProps {
   employee: Employee;
 }
 
-interface InfoItemProps {
-  icon: React.ReactNode;
-  label: string;
-  value: string | undefined;
-}
-
-function InfoItem({ icon, label, value }: InfoItemProps) {
-  return (
-    <div className="flex items-start gap-3">
-      <div className="p-2 bg-primary/10 rounded-lg shrink-0">
-        {icon}
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="text-xs text-muted-foreground mb-1">{label}</p>
-        <p className="text-sm font-medium truncate">
-          {value || 'Not set'}
-        </p>
-      </div>
-    </div>
-  );
-}
-
 export function MyProfileOverviewTab({ employee }: MyProfileOverviewTabProps) {
+  const initials = `${employee.firstName[0]}${employee.lastName[0]}`.toUpperCase();
+  
   const joinDate = employee.joinDate 
     ? format(new Date(employee.joinDate), 'MMMM d, yyyy')
     : 'Not set';
@@ -61,96 +40,133 @@ export function MyProfileOverviewTab({ employee }: MyProfileOverviewTabProps) {
 
   return (
     <BentoGrid noPadding>
-      {/* Basic Information - Primary Card */}
+      {/* ROW 1 */}
+      
+      {/* Employee Overview Card */}
       <BentoCard colSpan={8}>
-        <div className="flex items-center gap-2 mb-4">
-          <User className="h-4 w-4 text-primary" />
-          <h3 className="text-base font-medium">Basic Information</h3>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Full Name</p>
-            <p className="text-sm font-medium">{employee.fullName}</p>
-          </div>
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Employee ID</p>
-            <p className="text-sm font-medium font-mono">{employee.employeeId}</p>
-          </div>
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Email</p>
-            <p className="text-sm font-medium truncate">{employee.email}</p>
-          </div>
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Status</p>
-            <Badge variant={statusVariants[employee.status] || 'default'}>
-              {statusLabels[employee.status] || employee.status}
-            </Badge>
-          </div>
-        </div>
-      </BentoCard>
+        <div className="flex items-start gap-4">
+          <Avatar className="h-16 w-16 border-2 border-border shrink-0">
+            <AvatarImage src={employee.avatar} alt={employee.fullName} />
+            <AvatarFallback className="text-lg font-semibold bg-primary text-primary-foreground">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
 
-      {/* Quick Status Summary */}
-      <BentoCard colSpan={4}>
-        <div className="flex flex-col items-center justify-center h-full text-center gap-2">
-          <Badge 
-            variant={statusVariants[employee.status] || 'default'}
-            className="text-base px-4 py-1"
-          >
-            {statusLabels[employee.status] || employee.status}
-          </Badge>
-          <p className="text-xs text-muted-foreground mt-2">
-            {employee.department || 'No department'} • {employee.position || 'No position'}
-          </p>
+          <div className="flex-1 min-w-0 space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-lg font-semibold truncate">{employee.fullName}</h2>
+              <Badge variant={statusVariants[employee.status] || 'default'}>
+                {statusLabels[employee.status] || employee.status}
+              </Badge>
+            </div>
+            
+            <p className="text-sm text-muted-foreground">{employee.position || 'No position'}</p>
+            <p className="text-sm text-muted-foreground">{employee.department || 'No department'}</p>
+            
+            <p className="text-xs text-muted-foreground font-mono">
+              ID: {employee.employeeId}
+            </p>
+          </div>
         </div>
       </BentoCard>
 
-      {/* Work Information Cards */}
+      {/* Quick Stats Card */}
       <BentoCard colSpan={4}>
-        <InfoItem
-          icon={<Building2 className="h-4 w-4 text-primary" />}
-          label="Department"
-          value={employee.department}
-        />
+        <h3 className="text-sm font-medium mb-4">Quick Stats</h3>
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Clock className="h-4 w-4 text-muted-foreground" />
+            <div>
+              <p className="text-xs text-muted-foreground">Employment Type</p>
+              <p className="text-sm font-medium">Full-time</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <MapPin className="h-4 w-4 text-muted-foreground" />
+            <div>
+              <p className="text-xs text-muted-foreground">Work Location</p>
+              <p className="text-sm font-medium truncate">
+                {employee.workLocationName || employee.location || 'Not set'}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Users className="h-4 w-4 text-muted-foreground" />
+            <div>
+              <p className="text-xs text-muted-foreground">Manager</p>
+              <p className="text-sm font-medium truncate">{employee.manager || 'Not assigned'}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <div>
+              <p className="text-xs text-muted-foreground">Join Date</p>
+              <p className="text-sm font-medium">{joinDate}</p>
+            </div>
+          </div>
+        </div>
       </BentoCard>
 
+      {/* ROW 2 */}
+
+      {/* Department Card */}
       <BentoCard colSpan={4}>
-        <InfoItem
-          icon={<Briefcase className="h-4 w-4 text-primary" />}
-          label="Position"
-          value={employee.position}
-        />
+        <div className="flex items-center gap-2 mb-3">
+          <Building2 className="h-4 w-4 text-primary" />
+          <h3 className="text-sm font-medium">Department</h3>
+        </div>
+        <div className="space-y-2">
+          <div>
+            <p className="text-xs text-muted-foreground">Department</p>
+            <p className="text-sm font-medium">{employee.department || 'Not set'}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Position</p>
+            <p className="text-sm font-medium">{employee.position || 'Not set'}</p>
+          </div>
+        </div>
       </BentoCard>
 
+      {/* Work Location Card */}
       <BentoCard colSpan={4}>
-        <InfoItem
-          icon={<MapPin className="h-4 w-4 text-primary" />}
-          label="Work Location"
-          value={employee.workLocationName || employee.location}
-        />
+        <div className="flex items-center gap-2 mb-3">
+          <MapPin className="h-4 w-4 text-primary" />
+          <h3 className="text-sm font-medium">Work Location</h3>
+        </div>
+        <div className="space-y-2">
+          <div>
+            <p className="text-xs text-muted-foreground">Location</p>
+            <p className="text-sm font-medium">
+              {employee.workLocationName || employee.location || 'Not set'}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Country</p>
+            <p className="text-sm font-medium">
+              {employee.workLocationCountry || 'Not set'}
+            </p>
+          </div>
+        </div>
       </BentoCard>
 
+      {/* Manager Card */}
       <BentoCard colSpan={4}>
-        <InfoItem
-          icon={<Users className="h-4 w-4 text-primary" />}
-          label="Manager"
-          value={employee.manager}
-        />
-      </BentoCard>
-
-      <BentoCard colSpan={4}>
-        <InfoItem
-          icon={<Calendar className="h-4 w-4 text-primary" />}
-          label="Join Date"
-          value={joinDate}
-        />
-      </BentoCard>
-
-      <BentoCard colSpan={4}>
-        <InfoItem
-          icon={<Clock className="h-4 w-4 text-primary" />}
-          label="Employment Type"
-          value="Full-time"
-        />
+        <div className="flex items-center gap-2 mb-3">
+          <Users className="h-4 w-4 text-primary" />
+          <h3 className="text-sm font-medium">Manager</h3>
+        </div>
+        <div className="space-y-2">
+          <div>
+            <p className="text-xs text-muted-foreground">Manager Name</p>
+            <p className="text-sm font-medium">{employee.manager || 'Not assigned'}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Manager Role</p>
+            <p className="text-sm font-medium text-muted-foreground">
+              Direct Supervisor
+            </p>
+          </div>
+        </div>
       </BentoCard>
     </BentoGrid>
   );
