@@ -58,6 +58,7 @@ const OfferDetail = lazy(() => import("./pages/OfferDetail"));
 const BusinessTrips = lazy(() => import("./pages/BusinessTrips"));
 const BusinessTripDetail = lazy(() => import("./pages/BusinessTripDetail"));
 const HelpCenter = lazy(() => import("./pages/HelpCenter"));
+const MobileRequestsPage = lazy(() => import("./pages/MobileRequestsPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -99,6 +100,7 @@ const App = () => (
                 
                 {/* Protected routes - All authenticated users */}
                 <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+                <Route path="/requests" element={<ProtectedRoute><DashboardLazyPage><MobileRequestsPage /></DashboardLazyPage></ProtectedRoute>} />
                 <Route path="/directory" element={<ProtectedRoute><DashboardLazyPage><Directory /></DashboardLazyPage></ProtectedRoute>} />
                 <Route path="/calendar" element={<ProtectedRoute><DashboardLazyPage><Calendar /></DashboardLazyPage></ProtectedRoute>} />
                 <Route path="/projects" element={<ProtectedRoute><DashboardLazyPage><Projects /></DashboardLazyPage></ProtectedRoute>} />
