@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Bell, ArrowRight } from "lucide-react";
+import { Bell, ArrowRight, ChevronRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BentoCard } from "./BentoCard";
 import { cn } from "@/lib/utils";
@@ -7,16 +7,23 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { formatDistanceToNow } from "date-fns";
 import { NotificationTypeBadge } from "@/components/notifications/NotificationTypeBadge";
 
-export function NotificationsCard() {
-  const { notifications, isLoading } = useNotifications();
+interface NotificationsCardProps {
+  /** Compact variant for mobile - shows 2 items with larger touch targets */
+  variant?: "default" | "compact";
+}
 
-  // Get the 3 most recent notifications (unread first)
-  const displayNotifications = notifications.slice(0, 3);
+export function NotificationsCard({ variant = "default" }: NotificationsCardProps) {
+  const { notifications, isLoading } = useNotifications();
+  const isCompact = variant === "compact";
+
+  // Get notifications based on variant
+  const displayCount = isCompact ? 2 : 3;
+  const displayNotifications = notifications.slice(0, displayCount);
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   if (isLoading) {
     return (
-      <BentoCard colSpan={5}>
+      <BentoCard colSpan={isCompact ? 12 : 5}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Skeleton className="w-5 h-5 rounded" />
@@ -25,7 +32,7 @@ export function NotificationsCard() {
           <Skeleton className="h-5 w-12 rounded-full" />
         </div>
         <div className="space-y-3">
-          {[...Array(3)].map((_, i) => (
+          {[...Array(displayCount)].map((_, i) => (
             <div key={i} className="flex items-start gap-3">
               <Skeleton className="w-8 h-8 rounded-lg shrink-0" />
               <div className="flex-1 space-y-1">
@@ -39,6 +46,75 @@ export function NotificationsCard() {
     );
   }
 
+  // Compact mobile variant
+  if (isCompact) {
+    return (
+      <BentoCard colSpan={12} className="p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Bell className="w-4 h-4 text-primary" />
+            <h3 className="font-semibold text-foreground text-sm">Notifications</h3>
+          </div>
+          {unreadCount > 0 && (
+            <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+              {unreadCount} new
+            </span>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          {displayNotifications.length === 0 ? (
+            <p className="text-center text-muted-foreground py-4 text-sm">
+              No notifications
+            </p>
+          ) : (
+            displayNotifications.map((notification) => (
+              <Link
+                key={notification.id}
+                to={notification.actionUrl || "/notifications"}
+                className={cn(
+                  "flex items-center gap-3 p-3 rounded-xl",
+                  "hover:bg-secondary/50 active:bg-secondary/70 transition-colors",
+                  "touch-manipulation min-h-[56px]",
+                  !notification.isRead && "bg-primary/5"
+                )}
+              >
+                <NotificationTypeBadge 
+                  type={notification.type} 
+                  entityType={notification.entityType}
+                  size="sm"
+                />
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-sm font-medium text-foreground truncate">
+                    {notification.title}
+                  </h4>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true })}
+                  </p>
+                </div>
+                {!notification.isRead && (
+                  <span className="w-2 h-2 rounded-full bg-primary shrink-0" />
+                )}
+                <ChevronRight className="w-4 h-4 text-muted-foreground/50 shrink-0" />
+              </Link>
+            ))
+          )}
+        </div>
+
+        {notifications.length > displayCount && (
+          <Link 
+            to="/notifications" 
+            className="flex items-center justify-center gap-1 text-sm text-primary font-medium mt-3 py-2 touch-manipulation"
+          >
+            View all notifications
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        )}
+      </BentoCard>
+    );
+  }
+
+  // Default desktop variant
   return (
     <BentoCard colSpan={5}>
       <div className="flex items-center justify-between mb-4">

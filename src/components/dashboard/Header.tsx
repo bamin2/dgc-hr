@@ -13,6 +13,7 @@ import {
 import { NotificationBell } from "@/components/notifications";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { RoleBadge } from "@/components/employees";
 import { MobileNav } from "./MobileNav";
 import { GlobalSearch } from "./GlobalSearch";

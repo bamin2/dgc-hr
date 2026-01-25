@@ -1,15 +1,23 @@
 import { useNavigate } from "react-router-dom";
-import { Plane, MapPin, Calendar, Clock } from "lucide-react";
+import { Plane, MapPin, Calendar, Clock, Plus, ChevronRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BentoCard } from "./BentoCard";
 import { useMyBusinessTrips } from "@/hooks/useBusinessTrips";
 import { useRole } from "@/contexts/RoleContext";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
-export function BusinessTripsCard() {
+interface BusinessTripsCardProps {
+  /** Compact variant for mobile - shows next trip or quick action */
+  variant?: "default" | "compact";
+}
+
+export function BusinessTripsCard({ variant = "default" }: BusinessTripsCardProps) {
   const navigate = useNavigate();
   const { canEditEmployees, isManager } = useRole();
   const { data: trips, isLoading } = useMyBusinessTrips();
+
+  const isCompact = variant === "compact";
 
   // Find next upcoming trip (approved or submitted)
   const upcomingTrip = trips?.find(
@@ -26,18 +34,68 @@ export function BusinessTripsCard() {
 
   if (isLoading) {
     return (
-      <BentoCard colSpan={4}>
+      <BentoCard colSpan={isCompact ? 12 : 4}>
         <div className="flex items-center gap-2 mb-4">
           <Skeleton className="w-5 h-5 rounded" />
           <Skeleton className="h-5 w-28" />
         </div>
         <div className="space-y-3">
-          <Skeleton className="h-20 w-full rounded-xl" />
+          <Skeleton className={cn("w-full rounded-xl", isCompact ? "h-14" : "h-20")} />
         </div>
       </BentoCard>
     );
   }
 
+  // Compact mobile variant
+  if (isCompact) {
+    return (
+      <BentoCard 
+        colSpan={12} 
+        onClick={() => navigate(upcomingTrip ? "/business-trips" : "/business-trips/new")}
+        className="cursor-pointer p-4"
+      >
+        {upcomingTrip ? (
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
+              <Plane className="w-5 h-5 text-blue-600" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-foreground truncate">
+                  {upcomingTrip.destination?.name || "Business Trip"}
+                </span>
+                <span className={cn(
+                  "text-xs px-2 py-0.5 rounded-full shrink-0",
+                  isApproved 
+                    ? "bg-green-500/10 text-green-600" 
+                    : "bg-amber-500/10 text-amber-600"
+                )}>
+                  {isApproved ? "Approved" : "Pending"}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {format(new Date(upcomingTrip.start_date), "MMM d")} - {format(new Date(upcomingTrip.end_date), "MMM d")}
+              </p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground/50 shrink-0" />
+          </div>
+        ) : (
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center shrink-0">
+              <Plus className="w-5 h-5 text-muted-foreground" />
+            </div>
+            <div className="flex-1">
+              <p className="font-medium text-foreground">Plan a Business Trip</p>
+              <p className="text-xs text-muted-foreground">Request travel for work</p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground/50 shrink-0" />
+          </div>
+        )}
+      </BentoCard>
+    );
+  }
+
+  // Default desktop variant
   return (
     <BentoCard 
       colSpan={4} 
