@@ -1,265 +1,405 @@
 
 
-# Relocate GOSI Salary and Add GOSI Deduction to Calculations
+# Refine Edit Salary Dialog Spacing and Visual Hierarchy
 
 ## Overview
 
-This change will:
-1. Move the GOSI Registered Salary input field from below Basic Salary to above the summary section
-2. Calculate and display the GOSI deduction in the Total Deductions based on the GOSI registered salary and the employee's nationality-based rate
+Improve the visual rhythm and spacing of the Edit Salary dialog by reducing excessive dividers, applying consistent section spacing, and improving the treatment of list-based sections (Allowances/Deductions) and the GOSI block.
 
 ---
 
-## Current Layout vs New Layout
+## Current Issues
+
+| Issue | Current State |
+|-------|---------------|
+| Excessive dividers | 5 `<Separator />` elements between every section |
+| Inconsistent section spacing | `space-y-6` (24px) everywhere, no differentiation |
+| List sections | No distinction between header row and list items |
+| Empty states | Simple text with `py-2`, could be more refined |
+| GOSI section | Input, helper text, and contribution not visually grouped |
+| Summary section | Internal dividers between gross pay and deductions |
+| Footer | Already has `border-t` but could use more breathing room |
+
+---
+
+## Proposed Layout Structure
 
 ```text
-CURRENT:
-┌────────────────────────────────────────┐
-│ Basic Salary                           │
-│ [________________]                     │
-├────────────────────────────────────────┤
-│ GOSI Registered Salary                 │  ← Currently here
-│ [________________]                     │
-├────────────────────────────────────────┤
-│ Allowances                         Add │
-│ • Housing: 2,000                       │
-├────────────────────────────────────────┤
-│ Deductions                         Add │
-│ • Other: 500                           │
-├────────────────────────────────────────┤
-│ Summary Box                            │  ← GOSI not included in deductions
-└────────────────────────────────────────┘
-
-NEW:
-┌────────────────────────────────────────┐
-│ Basic Salary                           │
-│ [________________]                     │
-├────────────────────────────────────────┤
-│ Allowances                         Add │
-│ • Housing: 2,000                       │
-├────────────────────────────────────────┤
-│ Deductions                         Add │
-│ • Other: 500                           │
-├────────────────────────────────────────┤
-│ GOSI Registered Salary                 │  ← Moved here
-│ [________________]                     │
-│ GOSI Deduction: 390 SAR (9.75%)        │  ← New: Shows calculated deduction
-├────────────────────────────────────────┤
-│ Summary Box                            │
-│ Basic Salary:       4,000 SAR          │
-│ Total Allowances:  +2,000 SAR          │
-│ Gross Pay:          6,000 SAR          │
-│ ────────────────────────────────       │
-│ GOSI Deduction:      -390 SAR          │  ← New line
-│ Other Deductions:    -500 SAR          │
-│ Total Deductions:    -890 SAR          │  ← Now includes GOSI
-│ ────────────────────────────────       │
-│ Net Pay:            5,110 SAR          │
-└────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│ HEADER                                                      │
+│ Edit Salary                                                 │
+│ Update compensation for John Doe                            │
+├─────────────────────────────────────────────────────────────┤
+│ BODY (scrollable)                                           │
+│                                                             │
+│ ┌─ BASIC SALARY SECTION ─────────────────────────────────┐  │
+│ │ Basic Salary                                           │  │
+│ │ [________________]                                     │  │
+│ └────────────────────────────────────────────────────────┘  │
+│                                                             │
+│ ─────────────────── divider ───────────────────────────────│
+│                                                             │
+│ ┌─ ALLOWANCES SECTION ───────────────────────────────────┐  │
+│ │ Allowances                                    [+ Add]  │  │
+│ │ ┌──────────────────────────────────────────────────┐   │  │
+│ │ │ Housing Allowance              [____2,000__] [X] │   │  │
+│ │ ├──────────────────────────────────────────────────┤   │  │
+│ │ │ Transportation                 [______500__] [X] │   │  │
+│ │ └──────────────────────────────────────────────────┘   │  │
+│ │                                                        │  │
+│ │ (or empty state: "No allowances added")                │  │
+│ └────────────────────────────────────────────────────────┘  │
+│                                                             │
+│ ─────────────────── divider ───────────────────────────────│
+│                                                             │
+│ ┌─ DEDUCTIONS SECTION ───────────────────────────────────┐  │
+│ │ Deductions                                    [+ Add]  │  │
+│ │ ┌──────────────────────────────────────────────────┐   │  │
+│ │ │ Loan Repayment                 [______300__] [X] │   │  │
+│ │ └──────────────────────────────────────────────────┘   │  │
+│ │                                                        │  │
+│ │ (or empty state: "No deductions added")                │  │
+│ └────────────────────────────────────────────────────────┘  │
+│                                                             │
+│ ─────────────────── divider (if GOSI) ────────────────────│
+│                                                             │
+│ ┌─ GOSI SECTION (visual block) ──────────────────────────┐  │
+│ │ GOSI Registered Salary                                 │  │
+│ │ [________________]                                     │  │
+│ │ Helper text...                                         │  │
+│ │                                                        │  │
+│ │ ┌────────────────────────────────────────────────────┐ │  │
+│ │ │ GOSI Employee Contribution (9.75%)        390 SAR  │ │  │
+│ │ └────────────────────────────────────────────────────┘ │  │
+│ └────────────────────────────────────────────────────────┘  │
+│                                                             │
+│ ┌─ SUMMARY BOX ──────────────────────────────────────────┐  │
+│ │ Basic Salary                              4,000 SAR    │  │
+│ │ Total Allowances                         +2,500 SAR    │  │
+│ │ Gross Pay                                 6,500 SAR    │  │
+│ │ ──────────────────────────────────────────────────     │  │
+│ │ GOSI Deduction (9.75%)                     -390 SAR    │  │
+│ │ Other Deductions                           -300 SAR    │  │
+│ │ Total Deductions                           -690 SAR    │  │
+│ │ ──────────────────────────────────────────────────     │  │
+│ │ Net Pay                                   5,810 SAR    │  │
+│ └────────────────────────────────────────────────────────┘  │
+│                                                             │
+│ ┌─ REASON SECTION ───────────────────────────────────────┐  │
+│ │ Reason for Change (Optional)                           │  │
+│ │ [____________________________]                         │  │
+│ └────────────────────────────────────────────────────────┘  │
+│                                                             │
+├─────────────────────────────────────────────────────────────┤
+│ FOOTER                                          (border-t)  │
+│                             [Cancel]  [Save Changes]        │
+└─────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## File to Modify
+
+`src/components/employees/EditSalaryDialog.tsx`
 
 ---
 
 ## Technical Changes
 
-### File: `src/components/employees/EditSalaryDialog.tsx`
+### 1. DialogBody Section Spacing
 
-### 1. Add Work Locations Hook
-
-Import and use the `useWorkLocations` hook to fetch GOSI rates:
-
-```typescript
-import { useWorkLocations, GosiNationalityRate } from "@/hooks/useWorkLocations";
-import { getCountryCodeByName } from "@/data/countries";
-```
-
-Inside the component:
-```typescript
-const { data: workLocations } = useWorkLocations();
-```
-
-### 2. Calculate GOSI Deduction Amount
-
-Add a new `useMemo` to calculate the GOSI deduction based on:
-- The employee's work location GOSI settings
-- The employee's nationality
-- The entered GOSI registered salary
-
-```typescript
-const gosiCalculation = useMemo(() => {
-  if (!employee.isSubjectToGosi || !gosiSalary) {
-    return { gosiDeduction: 0, employeeRate: 0 };
-  }
-  
-  const employeeWorkLocation = workLocations?.find(loc => loc.id === workLocationId);
-  if (!employeeWorkLocation?.gosi_enabled) {
-    return { gosiDeduction: 0, employeeRate: 0 };
-  }
-  
-  const rates = employeeWorkLocation.gosi_nationality_rates || [];
-  const nationalityCode = getCountryCodeByName(employee.nationality || '');
-  const matchingRate = rates.find(r => r.nationality === nationalityCode);
-  
-  if (!matchingRate) {
-    return { gosiDeduction: 0, employeeRate: 0 };
-  }
-  
-  const employeeRate = matchingRate.employeeRate ?? 0;
-  const gosiDeduction = (gosiSalary * employeeRate) / 100;
-  
-  return { gosiDeduction, employeeRate };
-}, [employee.isSubjectToGosi, employee.nationality, gosiSalary, workLocationId, workLocations]);
-```
-
-### 3. Update Totals Calculation
-
-Modify the `totals` useMemo to include GOSI deduction:
-
-```typescript
-const totals = useMemo(() => {
-  const totalAllowances = allowances.reduce((sum, a) => sum + a.amount, 0);
-  const otherDeductions = deductions.reduce((sum, d) => sum + d.amount, 0);
-  const grossPay = basicSalary + totalAllowances;
-  const totalDeductions = otherDeductions + gosiCalculation.gosiDeduction;
-  const netPay = grossPay - totalDeductions;
-  return { 
-    totalAllowances, 
-    otherDeductions, 
-    totalDeductions, 
-    grossPay, 
-    netPay 
-  };
-}, [basicSalary, allowances, deductions, gosiCalculation.gosiDeduction]);
-```
-
-### 4. Relocate GOSI Salary Section in JSX
-
-Move the GOSI Registered Salary section from after Basic Salary to after Deductions section (before the Summary box).
-
-**Remove from lines 238-254** (after Basic Salary)
-
-**Add after Deductions section (after line 349):**
+**Change:** Update the overall body spacing from `space-y-6` to a larger section gap.
 
 ```tsx
-{/* GOSI Section - Above Summary */}
+// From:
+<DialogBody className="space-y-6">
+
+// To:
+<DialogBody className="space-y-7">
+```
+
+This provides 28px between major sections (closer to 24-32px target).
+
+### 2. Remove Divider After Basic Salary
+
+The divider between Basic Salary and Allowances can stay as it separates the primary input from list sections.
+
+**Keep:** `<Separator />` after Basic Salary (line 269)
+
+### 3. Improve Allowances Section
+
+**Changes:**
+- Reduce internal spacing from `space-y-3` to `space-y-3` (keep for header-to-content)
+- Improve empty state styling with a bordered container
+- Keep row items with current styling but ensure consistent padding
+
+```tsx
+{/* Allowances Section */}
+<div className="space-y-3">
+  <div className="flex items-center justify-between">
+    <Label className="text-sm font-medium">Allowances</Label>
+    <Button
+      type="button"
+      variant="ghost"
+      size="sm"
+      className="h-8 text-muted-foreground hover:text-foreground"
+      onClick={() => setShowAllowanceDialog(true)}
+    >
+      <Plus className="h-4 w-4 mr-1" />
+      Add
+    </Button>
+  </div>
+  
+  {allowances.length === 0 ? (
+    <div className="py-3 px-4 text-sm text-muted-foreground text-center border border-dashed rounded-lg">
+      No allowances added
+    </div>
+  ) : (
+    <div className="space-y-2 rounded-lg border divide-y">
+      {allowances.map((allowance) => (
+        <div key={allowance.id} className="flex items-center gap-3 px-3 py-2.5">
+          {/* ... row content ... */}
+        </div>
+      ))}
+    </div>
+  )}
+</div>
+```
+
+**Key changes:**
+- "Add" button: Change from `variant="outline"` to `variant="ghost"` with muted color
+- Empty state: Add dashed border container with centered text
+- List container: Use `border` + `divide-y` instead of individual `bg-muted/30 rounded-lg` per row
+- Row padding: Change from `p-3` to `px-3 py-2.5` for tighter vertical rhythm
+
+### 4. Remove Separator Between Allowances and Deductions
+
+**Remove:** The `<Separator />` between Allowances and Deductions (line 317)
+
+The sections are visually distinct enough with their own borders.
+
+### 5. Improve Deductions Section
+
+Apply the same pattern as Allowances:
+
+```tsx
+{/* Deductions Section */}
+<div className="space-y-3">
+  <div className="flex items-center justify-between">
+    <Label className="text-sm font-medium">Deductions</Label>
+    <Button
+      type="button"
+      variant="ghost"
+      size="sm"
+      className="h-8 text-muted-foreground hover:text-foreground"
+      onClick={() => setShowDeductionDialog(true)}
+    >
+      <Plus className="h-4 w-4 mr-1" />
+      Add
+    </Button>
+  </div>
+  
+  {deductions.length === 0 ? (
+    <div className="py-3 px-4 text-sm text-muted-foreground text-center border border-dashed rounded-lg">
+      No deductions added
+    </div>
+  ) : (
+    <div className="space-y-2 rounded-lg border divide-y">
+      {deductions.map((deduction) => (
+        <div key={deduction.id} className="flex items-center gap-3 px-3 py-2.5">
+          {/* ... row content ... */}
+        </div>
+      ))}
+    </div>
+  )}
+</div>
+```
+
+### 6. GOSI Section - Group as Visual Block
+
+**Keep:** The `<Separator />` before GOSI section
+
+**Change:** Group the GOSI input, helper text, and calculated contribution into a single visual container.
+
+```tsx
+{/* GOSI Section */}
 {employee.isSubjectToGosi && (
   <>
     <Separator />
-    <div className="space-y-3">
-      <div className="space-y-2">
-        <Label htmlFor="gosiSalary">GOSI Registered Salary</Label>
-        <Input
-          id="gosiSalary"
-          type="number"
-          min="0"
-          step="0.01"
-          value={gosiSalary ?? ''}
-          onChange={(e) => setGosiSalary(e.target.value ? parseFloat(e.target.value) : null)}
-        />
-        <p className="text-xs text-muted-foreground">
-          The salary registered with GOSI for social insurance calculations
-        </p>
-      </div>
-      {gosiCalculation.gosiDeduction > 0 && (
-        <div className="flex justify-between items-center text-sm bg-amber-50/50 dark:bg-amber-950/20 p-3 rounded-lg">
-          <span className="text-muted-foreground">
-            GOSI Employee Contribution ({gosiCalculation.employeeRate}%)
-          </span>
-          <span className="text-amber-700 dark:text-amber-400 font-medium">
-            {formatAmount(gosiCalculation.gosiDeduction, currency)}
-          </span>
+    <div className="space-y-4">
+      <Label className="text-sm font-medium">GOSI</Label>
+      <div className="space-y-4 p-4 bg-muted/30 rounded-lg">
+        <div className="space-y-1.5">
+          <Label htmlFor="gosiSalary" className="text-sm text-muted-foreground">
+            Registered Salary
+          </Label>
+          <Input
+            id="gosiSalary"
+            type="number"
+            min="0"
+            step="0.01"
+            value={gosiSalary ?? ''}
+            onChange={(e) => setGosiSalary(e.target.value ? parseFloat(e.target.value) : null)}
+          />
+          <p className="text-xs text-muted-foreground">
+            The salary registered with GOSI for social insurance calculations
+          </p>
         </div>
-      )}
+        {gosiCalculation.gosiDeduction > 0 && (
+          <div className="flex justify-between items-center text-sm bg-amber-50/50 dark:bg-amber-950/20 p-3 rounded-lg border border-amber-200/50 dark:border-amber-800/30">
+            <span className="text-muted-foreground">
+              Employee Contribution ({gosiCalculation.employeeRate}%)
+            </span>
+            <span className="text-amber-700 dark:text-amber-400 font-medium">
+              {formatAmount(gosiCalculation.gosiDeduction, currency)}
+            </span>
+          </div>
+        )}
+      </div>
     </div>
   </>
 )}
 ```
 
-### 5. Update Summary Section
+**Key changes:**
+- Add section title "GOSI" as a Label
+- Wrap input + helper + contribution in a `bg-muted/30 rounded-lg` container
+- Add subtle border to the contribution highlight for better definition
+- Change input label from "GOSI Registered Salary" to just "Registered Salary" (parent section is "GOSI")
 
-Update the summary section to show GOSI deduction separately before other deductions:
+### 7. Remove Separator Before Summary
+
+**Remove:** The `<Separator />` before Summary section (line 397)
+
+The Summary box has its own background which provides visual separation.
+
+### 8. Summary Section - Adjust Internal Spacing
+
+**Change:** Remove the internal `<Separator />` elements and use spacing + font weight instead.
 
 ```tsx
 {/* Summary Section */}
-<div className="bg-muted/50 rounded-lg p-4 space-y-2">
-  <div className="flex justify-between text-sm">
-    <span className="text-muted-foreground">Basic Salary</span>
-    <span>{formatAmount(basicSalary, currency)}</span>
-  </div>
-  <div className="flex justify-between text-sm">
-    <span className="text-muted-foreground">Total Allowances</span>
-    <span className="text-green-600">+{formatAmount(totals.totalAllowances, currency)}</span>
-  </div>
-  <div className="flex justify-between text-sm">
-    <span className="text-muted-foreground">Gross Pay</span>
-    <span className="font-medium">{formatAmount(totals.grossPay, currency)}</span>
-  </div>
-  <Separator />
-  {gosiCalculation.gosiDeduction > 0 && (
+<div className="bg-muted/50 rounded-lg p-4 space-y-3">
+  {/* Gross calculations */}
+  <div className="space-y-1.5">
     <div className="flex justify-between text-sm">
-      <span className="text-muted-foreground">GOSI Deduction ({gosiCalculation.employeeRate}%)</span>
-      <span className="text-red-600">-{formatAmount(gosiCalculation.gosiDeduction, currency)}</span>
+      <span className="text-muted-foreground">Basic Salary</span>
+      <span>{formatAmount(basicSalary, currency)}</span>
     </div>
-  )}
-  {totals.otherDeductions > 0 && (
     <div className="flex justify-between text-sm">
-      <span className="text-muted-foreground">Other Deductions</span>
-      <span className="text-red-600">-{formatAmount(totals.otherDeductions, currency)}</span>
+      <span className="text-muted-foreground">Total Allowances</span>
+      <span className="text-green-600">+{formatAmount(totals.totalAllowances, currency)}</span>
     </div>
-  )}
-  <div className="flex justify-between text-sm">
-    <span className="text-muted-foreground">Total Deductions</span>
-    <span className="text-red-600">-{formatAmount(totals.totalDeductions, currency)}</span>
+    <div className="flex justify-between text-sm font-medium pt-1 border-t border-border/50">
+      <span>Gross Pay</span>
+      <span>{formatAmount(totals.grossPay, currency)}</span>
+    </div>
   </div>
-  <Separator />
-  <div className="flex justify-between font-semibold">
+  
+  {/* Deductions */}
+  <div className="space-y-1.5 pt-2">
+    {gosiCalculation.gosiDeduction > 0 && (
+      <div className="flex justify-between text-sm">
+        <span className="text-muted-foreground">GOSI ({gosiCalculation.employeeRate}%)</span>
+        <span className="text-red-600">-{formatAmount(gosiCalculation.gosiDeduction, currency)}</span>
+      </div>
+    )}
+    {totals.otherDeductions > 0 && (
+      <div className="flex justify-between text-sm">
+        <span className="text-muted-foreground">Other Deductions</span>
+        <span className="text-red-600">-{formatAmount(totals.otherDeductions, currency)}</span>
+      </div>
+    )}
+    <div className="flex justify-between text-sm font-medium pt-1 border-t border-border/50">
+      <span>Total Deductions</span>
+      <span className="text-red-600">-{formatAmount(totals.totalDeductions, currency)}</span>
+    </div>
+  </div>
+  
+  {/* Net Pay */}
+  <div className="flex justify-between font-semibold text-base pt-2 border-t">
     <span>Net Pay</span>
     <span className="text-primary">{formatAmount(totals.netPay, currency)}</span>
   </div>
 </div>
 ```
 
----
+**Key changes:**
+- Group related items (gross calcs, deductions, net pay) into sub-groups
+- Use `border-t border-border/50` (subtle) for sub-totals
+- Use full `border-t` for Net Pay (strong separation)
+- Remove explicit `<Separator />` components
+- Add `space-y-1.5` for tighter line spacing within groups
+- Increase Net Pay to `text-base` for emphasis
 
-## Summary of Changes
+### 9. Reason Section - Tighten Spacing
 
-| Location | Change |
-|----------|--------|
-| Imports | Add `useWorkLocations`, `getCountryCodeByName` |
-| New `useMemo` | Add `gosiCalculation` for GOSI deduction calculation |
-| Totals `useMemo` | Include GOSI deduction in total deductions |
-| JSX structure | Move GOSI salary input to after Deductions section |
-| Summary section | Show GOSI deduction as separate line item |
+**Change:** Reduce spacing between label and input.
 
----
-
-## Data Flow
-
-```text
-gosiSalary state changes
-         │
-         ▼
-gosiCalculation useMemo recalculates
-├── Looks up work location GOSI settings
-├── Finds nationality-based rate
-└── Calculates: gosiSalary × employeeRate / 100
-         │
-         ▼
-totals useMemo recalculates
-├── totalDeductions = otherDeductions + gosiDeduction
-└── netPay = grossPay - totalDeductions
-         │
-         ▼
-UI re-renders with updated values
+```tsx
+{/* Reason for Change */}
+<div className="space-y-1.5">
+  <Label htmlFor="reason" className="text-sm">Reason for Change (Optional)</Label>
+  <Textarea
+    id="reason"
+    placeholder="e.g., Annual salary review, Promotion, etc."
+    value={reason}
+    onChange={(e) => setReason(e.target.value)}
+    rows={2}
+  />
+</div>
 ```
+
+**Change:** From `space-y-2` to `space-y-1.5`
+
+### 10. Footer Spacing
+
+The DialogFooter already has `pt-4 border-t mt-2` which is good. For extra breathing room, add more top margin to the footer or bottom padding to the body.
+
+**Change:** Add `mt-4` to DialogFooter via className override:
+
+```tsx
+<DialogFooter className="mt-4">
+  {/* buttons */}
+</DialogFooter>
+```
+
+---
+
+## Summary of Divider Changes
+
+| Location | Current | New |
+|----------|---------|-----|
+| After Basic Salary | `<Separator />` | Keep (major section break) |
+| After Allowances | `<Separator />` | Remove (list sections self-contained) |
+| Before GOSI | `<Separator />` | Keep (major section break) |
+| Before Summary | `<Separator />` | Remove (Summary has bg) |
+| Inside Summary (2x) | `<Separator />` | Replace with subtle border-t |
+
+**Result:** 5 Separators → 2 Separators + subtle borders
+
+---
+
+## Spacing Summary
+
+| Element | Current | New |
+|---------|---------|-----|
+| DialogBody sections | `space-y-6` (24px) | `space-y-7` (28px) |
+| Section header to content | `space-y-3` (12px) | `space-y-3` (keep) |
+| Label to input | `space-y-2` (8px) | `space-y-1.5` (6px) |
+| List item rows | `p-3` | `px-3 py-2.5` |
+| Summary internal | `space-y-2` | `space-y-1.5` per group |
+| Footer margin | `mt-2` | `mt-4` |
 
 ---
 
 ## Expected Result
 
-- GOSI Registered Salary field appears after the Deductions section, just above the summary
-- When GOSI salary is entered, the calculated GOSI deduction is shown inline
-- The summary box shows GOSI deduction as a separate line
-- Total Deductions correctly includes both GOSI and other deductions
-- Net Pay is calculated correctly with all deductions
+- Cleaner visual hierarchy with fewer horizontal dividers
+- Allowances and Deductions feel like cohesive list containers
+- Empty states are visually distinct and informative
+- GOSI section is a clear visual block
+- Summary section has better internal grouping
+- More breathing room before footer
+- Overall dialog feels less cluttered and more organized
 
