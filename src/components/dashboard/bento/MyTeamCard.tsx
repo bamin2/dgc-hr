@@ -15,7 +15,7 @@ export function MyTeamCard() {
 
   if (isLoading) {
     return (
-      <BentoCard colSpan={4}>
+      <BentoCard colSpan={3}>
         <div className="flex items-center gap-2 mb-4">
           <Skeleton className="w-5 h-5 rounded" />
           <Skeleton className="h-5 w-20" />
@@ -33,7 +33,7 @@ export function MyTeamCard() {
   const upcomingTimeOff = data?.upcomingTimeOff || [];
 
   return (
-    <BentoCard colSpan={4}>
+    <BentoCard colSpan={3}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Users className="w-5 h-5 text-primary" />

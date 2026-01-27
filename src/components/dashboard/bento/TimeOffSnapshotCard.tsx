@@ -77,10 +77,9 @@ export function TimeOffSnapshotCard({ variant = "default" }: TimeOffSnapshotCard
     );
   }
 
-  // Default desktop variant
   return (
     <BentoCard 
-      colSpan={4} 
+      colSpan={3} 
       onClick={() => navigate("/leave")}
       className="cursor-pointer"
     >

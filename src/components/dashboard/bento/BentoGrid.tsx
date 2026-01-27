@@ -15,12 +15,11 @@ export function BentoGrid({ children, className, noPadding = false }: BentoGridP
   return (
     <div
       className={cn(
-        // Grid layout
-        "grid grid-cols-1 lg:grid-cols-12 gap-4",
+        // Grid layout - aligned to 8-column system
+        // Desktop: 8 columns, Tablet: 6 columns, Mobile: 1 column
+        "grid grid-cols-1 sm:grid-cols-6 lg:grid-cols-8 gap-4",
         // Container constraints (only when not nested)
-        !noPadding && "max-w-[1280px] mx-auto",
-        // Responsive padding (only when not nested)
-        !noPadding && "px-4 sm:px-6",
+        !noPadding && "max-w-[1152px] mx-auto",
         className
       )}
     >

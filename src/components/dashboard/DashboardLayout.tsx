@@ -30,13 +30,19 @@ export function DashboardLayout({
           <div 
             className={cn(
               "w-full min-h-full",
-              !noPadding && "px-4 sm:px-6 lg:px-8 xl:px-12 py-4 sm:py-6",
-              !fullWidth && "max-w-[1600px] mx-auto",
+              // Use 24px padding (px-6) consistently on desktop
+              !noPadding && "px-4 sm:px-6 py-4 sm:py-6",
               // Add bottom padding on mobile for the navigation bar
               isMobile && "pb-24"
             )}
           >
-            {children}
+            {/* Inner container for grid centering - max 1152px */}
+            <div className={cn(
+              "w-full mx-auto",
+              !fullWidth && "max-w-[1152px]"
+            )}>
+              {children}
+            </div>
           </div>
         </main>
       </div>

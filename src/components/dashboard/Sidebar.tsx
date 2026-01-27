@@ -95,7 +95,7 @@ export function Sidebar() {
     <aside
       className={cn(
         "hidden lg:flex flex-col bg-sidebar text-sidebar-foreground transition-all duration-300 ease-in-out h-full shrink-0",
-        collapsed ? "w-20" : "w-64"
+        collapsed ? "w-20" : "w-60"  // w-60 = 240px (spec), w-20 = 80px collapsed
       )}
     >
       {/* Logo Section - DGC Branding */}

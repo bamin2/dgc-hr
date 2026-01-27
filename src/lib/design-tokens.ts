@@ -183,6 +183,49 @@ export const gridLayouts = {
 } as const;
 
 // ============================================
+// LAYOUT GRID - 8-Column Desktop System
+// ============================================
+export const layoutGrid = {
+  /** Header height */
+  headerHeight: {
+    mobile: 'h-14',       // 56px
+    tablet: 'h-16',       // 64px
+    desktop: 'h-20',      // 80px
+  },
+  /** Sidebar width */
+  sidebarWidth: {
+    collapsed: 'w-20',    // 80px
+    expanded: 'w-60',     // 240px
+  },
+  /** App outer padding */
+  appPadding: 'px-4 sm:px-6',  // 16px mobile, 24px desktop
+  /** Grid container max width */
+  gridMaxWidth: 'max-w-[1152px]',
+  /** Column specifications */
+  columns: {
+    count: 8,
+    width: '130px',
+    gap: '16px',          // gap-4
+  },
+} as const;
+
+// ============================================
+// GRID COLUMN SPANS
+// ============================================
+export const gridSpans = {
+  /** Full width: 8 columns */
+  full: 'col-span-1 sm:col-span-6 lg:col-span-8',
+  /** Half: 4 columns */
+  half: 'col-span-1 sm:col-span-3 lg:col-span-4',
+  /** Third: ~3 columns (rounded) */
+  third: 'col-span-1 sm:col-span-2 lg:col-span-3',
+  /** Two-thirds: 5 columns */
+  twoThirds: 'col-span-1 sm:col-span-4 lg:col-span-5',
+  /** Quarter: 2 columns */
+  quarter: 'col-span-1 sm:col-span-2 lg:col-span-2',
+} as const;
+
+// ============================================
 // Z-INDEX SCALE
 // ============================================
 export const zIndex = {

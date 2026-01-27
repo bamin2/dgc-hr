@@ -30,7 +30,7 @@ export function ApprovalsSummaryCard() {
 
   if (isLoading) {
     return (
-      <BentoCard colSpan={4}>
+      <BentoCard colSpan={3}>
         <div className="flex items-center gap-2 mb-4">
           <Skeleton className="w-5 h-5 rounded" />
           <Skeleton className="h-5 w-28" />
@@ -44,7 +44,7 @@ export function ApprovalsSummaryCard() {
   }
 
   return (
-    <BentoCard colSpan={4}>
+    <BentoCard colSpan={3}>
       <div className="flex items-center gap-2 mb-4">
         <ClipboardCheck className="w-5 h-5 text-primary" />
         <h3 className="font-semibold text-foreground">Pending Approvals</h3>
