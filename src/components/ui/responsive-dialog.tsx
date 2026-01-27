@@ -98,7 +98,7 @@ export function ResponsiveDialog({
           className="h-[90vh] flex flex-col p-0 rounded-t-xl"
         >
           {/* Header */}
-          <SheetHeader className="px-4 py-4 border-b shrink-0">
+          <SheetHeader className="px-4 py-5 border-b shrink-0">
             <SheetTitle>{title}</SheetTitle>
             {description && (
               <SheetDescription>{description}</SheetDescription>
@@ -106,13 +106,13 @@ export function ResponsiveDialog({
           </SheetHeader>
 
           {/* Scrollable Content */}
-          <div className={cn("flex-1 overflow-y-auto px-4 py-4", className)}>
+          <div className={cn("flex-1 overflow-y-auto px-4 py-5", className)}>
             {children}
           </div>
 
           {/* Footer */}
           {footer && (
-            <div className="shrink-0 border-t bg-background px-4 py-4">
+            <div className="shrink-0 border-t bg-background px-4 py-5">
               {footer}
             </div>
           )}
@@ -139,7 +139,7 @@ export function ResponsiveDialog({
         </DialogHeader>
 
         {/* Scrollable Content */}
-        <div className={cn("flex-1 overflow-y-auto px-6 py-4", className)}>
+        <div className={cn("flex-1 overflow-y-auto px-6 py-5", className)}>
           {children}
         </div>
 

@@ -19,7 +19,7 @@ export const SettingsCard = ({
 }: SettingsCardProps) => {
   return (
     <Card className={className}>
-      <CardHeader className="pb-4">
+      <CardHeader className="pb-5">
         <div className="flex items-center gap-3">
           {Icon && (
             <div className="p-2 rounded-lg bg-primary/10">

@@ -44,7 +44,7 @@ export function MyLeaveBalanceCard({ leaveBalances, isLoading }: MyLeaveBalanceC
           My Leave Balance
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-5">
         {mainBalances.length === 0 ? (
           <p className="text-sm text-muted-foreground">No leave balances available</p>
         ) : (

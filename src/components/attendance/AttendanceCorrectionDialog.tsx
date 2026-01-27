@@ -67,7 +67,7 @@ export function AttendanceCorrectionDialog({
             Submit a correction request for {formattedDate}. This will require approval from your manager and HR.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           {/* Original Times */}
           <div className="rounded-lg bg-muted/50 p-3 space-y-2">
             <p className="text-sm font-medium text-muted-foreground">Original Times</p>

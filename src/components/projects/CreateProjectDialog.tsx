@@ -100,7 +100,7 @@ export function CreateProjectDialog({ open, onOpenChange, defaultStatus = 'todo'
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-4 py-4">
+        <div className="grid gap-5 py-5">
           {/* Title */}
           <div className="grid gap-2">
             <Label htmlFor="title">Title</Label>
