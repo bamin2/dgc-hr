@@ -78,11 +78,11 @@ export const BanksSection = () => {
         </CardHeader>
         <CardContent>
           {banks && banks.length > 0 ? (
-            <div className="space-y-2">
+            <div className="space-y-3">
               {banks.map((bank) => (
                 <div
                   key={bank.id}
-                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     <div>

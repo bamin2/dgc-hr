@@ -58,7 +58,7 @@ export function MyLoansCard({ loans, isLoading, currency = 'SAR' }: MyLoansCardP
           My Loans
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-4">
         <div className="flex items-center justify-between">
           <span className="text-sm text-muted-foreground">Outstanding Balance</span>
           <span className="text-lg font-semibold">{formatCurrency(totalOutstanding)}</span>

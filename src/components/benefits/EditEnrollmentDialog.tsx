@@ -9,7 +9,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -176,8 +175,6 @@ export const EditEnrollmentDialog = ({
               </div>
             </div>
 
-            <Separator />
-
             {/* Plan Info - Read Only */}
             <div className="space-y-2">
               <Label className="text-muted-foreground">Plan</Label>
@@ -187,10 +184,8 @@ export const EditEnrollmentDialog = ({
               </div>
             </div>
 
-            <Separator />
-
             {/* Editable Fields */}
-            <div className="space-y-4">
+            <div className="space-y-5">
               {/* Coverage Level */}
               <div className="space-y-2">
                 <Label htmlFor="coverage-level">Coverage Level</Label>
@@ -277,28 +272,23 @@ export const EditEnrollmentDialog = ({
 
             {/* Car Park Spot Location */}
             {isCarParkPlan && (
-              <>
-                <Separator />
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-indigo-700 dark:text-indigo-400">
-                    <Car className="h-4 w-4" />
-                    <Label className="font-medium">Car Park Assignment</Label>
-                  </div>
-                  <div className="space-y-2">
-                    <Input
-                      placeholder="e.g., Building A - Level 2, Spot 45"
-                      value={spotLocation}
-                      onChange={(e) => setSpotLocation(e.target.value)}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      The assigned parking spot location for this employee.
-                    </p>
-                  </div>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-indigo-700 dark:text-indigo-400">
+                  <Car className="h-4 w-4" />
+                  <Label className="font-medium">Car Park Assignment</Label>
                 </div>
-              </>
+                <div className="space-y-2">
+                  <Input
+                    placeholder="e.g., Building A - Level 2, Spot 45"
+                    value={spotLocation}
+                    onChange={(e) => setSpotLocation(e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    The assigned parking spot location for this employee.
+                  </p>
+                </div>
+              </div>
             )}
-
-            <Separator />
 
             {/* Beneficiaries */}
             <div className="space-y-3">
@@ -335,10 +325,8 @@ export const EditEnrollmentDialog = ({
               )}
             </div>
 
-            <Separator />
-
             {/* Cost Summary */}
-            <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+            <div className="bg-muted/50 rounded-lg p-4 space-y-3">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Employee pays</span>
                 <span className="font-medium">{formatPlanCurrency(employeeCost)}</span>
@@ -347,8 +335,7 @@ export const EditEnrollmentDialog = ({
                 <span className="text-muted-foreground">Employer pays</span>
                 <span className="font-medium text-emerald-600">{formatPlanCurrency(employerCost)}</span>
               </div>
-              <Separator />
-              <div className="flex justify-between">
+              <div className="border-t pt-3 flex justify-between">
                 <span className="font-medium">Total Monthly Cost</span>
                 <span className="font-semibold">{formatPlanCurrency(totalCost)}</span>
               </div>

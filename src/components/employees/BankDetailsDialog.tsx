@@ -85,7 +85,7 @@ export function BankDetailsDialog({ open, onOpenChange, employee }: BankDetailsD
         <DialogHeader>
           <DialogTitle>Edit Bank Details</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 py-4">
+        <div className="space-y-5 py-5">
           <div className="space-y-2">
             <Label htmlFor="bankName">Bank Name</Label>
             <Select value={bankName} onValueChange={setBankName}>
