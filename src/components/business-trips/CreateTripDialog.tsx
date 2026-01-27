@@ -235,7 +235,7 @@ export function CreateTripDialog({ open, onOpenChange }: CreateTripDialogProps) 
             </FormSection>
 
             {/* Dates */}
-            <FormSection title="Travel Dates" separator>
+            <FormSection title="Travel Dates">
               <FormFieldGroup>
                 <FormField
                   control={form.control}
@@ -312,7 +312,7 @@ export function CreateTripDialog({ open, onOpenChange }: CreateTripDialogProps) 
             </FormSection>
 
             {/* Travel Options */}
-            <FormSection title="Travel Options" separator>
+            <FormSection title="Travel Options">
               <FormField
                 control={form.control}
                 name="travel_mode"
@@ -394,13 +394,12 @@ export function CreateTripDialog({ open, onOpenChange }: CreateTripDialogProps) 
                   <span className="font-medium">BHD {perDiemRate.toFixed(3)}/night</span>
                 </div>
                 {watchedValues.travel_mode === 'car' && (
-                  <div className="flex justify-between">
+                  <div className="flex justify-between pt-1">
                     <span className="text-muted-foreground">Car Uplift:</span>
-                    <span className="font-medium">BHD {carUpliftTotal.toFixed(3)}</span>
+                    <span className="font-medium">+BHD {carUpliftTotal.toFixed(3)}</span>
                   </div>
                 )}
-                <div className="border-t my-2" />
-                <div className="flex justify-between">
+                <div className="flex justify-between pt-3 border-t border-border/50">
                   <span className="text-muted-foreground">Per Diem Budget:</span>
                   <span className="font-semibold">BHD {budget.toFixed(3)}</span>
                 </div>

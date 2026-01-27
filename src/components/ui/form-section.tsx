@@ -9,12 +9,14 @@ interface FormSectionProps {
   description?: string;
   /** Form fields */
   children: React.ReactNode;
-  /** Show separator above section */
+  /** Show separator above section (deprecated - use spacing instead) */
   separator?: boolean;
   /** Additional class names */
   className?: string;
   /** Content layout - grid for side-by-side fields */
   layout?: "stack" | "grid";
+  /** Visual variant - surface adds subtle background container */
+  variant?: "default" | "surface";
 }
 
 /**
@@ -44,29 +46,32 @@ export function FormSection({
   separator = false,
   className,
   layout = "stack",
+  variant = "default",
 }: FormSectionProps) {
+  const contentClasses = cn(
+    layout === "grid"
+      ? "grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6"
+      : "space-y-4"
+  );
+
   return (
     <div className={cn("space-y-4", className)}>
-      {separator && <Separator className="my-6" />}
-      
       {/* Section Header */}
       <div className="space-y-1">
-        <h3 className="text-lg font-medium text-foreground">{title}</h3>
+        <h3 className="text-base font-medium text-foreground">{title}</h3>
         {description && (
           <p className="text-sm text-muted-foreground">{description}</p>
         )}
       </div>
 
       {/* Section Content */}
-      <div
-        className={cn(
-          layout === "grid"
-            ? "grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6"
-            : "space-y-4"
-        )}
-      >
-        {children}
-      </div>
+      {variant === "surface" ? (
+        <div className="bg-white/60 dark:bg-white/5 rounded-xl p-4">
+          <div className={contentClasses}>{children}</div>
+        </div>
+      ) : (
+        <div className={contentClasses}>{children}</div>
+      )}
     </div>
   );
 }
