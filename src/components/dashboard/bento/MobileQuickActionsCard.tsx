@@ -2,15 +2,19 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   CalendarPlus, 
-  Plane, 
-  FileText, 
-  Palmtree,
-  ChevronRight
+  Banknote, 
+  Receipt, 
+  FileText,
+  CheckSquare,
+  BookUser
 } from "lucide-react";
 import { BentoCard } from "./BentoCard";
-import { useAuth } from "@/contexts/AuthContext";
+import { useRole } from "@/contexts/RoleContext";
+import { useMyEmployee } from "@/hooks/useMyEmployee";
 import { RequestTimeOffDialog } from "@/components/timeoff/RequestTimeOffDialog";
+import { EmployeeRequestLoanDialog } from "@/components/loans/EmployeeRequestLoanDialog";
 import { RequestHRDocumentDialog } from "@/components/approvals/RequestHRDocumentDialog";
+import { MobilePayslipsSheet } from "@/components/myprofile/mobile/MobilePayslipsSheet";
 import { cn } from "@/lib/utils";
 
 interface QuickActionItem {
@@ -21,26 +25,24 @@ interface QuickActionItem {
 }
 
 /**
- * Mobile-optimized 2x2 grid of quick actions
- * Large touch targets (min 48px) for native-like feel
+ * Mobile Quick Actions - 2x2 grid of common employee actions
+ * Shows role-based additional actions for Managers/HR/Admins
  */
 export function MobileQuickActionsCard() {
   const navigate = useNavigate();
-  const { profile } = useAuth();
+  const { isManager, canEditEmployees } = useRole();
+  const { data: employee } = useMyEmployee();
   
   const [isTimeOffDialogOpen, setIsTimeOffDialogOpen] = useState(false);
+  const [isLoanDialogOpen, setIsLoanDialogOpen] = useState(false);
   const [isHRLetterDialogOpen, setIsHRLetterDialogOpen] = useState(false);
+  const [isPayslipsSheetOpen, setIsPayslipsSheetOpen] = useState(false);
 
-  const firstName = profile?.first_name || "there";
-  
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Good morning";
-    if (hour < 17) return "Good afternoon";
-    return "Good evening";
-  };
+  // Show manager actions for Manager, HR, or Admin roles
+  const showManagerActions = isManager || canEditEmployees;
 
-  const actions: QuickActionItem[] = [
+  // Base actions available to all employees
+  const baseActions: QuickActionItem[] = [
     {
       label: "Request Time Off",
       icon: CalendarPlus,
@@ -48,16 +50,16 @@ export function MobileQuickActionsCard() {
       color: "bg-primary/10 text-primary",
     },
     {
-      label: "Business Trip",
-      icon: Plane,
-      onClick: () => navigate("/business-trips/new"),
-      color: "bg-blue-500/10 text-blue-600",
+      label: "Request Loan",
+      icon: Banknote,
+      onClick: () => setIsLoanDialogOpen(true),
+      color: "bg-emerald-500/10 text-emerald-600",
     },
     {
-      label: "View Balance",
-      icon: Palmtree,
-      onClick: () => navigate("/time-off"),
-      color: "bg-green-500/10 text-green-600",
+      label: "View Payslip",
+      icon: Receipt,
+      onClick: () => setIsPayslipsSheetOpen(true),
+      color: "bg-blue-500/10 text-blue-600",
     },
     {
       label: "HR Letter",
@@ -67,22 +69,35 @@ export function MobileQuickActionsCard() {
     },
   ];
 
+  // Manager/HR-only actions
+  const managerActions: QuickActionItem[] = showManagerActions ? [
+    {
+      label: "Approvals",
+      icon: CheckSquare,
+      onClick: () => navigate("/approvals"),
+      color: "bg-violet-500/10 text-violet-600",
+    },
+    {
+      label: "Directory",
+      icon: BookUser,
+      onClick: () => navigate("/directory"),
+      color: "bg-rose-500/10 text-rose-600",
+    },
+  ] : [];
+
+  const allActions = [...baseActions, ...managerActions];
+
   return (
     <>
       <BentoCard colSpan={12} className="p-4">
-        {/* Compact greeting */}
-        <div className="mb-4">
-          <h1 className="text-lg font-semibold text-foreground">
-            {getGreeting()}, {firstName}!
-          </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            What would you like to do?
-          </p>
-        </div>
+        {/* Section Header */}
+        <h2 className="text-sm font-semibold text-foreground mb-3">
+          Quick Actions
+        </h2>
 
-        {/* 2x2 Action Grid - large touch targets */}
+        {/* 2-column Action Grid - large touch targets */}
         <div className="grid grid-cols-2 gap-3">
-          {actions.map((action) => {
+          {allActions.map((action) => {
             const Icon = action.icon;
             return (
               <button
@@ -110,13 +125,23 @@ export function MobileQuickActionsCard() {
         </div>
       </BentoCard>
 
+      {/* Dialogs */}
       <RequestTimeOffDialog
         open={isTimeOffDialogOpen}
         onOpenChange={setIsTimeOffDialogOpen}
       />
+      <EmployeeRequestLoanDialog
+        open={isLoanDialogOpen}
+        onOpenChange={setIsLoanDialogOpen}
+      />
       <RequestHRDocumentDialog
         open={isHRLetterDialogOpen}
         onOpenChange={setIsHRLetterDialogOpen}
+      />
+      <MobilePayslipsSheet
+        open={isPayslipsSheetOpen}
+        onOpenChange={setIsPayslipsSheetOpen}
+        employeeId={employee?.id}
       />
     </>
   );
