@@ -1,315 +1,209 @@
 
-
-# Standardize Button Styles Across the App
+# Enhance List and Table Row Interactions
 
 ## Overview
-Create a consistent, refined button system where primary actions clearly stand out from secondary actions. This involves updating the core Button component with standardized sizing, refined styling, and ensuring visual hierarchy is maintained throughout the app.
+Add subtle hover effects to existing table rows and list items to improve visual feedback and depth. This creates a more interactive feel without converting any tables into cards or changing row heights.
 
 ## Design Specifications
 
-### Primary Buttons (liquidGlass)
+### Hover Effect Values
 ```text
-Property              Current Value                    Updated Value
-──────────────────────────────────────────────────────────────────────────────
-Height                h-12 sm:h-[52px]                 h-12 (fixed 48px)
-Text Size             text-sm sm:text-base             text-sm (fixed)
-Gradient              ✓ Keep existing                  ✓ Keep existing
-Shadow                Multi-layer with glow effect     Subtle shadows only
-Border Radius         rounded-[20px]                   rounded-[20px] (keep)
+Property              Current State              Enhanced State
+──────────────────────────────────────────────────────────────────
+Background            hover:bg-muted/30-50       hover:bg-white/60
+Shadow                (none)                     hover:shadow-sm
+Transition            (varies)                   transition-all duration-200
+Row Height            (unchanged)                (unchanged)
 ```
 
-### Secondary/Cancel Buttons (liquidGlassSecondary)
-```text
-Property              Current Value                    Updated Value
-──────────────────────────────────────────────────────────────────────────────
-Height                h-11 sm:h-12                     h-12 (match primary)
-Background            bg-black/[0.03]                  bg-white/60
-Border                border-black/10                  border-white/50
-Backdrop              (none)                           backdrop-blur-sm
-Shadow                Multi-layer shadows              Minimal/none
-Border Radius         rounded-[20px]                   rounded-[20px] (keep)
-```
-
-### Outline Buttons (toolbar/secondary actions)
-Update `outline` variant for consistency when used alongside liquidGlass buttons:
-- Background: `bg-white/60` 
-- Border: `border-white/50`
-- Backdrop: `backdrop-blur-sm`
-- No heavy shadows
+### Alignment with Design System
+The new hover effect (`bg-white/60 shadow-sm`) aligns with the existing liquid glass aesthetic:
+- Cards already use `bg-white/80` with `shadow-[0_4px_12px_rgba(0,0,0,0.04)]`
+- Buttons use `bg-white/60` with `backdrop-blur-sm`
+- This creates a subtle "lift" effect consistent with the glass surface system
 
 ## Implementation Plan
 
-### Step 1: Update Button Component Core Variants
+### Step 1: Update Core TableRow Component
 
-**File:** `src/components/ui/button.tsx`
+**File:** `src/components/ui/table.tsx`
 
-#### Update `liquidGlass` variant:
-Change from:
-```tsx
-liquidGlass: [
-  "bg-gradient-to-b from-[#18171C] to-[#312F37]",
-  "text-white font-medium",
-  "border border-[#18171C]",
-  "rounded-[20px]",
-  "btn-liquid-glass-shadow",  // Complex multi-layer shadow
-  "transition-all duration-200",
-  "hover:brightness-110 hover:-translate-y-px hover:btn-liquid-glass-shadow-hover",
-  "active:translate-y-px active:btn-liquid-glass-shadow-active",
-  "focus-visible:ring-[#C6A45E]/40",
-].join(" ")
-```
+Update the base `TableRow` component to include the enhanced hover effect:
 
-To:
-```tsx
-liquidGlass: [
-  "bg-gradient-to-b from-[#18171C] to-[#312F37]",
-  "text-white text-sm font-medium",
-  "border border-[#18171C]",
-  "rounded-[20px]",
-  "shadow-[0_2px_8px_rgba(0,0,0,0.15)]",  // Subtle shadow only
-  "transition-all duration-200",
-  "hover:brightness-110 hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(0,0,0,0.2)]",
-  "active:translate-y-px active:shadow-[0_1px_4px_rgba(0,0,0,0.1)]",
-  "focus-visible:ring-2 focus-visible:ring-[#C6A45E]/40 focus-visible:ring-offset-2",
-].join(" ")
-```
+| Property | Current | Updated |
+|----------|---------|---------|
+| Hover background | `hover:bg-muted/50` | `hover:bg-white/60 dark:hover:bg-white/10` |
+| Hover shadow | (none) | `hover:shadow-sm` |
+| Transition | `transition-colors` | `transition-all duration-200` |
 
-#### Update `liquidGlassSecondary` variant:
-Change from:
-```tsx
-liquidGlassSecondary: [
-  "bg-black/[0.03] dark:bg-white/[0.08]",
-  "text-foreground/80 font-medium",
-  "border border-black/10 dark:border-white/15",
-  "rounded-[20px]",
-  "btn-liquid-glass-secondary-shadow",
-  ...
-].join(" ")
-```
+This change propagates to all TableRow usages automatically.
 
-To:
-```tsx
-liquidGlassSecondary: [
-  "bg-white/60 dark:bg-white/10",
-  "text-foreground font-medium text-sm",
-  "border border-white/50 dark:border-white/20",
-  "backdrop-blur-sm",
-  "rounded-[20px]",
-  "transition-all duration-200",
-  "hover:bg-white/70 dark:hover:bg-white/15 hover:-translate-y-px",
-  "active:translate-y-px",
-  "focus-visible:ring-2 focus-visible:ring-foreground/20 focus-visible:ring-offset-2",
-].join(" ")
-```
+### Step 2: Update Approval Cards
 
-#### Update `outline` variant for glass consistency:
-Change from:
-```tsx
-outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground"
-```
+Cards used for approval workflows should have enhanced interactivity:
 
-To:
-```tsx
-outline: [
-  "bg-white/60 dark:bg-white/10",
-  "border border-white/50 dark:border-white/20",
-  "backdrop-blur-sm",
-  "hover:bg-white/70 dark:hover:bg-white/15",
-  "hover:text-accent-foreground",
-].join(" ")
-```
+**File:** `src/components/approvals/ApprovalCard.tsx`
 
-#### Update size variants:
-Change from:
-```tsx
-size: {
-  default: "h-10 px-4 py-2",
-  sm: "h-9 px-3",
-  lg: "h-11 px-8",
-  icon: "h-11 w-11",
-  "icon-sm": "h-9 w-9",
-  liquidGlass: "h-12 sm:h-[52px] px-5 sm:px-6 text-sm sm:text-base",
-  liquidGlassSecondary: "h-11 sm:h-12 px-4 sm:px-5 text-sm",
-}
-```
+Add hover effect to the main Card wrapper (for time_off and loan sections):
+- Line 49: Add `hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm` to Card
+- Line 160: Add same hover effect to loan Card
 
-To:
-```tsx
-size: {
-  default: "h-10 px-4 py-2",
-  sm: "h-9 px-3",
-  lg: "h-12 px-6",  // Updated: h-11 → h-12
-  icon: "h-11 w-11",
-  "icon-sm": "h-9 w-9",
-  liquidGlass: "h-12 px-6",  // Fixed height, consistent padding
-  liquidGlassSecondary: "h-12 px-5",  // Match primary height
-}
-```
+**File:** `src/components/approvals/MobileApprovalCard.tsx`
 
-### Step 2: Clean Up CSS Shadow Utilities
+Add hover effect to all Card wrappers:
+- Line 51: Time off Card
+- Line 167: Business trip Card  
+- Line 249: Loan Card
 
-**File:** `src/index.css`
+### Step 3: Update Request Cards
 
-Remove the complex button shadow utilities that are no longer needed:
+**File:** `src/components/requests/MobileRequestCard.tsx`
 
-Delete these classes:
-- `.btn-liquid-glass-shadow`
-- `.btn-liquid-glass-shadow-hover`
-- `.btn-liquid-glass-shadow-active`
-- `.btn-liquid-glass-secondary-shadow`
-- `.btn-liquid-glass-secondary-shadow-hover`
-- `.btn-liquid-glass-secondary-shadow-active`
+Update the button wrapper with enhanced hover:
+- Line 92-97: Add `hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm`
 
-### Step 3: Update Dialog Footer Cancel Buttons
+### Step 4: Update Trip Card
 
-Update dialogs that use `variant="outline"` for Cancel to use `liquidGlassSecondary`:
+**File:** `src/components/business-trips/TripCard.tsx`
 
-| File | Current | Updated |
-|------|---------|---------|
-| `src/components/approvals/ApprovalActionDialog.tsx` | `variant="outline"` | `variant="liquidGlassSecondary" size="liquidGlassSecondary"` |
-| `src/components/approvals/MobileApprovalSheet.tsx` | `variant="outline" className="h-12"` | `variant="liquidGlassSecondary" size="liquidGlassSecondary"` |
-| `src/components/calendar/CreateEventDialog.tsx` | `variant="outline"` | `variant="liquidGlassSecondary" size="liquidGlassSecondary"` |
-| Multiple other dialogs | See Step 5 for full list | Standardize Cancel buttons |
+The TripCard already has `hover:shadow-md`, update to use consistent styling:
+- Line 20-22: Change from `hover:shadow-md hover:border-primary/30` to include `hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm`
 
-### Step 4: Standardize Primary Action Button Heights
+### Step 5: Update DataCard Component
 
-Ensure all primary action buttons use the `liquidGlass` variant with fixed h-12 height:
+**File:** `src/components/ui/data-card.tsx`
 
-| File | Location | Change |
-|------|----------|--------|
-| `src/pages/TimeOff.tsx` | Request Time Off button | Remove `sm:h-[52px]` responsive sizing |
-| `src/components/approvals/MobileApprovalSheet.tsx` | Approve button | Use `size="liquidGlass"` for h-12 |
-| Various dialogs | Primary action buttons | Ensure `size="liquidGlass"` is used |
+Update the DataCard component for consistent hover:
+- Line 94-99: Update hover class from `hover:shadow-md` to `hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm`
 
-### Step 5: Update All Dialog Cancel Buttons
+### Step 6: Update List Item Rows
 
-Search and update all dialogs using `variant="outline"` for Cancel to use the new glass style:
+Various components use inline list item styling. Update these to use consistent hover:
 
-Files to update Cancel buttons:
-- `src/components/timemanagement/AssignLeaveBalanceDialog.tsx`
-- `src/components/settings/organization/WorkLocationFormDialog.tsx`
-- `src/components/calendar/CreateEventDialog.tsx`
-- `src/components/timemanagement/HolidayFormDialog.tsx`
-- `src/components/hiring/offers/OfferFormDialog.tsx`
-- `src/components/hiring/jobs/JobFormDialog.tsx`
-- `src/components/documents/CreateTemplateDialog.tsx`
-- And additional dialogs across the app (~20+ files)
+**File:** `src/components/settings/payroll/BanksSection.tsx`
+- Line 85: Change `hover:bg-muted/50` to `hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm`
 
-For each Cancel button, change:
-```tsx
-<Button variant="outline" onClick={() => onOpenChange(false)}>
-  Cancel
-</Button>
-```
+**File:** `src/pages/CandidateDetail.tsx`
+- Line 164: Change `hover:bg-muted/50` to `hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm`
 
-To:
-```tsx
-<Button variant="liquidGlassSecondary" size="liquidGlassSecondary" onClick={() => onOpenChange(false)}>
-  Cancel
-</Button>
-```
+**File:** `src/components/timemanagement/CopyYearHolidaysDialog.tsx`
+- Line 148: Change `hover:bg-muted/50` to `hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm`
 
-### Step 6: Update Destructive Button Styling
+**File:** `src/components/employees/EmployeeTimeOffTab.tsx`
+- Line 178: Change `hover:border-primary/50` to `hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm`
 
-The destructive variant should also follow the refined height standard:
+**File:** `src/components/payroll/PayrollRunWizard/SelectEmployeesStep.tsx`
+- Line 92: Change `hover:bg-muted/50` to `hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm`
 
-**File:** `src/components/ui/button.tsx`
+### Step 7: Update Profile Section Items
 
-Add height consistency to destructive buttons when used in footers by ensuring components use `size="lg"` (now h-12) for destructive actions:
+**File:** `src/components/myprofile/MyProfilePayslipsSection.tsx`
+- Line 165: Update hover from `hover:bg-muted/70` to include shadow effect
 
-| File | Change |
-|------|--------|
-| `src/components/approvals/ApprovalActionDialog.tsx` | Add `size="lg"` to destructive Reject button |
-| `src/components/approvals/MobileApprovalSheet.tsx` | Use `className="h-12"` for Reject button |
+**File:** `src/components/myprofile/MyProfileHRLettersSection.tsx`
+- Lines 83, 161: Update hover from `hover:bg-muted/70` to include shadow effect
+
+### Step 8: Update Leave Request Card in All Pending Approvals
+
+**File:** `src/components/approvals/AllPendingApprovalsTab.tsx`
+
+Update the LeaveRequestCard component:
+- Line 206: Add hover effect to Card component
 
 ## Files to Modify
 
-### Core Button Component
+### Core Components
 | File | Changes |
 |------|---------|
-| `src/components/ui/button.tsx` | Update liquidGlass, liquidGlassSecondary, outline variants; update sizes |
-
-### CSS
-| File | Changes |
-|------|---------|
-| `src/index.css` | Remove unused button shadow utilities |
+| `src/components/ui/table.tsx` | Update TableRow base hover styles |
+| `src/components/ui/data-card.tsx` | Update DataCard hover styles |
 
 ### Approval Components
 | File | Changes |
 |------|---------|
-| `src/components/approvals/ApprovalActionDialog.tsx` | Update Cancel and Reject button variants |
-| `src/components/approvals/MobileApprovalSheet.tsx` | Update Cancel button, standardize heights |
+| `src/components/approvals/ApprovalCard.tsx` | Add hover effect to Cards |
+| `src/components/approvals/MobileApprovalCard.tsx` | Add hover effect to all Cards |
+| `src/components/approvals/AllPendingApprovalsTab.tsx` | Add hover to LeaveRequestCard |
 
-### Dialog Components (Cancel Button Updates)
+### Request Components
 | File | Changes |
 |------|---------|
-| `src/components/calendar/CreateEventDialog.tsx` | Cancel → liquidGlassSecondary |
-| `src/components/timemanagement/AssignLeaveBalanceDialog.tsx` | Cancel → liquidGlassSecondary |
-| `src/components/timemanagement/HolidayFormDialog.tsx` | Cancel → liquidGlassSecondary |
-| `src/components/settings/organization/WorkLocationFormDialog.tsx` | Cancel → liquidGlassSecondary |
-| `src/components/hiring/offers/OfferFormDialog.tsx` | Cancel → liquidGlassSecondary |
-| `src/components/hiring/jobs/JobFormDialog.tsx` | Cancel → liquidGlassSecondary |
-| `src/components/documents/CreateTemplateDialog.tsx` | Cancel → liquidGlassSecondary |
-| `src/components/loans/CreateLoanDialog.tsx` | Cancel → liquidGlassSecondary |
+| `src/components/requests/MobileRequestCard.tsx` | Enhance button hover |
+
+### Business Trips
+| File | Changes |
+|------|---------|
+| `src/components/business-trips/TripCard.tsx` | Update hover styling |
+
+### List Item Components
+| File | Changes |
+|------|---------|
+| `src/components/settings/payroll/BanksSection.tsx` | Update row hover |
+| `src/pages/CandidateDetail.tsx` | Update offer row hover |
+| `src/components/timemanagement/CopyYearHolidaysDialog.tsx` | Update holiday row hover |
+| `src/components/employees/EmployeeTimeOffTab.tsx` | Update balance card hover |
+| `src/components/payroll/PayrollRunWizard/SelectEmployeesStep.tsx` | Update employee row hover |
+| `src/components/myprofile/MyProfilePayslipsSection.tsx` | Update payslip row hover |
+| `src/components/myprofile/MyProfileHRLettersSection.tsx` | Update letter row hover |
 
 ## Visual Comparison
 
 ```text
-Before:                                    After:
-┌────────────────────────────────────┐    ┌────────────────────────────────────┐
-│  Primary Button                    │    │  Primary Button                    │
-│  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │    │  ─────────────────────────────────  │
-│  Heavy glow, 52px desktop height   │    │  Subtle shadow, fixed 48px height  │
-│  Multi-layer box-shadow            │    │  Single-layer soft shadow          │
-│  Responsive text sizing            │    │  Fixed text-sm                     │
-└────────────────────────────────────┘    └────────────────────────────────────┘
+Before (Table Row):
+┌────────────────────────────────────────────────┐
+│  Row content                                   │
+│  ───────────────────────────────────────────── │
+│  bg-muted/50 on hover (flat appearance)        │
+└────────────────────────────────────────────────┘
 
-┌────────────────────────────────────┐    ┌────────────────────────────────────┐
-│  Secondary Button                  │    │  Secondary Button                  │
-│  ──────────────────────────────────│    │  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒│
-│  bg-black/3%, solid border         │    │  bg-white/60, glass border         │
-│  Visible shadow layers             │    │  backdrop-blur, no shadow          │
-│  Doesn't match glass surfaces      │    │  Matches card glass aesthetic      │
-└────────────────────────────────────┘    └────────────────────────────────────┘
+After (Table Row):
+┌────────────────────────────────────────────────┐
+│  Row content                                   │  ← shadow-sm
+│  ───────────────────────────────────────────── │
+│  bg-white/60 + subtle lift effect              │
+└────────────────────────────────────────────────┘
 
-Visual Hierarchy:
-Primary CTA ████████████████████  (Dark gradient, prominent)
-Secondary   ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  (Glass, subtle)
-Ghost       ░░░░░░░░░░░░░░░░░░░░  (Minimal, text only)
+Before (Card/List Item):
+┌────────────────────────────────────────────────┐
+│  Card content                                  │
+│  No visual feedback on hover                   │
+└────────────────────────────────────────────────┘
+
+After (Card/List Item):
+╔════════════════════════════════════════════════╗
+║  Card content                                  ║  ← shadow-sm
+║  Glass background + subtle elevation           ║
+╚════════════════════════════════════════════════╝
 ```
 
-## Button Hierarchy Summary
+## Hover Effect Hierarchy
 
 ```text
-Level 1: Primary CTA (liquidGlass)
-  └─ Dark gradient, h-12, subtle shadow, maximum emphasis
+Level 1: Table Rows
+  └─ hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm
 
-Level 2: Secondary/Cancel (liquidGlassSecondary)
-  └─ Glass effect, h-12, backdrop-blur, no shadow
+Level 2: Approval/Request Cards
+  └─ hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm
 
-Level 3: Outline (toolbar actions)
-  └─ Glass effect, h-10, consistent with secondary
+Level 3: List Items (inline rows)
+  └─ hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm
 
-Level 4: Ghost (inline actions)
-  └─ Transparent, h-10/h-9, text emphasis only
-
-Level 5: Destructive
-  └─ Red background, uses standard sizing
+Level 4: Data Cards (mobile table replacement)
+  └─ hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm
 ```
 
 ## Technical Notes
 
-- **Fixed Heights**: Moving from responsive heights (h-12 sm:h-[52px]) to fixed h-12 for consistency
-- **Subtle Shadows**: Single-layer shadows instead of complex multi-layer effects
-- **Glass Consistency**: Secondary buttons now match the glass card aesthetic
-- **Touch Targets**: All buttons maintain minimum 44px+ touch targets
-- **Text Size**: Fixed at text-sm for all variants (no responsive text scaling)
+- **Cascading Effect**: Changes to `table.tsx` will automatically update all table rows
+- **Dark Mode**: All hover effects include dark mode variants (`dark:hover:bg-white/10`)
+- **Transition**: Using `transition-all duration-200` for smooth effect
+- **Shadow**: Using `shadow-sm` (Tailwind's subtle shadow: `0 1px 2px 0 rgb(0 0 0 / 0.05)`)
+- **Consistency**: All interactive rows now use the same glass-inspired hover pattern
 
 ## Unchanged Elements
 
-- Ghost button styling (already minimal and appropriate)
-- Icon button sizes (maintain touch targets)
-- Link variant styling
-- Button border radius (20px maintained)
-- Gradient colors in primary buttons
-
+- Table structure (no conversion to cards)
+- Row heights (kept as-is)
+- Table headers (maintain distinct styling)
+- Non-interactive rows (static content)
+- Card container styling (only inner hover behavior enhanced)
