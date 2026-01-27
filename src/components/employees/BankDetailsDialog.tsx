@@ -121,10 +121,10 @@ export function BankDetailsDialog({ open, onOpenChange, employee }: BankDetailsD
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="liquidGlassSecondary" size="liquidGlass" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={updateEmployee.isPending || !iban.trim()}>
+          <Button variant="liquidGlass" size="liquidGlass" onClick={handleSave} disabled={updateEmployee.isPending || !iban.trim()}>
             {updateEmployee.isPending ? "Saving..." : "Save Changes"}
           </Button>
         </DialogFooter>

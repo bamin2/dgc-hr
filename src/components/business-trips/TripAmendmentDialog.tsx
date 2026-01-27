@@ -171,10 +171,12 @@ export function TripAmendmentDialog({ trip, open, onOpenChange }: TripAmendmentD
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="liquidGlassSecondary" size="liquidGlass" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
           <Button
+            variant="liquidGlass"
+            size="liquidGlass"
             onClick={handleSubmit}
             disabled={!reason.trim() || requestAmendment.isPending}
           >

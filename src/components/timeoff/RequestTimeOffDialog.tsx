@@ -173,7 +173,8 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
   const footerContent = (
     <ResponsiveDialogFooter>
       <Button
-        variant="outline"
+        variant="liquidGlassSecondary"
+        size="liquidGlass"
         onClick={() => onOpenChange(false)}
         disabled={isSubmitting}
       >

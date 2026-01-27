@@ -27,6 +27,18 @@ const buttonVariants = cva(
           "active:translate-y-px active:btn-liquid-glass-shadow-active",
           "focus-visible:ring-[#C6A45E]/40",
         ].join(" "),
+        // LiquidGlass Secondary - translucent glass for Cancel actions
+        liquidGlassSecondary: [
+          "bg-black/[0.03] dark:bg-white/[0.08]",
+          "text-foreground/80 font-medium",
+          "border border-black/10 dark:border-white/15",
+          "rounded-[20px]",
+          "btn-liquid-glass-secondary-shadow",
+          "transition-all duration-200",
+          "hover:bg-black/[0.06] dark:hover:bg-white/[0.12] hover:-translate-y-px hover:btn-liquid-glass-secondary-shadow-hover",
+          "active:translate-y-px active:btn-liquid-glass-secondary-shadow-active",
+          "focus-visible:ring-2 focus-visible:ring-foreground/20 focus-visible:ring-offset-2",
+        ].join(" "),
       },
       size: {
         default: "h-10 px-4 py-2",
