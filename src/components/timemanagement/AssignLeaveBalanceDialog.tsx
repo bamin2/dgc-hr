@@ -141,12 +141,18 @@ export function AssignLeaveBalanceDialog({
               <DialogFooter className="pt-4">
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="liquidGlassSecondary"
+                  size="liquidGlassSecondary"
                   onClick={() => onOpenChange(false)}
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={createBalance.isPending}>
+                <Button 
+                  type="submit" 
+                  variant="liquidGlass"
+                  size="liquidGlass"
+                  disabled={createBalance.isPending}
+                >
                   {createBalance.isPending && (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   )}

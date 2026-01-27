@@ -363,10 +363,10 @@ export function CreateLoanDialog({
             />
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              <Button type="button" variant="liquidGlassSecondary" size="liquidGlassSecondary" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={createLoan.isPending}>
+              <Button type="submit" variant="liquidGlass" size="liquidGlass" disabled={createLoan.isPending}>
                 {createLoan.isPending ? "Creating..." : "Create Loan"}
               </Button>
             </DialogFooter>

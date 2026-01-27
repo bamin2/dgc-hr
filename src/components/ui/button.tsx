@@ -11,45 +11,51 @@ const buttonVariants = cva(
       variant: {
         default: "bg-primary text-primary-foreground hover:bg-primary/90",
         destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        outline: [
+          "bg-white/60 dark:bg-white/10",
+          "border border-white/50 dark:border-white/20",
+          "backdrop-blur-sm",
+          "hover:bg-white/70 dark:hover:bg-white/15",
+          "hover:text-accent-foreground",
+        ].join(" "),
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
         // LiquidGlass - premium glassmorphism button for primary CTAs
         liquidGlass: [
           "bg-gradient-to-b from-[#18171C] to-[#312F37]",
-          "text-white font-medium",
+          "text-white text-sm font-medium",
           "border border-[#18171C]",
           "rounded-[20px]",
-          "btn-liquid-glass-shadow",
+          "shadow-[0_2px_8px_rgba(0,0,0,0.15)]",
           "transition-all duration-200",
-          "hover:brightness-110 hover:-translate-y-px hover:btn-liquid-glass-shadow-hover",
-          "active:translate-y-px active:btn-liquid-glass-shadow-active",
-          "focus-visible:ring-[#C6A45E]/40",
+          "hover:brightness-110 hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(0,0,0,0.2)]",
+          "active:translate-y-px active:shadow-[0_1px_4px_rgba(0,0,0,0.1)]",
+          "focus-visible:ring-2 focus-visible:ring-[#C6A45E]/40 focus-visible:ring-offset-2",
         ].join(" "),
         // LiquidGlass Secondary - translucent glass for Cancel actions
         liquidGlassSecondary: [
-          "bg-black/[0.03] dark:bg-white/[0.08]",
-          "text-foreground/80 font-medium",
-          "border border-black/10 dark:border-white/15",
+          "bg-white/60 dark:bg-white/10",
+          "text-foreground text-sm font-medium",
+          "border border-white/50 dark:border-white/20",
+          "backdrop-blur-sm",
           "rounded-[20px]",
-          "btn-liquid-glass-secondary-shadow",
           "transition-all duration-200",
-          "hover:bg-black/[0.06] dark:hover:bg-white/[0.12] hover:-translate-y-px hover:btn-liquid-glass-secondary-shadow-hover",
-          "active:translate-y-px active:btn-liquid-glass-secondary-shadow-active",
+          "hover:bg-white/70 dark:hover:bg-white/15 hover:-translate-y-px",
+          "active:translate-y-px",
           "focus-visible:ring-2 focus-visible:ring-foreground/20 focus-visible:ring-offset-2",
         ].join(" "),
       },
       size: {
         default: "h-10 px-4 py-2",
         sm: "h-9 px-3",
-        lg: "h-11 px-8",
+        lg: "h-12 px-6",
         icon: "h-11 w-11", // 44px - minimum touch target size
         "icon-sm": "h-9 w-9", // 36px - for dense desktop UIs, use sparingly
-        // LiquidGlass responsive sizing - 48px mobile, 52px desktop
-        liquidGlass: "h-12 sm:h-[52px] px-5 sm:px-6 text-sm sm:text-base",
-        // LiquidGlass Secondary sizing - slightly smaller (44px mobile, 48px desktop)
-        liquidGlassSecondary: "h-11 sm:h-12 px-4 sm:px-5 text-sm",
+        // LiquidGlass sizing - fixed 48px height
+        liquidGlass: "h-12 px-6",
+        // LiquidGlass Secondary sizing - match primary height
+        liquidGlassSecondary: "h-12 px-5",
       },
     },
     defaultVariants: {

@@ -263,10 +263,10 @@ export function CreateEventDialog({ open, onOpenChange }: CreateEventDialogProps
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="liquidGlassSecondary" size="liquidGlassSecondary" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit} disabled={createEvent.isPending}>
+          <Button variant="liquidGlass" size="liquidGlass" onClick={handleSubmit} disabled={createEvent.isPending}>
             {createEvent.isPending ? "Creating..." : "Create Event"}
           </Button>
         </DialogFooter>
