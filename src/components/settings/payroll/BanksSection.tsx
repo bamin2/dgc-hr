@@ -82,7 +82,7 @@ export const BanksSection = () => {
               {banks.map((bank) => (
                 <div
                   key={bank.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm transition-all duration-200"
                 >
                   <div className="flex items-center gap-3">
                     <div>

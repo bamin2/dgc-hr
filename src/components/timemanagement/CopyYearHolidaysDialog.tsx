@@ -145,7 +145,7 @@ export function CopyYearHolidaysDialog({
                 {sourceHolidays.map((holiday) => (
                   <div
                     key={holiday.id}
-                    className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer"
+                    className="flex items-center gap-3 p-3 rounded-lg border hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm cursor-pointer transition-all duration-200"
                     onClick={() => handleToggle(holiday.id)}
                   >
                     <Checkbox

@@ -80,7 +80,7 @@ export function MyProfileHRLettersSection({ employeeId, noBorder = false }: MyPr
             {letters.map((letter) => (
               <div
                 key={letter.id}
-                className="flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors"
+                className="flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm transition-all duration-200"
               >
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                   <div className="p-2 bg-background rounded-lg">
@@ -158,7 +158,7 @@ export function MyProfileHRLettersSection({ employeeId, noBorder = false }: MyPr
             {letters.map((letter) => (
               <div
                 key={letter.id}
-                className="flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors"
+                className="flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm transition-all duration-200"
               >
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                   <div className="p-2 bg-background rounded-lg">

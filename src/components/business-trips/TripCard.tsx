@@ -18,7 +18,7 @@ export function TripCard({ trip, onClick, showEmployee = false }: TripCardProps)
   return (
     <Card 
       className={cn(
-        "cursor-pointer transition-all hover:shadow-md hover:border-primary/30",
+        "cursor-pointer transition-all duration-200 hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm",
         onClick && "hover:scale-[1.01]"
       )}
       onClick={onClick}

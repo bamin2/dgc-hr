@@ -89,7 +89,7 @@ export function SelectEmployeesStep({
             return (
               <div
                 key={employee.id}
-                className="flex items-center gap-4 p-3 hover:bg-muted/50 cursor-pointer"
+                className="flex items-center gap-4 p-3 hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm cursor-pointer transition-all duration-200"
                 onClick={() => handleToggle(employee.id)}
               >
                 <Checkbox

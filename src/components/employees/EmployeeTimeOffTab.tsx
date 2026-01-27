@@ -175,7 +175,7 @@ export function EmployeeTimeOffTab({ employeeId }: EmployeeTimeOffTabProps) {
                 return (
                   <div
                     key={balance.id}
-                    className="p-4 border rounded-lg space-y-3 hover:border-primary/50 transition-colors"
+                    className="p-4 border rounded-lg space-y-3 hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm transition-all duration-200"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">

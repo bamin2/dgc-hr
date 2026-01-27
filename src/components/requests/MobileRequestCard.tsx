@@ -93,7 +93,8 @@ export function MobileRequestCard({ request, onClick }: MobileRequestCardProps) 
         "w-full flex items-center gap-3 p-4 rounded-2xl",
         "bg-card border border-border/50",
         "min-h-[88px] text-left",
-        "active:scale-[0.98] transition-transform duration-100",
+        "active:scale-[0.98] transition-all duration-200",
+        "hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm",
         "touch-manipulation"
       )}
     >
