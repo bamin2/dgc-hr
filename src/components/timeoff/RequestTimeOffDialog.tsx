@@ -174,7 +174,7 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
     <ResponsiveDialogFooter>
       <Button
         variant="liquidGlassSecondary"
-        size="liquidGlass"
+        size="liquidGlassSecondary"
         onClick={() => onOpenChange(false)}
         disabled={isSubmitting}
       >
@@ -182,6 +182,7 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
       </Button>
       <Button 
         variant="liquidGlass"
+        size="liquidGlass"
         onClick={handleSubmit}
         disabled={isSubmitting || !dateRange?.from || !leaveTypeId}
       >
