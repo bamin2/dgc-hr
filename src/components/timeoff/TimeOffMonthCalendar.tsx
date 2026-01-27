@@ -197,29 +197,31 @@ export function TimeOffMonthCalendar() {
 
   return (
     <div className="flex-1">
-      {/* Toolbar */}
-      <div className="flex items-center justify-between mb-4">
-        <Button variant="outline" onClick={goToToday}>Today</Button>
+      {/* Toolbar - responsive layout */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-2 mb-4">
+        <Button variant="outline" size="sm" className="h-9" onClick={goToToday}>Today</Button>
         
         <ToggleGroup 
           type="single" 
           value={viewMode} 
           onValueChange={(v) => v && setViewMode(v as ViewMode)}
-          className="border rounded-lg"
+          className="border rounded-lg order-3 sm:order-2"
         >
-          <ToggleGroupItem value="day" className="px-4">Day</ToggleGroupItem>
-          <ToggleGroupItem value="week" className="px-4">Week</ToggleGroupItem>
-          <ToggleGroupItem value="month" className="px-4">Month</ToggleGroupItem>
+          <ToggleGroupItem value="day" className="px-3 hidden sm:inline-flex">Day</ToggleGroupItem>
+          <ToggleGroupItem value="week" className="px-3">Week</ToggleGroupItem>
+          <ToggleGroupItem value="month" className="px-3">Month</ToggleGroupItem>
         </ToggleGroup>
         
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={goToPrev}>
+        <div className="flex items-center gap-1 sm:gap-2 order-2 sm:order-3">
+          <Button variant="ghost" size="icon" className="h-9 w-9" onClick={goToPrev}>
             <ChevronLeft className="w-4 h-4" />
           </Button>
-          <span className="text-sm font-medium min-w-[220px] text-center">
-            {dateRangeDisplay}
+          <span className="text-xs sm:text-sm font-medium min-w-[140px] sm:min-w-[220px] text-center">
+            {viewMode === "month" 
+              ? format(currentDate, "MMM yyyy")
+              : dateRangeDisplay}
           </span>
-          <Button variant="ghost" size="icon" onClick={goToNext}>
+          <Button variant="ghost" size="icon" className="h-9 w-9" onClick={goToNext}>
             <ChevronRight className="w-4 h-4" />
           </Button>
         </div>

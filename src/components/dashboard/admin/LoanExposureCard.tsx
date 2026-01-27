@@ -48,7 +48,7 @@ export function LoanExposureCard({ loanExposure, isLoading, currency = 'SAR' }: 
             <TrendingUp className="h-6 w-6 text-primary" />
           </div>
           <div>
-            <p className="text-2xl font-semibold">
+            <p className="text-lg sm:text-2xl font-semibold">
               {formatCurrency(loanExposure.totalOutstanding)}
             </p>
             <p className="text-sm text-muted-foreground">

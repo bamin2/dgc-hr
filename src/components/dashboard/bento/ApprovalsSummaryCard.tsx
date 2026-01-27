@@ -56,7 +56,7 @@ export function ApprovalsSummaryCard() {
             <Clock className="w-4 h-4 text-amber-500" />
             <span className="text-sm text-muted-foreground">Awaiting review</span>
           </div>
-          <span className="text-2xl font-bold text-foreground">{totalPending}</span>
+          <span className="text-xl sm:text-2xl font-bold text-foreground">{totalPending}</span>
         </div>
         
         {totalPending > 0 && (

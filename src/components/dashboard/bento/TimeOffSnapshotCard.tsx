@@ -95,7 +95,7 @@ export function TimeOffSnapshotCard({ variant = "default" }: TimeOffSnapshotCard
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Annual Leave</p>
-              <p className="text-2xl font-bold text-foreground">
+              <p className="text-xl sm:text-2xl font-bold text-foreground">
                 {annualLeave?.remaining ?? 0}
                 <span className="text-sm font-normal text-muted-foreground ml-1">
                   / {annualLeave?.total ?? 0} days
