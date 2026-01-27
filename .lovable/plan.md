@@ -1,226 +1,250 @@
 
-# Improve Dialog Layout and Spacing
+# UI Consistency Pass - Normalization Plan
 
 ## Overview
-Refine dialog layouts across the application by replacing excessive dividers with spacing, grouping related fields using subtle inner surfaces, and maintaining max height and scrolling behavior. This creates a cleaner, more visually cohesive experience while preserving all form fields and logic.
+This plan identifies inconsistencies across UI components and normalizes them to follow the established Liquid Glass design system. The focus is on surface styling, border radius, shadows, spacing, typography, and removing pure solid backgrounds.
 
-## Current State Analysis
+## Audit Findings
 
-### Patterns Found
-1. **Separator Usage**: Many dialogs use `<Separator />` or `<Separator className="my-6" />` between sections
-2. **Divider Lines**: Some use `border-t`, `divide-y` for list separation
-3. **Field Grouping**: Most use `space-y-4` with no visual container for related fields
-4. **Section Headers**: Text-only headers like `<h3 className="text-sm font-medium text-muted-foreground">`
+### Current Design Standards (Correct)
 
-### Dialogs to Update
-Based on the search results, these dialogs use excessive dividers or would benefit from visual grouping:
+Based on exploration, these components correctly implement the Liquid Glass system:
 
-| Dialog | Location | Current Issue |
-|--------|----------|---------------|
-| EditSalaryDialog | employees/ | 2 `<Separator />` between sections |
-| LeaveTypeFormDialog | timemanagement/ | 6 `<Separator />` between form sections |
-| ReviewCorrectionDialog | attendance/ | 1 `<Separator />` between info and form |
-| DocumentEditDialog | employees/documents/ | 1 `<Separator />` before notifications |
-| CreateTripDialog | business-trips/ | Uses FormSection with `separator` prop + `border-t` in card |
-| CreateLoanDialog | loans/ | No separators but needs field grouping |
+| Component | Surface | Border | Shadow | Status |
+|-----------|---------|--------|--------|--------|
+| Card | `bg-white/80 dark:bg-white/10 backdrop-blur-md` | `border-white/40 dark:border-white/15` | `shadow-[0_4px_12px_rgba(0,0,0,0.04)]` | Correct |
+| Dialog | `bg-white/90 dark:bg-white/15 backdrop-blur-lg` | `border-white/40 dark:border-white/15` | `shadow-[0_8px_30px_rgba(0,0,0,0.08)]` | Correct |
+| Popover | `bg-white/90 dark:bg-white/15 backdrop-blur-lg` | `border-white/40 dark:border-white/15` | `shadow-[0_8px_30px_rgba(0,0,0,0.08)]` | Correct |
+| Dropdown | `bg-white/90 dark:bg-white/15 backdrop-blur-lg` | `border-white/40 dark:border-white/15` | `shadow-[0_8px_30px_rgba(0,0,0,0.08)]` | Correct |
+| Select | `bg-white/90 dark:bg-white/15 backdrop-blur-lg` | `border-white/40 dark:border-white/15` | `shadow-[0_8px_30px_rgba(0,0,0,0.08)]` | Correct |
+| Sheet | `bg-white/95 dark:bg-[hsl(168_35%_10%)]/95 backdrop-blur-lg` | (edge borders) | `shadow-[0_8px_30px_rgba(0,0,0,0.08)]` | Correct |
+| Drawer | `bg-white/95 dark:bg-[hsl(168_35%_10%)]/95 backdrop-blur-lg` | `border-white/40 dark:border-white/15` | `shadow-[0_-8px_30px_rgba(0,0,0,0.08)]` | Correct |
 
-## Design Specifications
+### Issues Found - Components Needing Normalization
 
-### Visual Grouping Surface
-Replace dividers with subtle inner surface containers for related field groups:
-```text
-Property              Value
-──────────────────────────────────────────────────────
-Background            bg-white/60 dark:bg-white/5
-Border Radius         rounded-xl
-Padding               p-4
-```
+#### 1. AlertDialogContent - Uses Pure `bg-background`
+**File:** `src/components/ui/alert-dialog.tsx`
+**Current:** `border bg-background p-6 shadow-lg`
+**Issue:** Uses solid `bg-background` instead of glass surface, generic `border` instead of translucent border
+**Fix:** Apply glass styling consistent with Dialog
 
-### Section Spacing
-```text
-Property              Current Value          Updated Value
-──────────────────────────────────────────────────────────
-Section Gap           space-y-4 + Separator  space-y-6 (no separator)
-Inner Field Gap       space-y-4              space-y-4 (keep)
-Section Header        text-muted-foreground  font-medium (slightly stronger)
-```
+#### 2. TooltipContent - Uses Pure `bg-popover`
+**File:** `src/components/ui/tooltip.tsx`
+**Current:** `rounded-lg border bg-popover`
+**Issue:** Uses solid `bg-popover` and generic `border`
+**Fix:** Apply elevated glass styling with translucent border
 
-### Component Pattern
-Create a reusable `DialogSection` component or utility class pattern:
-```tsx
-// Inner surface for related fields
-<div className="bg-white/60 dark:bg-white/5 rounded-xl p-4 space-y-4">
-  {/* Related fields */}
-</div>
-```
+#### 3. HoverCardContent - Uses Pure `bg-popover`
+**File:** `src/components/ui/hover-card.tsx`
+**Current:** `rounded-md border bg-popover p-4 shadow-md`
+**Issue:** Uses solid `bg-popover`, `rounded-md` (inconsistent), generic `border`, weak `shadow-md`
+**Fix:** Apply glass styling with `rounded-lg` and proper shadow
+
+#### 4. ContextMenuContent/SubContent - Uses Pure `bg-popover`
+**File:** `src/components/ui/context-menu.tsx`
+**Current:** `rounded-md border bg-popover p-1 shadow-md`
+**Issue:** Uses solid `bg-popover`, `rounded-md`, generic `border`, weak shadow
+**Fix:** Apply glass styling with `rounded-lg` and proper shadow
+
+#### 5. MenubarContent/SubContent - Uses Pure `bg-popover`
+**File:** `src/components/ui/menubar.tsx`
+**Current:** `rounded-md border bg-popover p-1 shadow-md`
+**Issue:** Uses solid `bg-popover`, `rounded-md`, generic `border`
+**Fix:** Apply glass styling with `rounded-lg` and proper shadow
+
+#### 6. NavigationMenuViewport - Uses Pure `bg-popover`
+**File:** `src/components/ui/navigation-menu.tsx`
+**Current:** `rounded-md border bg-popover shadow-lg`
+**Issue:** Uses solid `bg-popover`, `rounded-md`
+**Fix:** Apply glass styling with `rounded-lg`
+
+#### 7. Inner Item Radius Inconsistency
+**Files:** Multiple menu components
+**Current:** `rounded-sm` on menu items (ContextMenu, Menubar)
+**Issue:** Inconsistent with `rounded-md` used in DropdownMenu and Select items
+**Fix:** Normalize all inner items to `rounded-md`
 
 ## Implementation Plan
 
-### Step 1: Update FormSection Component
+### Step 1: Fix AlertDialogContent
+**File:** `src/components/ui/alert-dialog.tsx`
 
-**File:** `src/components/ui/form-section.tsx`
+Update lines 36-37:
+```tsx
+// FROM:
+"fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 ..."
 
-Add a new `surface` variant that wraps content in a subtle background:
-- Remove the `separator` prop usage pattern
-- Add `variant?: "default" | "surface"` prop
-- Surface variant applies: `bg-white/60 dark:bg-white/5 rounded-xl p-4`
-- Keep the section header outside the surface for hierarchy
-
-### Step 2: Update EditSalaryDialog
-
-**File:** `src/components/employees/EditSalaryDialog.tsx`
+// TO:
+"fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-5 border border-white/40 dark:border-white/15 bg-white/90 dark:bg-white/15 backdrop-blur-lg p-6 shadow-[0_8px_30px_rgba(0,0,0,0.08)] duration-200 ..."
+```
 
 Changes:
-- Remove `<Separator />` between Basic Salary and Allowances (line 269)
-- Remove `<Separator />` before GOSI section (line 371)
-- Increase section spacing from `space-y-7` to `space-y-6`
-- Wrap Allowances and Deductions sections in surface containers
-- Keep the GOSI section and Summary in their existing `bg-muted/30` and `bg-muted/50` containers
+- `gap-4` -> `gap-5` (consistent with Dialog)
+- `border` -> `border border-white/40 dark:border-white/15`
+- `bg-background` -> `bg-white/90 dark:bg-white/15 backdrop-blur-lg`
+- `shadow-lg` -> `shadow-[0_8px_30px_rgba(0,0,0,0.08)]`
 
-### Step 3: Update LeaveTypeFormDialog
+### Step 2: Fix TooltipContent
+**File:** `src/components/ui/tooltip.tsx`
 
-**File:** `src/components/timemanagement/LeaveTypeFormDialog.tsx`
+Update line 19-20:
+```tsx
+// FROM:
+"z-50 overflow-hidden rounded-lg border bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md ..."
 
-Changes:
-- Remove all 6 `<Separator />` instances (lines 322, 403, 453, 503, 627)
-- Remove `Separator` import
-- Increase form spacing to `space-y-6`
-- Wrap each section in surface containers:
-  - Basic Information fields
-  - Leave Rules toggle grid
-  - Document Requirements
-  - Carryover Settings
-  - Salary Deduction Policy
-  - Status toggle
-
-### Step 4: Update ReviewCorrectionDialog
-
-**File:** `src/components/attendance/ReviewCorrectionDialog.tsx`
+// TO:
+"z-50 overflow-hidden rounded-lg border border-white/40 dark:border-white/15 bg-white/90 dark:bg-white/15 backdrop-blur-lg px-3 py-1.5 text-sm text-popover-foreground shadow-[0_8px_30px_rgba(0,0,0,0.08)] ..."
+```
 
 Changes:
-- Remove `<Separator />` between employee info and date (line 124)
-- Remove `Separator` import
-- Increase spacing from `space-y-4` to `space-y-5`
-- Wrap "Time Comparison" and "Reason for Correction" in subtle surface
+- `border` -> `border border-white/40 dark:border-white/15`
+- `bg-popover` -> `bg-white/90 dark:bg-white/15 backdrop-blur-lg`
+- `shadow-md` -> `shadow-[0_8px_30px_rgba(0,0,0,0.08)]`
 
-### Step 5: Update DocumentEditDialog
+### Step 3: Fix HoverCardContent
+**File:** `src/components/ui/hover-card.tsx`
 
-**File:** `src/components/employees/documents/DocumentEditDialog.tsx`
+Update line 18-19:
+```tsx
+// FROM:
+"z-50 w-64 rounded-md border bg-popover p-4 text-popover-foreground shadow-md ..."
 
-Changes:
-- Remove `<Separator />` before expiry notifications (line 214)
-- Remove `Separator` import
-- Wrap notification settings in a surface container
-- Increase spacing from `space-y-4` to `space-y-5`
-
-### Step 6: Update CreateTripDialog
-
-**File:** `src/components/business-trips/CreateTripDialog.tsx`
+// TO:
+"z-50 w-64 rounded-lg border border-white/40 dark:border-white/15 bg-white/90 dark:bg-white/15 backdrop-blur-lg p-4 text-popover-foreground shadow-[0_8px_30px_rgba(0,0,0,0.08)] ..."
+```
 
 Changes:
-- Remove `separator` prop from FormSection components (lines 238, 315)
-- Remove `border-t my-2` divider inside Per Diem card (line 402)
-- Keep the existing Per Diem calculation card as-is (already has `bg-muted/50`)
+- `rounded-md` -> `rounded-lg`
+- `border` -> `border border-white/40 dark:border-white/15`
+- `bg-popover` -> `bg-white/90 dark:bg-white/15 backdrop-blur-lg`
+- `shadow-md` -> `shadow-[0_8px_30px_rgba(0,0,0,0.08)]`
 
-### Step 7: Update CreateLoanDialog
+### Step 4: Fix ContextMenuContent and SubContent
+**File:** `src/components/ui/context-menu.tsx`
 
-**File:** `src/components/loans/CreateLoanDialog.tsx`
+Update ContextMenuSubContent (lines 46-47):
+```tsx
+// FROM:
+"z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md ..."
 
-Changes:
-- Group related fields with surface containers:
-  - Employee + Principal Amount
-  - Repayment method + duration/installment
-  - Date + toggles
-- Increase form spacing from `space-y-4` to `space-y-5`
+// TO:
+"z-50 min-w-[8rem] overflow-hidden rounded-lg border border-white/40 dark:border-white/15 bg-white/90 dark:bg-white/15 backdrop-blur-lg p-1 text-popover-foreground shadow-[0_8px_30px_rgba(0,0,0,0.08)] ..."
+```
+
+Update ContextMenuContent (lines 62-63) - same changes
+
+Update inner item radius:
+- ContextMenuSubTrigger (line 28): `rounded-sm` -> `rounded-md`
+- ContextMenuItem (line 81): `rounded-sm` -> `rounded-md`
+- ContextMenuCheckboxItem (line 97): `rounded-sm` -> `rounded-md`
+- ContextMenuRadioItem (line 120): `rounded-sm` -> `rounded-md`
+
+### Step 5: Fix MenubarContent and SubContent
+**File:** `src/components/ui/menubar.tsx`
+
+Update MenubarSubContent (lines 71-72):
+```tsx
+// FROM:
+"z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground ..."
+
+// TO:
+"z-50 min-w-[8rem] overflow-hidden rounded-lg border border-white/40 dark:border-white/15 bg-white/90 dark:bg-white/15 backdrop-blur-lg p-1 text-popover-foreground shadow-[0_8px_30px_rgba(0,0,0,0.08)] ..."
+```
+
+Update MenubarContent (lines 90-91) - same changes
+
+Update inner item radius:
+- MenubarTrigger (line 36): `rounded-sm` -> `rounded-md`
+- MenubarSubTrigger (line 53): `rounded-sm` -> `rounded-md`
+- MenubarItem (line 109): `rounded-sm` -> `rounded-md`
+- MenubarCheckboxItem (line 125): `rounded-sm` -> `rounded-md`
+- MenubarRadioItem (line 148): `rounded-sm` -> `rounded-md`
+
+### Step 6: Fix NavigationMenuViewport
+**File:** `src/components/ui/navigation-menu.tsx`
+
+Update lines 82-83:
+```tsx
+// FROM:
+"origin-top-center relative mt-1.5 h-[var(--radix-navigation-menu-viewport-height)] w-full overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-lg ..."
+
+// TO:
+"origin-top-center relative mt-1.5 h-[var(--radix-navigation-menu-viewport-height)] w-full overflow-hidden rounded-lg border border-white/40 dark:border-white/15 bg-white/90 dark:bg-white/15 backdrop-blur-lg text-popover-foreground shadow-[0_8px_30px_rgba(0,0,0,0.08)] ..."
+```
 
 ## Files to Modify
 
 | File | Changes |
 |------|---------|
-| `src/components/ui/form-section.tsx` | Add surface variant with bg-white/60 styling |
-| `src/components/employees/EditSalaryDialog.tsx` | Remove 2 Separators, increase spacing |
-| `src/components/timemanagement/LeaveTypeFormDialog.tsx` | Remove 6 Separators, add surfaces to sections |
-| `src/components/attendance/ReviewCorrectionDialog.tsx` | Remove 1 Separator, increase spacing |
-| `src/components/employees/documents/DocumentEditDialog.tsx` | Remove 1 Separator, add surface |
-| `src/components/business-trips/CreateTripDialog.tsx` | Remove separator props, remove border-t |
-| `src/components/loans/CreateLoanDialog.tsx` | Add field grouping surfaces |
+| `src/components/ui/alert-dialog.tsx` | Apply glass surface, translucent border, proper shadow |
+| `src/components/ui/tooltip.tsx` | Apply glass surface, translucent border, proper shadow |
+| `src/components/ui/hover-card.tsx` | Fix radius, apply glass surface, translucent border, proper shadow |
+| `src/components/ui/context-menu.tsx` | Fix radius, apply glass surface, normalize inner item radius |
+| `src/components/ui/menubar.tsx` | Fix radius, apply glass surface, normalize inner item radius |
+| `src/components/ui/navigation-menu.tsx` | Fix radius, apply glass surface |
 
-## Visual Comparison
+## Visual Summary
 
 ```text
-Before (with dividers):
-┌────────────────────────────────────────────┐
-│  Basic Salary                              │
-│  ┌────────────────────────────────────┐    │
-│  │ [Input field]                      │    │
-│  └────────────────────────────────────┘    │
-│                                            │
-│  ──────────────────────────────────────    │  ← Remove divider
-│                                            │
-│  Allowances                                │
-│  ┌────────────────────────────────────┐    │
-│  │ [List items]                       │    │
-│  └────────────────────────────────────┘    │
-│                                            │
-│  ──────────────────────────────────────    │  ← Remove divider
-│                                            │
-│  GOSI                                      │
-│  ┌────────────────────────────────────┐    │
-│  │ [GOSI settings]                    │    │
-│  └────────────────────────────────────┘    │
-└────────────────────────────────────────────┘
+Before (Inconsistent):
+┌──────────────────────────────────────────────────────────────────────┐
+│ AlertDialog: bg-background, border, shadow-lg                        │
+│ Tooltip: bg-popover, border, shadow-md                               │
+│ HoverCard: rounded-md, bg-popover, border, shadow-md                 │
+│ ContextMenu: rounded-md, bg-popover, rounded-sm items                │
+│ Menubar: rounded-md, bg-popover, rounded-sm items                    │
+│ NavigationMenu: rounded-md, bg-popover                               │
+└──────────────────────────────────────────────────────────────────────┘
 
-After (with spacing + surfaces):
-┌────────────────────────────────────────────┐
-│  Basic Salary                              │
-│  ┌────────────────────────────────────┐    │
-│  │ [Input field]                      │    │
-│  └────────────────────────────────────┘    │
-│                                            │
-│                                            │  ← Increased spacing (space-y-6)
-│  Allowances                                │
-│  ┌─────────────────────────────────────┐   │  ← Subtle surface
-│  │ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │   │    bg-white/60
-│  │ ░  [List items with proper gap]  ░ │   │    rounded-xl
-│  │ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │   │    p-4
-│  └─────────────────────────────────────┘   │
-│                                            │
-│                                            │
-│  GOSI                                      │
-│  ┌─────────────────────────────────────┐   │
-│  │ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │   │  ← Keep existing
-│  │ ░  [GOSI settings]               ░ │   │    bg-muted/30
-│  │ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │   │
-│  └─────────────────────────────────────┘   │
-└────────────────────────────────────────────┘
+After (Normalized):
+┌──────────────────────────────────────────────────────────────────────┐
+│ AlertDialog: bg-white/90 dark:bg-white/15, backdrop-blur-lg          │
+│              border-white/40, shadow-[0_8px_30px_rgba(0,0,0,0.08)]   │
+│                                                                      │
+│ Tooltip: bg-white/90 dark:bg-white/15, backdrop-blur-lg              │
+│          border-white/40, shadow-[0_8px_30px_rgba(0,0,0,0.08)]       │
+│                                                                      │
+│ HoverCard: rounded-lg, bg-white/90, backdrop-blur-lg                 │
+│            border-white/40, shadow-[0_8px_30px_rgba(0,0,0,0.08)]     │
+│                                                                      │
+│ ContextMenu: rounded-lg, bg-white/90, rounded-md items               │
+│              border-white/40, shadow-[0_8px_30px_rgba(0,0,0,0.08)]   │
+│                                                                      │
+│ Menubar: rounded-lg, bg-white/90, rounded-md items                   │
+│          border-white/40, shadow-[0_8px_30px_rgba(0,0,0,0.08)]       │
+│                                                                      │
+│ NavigationMenu: rounded-lg, bg-white/90, backdrop-blur-lg            │
+│                 border-white/40, shadow-[0_8px_30px_rgba(0,0,0,0.08)]│
+└──────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Technical Notes
 
-### Surface Styling Rationale
-- `bg-white/60`: Semi-transparent white provides subtle elevation without competing with dialog background
-- `dark:bg-white/5`: Very subtle lift in dark mode
-- `rounded-xl`: Matches card system (16px radius)
-- `p-4`: Consistent internal padding
+### Glass Surface Pattern (Elevated)
+For popovers, dropdowns, tooltips, and menus:
+```
+bg-white/90 dark:bg-white/15 backdrop-blur-lg
+border border-white/40 dark:border-white/15
+shadow-[0_8px_30px_rgba(0,0,0,0.08)]
+rounded-lg
+```
 
-### When to Use Surfaces
-- Toggle groups (like Leave Rules with 4 switches)
-- Lists with Add buttons (Allowances, Deductions)
-- Nested form sections that need visual separation
-- Calculation/summary previews
+### Border Radius Hierarchy
+- Outer containers: `rounded-lg` (12px) or `rounded-xl` (16px)
+- Inner interactive items: `rounded-md` (8px)
+- Never use `rounded-sm` (4px) for menu items
 
-### When NOT to Use Surfaces
-- Simple sequential form fields (just use spacing)
-- Single standalone fields
-- Already-styled containers (like existing bg-muted/50 cards)
+### Items Not Changed (Already Correct)
+- Card, Dialog, Popover, DropdownMenu, Select, Sheet, Drawer
+- Input, Textarea (use `bg-background` appropriately for form fields)
+- Table, Badge, Tabs, Calendar
 
-### Scrolling Behavior
-- All dialogs maintain `max-h-[90vh] overflow-y-auto` on DialogContent or use DialogBody
-- No changes to scroll behavior - surfaces are within scrollable content
+### Components Using `bg-card`
+Many feature components use `bg-card` which resolves to the correct card styling via CSS variables. These are correct as-is since `bg-card` maps to `hsl(var(--card))` which is properly themed.
 
-### Unchanged Elements
-- Form field components and logic
-- Validation rules
-- Button actions and handlers
-- Dialog sizes and max-heights
-- Existing bg-muted containers (Summary, GOSI, Per Diem cards)
+## Unchanged Elements
+- Form field backgrounds (`bg-background` is appropriate for inputs)
+- Existing correct glass surfaces
+- Component logic and behavior
+- Spacing that already follows the 8pt grid
+- Typography classes
