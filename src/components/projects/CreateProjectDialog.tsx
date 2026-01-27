@@ -266,7 +266,7 @@ export function CreateProjectDialog({ open, onOpenChange, defaultStatus = 'todo'
         </div>
 
         <DialogFooter>
-          <Button variant="liquidGlassSecondary" size="liquidGlass" onClick={() => onOpenChange(false)}>
+          <Button variant="liquidGlassSecondary" size="liquidGlassSecondary" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
           <Button variant="liquidGlass" size="liquidGlass" onClick={handleSubmit} disabled={isCreating}>

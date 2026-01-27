@@ -48,6 +48,8 @@ const buttonVariants = cva(
         "icon-sm": "h-9 w-9", // 36px - for dense desktop UIs, use sparingly
         // LiquidGlass responsive sizing - 48px mobile, 52px desktop
         liquidGlass: "h-12 sm:h-[52px] px-5 sm:px-6 text-sm sm:text-base",
+        // LiquidGlass Secondary sizing - slightly smaller (44px mobile, 48px desktop)
+        liquidGlassSecondary: "h-11 sm:h-12 px-4 sm:px-5 text-sm",
       },
     },
     defaultVariants: {

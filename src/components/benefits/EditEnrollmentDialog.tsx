@@ -356,7 +356,7 @@ export const EditEnrollmentDialog = ({
           </div>
 
           <DialogFooter>
-            <Button variant="liquidGlassSecondary" size="liquidGlass" onClick={() => onOpenChange(false)} disabled={isLoading}>
+            <Button variant="liquidGlassSecondary" size="liquidGlassSecondary" onClick={() => onOpenChange(false)} disabled={isLoading}>
               Cancel
             </Button>
             <Button variant="liquidGlass" size="liquidGlass" onClick={handleSave} disabled={isLoading || !selectedCoverageLevelId || !startDate}>
