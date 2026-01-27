@@ -20,7 +20,11 @@ export default function TimeOff() {
           title="Time off"
           subtitle="Manage your team's time off."
           actions={
-            <Button onClick={() => setIsRequestDialogOpen(true)}>
+            <Button 
+              variant="liquidGlass" 
+              size="liquidGlass"
+              onClick={() => setIsRequestDialogOpen(true)}
+            >
               <CalendarPlus className="w-4 h-4 mr-2" />
               Request time off
             </Button>

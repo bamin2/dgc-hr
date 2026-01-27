@@ -104,7 +104,7 @@ export function ApprovalActionDialog({
             Cancel
           </Button>
           <Button
-            variant={isApproving ? "default" : "destructive"}
+            variant={isApproving ? "liquidGlass" : "destructive"}
             onClick={handleSubmit}
             disabled={isPending || (!isApproving && !comment.trim())}
           >
