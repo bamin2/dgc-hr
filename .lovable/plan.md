@@ -1,172 +1,219 @@
 
-# LiquidGlass Secondary Button Variant Implementation
+# Liquid Glass Surface System - Global Standardization
 
 ## Overview
-Create a "LiquidGlass Secondary" button variant designed specifically for Cancel actions. This variant will visually complement the existing LiquidGlass Primary button while being clearly lower priority - using translucent glass styling instead of the dark gradient.
+Standardize all page and card surfaces across the application to use a consistent "Liquid Glass" design system. This involves updating CSS variables, modifying core UI components, and adding new utility classes - all without creating new components.
 
 ## Design Specifications
 
-### Visual Properties
+### Color Values
 ```text
-+------------------------------------------+
-|                                          |
-|      Cancel                              |  <- Neutral text (foreground/80)
-|                                          |
-+------------------------------------------+
-         ^                          ^
-         |                          |
-   20px rounded              Translucent glass
-   corners                   bg-white/8 or bg-black/3
+Page Background:     #F7F6F3 (soft warm neutral)
+                     HSL: 40 15% 96%
+
+Card Background:     bg-white/80 (light mode)
+                     bg-white/10 (dark mode - glass effect)
+
+Border:              border-white/40 (translucent white)
+                     border-black/5 (light mode subtle)
+
+Shadow:              shadow-[0_8px_30px_rgba(0,0,0,0.04)]
 ```
 
-- **Border Radius**: 20px (`rounded-[20px]`) - matches primary
-- **Text**: Neutral color (`text-foreground/80`), font-medium weight
-- **Fill (Dark surfaces)**: `bg-white/8` - subtle glass effect
-- **Fill (Light surfaces)**: `bg-black/[0.03]` - very subtle tint
-- **Border (Dark)**: 1px solid `rgba(255,255,255,0.15)`
-- **Border (Light)**: 1px solid `rgba(0,0,0,0.10)`
-- **Inner Shadow**: `0 1px 0 rgba(255,255,255,0.12)` - subtle top highlight
-- **Drop Shadow**: `0 2px 6px rgba(0,0,0,0.08)` - soft depth
-
-### Interaction States
-- **Hover**: Increase background opacity + lift by 1px (`-translate-y-px`)
-- **Pressed/Active**: Push down (`translate-y-px`) + reduce shadow
-- **Focus**: Subtle ring (`ring-2`) with low opacity, not aggressive
-- **Disabled**: Standard 50% opacity with no pointer events
-
-### Responsive Sizing
-- Same as LiquidGlass Primary: Height 48px mobile, 52px desktop
-- Horizontal padding: 20-24px (`px-5` to `px-6`)
+### Visual Effect
+Cards will "float" above the page with:
+- Semi-transparent white backgrounds (not solid white)
+- Subtle backdrop blur for depth
+- Soft, diffused shadows
+- Translucent borders that catch light
 
 ## Implementation Plan
 
-### Step 1: Add CSS Shadow Utilities
-Add new shadow utilities to `src/index.css` for the secondary variant's softer glass effect.
+### Step 1: Update CSS Variables in `src/index.css`
 
-**New CSS classes:**
+**Light Mode Changes:**
+- Update `--background` from `40 8% 97%` to `40 15% 96%` (#F7F6F3 equivalent)
+- Update `--card` from `0 0% 100%` to a semi-transparent equivalent via new approach
+- Update `--popover` similarly for floating menus
+
+**New Utility Classes:**
 ```css
-/* LiquidGlass Secondary (Cancel) button shadows */
-.btn-liquid-glass-secondary-shadow {
-  box-shadow: 
-    inset 0 1px 0 rgba(255,255,255,0.12),
-    0 2px 6px rgba(0,0,0,0.08);
+/* Liquid Glass Card Surface */
+.surface-glass {
+  @apply bg-white/80 dark:bg-white/10 backdrop-blur-md;
+  @apply border border-white/40 dark:border-white/15;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
 }
 
-.btn-liquid-glass-secondary-shadow-hover {
-  box-shadow: 
-    inset 0 1px 0 rgba(255,255,255,0.18),
-    0 4px 8px rgba(0,0,0,0.12);
-}
-
-.btn-liquid-glass-secondary-shadow-active {
-  box-shadow: 
-    inset 0 1px 0 rgba(255,255,255,0.08),
-    0 1px 2px rgba(0,0,0,0.06);
+/* Liquid Glass Card Surface - Elevated (for popovers/dropdowns) */
+.surface-glass-elevated {
+  @apply bg-white/90 dark:bg-white/15 backdrop-blur-lg;
+  @apply border border-white/50 dark:border-white/20;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
 }
 ```
 
-### Step 2: Add Button Variant
-Modify `src/components/ui/button.tsx` to add the `liquidGlassSecondary` variant.
+### Step 2: Update Card Component (`src/components/ui/card.tsx`)
 
-**Variant definition:**
-```typescript
-liquidGlassSecondary: [
-  // Translucent glass background - adapts to surface
-  "bg-black/[0.03] dark:bg-white/[0.08]",
-  // Neutral text
-  "text-foreground/80 font-medium",
-  // Border adapts to theme
-  "border border-black/10 dark:border-white/15",
-  // Match primary radius
-  "rounded-[20px]",
-  // Complex shadows via CSS class
-  "btn-liquid-glass-secondary-shadow",
-  // Transitions
-  "transition-all duration-200",
-  // Hover state
-  "hover:bg-black/[0.06] dark:hover:bg-white/[0.12] hover:-translate-y-px hover:btn-liquid-glass-secondary-shadow-hover",
-  // Active/pressed state
-  "active:translate-y-px active:btn-liquid-glass-secondary-shadow-active",
-  // Subtle focus ring
-  "focus-visible:ring-2 focus-visible:ring-foreground/20 focus-visible:ring-offset-2",
-].join(" ")
+**Current:**
+```tsx
+"rounded-xl border bg-card text-card-foreground shadow-sm"
 ```
 
-### Step 3: Update AlertDialogCancel Component
-Modify `src/components/ui/alert-dialog.tsx` to use the new variant for all Cancel buttons in AlertDialogs.
-
-**Change from:**
-```typescript
-className={cn(buttonVariants({ variant: "outline" }), className)}
+**Updated:**
+```tsx
+"rounded-xl border border-white/40 dark:border-white/15 bg-white/80 dark:bg-white/10 backdrop-blur-md text-card-foreground shadow-[0_8px_30px_rgba(0,0,0,0.04)]"
 ```
 
-**To:**
-```typescript
-className={cn(buttonVariants({ variant: "liquidGlassSecondary", size: "liquidGlass" }), className)}
+### Step 3: Update BentoCard Component (`src/components/dashboard/bento/BentoCard.tsx`)
+
+**Current:**
+```tsx
+"rounded-2xl border border-border/50 bg-card/80 backdrop-blur-md shadow-sm"
 ```
 
-### Step 4: Update Dialog Cancel Buttons
-Update key Dialog components that have Cancel buttons using `variant="outline"`.
+**Updated:**
+```tsx
+"rounded-2xl border border-white/40 dark:border-white/15 bg-white/80 dark:bg-white/10 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.04)]"
+```
 
-**Target files (Cancel buttons only):**
+### Step 4: Update Dialog Component (`src/components/ui/dialog.tsx`)
 
-| File | Current | Update to |
-|------|---------|-----------|
-| `EditSalaryDialog.tsx` | `variant="outline"` | `variant="liquidGlassSecondary" size="liquidGlass"` |
-| `AdHocPaymentDialog.tsx` | `variant="outline"` | `variant="liquidGlassSecondary" size="liquidGlass"` |
-| `EditEnrollmentDialog.tsx` | `variant="outline"` | `variant="liquidGlassSecondary" size="liquidGlass"` |
-| `TripAmendmentDialog.tsx` | `variant="outline"` | `variant="liquidGlassSecondary" size="liquidGlass"` |
-| `CreateProjectDialog.tsx` | `variant="outline"` | `variant="liquidGlassSecondary" size="liquidGlass"` |
-| `PositionFormDialog.tsx` | `variant="outline"` | `variant="liquidGlassSecondary" size="liquidGlass"` |
-| `DepartmentFormDialog.tsx` | `variant="outline"` | `variant="liquidGlassSecondary" size="liquidGlass"` |
-| `BankDetailsDialog.tsx` | `variant="outline"` | `variant="liquidGlassSecondary" size="liquidGlass"` |
-| `RequestTimeOffDialog.tsx` | `variant="outline"` | `variant="liquidGlassSecondary" size="liquidGlass"` |
-| `AttendanceCorrectionDialog.tsx` | `variant="outline"` | `variant="liquidGlassSecondary" size="liquidGlass"` |
+Update `dialogContentVariants` base styles:
+
+**Current:**
+```tsx
+"border bg-background p-6 shadow-lg"
+```
+
+**Updated:**
+```tsx
+"border border-white/40 dark:border-white/15 bg-white/90 dark:bg-white/15 backdrop-blur-lg p-6 shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
+```
+
+### Step 5: Update Sheet Component (`src/components/ui/sheet.tsx`)
+
+Update `sheetVariants` base styles:
+
+**Current:**
+```tsx
+"bg-background shadow-lg"
+```
+
+**Updated:**
+```tsx
+"bg-white/95 dark:bg-[hsl(168_35%_10%)]/95 backdrop-blur-lg shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
+```
+
+### Step 6: Update Popover Component (`src/components/ui/popover.tsx`)
+
+**Current:**
+```tsx
+"border bg-popover p-4 text-popover-foreground shadow-md"
+```
+
+**Updated:**
+```tsx
+"border border-white/40 dark:border-white/15 bg-white/90 dark:bg-white/15 backdrop-blur-lg p-4 text-popover-foreground shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
+```
+
+### Step 7: Update Dropdown Menu (`src/components/ui/dropdown-menu.tsx`)
+
+Update `DropdownMenuContent` and `DropdownMenuSubContent`:
+
+**Current:**
+```tsx
+"border bg-popover p-1 text-popover-foreground shadow-md"
+```
+
+**Updated:**
+```tsx
+"border border-white/40 dark:border-white/15 bg-white/90 dark:bg-white/15 backdrop-blur-lg p-1 text-popover-foreground shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
+```
+
+### Step 8: Update Select Component (`src/components/ui/select.tsx`)
+
+Update `SelectContent`:
+
+**Current:**
+```tsx
+"border bg-popover text-popover-foreground shadow-md"
+```
+
+**Updated:**
+```tsx
+"border border-white/40 dark:border-white/15 bg-white/90 dark:bg-white/15 backdrop-blur-lg text-popover-foreground shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
+```
+
+### Step 9: Update Settings Card (`src/components/settings/SettingsCard.tsx`)
+
+Ensure it inherits the updated Card styles properly.
+
+**Current:**
+```tsx
+<Card className={cn('border-border/50', className)}>
+```
+
+**Updated:**
+```tsx
+<Card className={className}>
+```
+(Relies on updated Card base styles)
 
 ## Files to Modify
 
 | File | Change |
 |------|--------|
-| `src/index.css` | Add `.btn-liquid-glass-secondary-shadow` utilities |
-| `src/components/ui/button.tsx` | Add `liquidGlassSecondary` variant |
-| `src/components/ui/alert-dialog.tsx` | Update `AlertDialogCancel` to use new variant |
-| Multiple dialog files | Update Cancel buttons to use new variant |
+| `src/index.css` | Update `--background` variable, add utility classes |
+| `src/components/ui/card.tsx` | Apply glass styling |
+| `src/components/dashboard/bento/BentoCard.tsx` | Apply glass styling |
+| `src/components/ui/dialog.tsx` | Apply elevated glass styling |
+| `src/components/ui/sheet.tsx` | Apply elevated glass styling |
+| `src/components/ui/popover.tsx` | Apply elevated glass styling |
+| `src/components/ui/dropdown-menu.tsx` | Apply elevated glass styling |
+| `src/components/ui/select.tsx` | Apply elevated glass styling |
+| `src/components/settings/SettingsCard.tsx` | Remove border override |
 
-## Usage Example
-```tsx
-// Cancel button with LiquidGlass Secondary styling
-<Button variant="liquidGlassSecondary" size="liquidGlass">
-  Cancel
-</Button>
+## Technical Considerations
 
-// In a dialog footer (paired with primary)
-<DialogFooter>
-  <Button variant="liquidGlassSecondary" size="liquidGlass" onClick={handleCancel}>
-    Cancel
-  </Button>
-  <Button variant="liquidGlass" size="liquidGlass" onClick={handleSave}>
-    Save Changes
-  </Button>
-</DialogFooter>
-```
+### Dark Mode Compatibility
+- Light mode: `bg-white/80` provides semi-transparent white
+- Dark mode: `bg-white/10` provides subtle glass effect on dark backgrounds
+- Borders adapt: `border-white/40` (light) vs `border-white/15` (dark)
 
-## Visual Hierarchy
-The two LiquidGlass variants create a clear visual pairing:
+### Backdrop Blur Levels
+- Cards: `backdrop-blur-md` (moderate blur)
+- Elevated surfaces (dialogs, popovers): `backdrop-blur-lg` (stronger blur)
+
+### Shadow Specification
+The soft elevation shadow `shadow-[0_8px_30px_rgba(0,0,0,0.04)]`:
+- 0px horizontal offset
+- 8px vertical offset (creates floating effect)
+- 30px blur radius (soft, diffused)
+- 4% opacity black (very subtle)
+
+### Performance Note
+`backdrop-blur` can impact performance on lower-end devices. The blur values are kept moderate to balance visual quality with performance.
+
+## Visual Result
 
 ```text
-Primary (LiquidGlass):          Secondary (LiquidGlassSecondary):
-+-------------------+           +-------------------+
-| ███████████████ |           |   ░░░░░░░░░░░░   |
-| ███ SAVE ███████ |           |   ░ CANCEL ░░░   |
-| ███████████████ |           |   ░░░░░░░░░░░░   |
-+-------------------+           +-------------------+
-     Dark gradient                 Translucent glass
-     White text                    Neutral text
-     High visual weight            Low visual weight
++----------------------------------------------------------+
+|                                                          |
+|  ┌─────────────────────────────────────────────────┐    |
+|  │                                                 │    |
+|  │     Card floats with subtle shadow              │    |
+|  │     Semi-transparent white background           │    |
+|  │     Backdrop blur shows through                 │    |
+|  │                                                 │    |
+|  └─────────────────────────────────────────────────┘    |
+|                                                          |
+|  Soft neutral page background (#F7F6F3)                 |
++----------------------------------------------------------+
 ```
 
 ## Notes
-- **Destructive buttons unchanged**: Buttons like "Delete" retain their destructive styling
-- **Close buttons unchanged**: X icon close buttons in dialog corners are not affected
-- **Backwards compatible**: Existing `variant="outline"` continues to work
-- **Theme adaptive**: Glass effect adapts between light and dark modes automatically
+- No new components are created - only existing components modified
+- Maintains backward compatibility with all existing usages
+- Both light and dark modes are supported with adaptive styling
+- Existing `glass` and `glass-subtle` utilities will be updated for consistency
