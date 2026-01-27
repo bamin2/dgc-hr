@@ -252,9 +252,9 @@ export function EditSalaryDialog({
             </DialogDescription>
           </DialogHeader>
           
-          <DialogBody className="space-y-6">
+          <DialogBody className="space-y-7">
             {/* Basic Salary */}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label htmlFor="basicSalary">Basic Salary</Label>
               <Input
                 id="basicSalary"
@@ -274,8 +274,9 @@ export function EditSalaryDialog({
                 <Label className="text-sm font-medium">Allowances</Label>
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
+                  className="h-8 text-muted-foreground hover:text-foreground"
                   onClick={() => setShowAllowanceDialog(true)}
                 >
                   <Plus className="h-4 w-4 mr-1" />
@@ -284,11 +285,13 @@ export function EditSalaryDialog({
               </div>
               
               {allowances.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-2">No allowances</p>
+                <div className="py-3 px-4 text-sm text-muted-foreground text-center border border-dashed rounded-lg">
+                  No allowances added
+                </div>
               ) : (
-                <div className="space-y-2">
+                <div className="rounded-lg border divide-y">
                   {allowances.map((allowance) => (
-                    <div key={allowance.id} className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
+                    <div key={allowance.id} className="flex items-center gap-3 px-3 py-2.5">
                       <span className="flex-1 text-sm">{allowance.name}</span>
                       <Input
                         type="number"
@@ -314,16 +317,15 @@ export function EditSalaryDialog({
               )}
             </div>
             
-            <Separator />
-            
             {/* Deductions Section */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <Label className="text-sm font-medium">Deductions</Label>
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
+                  className="h-8 text-muted-foreground hover:text-foreground"
                   onClick={() => setShowDeductionDialog(true)}
                 >
                   <Plus className="h-4 w-4 mr-1" />
@@ -332,11 +334,13 @@ export function EditSalaryDialog({
               </div>
               
               {deductions.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-2">No deductions</p>
+                <div className="py-3 px-4 text-sm text-muted-foreground text-center border border-dashed rounded-lg">
+                  No deductions added
+                </div>
               ) : (
-                <div className="space-y-2">
+                <div className="rounded-lg border divide-y">
                   {deductions.map((deduction) => (
-                    <div key={deduction.id} className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
+                    <div key={deduction.id} className="flex items-center gap-3 px-3 py-2.5">
                       <span className="flex-1 text-sm">{deduction.name}</span>
                       <Input
                         type="number"
@@ -366,77 +370,87 @@ export function EditSalaryDialog({
               <>
                 <Separator />
                 <div className="space-y-3">
-                  <div className="space-y-2">
-                    <Label htmlFor="gosiSalary">GOSI Registered Salary</Label>
-                    <Input
-                      id="gosiSalary"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={gosiSalary ?? ''}
-                      onChange={(e) => setGosiSalary(e.target.value ? parseFloat(e.target.value) : null)}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      The salary registered with GOSI for social insurance calculations
-                    </p>
-                  </div>
-                  {gosiCalculation.gosiDeduction > 0 && (
-                    <div className="flex justify-between items-center text-sm bg-amber-50/50 dark:bg-amber-950/20 p-3 rounded-lg">
-                      <span className="text-muted-foreground">
-                        GOSI Employee Contribution ({gosiCalculation.employeeRate}%)
-                      </span>
-                      <span className="text-amber-700 dark:text-amber-400 font-medium">
-                        {formatAmount(gosiCalculation.gosiDeduction, currency)}
-                      </span>
+                  <Label className="text-sm font-medium">GOSI</Label>
+                  <div className="space-y-4 p-4 bg-muted/30 rounded-lg">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="gosiSalary" className="text-sm text-muted-foreground">
+                        Registered Salary
+                      </Label>
+                      <Input
+                        id="gosiSalary"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={gosiSalary ?? ''}
+                        onChange={(e) => setGosiSalary(e.target.value ? parseFloat(e.target.value) : null)}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        The salary registered with GOSI for social insurance calculations
+                      </p>
                     </div>
-                  )}
+                    {gosiCalculation.gosiDeduction > 0 && (
+                      <div className="flex justify-between items-center text-sm bg-amber-50/50 dark:bg-amber-950/20 p-3 rounded-lg border border-amber-200/50 dark:border-amber-800/30">
+                        <span className="text-muted-foreground">
+                          Employee Contribution ({gosiCalculation.employeeRate}%)
+                        </span>
+                        <span className="text-amber-700 dark:text-amber-400 font-medium">
+                          {formatAmount(gosiCalculation.gosiDeduction, currency)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </>
             )}
             
-            <Separator />
-            
             {/* Summary Section */}
-            <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Basic Salary</span>
-                <span>{formatAmount(basicSalary, currency)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Total Allowances</span>
-                <span className="text-green-600">+{formatAmount(totals.totalAllowances, currency)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Gross Pay</span>
-                <span className="font-medium">{formatAmount(totals.grossPay, currency)}</span>
-              </div>
-              <Separator />
-              {gosiCalculation.gosiDeduction > 0 && (
+            <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+              {/* Gross calculations */}
+              <div className="space-y-1.5">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">GOSI Deduction ({gosiCalculation.employeeRate}%)</span>
-                  <span className="text-red-600">-{formatAmount(gosiCalculation.gosiDeduction, currency)}</span>
+                  <span className="text-muted-foreground">Basic Salary</span>
+                  <span>{formatAmount(basicSalary, currency)}</span>
                 </div>
-              )}
-              {totals.otherDeductions > 0 && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Other Deductions</span>
-                  <span className="text-red-600">-{formatAmount(totals.otherDeductions, currency)}</span>
+                  <span className="text-muted-foreground">Total Allowances</span>
+                  <span className="text-green-600">+{formatAmount(totals.totalAllowances, currency)}</span>
                 </div>
-              )}
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Total Deductions</span>
-                <span className="text-red-600">-{formatAmount(totals.totalDeductions, currency)}</span>
+                <div className="flex justify-between text-sm font-medium pt-1 border-t border-border/50">
+                  <span>Gross Pay</span>
+                  <span>{formatAmount(totals.grossPay, currency)}</span>
+                </div>
               </div>
-              <Separator />
-              <div className="flex justify-between font-semibold">
+              
+              {/* Deductions */}
+              <div className="space-y-1.5 pt-2">
+                {gosiCalculation.gosiDeduction > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">GOSI ({gosiCalculation.employeeRate}%)</span>
+                    <span className="text-red-600">-{formatAmount(gosiCalculation.gosiDeduction, currency)}</span>
+                  </div>
+                )}
+                {totals.otherDeductions > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Other Deductions</span>
+                    <span className="text-red-600">-{formatAmount(totals.otherDeductions, currency)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between text-sm font-medium pt-1 border-t border-border/50">
+                  <span>Total Deductions</span>
+                  <span className="text-red-600">-{formatAmount(totals.totalDeductions, currency)}</span>
+                </div>
+              </div>
+              
+              {/* Net Pay */}
+              <div className="flex justify-between font-semibold text-base pt-2 border-t">
                 <span>Net Pay</span>
                 <span className="text-primary">{formatAmount(totals.netPay, currency)}</span>
               </div>
             </div>
             
             {/* Reason for Change */}
-            <div className="space-y-2">
-              <Label htmlFor="reason">Reason for Change (Optional)</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="reason" className="text-sm">Reason for Change (Optional)</Label>
               <Textarea
                 id="reason"
                 placeholder="e.g., Annual salary review, Promotion, etc."
@@ -447,7 +461,7 @@ export function EditSalaryDialog({
             </div>
           </DialogBody>
           
-          <DialogFooter>
+          <DialogFooter className="mt-4">
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
