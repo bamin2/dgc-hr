@@ -1,33 +1,18 @@
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import { useLocation, Link } from "react-router-dom";
-import { Home, FileText, CheckSquare, User, Plus, Calendar, Banknote } from "lucide-react";
+import { Home, FileText, CheckSquare, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRole } from "@/contexts/RoleContext";
 import { usePendingApprovalsCount } from "@/hooks/usePendingApprovalsCount";
 import { preloadRoute } from "@/lib/routePreloader";
 import { prefetchMobileRouteData } from "@/lib/mobileNavPreloader";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer";
-import { RequestTimeOffDialog } from "@/components/timeoff/RequestTimeOffDialog";
-import { EmployeeRequestLoanDialog } from "@/components/loans/EmployeeRequestLoanDialog";
-import { RequestHRDocumentDialog } from "@/components/approvals/RequestHRDocumentDialog";
 
 interface NavItem {
   icon: React.ElementType;
   label: string;
   path: string;
   badge?: number;
-}
-
-interface QuickAction {
-  icon: React.ElementType;
-  label: string;
-  action: () => void;
 }
 
 /**
@@ -38,7 +23,6 @@ interface QuickAction {
  * Tabs:
  * - Home: Dashboard
  * - Requests: Time off and other employee requests
- * - Quick Action: Opens bottom sheet with request options
  * - Approvals: Manager/HR only - pending approvals
  * - Profile: Employee profile
  */
@@ -48,47 +32,13 @@ export function MobileActionBar() {
   const { data: pendingCount = 0 } = usePendingApprovalsCount();
   const queryClient = useQueryClient();
 
-  // Sheet and dialog states
-  const [sheetOpen, setSheetOpen] = useState(false);
-  const [timeOffOpen, setTimeOffOpen] = useState(false);
-  const [loanOpen, setLoanOpen] = useState(false);
-  const [hrLetterOpen, setHrLetterOpen] = useState(false);
-
   // Prefetch route chunk and pre-warm data on touch/hover
   const handlePrefetch = useCallback((path: string) => {
     preloadRoute(path);
     prefetchMobileRouteData(queryClient, path, currentUser?.id);
   }, [queryClient, currentUser?.id]);
 
-  // Handle quick action selection
-  const handleQuickAction = useCallback((openDialog: () => void) => {
-    setSheetOpen(false);
-    // Small delay for smooth sheet close animation
-    setTimeout(() => {
-      openDialog();
-    }, 150);
-  }, []);
-
-  // Quick actions for the bottom sheet
-  const quickActions: QuickAction[] = [
-    {
-      icon: Calendar,
-      label: "Time Off",
-      action: () => handleQuickAction(() => setTimeOffOpen(true)),
-    },
-    {
-      icon: Banknote,
-      label: "Loan",
-      action: () => handleQuickAction(() => setLoanOpen(true)),
-    },
-    {
-      icon: FileText,
-      label: "HR Letter",
-      action: () => handleQuickAction(() => setHrLetterOpen(true)),
-    },
-  ];
-
-  // All navigation items - evenly spaced
+  // Navigation items - evenly spaced
   const navItems: NavItem[] = [
     { icon: Home, label: "Home", path: "/" },
     { icon: FileText, label: "Requests", path: "/requests" },
@@ -160,77 +110,18 @@ export function MobileActionBar() {
   };
 
   return (
-    <>
-      <nav 
-        className={cn(
-          "fixed bottom-0 left-0 right-0 z-50",
-          "bg-background/95 backdrop-blur-md border-t border-border",
-          "safe-area-inset-bottom",
-          "lg:hidden"
-        )}
-      >
-        {/* Navigation tabs - evenly spaced */}
-        <div className="flex items-stretch justify-around h-[72px]">
-          {navItems.map(renderNavItem)}
-        </div>
-      </nav>
-
-      {/* Floating Action Button - fixed position, independent of nav */}
-      <button
-        type="button"
-        onClick={() => setSheetOpen(true)}
-        className={cn(
-          "fixed left-1/2 -translate-x-1/2 z-50",
-          "bottom-[calc(72px+env(safe-area-inset-bottom,0px)+16px)]",
-          "w-14 h-14 rounded-full",
-          "bg-[#C6A45E] text-white",
-          "flex items-center justify-center",
-          "shadow-xl shadow-[#C6A45E]/25",
-          "touch-manipulation transition-transform duration-150",
-          "active:scale-95",
-          "lg:hidden"
-        )}
-        aria-label="Quick actions"
-      >
-        <Plus className="w-7 h-7" strokeWidth={2.5} />
-      </button>
-
-      {/* Quick Actions Bottom Sheet */}
-      <Drawer open={sheetOpen} onOpenChange={setSheetOpen}>
-        <DrawerContent>
-          <DrawerHeader className="text-left">
-            <DrawerTitle>Requests</DrawerTitle>
-          </DrawerHeader>
-          <div className="px-4 pb-6">
-            {quickActions.map((action, index) => {
-              const Icon = action.icon;
-              return (
-                <button
-                  key={action.label}
-                  type="button"
-                  onClick={action.action}
-                  className={cn(
-                    "w-full flex items-center gap-4 min-h-[56px] px-2 py-3",
-                    "touch-manipulation transition-colors duration-150",
-                    "active:bg-muted/50 rounded-xl",
-                    index < quickActions.length - 1 && "border-b border-border"
-                  )}
-                >
-                  <div className="h-10 w-10 rounded-xl bg-secondary/50 flex items-center justify-center">
-                    <Icon className="w-5 h-5 text-foreground" />
-                  </div>
-                  <span className="text-base font-medium">{action.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </DrawerContent>
-      </Drawer>
-
-      {/* Request Dialogs */}
-      <RequestTimeOffDialog open={timeOffOpen} onOpenChange={setTimeOffOpen} />
-      <EmployeeRequestLoanDialog open={loanOpen} onOpenChange={setLoanOpen} />
-      <RequestHRDocumentDialog open={hrLetterOpen} onOpenChange={setHrLetterOpen} />
-    </>
+    <nav 
+      className={cn(
+        "fixed bottom-0 left-0 right-0 z-50",
+        "bg-background/95 backdrop-blur-md border-t border-border",
+        "safe-area-inset-bottom",
+        "lg:hidden"
+      )}
+    >
+      {/* Navigation tabs - evenly spaced */}
+      <div className="flex items-stretch justify-around h-[72px]">
+        {navItems.map(renderNavItem)}
+      </div>
+    </nav>
   );
 }
