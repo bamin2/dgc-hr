@@ -37,6 +37,7 @@ export { EmployeeTimeOffTab } from "./EmployeeTimeOffTab";
 export { EmployeeActivityTab } from "./EmployeeActivityTab";
 export { AdminAddLeaveDialog } from "./AdminAddLeaveDialog";
 export { BalanceAdjustmentDialog } from "./BalanceAdjustmentDialog";
+export { EditSalaryDialog } from "./EditSalaryDialog";
 
 // Page components
 export { EmployeesPageHeader } from "./EmployeesPageHeader";

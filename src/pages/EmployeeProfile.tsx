@@ -45,7 +45,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { StatusBadge, EmployeeForm, RoleBadge, RoleSelectorWithDescription, CreateLoginDialog, ResetPasswordDialog, SalaryHistoryCard, BankDetailsDialog, EmployeeTimeOffTab, EmployeeActivityTab } from "@/components/employees";
+import { StatusBadge, EmployeeForm, RoleBadge, RoleSelectorWithDescription, CreateLoginDialog, ResetPasswordDialog, SalaryHistoryCard, BankDetailsDialog, EmployeeTimeOffTab, EmployeeActivityTab, EditSalaryDialog } from "@/components/employees";
 import { EmployeeDocumentsTab } from "@/components/employees/documents";
 import { EmployeeLoansTab } from "@/components/employees/EmployeeLoansTab";
 import { EmployeeBenefitsTab } from "@/components/employees/EmployeeBenefitsTab";
@@ -87,6 +87,7 @@ export default function EmployeeProfile() {
   const [createLoginOpen, setCreateLoginOpen] = useState(false);
   const [resetPasswordOpen, setResetPasswordOpen] = useState(false);
   const [bankDialogOpen, setBankDialogOpen] = useState(false);
+  const [editSalaryOpen, setEditSalaryOpen] = useState(false);
   const [roleChangeDialogOpen, setRoleChangeDialogOpen] = useState(false);
   const [pendingRole, setPendingRole] = useState<AppRole | null>(null);
   const [isCompensationVisible, setIsCompensationVisible] = useState(false);
@@ -549,18 +550,30 @@ export default function EmployeeProfile() {
                       <CreditCard className="h-4 w-4 text-primary" />
                       Compensation
                     </CardTitle>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setIsCompensationVisible(!isCompensationVisible)}
-                      className="h-8 w-8"
-                    >
-                      {isCompensationVisible ? (
-                        <EyeOff className="h-4 w-4 text-muted-foreground" />
-                      ) : (
-                        <Eye className="h-4 w-4 text-muted-foreground" />
+                    <div className="flex items-center gap-1">
+                      {canEditEmployees && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setEditSalaryOpen(true)}
+                          className="h-8 w-8"
+                        >
+                          <Pencil className="h-4 w-4 text-muted-foreground" />
+                        </Button>
                       )}
-                    </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setIsCompensationVisible(!isCompensationVisible)}
+                        className="h-8 w-8"
+                      >
+                        {isCompensationVisible ? (
+                          <EyeOff className="h-4 w-4 text-muted-foreground" />
+                        ) : (
+                          <Eye className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </Button>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4 relative">
@@ -797,6 +810,16 @@ export default function EmployeeProfile() {
         open={bankDialogOpen}
         onOpenChange={setBankDialogOpen}
         employee={employee}
+      />
+      
+      <EditSalaryDialog
+        open={editSalaryOpen}
+        onOpenChange={setEditSalaryOpen}
+        employee={employee}
+        currentAllowances={allowances}
+        currentDeductions={deductions}
+        workLocationId={employee.workLocationId || null}
+        currency={currency}
       />
 
       {/* Role Change Confirmation Dialog */}
