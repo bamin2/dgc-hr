@@ -18,7 +18,7 @@ export const SettingsCard = ({
   className 
 }: SettingsCardProps) => {
   return (
-    <Card className={cn('border-border/50', className)}>
+    <Card className={className}>
       <CardHeader className="pb-4">
         <div className="flex items-center gap-3">
           {Icon && (
