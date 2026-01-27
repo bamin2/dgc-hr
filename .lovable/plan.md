@@ -1,340 +1,164 @@
-# Plan: Auto-Create Login Account When Adding Employee/Team Member
+
+# Add Quick Actions Section to Mobile Home Page
 
 ## Overview
-
-Currently, adding an employee only creates a record in the `employees` table. The user must then manually click "Create Login" to create an auth account. This plan modifies the flow to automatically create the auth account when adding an employee.
-
----
-
-## Current Architecture
-
-```
-employees table                    auth.users
-+------------------+               +------------------+
-| id (uuid)        |               | id (uuid)        |
-| email            |               | email            |
-| first_name       |               | user_metadata    |
-| ...              |               | ...              |
-+------------------+               +------------------+
-        |                                   |
-        |                                   v
-        |                          profiles table
-        |                          +------------------+
-        +------------------------->| id (uuid) = auth.users.id
-                                   | employee_id (uuid) ---> employees.id
-                                   | email            |
-                                   +------------------+
-```
-
-**Current Flow:**
-1. Create employee in `employees` table
-2. (Later) HR clicks "Create Login" which:
-   - Creates auth user via `auth.admin.createUser()`
-   - Trigger creates `profiles` row
-   - Edge function links `profiles.employee_id` to the employee
+Add a "Quick Actions" section to the mobile dashboard between the greeting card and notifications. This will provide quick access to common employee actions through a 2-column grid of tappable tiles.
 
 ---
 
-## New Architecture
-
-### Flow After Changes
-
+## Current Mobile Dashboard Structure
+```text
+┌─────────────────────────────┐
+│ MobileGreetingCard          │
+│ "Good morning, John!"       │
+│ "Monday, January 27"        │
+├─────────────────────────────┤
+│ MobileStatusCards           │
+│ (Next Leave, Pending, Loan) │
+├─────────────────────────────┤
+│ NotificationsCard           │
+│ (4 recent notifications)    │
+└─────────────────────────────┘
 ```
-AddTeamMemberWizard / EmployeeForm
-           |
-           v
-   Call create-employee-with-login edge function
-           |
-           +---> 1. Create auth user (auto-generates password)
-           |
-           +---> 2. Trigger creates profiles row
-           |
-           +---> 3. Create employee record with user_id linked
-           |
-           +---> 4. Update profiles.employee_id
-           |
-           v
-   Return { employee, tempPassword }
+
+## Proposed Structure
+```text
+┌─────────────────────────────┐
+│ MobileGreetingCard          │
+├─────────────────────────────┤
+│ MobileStatusCards           │
+├─────────────────────────────┤
+│ Quick Actions (NEW)         │
+│ ┌──────────┬──────────┐     │
+│ │Time Off  │ Loan     │     │
+│ ├──────────┼──────────┤     │
+│ │Payslip   │ HR Letter│     │
+│ ├──────────┼──────────┤     │
+│ │Approvals*│Directory*│     │
+│ └──────────┴──────────┘     │
+│ *Manager/HR only            │
+├─────────────────────────────┤
+│ NotificationsCard           │
+└─────────────────────────────┘
 ```
 
 ---
 
-## Implementation Details
+## Actions Configuration
 
-### Part 1: Create New Edge Function `create-employee-with-login`
+### Always Visible (All Employees)
+| Action | Icon | Behavior |
+|--------|------|----------|
+| Request Time Off | `CalendarPlus` | Opens `RequestTimeOffDialog` |
+| Request Loan | `Banknote` | Opens `EmployeeRequestLoanDialog` |
+| View Payslip | `Receipt` | Opens `MobilePayslipsSheet` drawer |
+| Request HR Letter | `FileText` | Opens `RequestHRDocumentDialog` |
 
-**File:** `supabase/functions/create-employee-with-login/index.ts`
-
-This edge function will:
-1. Verify caller has HR/Admin role
-2. Generate a secure temporary password
-3. Create auth user via `auth.admin.createUser()`
-4. Create employee record with the new `user_id`
-5. Update `profiles.employee_id` to link to the employee
-6. Return the employee data and temporary password
-
-**Request body:**
-```typescript
-{
-  first_name: string;
-  last_name: string;
-  email: string;
-  preferred_name?: string;
-  worker_type?: string;
-  country?: string;
-  join_date?: string;
-  department_id?: string;
-  position_id?: string;
-  manager_id?: string;
-  work_location?: string;
-  salary?: number;
-  pay_frequency?: string;
-  employment_type?: string;
-  // ... other employee fields
-}
-```
-
-**Response:**
-```typescript
-{
-  success: true;
-  employee: { id: string; ... };
-  tempPassword: string;  // Show to HR once, they share with employee
-  userId: string;
-}
-```
-
-**Password generation:**
-```typescript
-function generateTempPassword(): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
-  let password = '';
-  for (let i = 0; i < 12; i++) {
-    password += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return password;
-}
-```
+### Conditional (Manager/HR Only)
+| Action | Icon | Behavior | Condition |
+|--------|------|----------|-----------|
+| Approvals | `CheckSquare` | Navigate to `/approvals` | `isManager` OR `canEditEmployees` |
+| Directory | `BookUser` | Navigate to `/directory` | `isManager` OR `canEditEmployees` |
 
 ---
 
-### Part 2: Update AddTeamMemberWizard
+## Technical Implementation
 
-**File:** `src/components/team/wizard/AddTeamMemberWizard.tsx`
+### File to Modify
+**`src/components/dashboard/bento/MobileQuickActionsCard.tsx`**
 
-Changes:
-1. Replace direct Supabase insert with edge function call
-2. Show temporary password in a dialog after successful creation
-3. Add a "Copy Password" button so HR can share it with the employee
+This component already exists but includes a greeting section. We will refactor it to:
+1. Remove the greeting (already handled by `MobileGreetingCard`)
+2. Add section title "Quick Actions"
+3. Update actions to match requirements
+4. Add role-based conditional actions
+5. Add payslips sheet support
 
-**New flow in `handleSubmit()`:**
-```typescript
-const { data, error } = await supabase.functions.invoke('create-employee-with-login', {
-  body: {
-    first_name: basicData.firstName,
-    last_name: basicData.lastName,
-    email: basicData.email,
-    // ... all other employee fields
-  }
-});
+### Tile Styling (Reusing Existing Patterns)
+Following the pattern from `MobileNewRequestSheet`:
+```text
+- 2-column grid: grid-cols-2 gap-3
+- Min height: min-h-[88px] (meets 56px+ requirement)
+- Border radius: rounded-2xl
+- Background: bg-secondary/50
+- Touch: touch-manipulation, active:scale-[0.98]
+- Icon container: h-11 w-11 rounded-xl
+- Label: text-xs font-medium
+```
 
-if (data?.success) {
-  // Show dialog with temporary password
-  setTempPassword(data.tempPassword);
-  setShowPasswordDialog(true);
-}
+### Dashboard Integration
+**`src/components/dashboard/DashboardRenderer.tsx`**
+
+Update the `MobileDashboard` function to include the new Quick Actions section:
+
+```text
+MobileGreetingCard
+    ↓
+MobileStatusCards
+    ↓
+MobileQuickActionsCard (ADD HERE)
+    ↓
+NotificationsCard
 ```
 
 ---
 
-### Part 3: Create TempPasswordDialog Component
+## Detailed Changes
 
-**File:** `src/components/team/wizard/TempPasswordDialog.tsx`
+### 1. Refactor MobileQuickActionsCard.tsx
 
-A dialog that:
-- Shows after successful employee creation
-- Displays the employee name and temporary password
-- Has a "Copy to Clipboard" button
-- Shows a warning: "Please share this password with the employee. It will not be shown again."
-- "Done" button closes dialog and navigates to team page
+**Changes:**
+- Remove the greeting section (lines 74-80)
+- Add section header "Quick Actions"
+- Replace actions array with new configuration:
+  - Request Time Off → `RequestTimeOffDialog`
+  - Request Loan → `EmployeeRequestLoanDialog`
+  - View Payslip → `MobilePayslipsSheet`
+  - Request HR Letter → `RequestHRDocumentDialog`
+- Add conditional actions using `useRole()`:
+  - Approvals → `navigate('/approvals')`
+  - Directory → `navigate('/directory')`
+- Add state for payslips sheet and loan dialog
+- Import `useRole` and `useMyEmployee` for role checks and employee ID
 
-```
-+----------------------------------------------------------+
-|  Account Created Successfully                      [X]   |
-+----------------------------------------------------------+
-|                                                          |
-|  A login account has been created for:                   |
-|  John Doe (john.doe@company.com)                         |
-|                                                          |
-|  Temporary Password:                                     |
-|  +--------------------------------------------------+    |
-|  |  xK7mNp3qR2sT                         [Copy]     |    |
-|  +--------------------------------------------------+    |
-|                                                          |
-|  ! Please share this password with the employee.         |
-|    They should change it after first login.              |
-|    This password will not be shown again.                |
-|                                                          |
-|                                       [Done]             |
-+----------------------------------------------------------+
-```
+**Imports to add:**
+- `Banknote`, `Receipt`, `CheckSquare`, `BookUser` from lucide-react
+- `useRole` from RoleContext
+- `useMyEmployee` from hooks
+- `EmployeeRequestLoanDialog` from loans
+- `MobilePayslipsSheet` from myprofile/mobile
 
----
+### 2. Update DashboardRenderer.tsx
 
-### Part 4: Update EmployeeForm (for adding via Employees page)
-
-**File:** `src/components/employees/EmployeeForm.tsx`
-
-Same changes as AddTeamMemberWizard:
-1. Call edge function instead of direct insert
-2. Show temp password dialog on success
+**Changes:**
+- Import `MobileQuickActionsCard` (already exported in index.ts)
+- Add it to the `MobileDashboard` function between `MobileStatusCards` and `NotificationsCard`
 
 ---
 
-### Part 5: Update useCreateEmployee Hook
+## Files Summary
 
-**File:** `src/hooks/useEmployees.ts`
+| File | Action |
+|------|--------|
+| `src/components/dashboard/bento/MobileQuickActionsCard.tsx` | Refactor to new design |
+| `src/components/dashboard/DashboardRenderer.tsx` | Add MobileQuickActionsCard |
 
-Create a new hook `useCreateEmployeeWithLogin` that:
-1. Calls the edge function
-2. Returns the employee data and temp password
-3. Handles errors appropriately
+---
 
-```typescript
-export function useCreateEmployeeWithLogin() {
-  const queryClient = useQueryClient();
+## Design Tokens (Following Mobile Standards)
+- Grid gap: `gap-3` (12px)
+- Card padding: `p-4` (16px)
+- Border radius: `rounded-2xl` (16-20px)
+- Min touch height: `min-h-[88px]` (exceeds 56px requirement)
+- Icon container: `h-11 w-11 rounded-xl` (44px, follows mobile standard)
+- Typography: `text-xs font-medium` for labels
 
-  return useMutation({
-    mutationFn: async (employeeData: CreateEmployeeData) => {
-      const { data, error } = await supabase.functions.invoke(
-        'create-employee-with-login',
-        { body: employeeData }
-      );
-
-      if (error) throw error;
-      if (!data.success) throw new Error(data.error);
-      
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["employees"] });
-      queryClient.invalidateQueries({ queryKey: ["team-members"] });
-    },
-  });
-}
+## Role Check Logic
+```text
+const showManagerActions = isManager || canEditEmployees;
 ```
 
----
-
-### Part 6: Update config.toml
-
-**File:** `supabase/config.toml`
-
-Add the new edge function:
-```toml
-[functions.create-employee-with-login]
-verify_jwt = false
-```
-
----
-
-### Part 7: Clean Up Account Access Section
-
-**File:** `src/pages/EmployeeProfile.tsx`
-
-Since accounts are now auto-created:
-- "Create Login" button is no longer needed for new employees
-- Keep it only as a fallback for legacy employees without accounts
-- Show account status: "Account Active" or "No Account (Legacy)"
-
----
-
-## Updated Account Access UI
-
-```
-+----------------------------------------------------------+
-| Account Access                                           |
-| Manage login credentials for this employee               |
-+----------------------------------------------------------+
-|                                                          |
-| Status: Account Active (created on Jan 5, 2026)          |
-|                                                          |
-| [Reset Password]                                         |
-|                                                          |
-+----------------------------------------------------------+
-```
-
-For legacy employees without accounts:
-```
-+----------------------------------------------------------+
-| Account Access                                           |
-| Manage login credentials for this employee               |
-+----------------------------------------------------------+
-|                                                          |
-| Status: No Account                                       |
-| This employee was added before auto-login was enabled.   |
-|                                                          |
-| [Create Login]  [Reset Password (disabled)]              |
-|                                                          |
-+----------------------------------------------------------+
-```
-
----
-
-## Files to Create
-
-| File | Description |
-|------|-------------|
-| `supabase/functions/create-employee-with-login/index.ts` | Edge function to create employee + auth account |
-| `src/components/team/wizard/TempPasswordDialog.tsx` | Dialog showing temporary password after creation |
-
----
-
-## Files to Modify
-
-| File | Changes |
-|------|---------|
-| `supabase/config.toml` | Add new edge function config |
-| `src/hooks/useEmployees.ts` | Add `useCreateEmployeeWithLogin` hook |
-| `src/components/team/wizard/AddTeamMemberWizard.tsx` | Use new hook, show temp password dialog |
-| `src/components/team/wizard/index.ts` | Export TempPasswordDialog |
-| `src/components/employees/EmployeeForm.tsx` | Use new hook, show temp password dialog |
-| `src/pages/EmployeeProfile.tsx` | Update Account Access section UI |
-
----
-
-## Security Considerations
-
-1. **Temp password shown once** - After the dialog is closed, the password cannot be retrieved
-2. **HR/Admin only** - Edge function verifies caller has appropriate role
-3. **Force password change** - (Optional future enhancement) Set flag to require password change on first login
-4. **Audit log** - Edge function logs account creation events
-
----
-
-## Error Handling
-
-1. **Duplicate email** - If auth user with email already exists, show clear error
-2. **Database errors** - If employee creation fails after auth user created, rollback by deleting the auth user
-3. **Network errors** - Show retry option
-
----
-
-## Testing Checklist
-
-1. Add team member via wizard - should show temp password dialog
-2. Add employee via EmployeeForm - should show temp password dialog
-3. Copy password button works
-4. Employee can log in with temp password
-5. Reset Password still works for existing accounts
-6. Legacy employees without accounts show "Create Login" option
-
----
-
-## Critical Files for Implementation
-
-- `supabase/functions/create-employee-with-login/index.ts` - New edge function (core logic)
-- `src/components/team/wizard/TempPasswordDialog.tsx` - New UI component for password display
-- `src/components/team/wizard/AddTeamMemberWizard.tsx` - Update to use new flow
-- `src/hooks/useEmployees.ts` - Add new mutation hook
-- `src/pages/EmployeeProfile.tsx` - Update Account Access section
+This covers:
+- Managers (role === 'manager')
+- HR (role === 'hr')
+- Admins (role === 'admin')
