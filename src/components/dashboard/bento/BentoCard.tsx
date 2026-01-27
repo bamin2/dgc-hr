@@ -32,11 +32,11 @@ export function BentoCard({
     <div
       className={cn(
         // Base Liquid Glass styling
-        "rounded-2xl border border-white/40 dark:border-white/15 bg-white/80 dark:bg-white/10 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.04)]",
+        "rounded-2xl border border-white/40 dark:border-white/15 bg-white/80 dark:bg-white/10 backdrop-blur-md shadow-[0_4px_12px_rgba(0,0,0,0.04)]",
         // Hover effects
-        "hover:bg-white/90 dark:hover:bg-white/15 hover:border-white/50 dark:hover:border-white/20 hover:shadow-[0_12px_40px_rgba(0,0,0,0.06)]",
+        "hover:bg-white/90 dark:hover:bg-white/15 hover:border-white/50 dark:hover:border-white/20 hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)]",
         // Transitions
-        "transition-all duration-200 ease-out",
+        "transition-all duration-200",
         // Grid span
         colSpanClasses[colSpan],
         // Padding
