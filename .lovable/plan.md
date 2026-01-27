@@ -1,209 +1,128 @@
 
-# Enhance List and Table Row Interactions
+
+# Refine Employee Directory Cards
 
 ## Overview
-Add subtle hover effects to existing table rows and list items to improve visual feedback and depth. This creates a more interactive feel without converting any tables into cards or changing row heights.
+Enhance the DirectoryCard component with refined visual styling that aligns with the liquid glass design system. This includes a softer custom shadow, subtle hover elevation increase, and a very gentle scale effect for a premium feel.
+
+## Current State Analysis
+
+The DirectoryCard currently uses the base Card component with a simple override:
+```tsx
+<Card className="hover:shadow-md transition-shadow">
+```
+
+The base Card component already has:
+- `bg-white/80 dark:bg-white/10` - Semi-transparent surface ✓
+- `backdrop-blur-md` - Backdrop blur ✓
+- `shadow-[0_4px_12px_rgba(0,0,0,0.04)]` - Base shadow
+- `hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)]` - Hover shadow
+- `transition-all duration-200` - Smooth transitions
 
 ## Design Specifications
 
-### Hover Effect Values
+### Requested Changes
 ```text
-Property              Current State              Enhanced State
-──────────────────────────────────────────────────────────────────
-Background            hover:bg-muted/30-50       hover:bg-white/60
-Shadow                (none)                     hover:shadow-sm
-Transition            (varies)                   transition-all duration-200
-Row Height            (unchanged)                (unchanged)
+Property              Current Value                    Updated Value
+──────────────────────────────────────────────────────────────────────────────
+Base Shadow           shadow-[0_4px_12px...0.04]       shadow-[0_6px_20px_rgba(0,0,0,0.05)]
+Hover Shadow          hover:shadow-md (overridden)     hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)]
+Hover Scale           (none)                           hover:scale-[1.01]
+Hover Translate       (none)                           hover:-translate-y-0.5
+Surface               bg-white/80 (from Card)          bg-white/80 (keep)
+Backdrop              backdrop-blur-md (from Card)     backdrop-blur-md (keep)
 ```
 
-### Alignment with Design System
-The new hover effect (`bg-white/60 shadow-sm`) aligns with the existing liquid glass aesthetic:
-- Cards already use `bg-white/80` with `shadow-[0_4px_12px_rgba(0,0,0,0.04)]`
-- Buttons use `bg-white/60` with `backdrop-blur-sm`
-- This creates a subtle "lift" effect consistent with the glass surface system
+### Visual Effect
+- **At rest**: Soft, floating appearance with subtle shadow
+- **On hover**: Card gently lifts with increased elevation and very slight scale
+- **Transition**: Smooth 200ms animation for all properties
 
 ## Implementation Plan
 
-### Step 1: Update Core TableRow Component
+### Step 1: Update DirectoryCard Component
 
-**File:** `src/components/ui/table.tsx`
+**File:** `src/components/directory/DirectoryCard.tsx`
 
-Update the base `TableRow` component to include the enhanced hover effect:
+Update the Card className to include:
+1. Custom base shadow: `shadow-[0_6px_20px_rgba(0,0,0,0.05)]`
+2. Enhanced hover shadow: `hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)]`
+3. Subtle scale on hover: `hover:scale-[1.01]`
+4. Slight lift on hover: `hover:-translate-y-0.5`
+5. Smooth transition: `transition-all duration-200`
 
-| Property | Current | Updated |
-|----------|---------|---------|
-| Hover background | `hover:bg-muted/50` | `hover:bg-white/60 dark:hover:bg-white/10` |
-| Hover shadow | (none) | `hover:shadow-sm` |
-| Transition | `transition-colors` | `transition-all duration-200` |
+**Current code (line 24):**
+```tsx
+<Card className="hover:shadow-md transition-shadow">
+```
 
-This change propagates to all TableRow usages automatically.
-
-### Step 2: Update Approval Cards
-
-Cards used for approval workflows should have enhanced interactivity:
-
-**File:** `src/components/approvals/ApprovalCard.tsx`
-
-Add hover effect to the main Card wrapper (for time_off and loan sections):
-- Line 49: Add `hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm` to Card
-- Line 160: Add same hover effect to loan Card
-
-**File:** `src/components/approvals/MobileApprovalCard.tsx`
-
-Add hover effect to all Card wrappers:
-- Line 51: Time off Card
-- Line 167: Business trip Card  
-- Line 249: Loan Card
-
-### Step 3: Update Request Cards
-
-**File:** `src/components/requests/MobileRequestCard.tsx`
-
-Update the button wrapper with enhanced hover:
-- Line 92-97: Add `hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm`
-
-### Step 4: Update Trip Card
-
-**File:** `src/components/business-trips/TripCard.tsx`
-
-The TripCard already has `hover:shadow-md`, update to use consistent styling:
-- Line 20-22: Change from `hover:shadow-md hover:border-primary/30` to include `hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm`
-
-### Step 5: Update DataCard Component
-
-**File:** `src/components/ui/data-card.tsx`
-
-Update the DataCard component for consistent hover:
-- Line 94-99: Update hover class from `hover:shadow-md` to `hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm`
-
-### Step 6: Update List Item Rows
-
-Various components use inline list item styling. Update these to use consistent hover:
-
-**File:** `src/components/settings/payroll/BanksSection.tsx`
-- Line 85: Change `hover:bg-muted/50` to `hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm`
-
-**File:** `src/pages/CandidateDetail.tsx`
-- Line 164: Change `hover:bg-muted/50` to `hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm`
-
-**File:** `src/components/timemanagement/CopyYearHolidaysDialog.tsx`
-- Line 148: Change `hover:bg-muted/50` to `hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm`
-
-**File:** `src/components/employees/EmployeeTimeOffTab.tsx`
-- Line 178: Change `hover:border-primary/50` to `hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm`
-
-**File:** `src/components/payroll/PayrollRunWizard/SelectEmployeesStep.tsx`
-- Line 92: Change `hover:bg-muted/50` to `hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm`
-
-### Step 7: Update Profile Section Items
-
-**File:** `src/components/myprofile/MyProfilePayslipsSection.tsx`
-- Line 165: Update hover from `hover:bg-muted/70` to include shadow effect
-
-**File:** `src/components/myprofile/MyProfileHRLettersSection.tsx`
-- Lines 83, 161: Update hover from `hover:bg-muted/70` to include shadow effect
-
-### Step 8: Update Leave Request Card in All Pending Approvals
-
-**File:** `src/components/approvals/AllPendingApprovalsTab.tsx`
-
-Update the LeaveRequestCard component:
-- Line 206: Add hover effect to Card component
+**Updated code:**
+```tsx
+<Card className="shadow-[0_6px_20px_rgba(0,0,0,0.05)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)] hover:scale-[1.01] hover:-translate-y-0.5 transition-all duration-200">
+```
 
 ## Files to Modify
 
-### Core Components
 | File | Changes |
 |------|---------|
-| `src/components/ui/table.tsx` | Update TableRow base hover styles |
-| `src/components/ui/data-card.tsx` | Update DataCard hover styles |
-
-### Approval Components
-| File | Changes |
-|------|---------|
-| `src/components/approvals/ApprovalCard.tsx` | Add hover effect to Cards |
-| `src/components/approvals/MobileApprovalCard.tsx` | Add hover effect to all Cards |
-| `src/components/approvals/AllPendingApprovalsTab.tsx` | Add hover to LeaveRequestCard |
-
-### Request Components
-| File | Changes |
-|------|---------|
-| `src/components/requests/MobileRequestCard.tsx` | Enhance button hover |
-
-### Business Trips
-| File | Changes |
-|------|---------|
-| `src/components/business-trips/TripCard.tsx` | Update hover styling |
-
-### List Item Components
-| File | Changes |
-|------|---------|
-| `src/components/settings/payroll/BanksSection.tsx` | Update row hover |
-| `src/pages/CandidateDetail.tsx` | Update offer row hover |
-| `src/components/timemanagement/CopyYearHolidaysDialog.tsx` | Update holiday row hover |
-| `src/components/employees/EmployeeTimeOffTab.tsx` | Update balance card hover |
-| `src/components/payroll/PayrollRunWizard/SelectEmployeesStep.tsx` | Update employee row hover |
-| `src/components/myprofile/MyProfilePayslipsSection.tsx` | Update payslip row hover |
-| `src/components/myprofile/MyProfileHRLettersSection.tsx` | Update letter row hover |
+| `src/components/directory/DirectoryCard.tsx` | Update Card className with refined shadow and hover effects |
 
 ## Visual Comparison
 
 ```text
-Before (Table Row):
-┌────────────────────────────────────────────────┐
-│  Row content                                   │
-│  ───────────────────────────────────────────── │
-│  bg-muted/50 on hover (flat appearance)        │
-└────────────────────────────────────────────────┘
+Before (DirectoryCard):
+┌─────────────────────────────────────┐
+│       ┌──────────────────┐          │
+│       │  Avatar          │          │
+│       └──────────────────┘          │
+│         Employee Name               │
+│         Position                    │
+│       ┌─Department Badge─┐          │
+│       └──────────────────┘          │
+│  shadow-md on hover (flat lift)     │
+└─────────────────────────────────────┘
 
-After (Table Row):
-┌────────────────────────────────────────────────┐
-│  Row content                                   │  ← shadow-sm
-│  ───────────────────────────────────────────── │
-│  bg-white/60 + subtle lift effect              │
-└────────────────────────────────────────────────┘
-
-Before (Card/List Item):
-┌────────────────────────────────────────────────┐
-│  Card content                                  │
-│  No visual feedback on hover                   │
-└────────────────────────────────────────────────┘
-
-After (Card/List Item):
-╔════════════════════════════════════════════════╗
-║  Card content                                  ║  ← shadow-sm
-║  Glass background + subtle elevation           ║
-╚════════════════════════════════════════════════╝
+After (DirectoryCard):
+╔═════════════════════════════════════╗
+║       ┌──────────────────┐          ║  ← Softer shadow
+║       │  Avatar          │          ║
+║       └──────────────────┘          ║
+║         Employee Name               ║
+║         Position                    ║
+║       ┌─Department Badge─┐          ║
+║       └──────────────────┘          ║
+║  Gentle lift + subtle scale (1.01)  ║  ← On hover
+╚═════════════════════════════════════╝
+   └── Increased shadow depth
 ```
 
-## Hover Effect Hierarchy
+## Hover Effect Details
 
 ```text
-Level 1: Table Rows
-  └─ hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm
-
-Level 2: Approval/Request Cards
-  └─ hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm
-
-Level 3: List Items (inline rows)
-  └─ hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm
-
-Level 4: Data Cards (mobile table replacement)
-  └─ hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm
+                    Rest State              Hover State
+                    ──────────              ───────────
+Shadow Y-offset     6px                     12px
+Shadow Blur         20px                    32px  
+Shadow Opacity      0.05                    0.08
+Scale               1.0                     1.01
+Y-translate         0                       -2px (translate-y-0.5)
 ```
 
 ## Technical Notes
 
-- **Cascading Effect**: Changes to `table.tsx` will automatically update all table rows
-- **Dark Mode**: All hover effects include dark mode variants (`dark:hover:bg-white/10`)
-- **Transition**: Using `transition-all duration-200` for smooth effect
-- **Shadow**: Using `shadow-sm` (Tailwind's subtle shadow: `0 1px 2px 0 rgb(0 0 0 / 0.05)`)
-- **Consistency**: All interactive rows now use the same glass-inspired hover pattern
+- **Transform origin**: Default center, scale effect will expand evenly
+- **Max scale 1.01**: Very subtle, prevents jarring movement
+- **translate-y-0.5**: Slight upward lift (2px) to complement shadow
+- **Grid unaffected**: Transform doesn't affect layout flow
+- **Content unchanged**: Only the Card wrapper styling is modified
+- **Dark mode**: Inherits dark mode styles from base Card component
 
 ## Unchanged Elements
 
-- Table structure (no conversion to cards)
-- Row heights (kept as-is)
-- Table headers (maintain distinct styling)
-- Non-interactive rows (static content)
-- Card container styling (only inner hover behavior enhanced)
+- Grid layout (1/2/3/4 columns responsive)
+- Card content (Avatar, name, position, department badge)
+- Card padding and spacing
+- Typography
+- Badge styling
+- Avatar sizing
+
