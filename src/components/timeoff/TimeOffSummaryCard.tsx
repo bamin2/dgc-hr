@@ -1,4 +1,4 @@
-import { Check, Clock, Calendar, Briefcase, Flag } from "lucide-react";
+import { Check, Clock, Calendar, Flag } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -51,9 +51,6 @@ export function TimeOffSummaryCard() {
     ? annualLeaveBalance.total_days - annualLeaveBalance.used_days - annualLeaveBalance.pending_days 
     : 0;
   
-  // Total allowance - only Annual Leave
-  const totalDays = annualLeaveBalance?.total_days || 0;
-  
   // These remain as totals across all leave types
   const totalPending = balances?.reduce((sum, b) => sum + b.pending_days, 0) || 0;
   const totalUsed = balances?.reduce((sum, b) => sum + b.used_days, 0) || 0;
@@ -71,7 +68,7 @@ export function TimeOffSummaryCard() {
           <Skeleton className="h-8 w-24" />
         </CardHeader>
         <CardContent className="space-y-3">
-          {[1, 2, 3, 4, 5].map((i) => (
+          {[1, 2, 3, 4].map((i) => (
             <Skeleton key={i} className="h-16 w-full rounded-xl" />
           ))}
         </CardContent>
@@ -106,13 +103,6 @@ export function TimeOffSummaryCard() {
           days={bookedDays}
           label="days booked"
           sublabel={`${totalUsed}d used`}
-        />
-        <SummaryItem
-          icon={<Briefcase className="w-4 h-4" />}
-          bgColor="bg-teal-500/85"
-          days={totalDays}
-          label="days per year"
-          sublabel="Total allowance"
         />
         <SummaryItem
           icon={<Flag className="w-4 h-4" />}
