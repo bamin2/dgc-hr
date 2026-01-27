@@ -1,128 +1,169 @@
 
 
-# Refine Employee Directory Cards
+# Soften Time Off Status Cards
 
 ## Overview
-Enhance the DirectoryCard component with refined visual styling that aligns with the liquid glass design system. This includes a softer custom shadow, subtle hover elevation increase, and a very gentle scale effect for a premium feel.
+Refine the colored status cards in the Time Off page to reduce visual loudness while maintaining clarity. This involves reducing color saturation, adjusting icon sizes, and ensuring consistency with the liquid glass design system.
 
 ## Current State Analysis
 
-The DirectoryCard currently uses the base Card component with a simple override:
-```tsx
-<Card className="hover:shadow-md transition-shadow">
-```
-
-The base Card component already has:
-- `bg-white/80 dark:bg-white/10` - Semi-transparent surface ✓
-- `backdrop-blur-md` - Backdrop blur ✓
-- `shadow-[0_4px_12px_rgba(0,0,0,0.04)]` - Base shadow
-- `hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)]` - Hover shadow
-- `transition-all duration-200` - Smooth transitions
+The `TimeOffSummaryCard` component uses `SummaryItem` components with:
+- **Colors**: Vibrant Tailwind classes (`bg-primary`, `bg-teal-500`, `bg-orange-500`, `bg-rose-400`)
+- **Border radius**: `rounded-xl` (12px)
+- **Icon size**: `w-5 h-5` (20px)
+- **Icon container**: `w-10 h-10` (40px)
+- **Shadow**: None (flat colored blocks)
 
 ## Design Specifications
 
-### Requested Changes
+### Color Adjustments (10-15% less saturation)
 ```text
-Property              Current Value                    Updated Value
-──────────────────────────────────────────────────────────────────────────────
-Base Shadow           shadow-[0_4px_12px...0.04]       shadow-[0_6px_20px_rgba(0,0,0,0.05)]
-Hover Shadow          hover:shadow-md (overridden)     hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)]
-Hover Scale           (none)                           hover:scale-[1.01]
-Hover Translate       (none)                           hover:-translate-y-0.5
-Surface               bg-white/80 (from Card)          bg-white/80 (keep)
-Backdrop              backdrop-blur-md (from Card)     backdrop-blur-md (keep)
+Card Type             Current Color          Softened Color
+──────────────────────────────────────────────────────────────────
+Available PTO         bg-primary             bg-[#1A3A38] (muted primary)
+Pending Approval      bg-teal-500            bg-teal-500/85 (reduced opacity)
+Days Booked           bg-orange-500          bg-orange-400/85 (softer orange)
+Total Allowance       bg-teal-500            bg-teal-500/85 (reduced opacity)
+Public Holidays       bg-rose-400            bg-rose-400/85 (reduced opacity)
 ```
 
-### Visual Effect
-- **At rest**: Soft, floating appearance with subtle shadow
-- **On hover**: Card gently lifts with increased elevation and very slight scale
-- **Transition**: Smooth 200ms animation for all properties
+### Visual Refinements
+```text
+Property              Current Value          Updated Value
+──────────────────────────────────────────────────────────────────
+Border Radius         rounded-xl             rounded-2xl (match card system)
+Shadow                (none)                 shadow-sm (subtle depth)
+Icon Size             w-5 h-5                w-4 h-4 (16px, less dominant)
+Icon Container        w-10 h-10              w-9 h-9 (36px, proportional)
+Transition            (none)                 transition-all duration-200
+```
 
 ## Implementation Plan
 
-### Step 1: Update DirectoryCard Component
+### Step 1: Update SummaryItem Component
 
-**File:** `src/components/directory/DirectoryCard.tsx`
+**File:** `src/components/timeoff/TimeOffSummaryCard.tsx`
 
-Update the Card className to include:
-1. Custom base shadow: `shadow-[0_6px_20px_rgba(0,0,0,0.05)]`
-2. Enhanced hover shadow: `hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)]`
-3. Subtle scale on hover: `hover:scale-[1.01]`
-4. Slight lift on hover: `hover:-translate-y-0.5`
-5. Smooth transition: `transition-all duration-200`
+Update the `SummaryItem` component styling:
 
-**Current code (line 24):**
+**Current code (lines 17-31):**
 ```tsx
-<Card className="hover:shadow-md transition-shadow">
+function SummaryItem({ icon, bgColor, days, label, sublabel }: SummaryItemProps) {
+  return (
+    <div className={`flex items-center gap-3 p-4 rounded-xl ${bgColor}`}>
+      <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white">
+        {icon}
+      </div>
+      <div className="flex-1 text-white">
+        <p className="font-semibold">
+          <span className="text-xl">{days}</span> {label}
+        </p>
+        <p className="text-sm opacity-80">{sublabel}</p>
+      </div>
+    </div>
+  );
+}
 ```
 
 **Updated code:**
 ```tsx
-<Card className="shadow-[0_6px_20px_rgba(0,0,0,0.05)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)] hover:scale-[1.01] hover:-translate-y-0.5 transition-all duration-200">
+function SummaryItem({ icon, bgColor, days, label, sublabel }: SummaryItemProps) {
+  return (
+    <div className={`flex items-center gap-3 p-4 rounded-2xl shadow-sm transition-all duration-200 ${bgColor}`}>
+      <div className="w-9 h-9 rounded-full bg-white/25 flex items-center justify-center text-white">
+        {icon}
+      </div>
+      <div className="flex-1 text-white">
+        <p className="font-semibold">
+          <span className="text-xl">{days}</span> {label}
+        </p>
+        <p className="text-sm opacity-80">{sublabel}</p>
+      </div>
+    </div>
+  );
+}
 ```
+
+Changes:
+- `rounded-xl` → `rounded-2xl` (consistent with card system)
+- Added `shadow-sm` for subtle depth
+- Added `transition-all duration-200` for polish
+- `w-10 h-10` → `w-9 h-9` (smaller icon container)
+- `bg-white/20` → `bg-white/25` (slightly more visible icon background)
+
+### Step 2: Update Icon Sizes
+
+**File:** `src/components/timeoff/TimeOffSummaryCard.tsx`
+
+Reduce all icon sizes from `w-5 h-5` to `w-4 h-4`:
+
+| Line | Current | Updated |
+|------|---------|---------|
+| 90 | `<Check className="w-5 h-5" />` | `<Check className="w-4 h-4" />` |
+| 97 | `<Clock className="w-5 h-5" />` | `<Clock className="w-4 h-4" />` |
+| 104 | `<Calendar className="w-5 h-5" />` | `<Calendar className="w-4 h-4" />` |
+| 111 | `<Briefcase className="w-5 h-5" />` | `<Briefcase className="w-4 h-4" />` |
+| 118 | `<Flag className="w-5 h-5" />` | `<Flag className="w-4 h-4" />` |
+
+### Step 3: Soften Background Colors
+
+**File:** `src/components/timeoff/TimeOffSummaryCard.tsx`
+
+Update bgColor props to use softer, less saturated versions:
+
+| Line | Current Color | Softened Color |
+|------|---------------|----------------|
+| 91 | `bg-primary` | `bg-primary/90` |
+| 98 | `bg-teal-500` | `bg-teal-500/85` |
+| 105 | `bg-orange-500` | `bg-amber-500/85` |
+| 112 | `bg-teal-500` | `bg-teal-500/85` |
+| 119 | `bg-rose-400` | `bg-rose-400/85` |
+
+Note: Using opacity-based softening maintains color harmony while reducing visual intensity. Changed `bg-orange-500` to `bg-amber-500/85` for a warmer, softer tone.
 
 ## Files to Modify
 
 | File | Changes |
 |------|---------|
-| `src/components/directory/DirectoryCard.tsx` | Update Card className with refined shadow and hover effects |
+| `src/components/timeoff/TimeOffSummaryCard.tsx` | Update SummaryItem styling, icon sizes, and background colors |
 
 ## Visual Comparison
 
 ```text
-Before (DirectoryCard):
-┌─────────────────────────────────────┐
-│       ┌──────────────────┐          │
-│       │  Avatar          │          │
-│       └──────────────────┘          │
-│         Employee Name               │
-│         Position                    │
-│       ┌─Department Badge─┐          │
-│       └──────────────────┘          │
-│  shadow-md on hover (flat lift)     │
-└─────────────────────────────────────┘
+Before (Status Card):
+┌─────────────────────────────────────────┐
+│ ┌────┐                                  │
+│ │ 🔶 │  12 days paid time off           │  ← Vibrant bg-orange-500
+│ └────┘  Available to book               │  ← Large 20px icon
+│         rounded-xl, no shadow           │
+└─────────────────────────────────────────┘
 
-After (DirectoryCard):
-╔═════════════════════════════════════╗
-║       ┌──────────────────┐          ║  ← Softer shadow
-║       │  Avatar          │          ║
-║       └──────────────────┘          ║
-║         Employee Name               ║
-║         Position                    ║
-║       ┌─Department Badge─┐          ║
-║       └──────────────────┘          ║
-║  Gentle lift + subtle scale (1.01)  ║  ← On hover
-╚═════════════════════════════════════╝
-   └── Increased shadow depth
+After (Status Card):
+╔═════════════════════════════════════════╗
+║ ┌──┐                                    ║
+║ │🔸│  12 days paid time off             ║  ← Softened bg-amber-500/85
+║ └──┘  Available to book                 ║  ← Smaller 16px icon
+║       rounded-2xl, shadow-sm            ║  ← Subtle depth
+╚═════════════════════════════════════════╝
 ```
 
-## Hover Effect Details
+## Hover Effect (Inherited)
 
-```text
-                    Rest State              Hover State
-                    ──────────              ───────────
-Shadow Y-offset     6px                     12px
-Shadow Blur         20px                    32px  
-Shadow Opacity      0.05                    0.08
-Scale               1.0                     1.01
-Y-translate         0                       -2px (translate-y-0.5)
-```
+The SummaryItem doesn't need hover effects as it's informational, not interactive. The parent Card component already has hover styling from the base Card component.
 
 ## Technical Notes
 
-- **Transform origin**: Default center, scale effect will expand evenly
-- **Max scale 1.01**: Very subtle, prevents jarring movement
-- **translate-y-0.5**: Slight upward lift (2px) to complement shadow
-- **Grid unaffected**: Transform doesn't affect layout flow
-- **Content unchanged**: Only the Card wrapper styling is modified
-- **Dark mode**: Inherits dark mode styles from base Card component
+- **Opacity-based softening**: Using `/85` or `/90` opacity modifiers reduces saturation without changing hue
+- **Amber vs Orange**: `bg-amber-500` is a warmer, less aggressive orange tone
+- **Icon proportion**: Reducing from 20px to 16px with 36px container maintains proper visual balance
+- **Shadow-sm**: Adds `0 1px 2px 0 rgb(0 0 0 / 0.05)` for subtle depth
+- **Rounded-2xl**: 16px border radius matches the global card system
 
 ## Unchanged Elements
 
-- Grid layout (1/2/3/4 columns responsive)
-- Card content (Avatar, name, position, department badge)
-- Card padding and spacing
-- Typography
-- Badge styling
-- Avatar sizing
+- Card content structure (days, label, sublabel)
+- Padding and spacing
+- Typography (text-xl for numbers, text-sm for sublabel)
+- White text color
+- Parent Card wrapper styling
 
