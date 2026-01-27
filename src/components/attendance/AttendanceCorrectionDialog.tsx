@@ -120,10 +120,10 @@ export function AttendanceCorrectionDialog({
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="liquidGlassSecondary" size="liquidGlass" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={createCorrection.isPending || !reason.trim()}>
+            <Button type="submit" variant="liquidGlass" size="liquidGlass" disabled={createCorrection.isPending || !reason.trim()}>
               {createCorrection.isPending ? 'Submitting...' : 'Submit Request'}
             </Button>
           </DialogFooter>
