@@ -21,7 +21,7 @@ export function DirectoryCard({ employee }: DirectoryCardProps) {
   const fullName = `${employee.firstName} ${employee.lastName}`;
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card className="shadow-[0_6px_20px_rgba(0,0,0,0.05)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)] hover:scale-[1.01] hover:-translate-y-0.5 transition-all duration-200">
       <CardContent className="p-6">
         <div className="flex flex-col items-center text-center space-y-3">
           <Avatar className="h-20 w-20">
