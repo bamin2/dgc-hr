@@ -17,25 +17,29 @@ export function AdminQuickActions() {
       label: 'Run Payroll',
       icon: Wallet,
       onClick: () => navigate('/payroll'),
-      variant: 'default' as const,
+      variant: 'liquidGlass' as const,
+      size: 'liquidGlass' as const,
     },
     {
       label: 'Add Employee',
       icon: UserPlus,
       onClick: () => navigate('/team/add'),
       variant: 'outline' as const,
+      size: 'sm' as const,
     },
     {
       label: 'HR Letters',
       icon: FileText,
       onClick: () => navigate('/documents'),
       variant: 'outline' as const,
+      size: 'sm' as const,
     },
     {
       label: 'Settings',
       icon: Settings,
       onClick: () => navigate('/settings'),
       variant: 'ghost' as const,
+      size: 'sm' as const,
     },
   ];
 
@@ -51,16 +55,17 @@ export function AdminQuickActions() {
         <div className="grid grid-cols-2 gap-2">
           {actions.map((action) => {
             const Icon = action.icon;
+            const isLiquidGlass = action.variant === 'liquidGlass';
             return (
               <Button
                 key={action.label}
                 variant={action.variant}
-                size="sm"
-                className="justify-start gap-2 text-xs"
+                size={action.size}
+                className={isLiquidGlass ? "col-span-2 justify-center gap-2" : "justify-start gap-2 text-xs"}
                 onClick={action.onClick}
               >
                 <Icon className="h-4 w-4 flex-shrink-0" />
-                <span className="truncate">{action.label}</span>
+                <span className={isLiquidGlass ? "" : "truncate"}>{action.label}</span>
               </Button>
             );
           })}

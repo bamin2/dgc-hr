@@ -180,6 +180,7 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
         Cancel
       </Button>
       <Button 
+        variant="liquidGlass"
         onClick={handleSubmit}
         disabled={isSubmitting || !dateRange?.from || !leaveTypeId}
       >

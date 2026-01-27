@@ -15,6 +15,18 @@ const buttonVariants = cva(
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        // LiquidGlass - premium glassmorphism button for primary CTAs
+        liquidGlass: [
+          "bg-gradient-to-b from-[#18171C] to-[#312F37]",
+          "text-white font-medium",
+          "border border-[#18171C]",
+          "rounded-[20px]",
+          "btn-liquid-glass-shadow",
+          "transition-all duration-200",
+          "hover:brightness-110 hover:-translate-y-px hover:btn-liquid-glass-shadow-hover",
+          "active:translate-y-px active:btn-liquid-glass-shadow-active",
+          "focus-visible:ring-[#C6A45E]/40",
+        ].join(" "),
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -22,6 +34,8 @@ const buttonVariants = cva(
         lg: "h-11 px-8",
         icon: "h-11 w-11", // 44px - minimum touch target size
         "icon-sm": "h-9 w-9", // 36px - for dense desktop UIs, use sparingly
+        // LiquidGlass responsive sizing - 48px mobile, 52px desktop
+        liquidGlass: "h-12 sm:h-[52px] px-5 sm:px-6 text-sm sm:text-base",
       },
     },
     defaultVariants: {

@@ -21,19 +21,22 @@ export function PersonalQuickActions() {
       label: 'Request Time Off',
       icon: CalendarPlus,
       onClick: () => setIsTimeOffDialogOpen(true),
-      variant: 'default' as const,
+      variant: 'liquidGlass' as const,
+      size: 'liquidGlass' as const,
     },
     {
       label: 'Request Loan',
       icon: Banknote,
       onClick: () => setIsLoanDialogOpen(true),
       variant: 'outline' as const,
+      size: 'default' as const,
     },
     {
       label: 'HR Letter',
       icon: FileText,
       onClick: () => setIsHRLetterDialogOpen(true),
       variant: 'outline' as const,
+      size: 'default' as const,
     },
   ];
 
@@ -53,6 +56,7 @@ export function PersonalQuickActions() {
               <Button
                 key={action.label}
                 variant={action.variant}
+                size={action.size}
                 className="justify-start gap-2"
                 onClick={action.onClick}
               >
