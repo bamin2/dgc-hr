@@ -31,10 +31,10 @@ export function BentoCard({
   return (
     <div
       className={cn(
-        // Base glass styling
-        "rounded-2xl border border-border/50 bg-card/80 backdrop-blur-md shadow-sm",
+        // Base Liquid Glass styling
+        "rounded-2xl border border-white/40 dark:border-white/15 bg-white/80 dark:bg-white/10 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.04)]",
         // Hover effects
-        "hover:bg-card/90 hover:border-border/70 hover:shadow-md",
+        "hover:bg-white/90 dark:hover:bg-white/15 hover:border-white/50 dark:hover:border-white/20 hover:shadow-[0_12px_40px_rgba(0,0,0,0.06)]",
         // Transitions
         "transition-all duration-200 ease-out",
         // Grid span
