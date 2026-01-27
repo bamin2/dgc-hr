@@ -173,26 +173,27 @@ export function MobileActionBar() {
         <div className="flex items-stretch justify-around h-[72px]">
           {navItems.map(renderNavItem)}
         </div>
-        
-        {/* Floating Action Button - absolutely positioned, centered */}
-        <button
-          type="button"
-          onClick={() => setSheetOpen(true)}
-          className={cn(
-            "absolute left-1/2 -translate-x-1/2",
-            "bottom-[calc(100%-28px)] z-10",
-            "w-14 h-14 rounded-full",
-            "bg-[#C6A45E] text-white",
-            "flex items-center justify-center",
-            "shadow-lg shadow-[#C6A45E]/30",
-            "touch-manipulation transition-transform duration-150",
-            "active:scale-95"
-          )}
-          aria-label="Quick actions"
-        >
-          <Plus className="w-7 h-7" strokeWidth={2.5} />
-        </button>
       </nav>
+
+      {/* Floating Action Button - fixed position, independent of nav */}
+      <button
+        type="button"
+        onClick={() => setSheetOpen(true)}
+        className={cn(
+          "fixed left-1/2 -translate-x-1/2 z-50",
+          "bottom-[calc(72px+env(safe-area-inset-bottom,0px)+16px)]",
+          "w-14 h-14 rounded-full",
+          "bg-[#C6A45E] text-white",
+          "flex items-center justify-center",
+          "shadow-xl shadow-[#C6A45E]/25",
+          "touch-manipulation transition-transform duration-150",
+          "active:scale-95",
+          "lg:hidden"
+        )}
+        aria-label="Quick actions"
+      >
+        <Plus className="w-7 h-7" strokeWidth={2.5} />
+      </button>
 
       {/* Quick Actions Bottom Sheet */}
       <Drawer open={sheetOpen} onOpenChange={setSheetOpen}>
