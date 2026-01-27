@@ -22,6 +22,8 @@ import { useUpdateCompensation } from "@/hooks/useUpdateCompensation";
 import { createAllowanceSnapshot, createDeductionSnapshot } from "@/hooks/useSalaryHistory";
 import { AddAllowanceDialog, AllowanceEntry } from "@/components/team/wizard/AddAllowanceDialog";
 import { AddDeductionDialog, DeductionEntry } from "@/components/team/wizard/AddDeductionDialog";
+import { useWorkLocations } from "@/hooks/useWorkLocations";
+import { getCountryCodeByName } from "@/data/countries";
 
 interface LocalAllowance {
   id: string;
@@ -111,14 +113,43 @@ export function EditSalaryDialog({
     }
   }, [open, employee, currentAllowances, currentDeductions]);
   
+  // Fetch work locations for GOSI rates
+  const { data: workLocations } = useWorkLocations();
+  
+  // Calculate GOSI deduction based on nationality rates
+  const gosiCalculation = useMemo(() => {
+    if (!employee.isSubjectToGosi || !gosiSalary) {
+      return { gosiDeduction: 0, employeeRate: 0 };
+    }
+    
+    const employeeWorkLocation = workLocations?.find(loc => loc.id === workLocationId);
+    if (!employeeWorkLocation?.gosi_enabled) {
+      return { gosiDeduction: 0, employeeRate: 0 };
+    }
+    
+    const rates = employeeWorkLocation.gosi_nationality_rates || [];
+    const nationalityCode = getCountryCodeByName(employee.nationality || '');
+    const matchingRate = rates.find(r => r.nationality === nationalityCode);
+    
+    if (!matchingRate) {
+      return { gosiDeduction: 0, employeeRate: 0 };
+    }
+    
+    const employeeRate = matchingRate.employeeRate ?? 0;
+    const gosiDeduction = (gosiSalary * employeeRate) / 100;
+    
+    return { gosiDeduction, employeeRate };
+  }, [employee.isSubjectToGosi, employee.nationality, gosiSalary, workLocationId, workLocations]);
+  
   // Calculated totals
   const totals = useMemo(() => {
     const totalAllowances = allowances.reduce((sum, a) => sum + a.amount, 0);
-    const totalDeductions = deductions.reduce((sum, d) => sum + d.amount, 0);
+    const otherDeductions = deductions.reduce((sum, d) => sum + d.amount, 0);
     const grossPay = basicSalary + totalAllowances;
+    const totalDeductions = otherDeductions + gosiCalculation.gosiDeduction;
     const netPay = grossPay - totalDeductions;
-    return { totalAllowances, totalDeductions, grossPay, netPay };
-  }, [basicSalary, allowances, deductions]);
+    return { totalAllowances, otherDeductions, totalDeductions, grossPay, netPay };
+  }, [basicSalary, allowances, deductions, gosiCalculation.gosiDeduction]);
   
   const handleAllowanceAmountChange = (id: string, value: string) => {
     const numValue = parseFloat(value) || 0;
@@ -235,24 +266,6 @@ export function EditSalaryDialog({
               />
             </div>
             
-            {/* GOSI Registered Salary */}
-            {employee.isSubjectToGosi && (
-              <div className="space-y-2">
-                <Label htmlFor="gosiSalary">GOSI Registered Salary</Label>
-                <Input
-                  id="gosiSalary"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={gosiSalary ?? ''}
-                  onChange={(e) => setGosiSalary(e.target.value ? parseFloat(e.target.value) : null)}
-                />
-                <p className="text-xs text-muted-foreground">
-                  The salary registered with GOSI for social insurance calculations
-                </p>
-              </div>
-            )}
-            
             <Separator />
             
             {/* Allowances Section */}
@@ -348,6 +361,39 @@ export function EditSalaryDialog({
               )}
             </div>
             
+            {/* GOSI Section - Above Summary */}
+            {employee.isSubjectToGosi && (
+              <>
+                <Separator />
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="gosiSalary">GOSI Registered Salary</Label>
+                    <Input
+                      id="gosiSalary"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={gosiSalary ?? ''}
+                      onChange={(e) => setGosiSalary(e.target.value ? parseFloat(e.target.value) : null)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      The salary registered with GOSI for social insurance calculations
+                    </p>
+                  </div>
+                  {gosiCalculation.gosiDeduction > 0 && (
+                    <div className="flex justify-between items-center text-sm bg-amber-50/50 dark:bg-amber-950/20 p-3 rounded-lg">
+                      <span className="text-muted-foreground">
+                        GOSI Employee Contribution ({gosiCalculation.employeeRate}%)
+                      </span>
+                      <span className="text-amber-700 dark:text-amber-400 font-medium">
+                        {formatAmount(gosiCalculation.gosiDeduction, currency)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+            
             <Separator />
             
             {/* Summary Section */}
@@ -365,6 +411,18 @@ export function EditSalaryDialog({
                 <span className="font-medium">{formatAmount(totals.grossPay, currency)}</span>
               </div>
               <Separator />
+              {gosiCalculation.gosiDeduction > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">GOSI Deduction ({gosiCalculation.employeeRate}%)</span>
+                  <span className="text-red-600">-{formatAmount(gosiCalculation.gosiDeduction, currency)}</span>
+                </div>
+              )}
+              {totals.otherDeductions > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Other Deductions</span>
+                  <span className="text-red-600">-{formatAmount(totals.otherDeductions, currency)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Total Deductions</span>
                 <span className="text-red-600">-{formatAmount(totals.totalDeductions, currency)}</span>
