@@ -18,7 +18,7 @@ export default function HelpCenter() {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-2">
             <HelpCircle className="h-8 w-8 text-primary" />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">Help Center</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">Help Center</h1>
           <p className="text-muted-foreground max-w-2xl mx-auto">
             Find answers to common questions about using DGC CORE. Browse by topic or search for specific help.
           </p>

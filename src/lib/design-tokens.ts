@@ -79,7 +79,7 @@ export const typography = {
   /** Section description */
   sectionDescription: 'text-sm text-muted-foreground',
   /** Card title */
-  cardTitle: 'text-base font-medium text-foreground',
+  cardTitle: 'text-base font-medium tracking-tight text-foreground',
   /** Body text */
   body: 'text-sm sm:text-base text-foreground',
   /** Small body text */

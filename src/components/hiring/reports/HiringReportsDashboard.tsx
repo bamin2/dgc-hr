@@ -20,7 +20,7 @@ export function HiringReportsDashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics?.totalCandidates || 0}</div>
+            <div className="text-2xl font-semibold">{metrics?.totalCandidates || 0}</div>
             <p className="text-xs text-muted-foreground">{metrics?.candidatesInPipeline || 0} in pipeline</p>
           </CardContent>
         </Card>
@@ -31,7 +31,7 @@ export function HiringReportsDashboard() {
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics?.offersSent || 0}</div>
+            <div className="text-2xl font-semibold">{metrics?.offersSent || 0}</div>
             <p className="text-xs text-muted-foreground">{metrics?.offersWithNegotiation || 0} with negotiations</p>
           </CardContent>
         </Card>
@@ -42,7 +42,7 @@ export function HiringReportsDashboard() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics?.acceptanceRate?.toFixed(1) || 0}%</div>
+            <div className="text-2xl font-semibold">{metrics?.acceptanceRate?.toFixed(1) || 0}%</div>
             <p className="text-xs text-muted-foreground">{metrics?.offersAccepted || 0} accepted, {metrics?.offersRejected || 0} rejected</p>
           </CardContent>
         </Card>
@@ -53,7 +53,7 @@ export function HiringReportsDashboard() {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics?.averageDaysToAccept?.toFixed(1) || "-"}</div>
+            <div className="text-2xl font-semibold">{metrics?.averageDaysToAccept?.toFixed(1) || "-"}</div>
             <p className="text-xs text-muted-foreground">From sent to accepted</p>
           </CardContent>
         </Card>
@@ -69,7 +69,7 @@ export function HiringReportsDashboard() {
             {offersByStatus?.map((item) => (
               <div key={item.status} className="flex items-center gap-2 px-4 py-2 bg-muted rounded-lg">
                 <span className="capitalize font-medium">{item.status}</span>
-                <span className="text-2xl font-bold">{item.count}</span>
+                <span className="text-2xl font-semibold">{item.count}</span>
               </div>
             ))}
             {(!offersByStatus || offersByStatus.length === 0) && (

@@ -33,7 +33,7 @@ export function TimeOffDayView({ date, events }: TimeOffDayViewProps) {
           {format(date, "EEEE")}
         </div>
         <div className={cn(
-          "text-2xl font-bold",
+          "text-2xl font-semibold",
           isToday && "text-primary"
         )}>
           {format(date, "d")}

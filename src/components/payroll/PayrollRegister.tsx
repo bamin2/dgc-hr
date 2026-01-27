@@ -145,7 +145,7 @@ export function PayrollRegister({
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold text-foreground">
+                <p className="text-2xl font-semibold text-foreground">
                   {formatCurrency(totals.grossPay)}
                 </p>
               </CardContent>
@@ -157,7 +157,7 @@ export function PayrollRegister({
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold text-destructive">
+                <p className="text-2xl font-semibold text-destructive">
                   {formatCurrency(totals.totalDeductions)}
                 </p>
               </CardContent>
@@ -169,7 +169,7 @@ export function PayrollRegister({
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold text-primary">
+                <p className="text-2xl font-semibold text-primary">
                   {formatCurrency(totals.netPay)}
                 </p>
               </CardContent>
@@ -236,7 +236,7 @@ export function PayrollRegister({
                             <TableCell className="text-right text-destructive">
                               {otherDed > 0 ? `-${formatCurrency(otherDed)}` : "-"}
                             </TableCell>
-                            <TableCell className="text-right font-bold text-primary">
+                            <TableCell className="text-right font-semibold text-primary">
                               {formatCurrency(adjusted.netPay)}
                             </TableCell>
                           </TableRow>
@@ -260,7 +260,7 @@ export function PayrollRegister({
                         <TableCell className="text-right text-destructive">
                           -{formatCurrency(totals.otherDeductions)}
                         </TableCell>
-                        <TableCell className="text-right font-bold text-primary">
+                        <TableCell className="text-right font-semibold text-primary">
                           {formatCurrency(totals.netPay)}
                         </TableCell>
                       </TableRow>
