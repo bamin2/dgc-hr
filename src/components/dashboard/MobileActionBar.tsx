@@ -88,14 +88,10 @@ export function MobileActionBar() {
     },
   ];
 
-  // Left nav items (before the Quick Action button)
-  const leftNavItems: NavItem[] = [
+  // All navigation items - evenly spaced
+  const navItems: NavItem[] = [
     { icon: Home, label: "Home", path: "/" },
     { icon: FileText, label: "Requests", path: "/requests" },
-  ];
-
-  // Right nav items (after the Quick Action button)
-  const rightNavItems: NavItem[] = [
     // Only show Approvals for managers/HR/admin
     ...(canAccessManagement ? [{
       icon: CheckSquare,
@@ -173,32 +169,29 @@ export function MobileActionBar() {
           "lg:hidden"
         )}
       >
+        {/* Navigation tabs - evenly spaced */}
         <div className="flex items-stretch justify-around h-[72px]">
-          {/* Left nav items */}
-          {leftNavItems.map(renderNavItem)}
-          
-          {/* Central Quick Action Button */}
-          <div className="flex items-center justify-center px-2">
-            <button
-              type="button"
-              onClick={() => setSheetOpen(true)}
-              className={cn(
-                "w-14 h-14 rounded-full",
-                "bg-[#C6A45E] text-white",
-                "flex items-center justify-center",
-                "shadow-lg shadow-[#C6A45E]/30",
-                "touch-manipulation transition-transform duration-150",
-                "active:scale-95"
-              )}
-              aria-label="Quick actions"
-            >
-              <Plus className="w-7 h-7" strokeWidth={2.5} />
-            </button>
-          </div>
-          
-          {/* Right nav items */}
-          {rightNavItems.map(renderNavItem)}
+          {navItems.map(renderNavItem)}
         </div>
+        
+        {/* Floating Action Button - absolutely positioned, centered */}
+        <button
+          type="button"
+          onClick={() => setSheetOpen(true)}
+          className={cn(
+            "absolute left-1/2 -translate-x-1/2",
+            "bottom-[calc(100%-28px)] z-10",
+            "w-14 h-14 rounded-full",
+            "bg-[#C6A45E] text-white",
+            "flex items-center justify-center",
+            "shadow-lg shadow-[#C6A45E]/30",
+            "touch-manipulation transition-transform duration-150",
+            "active:scale-95"
+          )}
+          aria-label="Quick actions"
+        >
+          <Plus className="w-7 h-7" strokeWidth={2.5} />
+        </button>
       </nav>
 
       {/* Quick Actions Bottom Sheet */}
