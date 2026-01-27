@@ -16,8 +16,8 @@ interface SummaryItemProps {
 
 function SummaryItem({ icon, bgColor, days, label, sublabel }: SummaryItemProps) {
   return (
-    <div className={`flex items-center gap-3 p-4 rounded-xl ${bgColor}`}>
-      <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white">
+    <div className={`flex items-center gap-3 p-4 rounded-2xl shadow-sm transition-all duration-200 ${bgColor}`}>
+      <div className="w-9 h-9 rounded-full bg-white/25 flex items-center justify-center text-white">
         {icon}
       </div>
       <div className="flex-1 text-white">
@@ -87,36 +87,36 @@ export function TimeOffSummaryCard() {
       </CardHeader>
       <CardContent className="space-y-3">
         <SummaryItem
-          icon={<Check className="w-5 h-5" />}
-          bgColor="bg-primary"
+          icon={<Check className="w-4 h-4" />}
+          bgColor="bg-primary/90"
           days={totalAvailable}
           label="days paid time off"
           sublabel="Available to book"
         />
         <SummaryItem
-          icon={<Clock className="w-5 h-5" />}
-          bgColor="bg-teal-500"
+          icon={<Clock className="w-4 h-4" />}
+          bgColor="bg-teal-500/85"
           days={totalPending}
           label="days pending approval"
           sublabel="Awaiting manager approval"
         />
         <SummaryItem
-          icon={<Calendar className="w-5 h-5" />}
-          bgColor="bg-orange-500"
+          icon={<Calendar className="w-4 h-4" />}
+          bgColor="bg-amber-500/85"
           days={bookedDays}
           label="days booked"
           sublabel={`${totalUsed}d used`}
         />
         <SummaryItem
-          icon={<Briefcase className="w-5 h-5" />}
-          bgColor="bg-teal-500"
+          icon={<Briefcase className="w-4 h-4" />}
+          bgColor="bg-teal-500/85"
           days={totalDays}
           label="days per year"
           sublabel="Total allowance"
         />
         <SummaryItem
-          icon={<Flag className="w-5 h-5" />}
-          bgColor="bg-rose-400"
+          icon={<Flag className="w-4 h-4" />}
+          bgColor="bg-rose-400/85"
           days={remainingHolidays}
           label="Public Holidays"
           sublabel={`${publicHolidays?.length || 0} total in ${currentYear}`}
