@@ -5,7 +5,8 @@ import { MyRequestsCard } from './MyRequestsCard';
 import { MyLoansCard } from './MyLoansCard';
 import { MyUpcomingTimeOffCard } from './MyUpcomingTimeOffCard';
 import { PersonalQuickActions } from './PersonalQuickActions';
-import { CalendarWidget, Announcements } from '@/components/dashboard';
+import { CalendarWidget } from '@/components/dashboard/CalendarWidget';
+import { Announcements } from '@/components/dashboard/Announcements';
 import { User } from 'lucide-react';
 
 export function PersonalSection() {
