@@ -32,8 +32,8 @@ export function DashboardLayout({
               "w-full min-h-full",
               !noPadding && "px-4 sm:px-6 lg:px-8 xl:px-12 py-4 sm:py-6",
               !fullWidth && "max-w-[1600px] mx-auto",
-              // Add bottom padding on mobile for the action bar + FAB
-              isMobile && "pb-40"
+              // Add bottom padding on mobile for the navigation bar
+              isMobile && "pb-24"
             )}
           >
             {children}
