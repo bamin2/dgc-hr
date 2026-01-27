@@ -95,8 +95,10 @@ export function InitializeBalancesDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={handleInitialize} disabled={isPending}>
+          <AlertDialogCancel disabled={isPending} className="bg-white/60 dark:bg-white/10 border-white/50 dark:border-white/20 backdrop-blur-sm hover:bg-white/70 dark:hover:bg-white/15">
+            Cancel
+          </AlertDialogCancel>
+          <AlertDialogAction onClick={handleInitialize} disabled={isPending} className="h-12 px-6">
             {isPending ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />

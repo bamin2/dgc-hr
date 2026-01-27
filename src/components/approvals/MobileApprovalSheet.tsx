@@ -103,10 +103,9 @@ export function MobileApprovalSheet({
         <DrawerFooter>
           <Button
             variant={isApproving ? "liquidGlass" : "destructive"}
-            size={isApproving ? "liquidGlass" : "default"}
+            size={isApproving ? "liquidGlass" : "lg"}
             onClick={handleSubmit}
             disabled={isPending || (!isApproving && !comment.trim())}
-            className={isApproving ? "text-base font-medium" : "h-14 text-base font-medium"}
           >
             {isPending
               ? isApproving
@@ -117,7 +116,7 @@ export function MobileApprovalSheet({
               : "Reject Request"}
           </Button>
           <DrawerClose asChild>
-            <Button variant="outline" className="h-12">
+            <Button variant="liquidGlassSecondary" size="liquidGlassSecondary">
               Cancel
             </Button>
           </DrawerClose>

@@ -97,7 +97,8 @@ export function ApprovalActionDialog({
 
         <DialogFooter>
           <Button
-            variant="outline"
+            variant="liquidGlassSecondary"
+            size="liquidGlassSecondary"
             onClick={() => onOpenChange(false)}
             disabled={isPending}
           >
@@ -105,6 +106,7 @@ export function ApprovalActionDialog({
           </Button>
           <Button
             variant={isApproving ? "liquidGlass" : "destructive"}
+            size={isApproving ? "liquidGlass" : "lg"}
             onClick={handleSubmit}
             disabled={isPending || (!isApproving && !comment.trim())}
           >

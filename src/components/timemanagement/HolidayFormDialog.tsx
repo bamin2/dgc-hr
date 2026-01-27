@@ -186,10 +186,12 @@ export function HolidayFormDialog({
         </div>
         
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="liquidGlassSecondary" size="liquidGlassSecondary" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
           <Button
+            variant="liquidGlass"
+            size="liquidGlass"
             onClick={handleSubmit}
             disabled={!name || !date || createHoliday.isPending || updateHoliday.isPending}
           >

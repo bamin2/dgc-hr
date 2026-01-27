@@ -191,12 +191,18 @@ export function WorkLocationFormDialog({
           <DialogFooter>
             <Button
               type="button"
-              variant="outline"
+              variant="liquidGlassSecondary"
+              size="liquidGlassSecondary"
               onClick={() => onOpenChange(false)}
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={!name || isLoading}>
+            <Button 
+              type="submit" 
+              variant="liquidGlass"
+              size="liquidGlass"
+              disabled={!name || isLoading}
+            >
               {isLoading ? "Saving..." : isEdit ? "Update" : "Add"}
             </Button>
           </DialogFooter>
