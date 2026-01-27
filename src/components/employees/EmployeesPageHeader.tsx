@@ -1,4 +1,4 @@
-import { History, Upload, UserPlus } from "lucide-react";
+import { History, Upload, UserPlus, DollarSign } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
@@ -31,6 +31,10 @@ export function EmployeesPageHeader({
         <span className="hidden sm:inline">Import</span>
       </Button>
       <EmployeeExportButton employees={employees} />
+      <Button variant="outline" onClick={() => navigate("/team/bulk-salary-update")} className="gap-2">
+        <DollarSign className="h-4 w-4" />
+        <span className="hidden sm:inline">Bulk Update Salaries</span>
+      </Button>
       <Button onClick={() => navigate("/team/add")} className="gap-2">
         <UserPlus className="h-4 w-4" />
         <span className="hidden sm:inline">Add Team Member</span>

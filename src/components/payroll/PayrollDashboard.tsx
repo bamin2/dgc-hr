@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Plus, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -19,7 +18,6 @@ interface PayrollDashboardProps {
 }
 
 export function PayrollDashboard({ onRunPayroll }: PayrollDashboardProps) {
-  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [monthFilter, setMonthFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -96,9 +94,6 @@ export function PayrollDashboard({ onRunPayroll }: PayrollDashboardProps) {
     return (
       <div className="space-y-4 sm:space-y-6">
         <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={() => navigate("/team/bulk-salary-update")} className="gap-2">
-            Bulk Update Salaries
-          </Button>
           <Button onClick={onRunPayroll} className="gap-2">
             <Plus className="w-4 h-4" />
             Run Payroll
@@ -120,9 +115,6 @@ export function PayrollDashboard({ onRunPayroll }: PayrollDashboardProps) {
     <div className="space-y-4 sm:space-y-6">
       {/* Header Actions */}
       <div className="flex justify-end gap-2">
-        <Button variant="outline" onClick={() => navigate("/team/bulk-salary-update")} className="gap-2">
-          Bulk Update Salaries
-        </Button>
         <Button onClick={onRunPayroll} className="gap-2">
           <Plus className="w-4 h-4" />
           Run Payroll
