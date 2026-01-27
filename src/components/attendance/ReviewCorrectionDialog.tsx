@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Separator } from '@/components/ui/separator';
 import { useManagerReviewCorrection, useHRReviewCorrection } from '@/hooks/useAttendanceCorrections';
 import type { AttendanceCorrection } from '@/hooks/useAttendanceCorrections';
 import { format } from 'date-fns';
@@ -106,7 +105,7 @@ export function ReviewCorrectionDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-5">
           {/* Employee Info */}
           <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10">
@@ -121,29 +120,30 @@ export function ReviewCorrectionDialog({
             </div>
           </div>
 
-          <Separator />
+          {/* Date & Time Comparison - grouped surface */}
+          <div className="bg-white/60 dark:bg-white/5 rounded-xl p-4 space-y-4">
+            {/* Date */}
+            <div className="flex items-center gap-2 text-sm">
+              <Clock className="h-4 w-4 text-muted-foreground" />
+              <span>{formattedDate}</span>
+            </div>
 
-          {/* Date */}
-          <div className="flex items-center gap-2 text-sm">
-            <Clock className="h-4 w-4 text-muted-foreground" />
-            <span>{formattedDate}</span>
-          </div>
-
-          {/* Time Comparison */}
-          <div className="rounded-lg border p-4 space-y-3">
-            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-              <div className="text-center">
-                <p className="text-xs text-muted-foreground mb-1">Original</p>
-                <p className="font-mono text-sm">
-                  {correction.original_check_in || '--:--'} - {correction.original_check_out || '--:--'}
-                </p>
-              </div>
-              <ArrowRight className="h-4 w-4 text-muted-foreground" />
-              <div className="text-center">
-                <p className="text-xs text-muted-foreground mb-1">Requested</p>
-                <p className="font-mono text-sm font-medium text-primary">
-                  {correction.corrected_check_in} - {correction.corrected_check_out || '--:--'}
-                </p>
+            {/* Time Comparison */}
+            <div className="rounded-lg border bg-background/50 p-4">
+              <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground mb-1">Original</p>
+                  <p className="font-mono text-sm">
+                    {correction.original_check_in || '--:--'} - {correction.original_check_out || '--:--'}
+                  </p>
+                </div>
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground mb-1">Requested</p>
+                  <p className="font-mono text-sm font-medium text-primary">
+                    {correction.corrected_check_in} - {correction.corrected_check_out || '--:--'}
+                  </p>
+                </div>
               </div>
             </div>
           </div>

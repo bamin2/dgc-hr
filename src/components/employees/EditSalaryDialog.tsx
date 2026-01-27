@@ -13,7 +13,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
 import { toast } from "@/hooks/use-toast";
 import { formatAmount } from "@/lib/currencyUtils";
 import { Employee } from "@/hooks/useEmployees";
@@ -252,7 +251,7 @@ export function EditSalaryDialog({
             </DialogDescription>
           </DialogHeader>
           
-          <DialogBody className="space-y-7">
+          <DialogBody className="space-y-6">
             {/* Basic Salary */}
             <div className="space-y-1.5">
               <Label htmlFor="basicSalary">Basic Salary</Label>
@@ -265,8 +264,6 @@ export function EditSalaryDialog({
                 onChange={(e) => setBasicSalary(parseFloat(e.target.value) || 0)}
               />
             </div>
-            
-            <Separator />
             
             {/* Allowances Section */}
             <div className="space-y-3">
@@ -367,9 +364,7 @@ export function EditSalaryDialog({
             
             {/* GOSI Section - Above Summary */}
             {employee.isSubjectToGosi && (
-              <>
-                <Separator />
-                <div className="space-y-3">
+              <div className="space-y-3">
                   <Label className="text-sm font-medium">GOSI</Label>
                   <div className="space-y-4 p-4 bg-muted/30 rounded-lg">
                     <div className="space-y-1.5">
@@ -400,7 +395,6 @@ export function EditSalaryDialog({
                     )}
                   </div>
                 </div>
-              </>
             )}
             
             {/* Summary Section */}

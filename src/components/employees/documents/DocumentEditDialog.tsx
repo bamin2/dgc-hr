@@ -15,7 +15,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
 import { ExpiryNotificationSettings } from "./ExpiryNotificationSettings";
 import {
   EmployeeDocument,
@@ -116,7 +115,7 @@ export function DocumentEditDialog({
           <DialogTitle>Edit Document</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
+        <div className="space-y-5 py-4">
           {/* Document Type (read-only) */}
           <div className="space-y-2">
             <Label className="text-muted-foreground">Document Type</Label>
@@ -210,16 +209,13 @@ export function DocumentEditDialog({
 
           {/* Notification Settings (only if expiry date is set) */}
           {expiryDate && (
-            <>
-              <Separator />
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium">Expiry Notifications</h4>
-                <ExpiryNotificationSettings
-                  value={notifications}
-                  onChange={setNotifications}
-                />
-              </div>
-            </>
+            <div className="bg-white/60 dark:bg-white/5 rounded-xl p-4 space-y-3">
+              <h4 className="text-sm font-medium">Expiry Notifications</h4>
+              <ExpiryNotificationSettings
+                value={notifications}
+                onChange={setNotifications}
+              />
+            </div>
           )}
         </div>
 

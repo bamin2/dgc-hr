@@ -21,7 +21,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { LeaveType, SalaryDeductionTier, useCreateLeaveType, useUpdateLeaveType } from "@/hooks/useLeaveTypes";
 import { Plus, Trash2 } from "lucide-react";
@@ -211,7 +210,7 @@ export function LeaveTypeFormDialog({
       <>
             {/* Basic Info */}
             <div className="space-y-4">
-              <h3 className="text-sm font-medium text-muted-foreground">Basic Information</h3>
+              <h3 className="text-sm font-medium">Basic Information</h3>
               
               <div className="grid grid-cols-2 gap-4">
                 <FormField
@@ -319,13 +318,11 @@ export function LeaveTypeFormDialog({
               </div>
             </div>
 
-            <Separator />
-
             {/* Leave Rules */}
             <div className="space-y-4">
-              <h3 className="text-sm font-medium text-muted-foreground">Leave Rules</h3>
+              <h3 className="text-sm font-medium">Leave Rules</h3>
 
-              <div className="grid grid-cols-2 gap-6">
+              <div className="bg-white/60 dark:bg-white/5 rounded-xl p-4 grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="is_paid"
@@ -400,11 +397,9 @@ export function LeaveTypeFormDialog({
               </div>
             </div>
 
-            <Separator />
-
             {/* Document Requirements */}
             <div className="space-y-4">
-              <h3 className="text-sm font-medium text-muted-foreground">Document Requirements</h3>
+              <h3 className="text-sm font-medium">Document Requirements</h3>
 
               <FormField
                 control={form.control}
@@ -450,11 +445,9 @@ export function LeaveTypeFormDialog({
               )}
             </div>
 
-            <Separator />
-
             {/* Carryover Settings */}
             <div className="space-y-4">
-              <h3 className="text-sm font-medium text-muted-foreground">Carryover Policy</h3>
+              <h3 className="text-sm font-medium">Carryover Policy</h3>
 
               <FormField
                 control={form.control}
@@ -500,11 +493,9 @@ export function LeaveTypeFormDialog({
               )}
             </div>
 
-            <Separator />
-
             {/* Salary Deduction Policy */}
             <div className="space-y-4">
-              <h3 className="text-sm font-medium text-muted-foreground">Salary Deduction Policy</h3>
+              <h3 className="text-sm font-medium">Salary Deduction Policy</h3>
 
               <FormField
                 control={form.control}
@@ -623,8 +614,6 @@ export function LeaveTypeFormDialog({
                 </div>
               )}
             </div>
-
-            <Separator />
 
             {/* Status */}
             <FormField
