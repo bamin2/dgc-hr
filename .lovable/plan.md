@@ -1,258 +1,315 @@
 
 
-# Refine Typography Hierarchy
+# Standardize Button Styles Across the App
 
 ## Overview
-Standardize typography across the application to create a calm, refined aesthetic. This involves adjusting font weights, applying `tracking-tight` only to headings, and ensuring metadata uses consistent muted styling.
+Create a consistent, refined button system where primary actions clearly stand out from secondary actions. This involves updating the core Button component with standardized sizing, refined styling, and ensuring visual hierarchy is maintained throughout the app.
 
 ## Design Specifications
 
-### Typography Rules
+### Primary Buttons (liquidGlass)
 ```text
-Element Type              Weight           Tracking        Color
-──────────────────────────────────────────────────────────────────────
-Page Titles (h1)          font-semibold    tracking-tight  foreground
-Section Headers (h2/h3)   font-semibold    tracking-tight  foreground
-Card Titles               font-medium      tracking-tight  foreground
-Dialog Titles             font-medium      tracking-tight  foreground
-KPI/Metric Values         font-semibold    (none)          foreground
-Metadata/Labels           font-medium      (none)          muted-foreground
-Helper Text               font-normal      (none)          muted-foreground
+Property              Current Value                    Updated Value
+──────────────────────────────────────────────────────────────────────────────
+Height                h-12 sm:h-[52px]                 h-12 (fixed 48px)
+Text Size             text-sm sm:text-base             text-sm (fixed)
+Gradient              ✓ Keep existing                  ✓ Keep existing
+Shadow                Multi-layer with glow effect     Subtle shadows only
+Border Radius         rounded-[20px]                   rounded-[20px] (keep)
 ```
 
-### Key Changes
-- **Card titles**: `font-semibold` → `font-medium`
-- **Dialog titles**: `font-semibold` → `font-medium`
-- **KPI values**: `font-bold` → `font-semibold` (less aggressive)
-- **Report headers**: `font-bold` → `font-semibold`
-- **Metadata labels**: Ensure `text-sm text-muted-foreground`
-- **tracking-tight**: Only on headings, not on body text or values
+### Secondary/Cancel Buttons (liquidGlassSecondary)
+```text
+Property              Current Value                    Updated Value
+──────────────────────────────────────────────────────────────────────────────
+Height                h-11 sm:h-12                     h-12 (match primary)
+Background            bg-black/[0.03]                  bg-white/60
+Border                border-black/10                  border-white/50
+Backdrop              (none)                           backdrop-blur-sm
+Shadow                Multi-layer shadows              Minimal/none
+Border Radius         rounded-[20px]                   rounded-[20px] (keep)
+```
+
+### Outline Buttons (toolbar/secondary actions)
+Update `outline` variant for consistency when used alongside liquidGlass buttons:
+- Background: `bg-white/60` 
+- Border: `border-white/50`
+- Backdrop: `backdrop-blur-sm`
+- No heavy shadows
 
 ## Implementation Plan
 
-### Step 1: Update Core UI Components
+### Step 1: Update Button Component Core Variants
 
-**File:** `src/components/ui/card.tsx`
+**File:** `src/components/ui/button.tsx`
 
-| Component | Current | Updated |
-|-----------|---------|---------|
-| CardTitle | `text-lg font-semibold leading-none tracking-tight` | `text-lg font-medium leading-none tracking-tight` |
-
-**File:** `src/components/ui/dialog.tsx`
-
-| Component | Current | Updated |
-|-----------|---------|---------|
-| DialogTitle | `text-lg font-semibold leading-none tracking-tight` | `text-lg font-medium leading-none tracking-tight` |
-
-**File:** `src/components/ui/alert-dialog.tsx`
-
-| Component | Current | Updated |
-|-----------|---------|---------|
-| AlertDialogTitle | `text-lg font-semibold` | `text-lg font-medium tracking-tight` |
-
-**File:** `src/components/ui/drawer.tsx`
-
-| Component | Current | Updated |
-|-----------|---------|---------|
-| DrawerTitle | `text-lg font-semibold leading-none tracking-tight` | `text-lg font-medium leading-none tracking-tight` |
-
-### Step 2: Update Design Tokens
-
-**File:** `src/lib/design-tokens.ts`
-
-Update the typography tokens to reflect the refined hierarchy:
-
-```typescript
-export const typography = {
-  pageTitle: 'text-xl sm:text-2xl font-semibold tracking-tight text-foreground',
-  pageSubtitle: 'text-sm sm:text-base text-muted-foreground',
-  sectionTitle: 'text-lg font-semibold tracking-tight text-foreground',
-  sectionDescription: 'text-sm text-muted-foreground',
-  cardTitle: 'text-base font-medium tracking-tight text-foreground',
-  body: 'text-sm sm:text-base text-foreground',
-  bodySmall: 'text-sm text-foreground',
-  helper: 'text-xs text-muted-foreground',
-  label: 'text-sm font-medium text-muted-foreground',
-  kpiValue: 'text-2xl font-semibold text-foreground',  // New token
-} as const;
+#### Update `liquidGlass` variant:
+Change from:
+```tsx
+liquidGlass: [
+  "bg-gradient-to-b from-[#18171C] to-[#312F37]",
+  "text-white font-medium",
+  "border border-[#18171C]",
+  "rounded-[20px]",
+  "btn-liquid-glass-shadow",  // Complex multi-layer shadow
+  "transition-all duration-200",
+  "hover:brightness-110 hover:-translate-y-px hover:btn-liquid-glass-shadow-hover",
+  "active:translate-y-px active:btn-liquid-glass-shadow-active",
+  "focus-visible:ring-[#C6A45E]/40",
+].join(" ")
 ```
 
-### Step 3: Update KPI/Metric Cards
+To:
+```tsx
+liquidGlass: [
+  "bg-gradient-to-b from-[#18171C] to-[#312F37]",
+  "text-white text-sm font-medium",
+  "border border-[#18171C]",
+  "rounded-[20px]",
+  "shadow-[0_2px_8px_rgba(0,0,0,0.15)]",  // Subtle shadow only
+  "transition-all duration-200",
+  "hover:brightness-110 hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(0,0,0,0.2)]",
+  "active:translate-y-px active:shadow-[0_1px_4px_rgba(0,0,0,0.1)]",
+  "focus-visible:ring-2 focus-visible:ring-[#C6A45E]/40 focus-visible:ring-offset-2",
+].join(" ")
+```
 
-These files use `text-2xl font-bold` for metric values. Change to `text-2xl font-semibold`:
+#### Update `liquidGlassSecondary` variant:
+Change from:
+```tsx
+liquidGlassSecondary: [
+  "bg-black/[0.03] dark:bg-white/[0.08]",
+  "text-foreground/80 font-medium",
+  "border border-black/10 dark:border-white/15",
+  "rounded-[20px]",
+  "btn-liquid-glass-secondary-shadow",
+  ...
+].join(" ")
+```
 
-| File | Location | Change |
-|------|----------|--------|
-| `src/pages/AuditTrail.tsx` | Lines 131, 139, 149, 159 | `font-bold` → `font-semibold` |
-| `src/components/employees/EmployeeLoansTab.tsx` | Lines 105, 116, 127, 142, 149 | `font-bold` → `font-semibold` |
-| `src/components/payroll/PayrollRegister.tsx` | Lines 148, 160, 172 | `font-bold` → `font-semibold` |
-| `src/components/payroll/PayrollRegister.tsx` | Lines 239, 263 (table totals) | `font-bold` → `font-semibold` |
-| `src/components/reports/overview/OverviewMetricCard.tsx` | Line 58 | `font-bold` → `font-semibold` |
-| `src/components/hiring/reports/HiringReportsDashboard.tsx` | Lines 23, 34, 45, 56, 72 | `font-bold` → `font-semibold` |
-| `src/components/dashboard/admin/LoanExposureCard.tsx` | Line 51 | `font-bold` → `font-semibold` |
-| `src/components/team/wizard/bulk-salary/steps/ReviewSummaryStep.tsx` | Line 127 | `font-bold` → `font-semibold` |
+To:
+```tsx
+liquidGlassSecondary: [
+  "bg-white/60 dark:bg-white/10",
+  "text-foreground font-medium text-sm",
+  "border border-white/50 dark:border-white/20",
+  "backdrop-blur-sm",
+  "rounded-[20px]",
+  "transition-all duration-200",
+  "hover:bg-white/70 dark:hover:bg-white/15 hover:-translate-y-px",
+  "active:translate-y-px",
+  "focus-visible:ring-2 focus-visible:ring-foreground/20 focus-visible:ring-offset-2",
+].join(" ")
+```
 
-### Step 4: Update Report Headers
+#### Update `outline` variant for glass consistency:
+Change from:
+```tsx
+outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground"
+```
 
-These files use `text-2xl font-bold tracking-tight` for report titles. Change to `font-semibold`:
+To:
+```tsx
+outline: [
+  "bg-white/60 dark:bg-white/10",
+  "border border-white/50 dark:border-white/20",
+  "backdrop-blur-sm",
+  "hover:bg-white/70 dark:hover:bg-white/15",
+  "hover:text-accent-foreground",
+].join(" ")
+```
 
-| File | Line | Change |
-|------|------|--------|
-| `src/components/reports/ReportViewer.tsx` | Line 73 | `font-bold` → `font-semibold` |
-| `src/components/reports/compliance/ComplianceSnapshotReport.tsx` | Line 105 | `font-bold` → `font-semibold` |
-| `src/components/reports/compliance/PayrollVarianceReport.tsx` | Line 111 | `font-bold` → `font-semibold` |
-| `src/components/reports/compliance/CTCReport.tsx` | Line 103 | `font-bold` → `font-semibold` |
-| `src/pages/HelpCenter.tsx` | Line 21 | `font-bold` → `font-semibold` |
+#### Update size variants:
+Change from:
+```tsx
+size: {
+  default: "h-10 px-4 py-2",
+  sm: "h-9 px-3",
+  lg: "h-11 px-8",
+  icon: "h-11 w-11",
+  "icon-sm": "h-9 w-9",
+  liquidGlass: "h-12 sm:h-[52px] px-5 sm:px-6 text-sm sm:text-base",
+  liquidGlassSecondary: "h-11 sm:h-12 px-4 sm:px-5 text-sm",
+}
+```
 
-### Step 5: Update TimeTracker Clock
+To:
+```tsx
+size: {
+  default: "h-10 px-4 py-2",
+  sm: "h-9 px-3",
+  lg: "h-12 px-6",  // Updated: h-11 → h-12
+  icon: "h-11 w-11",
+  "icon-sm": "h-9 w-9",
+  liquidGlass: "h-12 px-6",  // Fixed height, consistent padding
+  liquidGlassSecondary: "h-12 px-5",  // Match primary height
+}
+```
 
-**File:** `src/components/dashboard/TimeTracker.tsx`
-
-The clock display uses `font-bold` on large numbers. This is acceptable for the dramatic time display, but should be `font-semibold` for consistency:
-
-Lines 126, 133, 140: `text-5xl font-bold` → `text-5xl font-semibold`
-
-### Step 6: Update Balance Display
-
-**File:** `src/components/timeoff/RequestTimeOffDialog.tsx`
-
-Line 243: `text-lg font-bold` → `text-lg font-semibold`
-
-### Step 7: Update Auth/Reset Password Pages
-
-**File:** `src/components/auth/ResetPasswordWizard.tsx`
-
-Update all `text-2xl font-bold` occurrences to `text-2xl font-semibold`:
-- Lines 132, 180, 188, 238, 283, 360
-
-### Step 8: Update Email Action Result Page
-
-**File:** `src/pages/EmailActionResult.tsx`
-
-Lines 142, 234: `text-2xl font-bold` → `text-2xl font-semibold`
-
-### Step 9: Update TimeOff Day View
-
-**File:** `src/components/timeoff/TimeOffDayView.tsx`
-
-Line 36: `text-2xl font-bold` → `text-2xl font-semibold`
-
-### Step 10: Update CSS Typography Classes
+### Step 2: Clean Up CSS Shadow Utilities
 
 **File:** `src/index.css`
 
-Update the `.text-heading-*` utility classes in the utilities layer:
+Remove the complex button shadow utilities that are no longer needed:
 
-Current:
-```css
-.text-heading-1 {
-  @apply text-2xl sm:text-[28px] font-semibold leading-tight tracking-tight;
-}
+Delete these classes:
+- `.btn-liquid-glass-shadow`
+- `.btn-liquid-glass-shadow-hover`
+- `.btn-liquid-glass-shadow-active`
+- `.btn-liquid-glass-secondary-shadow`
+- `.btn-liquid-glass-secondary-shadow-hover`
+- `.btn-liquid-glass-secondary-shadow-active`
 
-.text-heading-2 {
-  @apply text-xl sm:text-[22px] font-semibold leading-snug;
-}
+### Step 3: Update Dialog Footer Cancel Buttons
 
-.text-heading-3 {
-  @apply text-lg font-medium leading-normal;
-}
+Update dialogs that use `variant="outline"` for Cancel to use `liquidGlassSecondary`:
+
+| File | Current | Updated |
+|------|---------|---------|
+| `src/components/approvals/ApprovalActionDialog.tsx` | `variant="outline"` | `variant="liquidGlassSecondary" size="liquidGlassSecondary"` |
+| `src/components/approvals/MobileApprovalSheet.tsx` | `variant="outline" className="h-12"` | `variant="liquidGlassSecondary" size="liquidGlassSecondary"` |
+| `src/components/calendar/CreateEventDialog.tsx` | `variant="outline"` | `variant="liquidGlassSecondary" size="liquidGlassSecondary"` |
+| Multiple other dialogs | See Step 5 for full list | Standardize Cancel buttons |
+
+### Step 4: Standardize Primary Action Button Heights
+
+Ensure all primary action buttons use the `liquidGlass` variant with fixed h-12 height:
+
+| File | Location | Change |
+|------|----------|--------|
+| `src/pages/TimeOff.tsx` | Request Time Off button | Remove `sm:h-[52px]` responsive sizing |
+| `src/components/approvals/MobileApprovalSheet.tsx` | Approve button | Use `size="liquidGlass"` for h-12 |
+| Various dialogs | Primary action buttons | Ensure `size="liquidGlass"` is used |
+
+### Step 5: Update All Dialog Cancel Buttons
+
+Search and update all dialogs using `variant="outline"` for Cancel to use the new glass style:
+
+Files to update Cancel buttons:
+- `src/components/timemanagement/AssignLeaveBalanceDialog.tsx`
+- `src/components/settings/organization/WorkLocationFormDialog.tsx`
+- `src/components/calendar/CreateEventDialog.tsx`
+- `src/components/timemanagement/HolidayFormDialog.tsx`
+- `src/components/hiring/offers/OfferFormDialog.tsx`
+- `src/components/hiring/jobs/JobFormDialog.tsx`
+- `src/components/documents/CreateTemplateDialog.tsx`
+- And additional dialogs across the app (~20+ files)
+
+For each Cancel button, change:
+```tsx
+<Button variant="outline" onClick={() => onOpenChange(false)}>
+  Cancel
+</Button>
 ```
 
-These are already correct. No changes needed.
+To:
+```tsx
+<Button variant="liquidGlassSecondary" size="liquidGlassSecondary" onClick={() => onOpenChange(false)}>
+  Cancel
+</Button>
+```
+
+### Step 6: Update Destructive Button Styling
+
+The destructive variant should also follow the refined height standard:
+
+**File:** `src/components/ui/button.tsx`
+
+Add height consistency to destructive buttons when used in footers by ensuring components use `size="lg"` (now h-12) for destructive actions:
+
+| File | Change |
+|------|--------|
+| `src/components/approvals/ApprovalActionDialog.tsx` | Add `size="lg"` to destructive Reject button |
+| `src/components/approvals/MobileApprovalSheet.tsx` | Use `className="h-12"` for Reject button |
 
 ## Files to Modify
 
-### Core UI Components
+### Core Button Component
 | File | Changes |
 |------|---------|
-| `src/components/ui/card.tsx` | CardTitle: `font-semibold` → `font-medium` |
-| `src/components/ui/dialog.tsx` | DialogTitle: `font-semibold` → `font-medium` |
-| `src/components/ui/alert-dialog.tsx` | AlertDialogTitle: `font-semibold` → `font-medium`, add `tracking-tight` |
-| `src/components/ui/drawer.tsx` | DrawerTitle: `font-semibold` → `font-medium` |
+| `src/components/ui/button.tsx` | Update liquidGlass, liquidGlassSecondary, outline variants; update sizes |
 
-### Design Tokens
+### CSS
 | File | Changes |
 |------|---------|
-| `src/lib/design-tokens.ts` | Update cardTitle, add kpiValue token |
+| `src/index.css` | Remove unused button shadow utilities |
 
-### KPI/Metric Components
+### Approval Components
 | File | Changes |
 |------|---------|
-| `src/pages/AuditTrail.tsx` | `font-bold` → `font-semibold` (4 instances) |
-| `src/components/employees/EmployeeLoansTab.tsx` | `font-bold` → `font-semibold` (5 instances) |
-| `src/components/payroll/PayrollRegister.tsx` | `font-bold` → `font-semibold` (5 instances) |
-| `src/components/reports/overview/OverviewMetricCard.tsx` | `font-bold` → `font-semibold` |
-| `src/components/hiring/reports/HiringReportsDashboard.tsx` | `font-bold` → `font-semibold` (5 instances) |
-| `src/components/dashboard/admin/LoanExposureCard.tsx` | `font-bold` → `font-semibold` |
-| `src/components/team/wizard/bulk-salary/steps/ReviewSummaryStep.tsx` | `font-bold` → `font-semibold` |
+| `src/components/approvals/ApprovalActionDialog.tsx` | Update Cancel and Reject button variants |
+| `src/components/approvals/MobileApprovalSheet.tsx` | Update Cancel button, standardize heights |
 
-### Report Components
+### Dialog Components (Cancel Button Updates)
 | File | Changes |
 |------|---------|
-| `src/components/reports/ReportViewer.tsx` | `font-bold` → `font-semibold` |
-| `src/components/reports/compliance/ComplianceSnapshotReport.tsx` | `font-bold` → `font-semibold` |
-| `src/components/reports/compliance/PayrollVarianceReport.tsx` | `font-bold` → `font-semibold` |
-| `src/components/reports/compliance/CTCReport.tsx` | `font-bold` → `font-semibold` |
+| `src/components/calendar/CreateEventDialog.tsx` | Cancel → liquidGlassSecondary |
+| `src/components/timemanagement/AssignLeaveBalanceDialog.tsx` | Cancel → liquidGlassSecondary |
+| `src/components/timemanagement/HolidayFormDialog.tsx` | Cancel → liquidGlassSecondary |
+| `src/components/settings/organization/WorkLocationFormDialog.tsx` | Cancel → liquidGlassSecondary |
+| `src/components/hiring/offers/OfferFormDialog.tsx` | Cancel → liquidGlassSecondary |
+| `src/components/hiring/jobs/JobFormDialog.tsx` | Cancel → liquidGlassSecondary |
+| `src/components/documents/CreateTemplateDialog.tsx` | Cancel → liquidGlassSecondary |
+| `src/components/loans/CreateLoanDialog.tsx` | Cancel → liquidGlassSecondary |
 
-### Other Components
-| File | Changes |
-|------|---------|
-| `src/components/dashboard/TimeTracker.tsx` | `font-bold` → `font-semibold` (3 instances) |
-| `src/components/timeoff/RequestTimeOffDialog.tsx` | `font-bold` → `font-semibold` |
-| `src/components/timeoff/TimeOffDayView.tsx` | `font-bold` → `font-semibold` |
-| `src/pages/HelpCenter.tsx` | `font-bold` → `font-semibold` |
-| `src/components/auth/ResetPasswordWizard.tsx` | `font-bold` → `font-semibold` (6 instances) |
-| `src/pages/EmailActionResult.tsx` | `font-bold` → `font-semibold` (2 instances) |
-
-## Visual Result
+## Visual Comparison
 
 ```text
-Before:                              After:
-────────────────────────────────     ────────────────────────────────
-Page Title (bold)                    Page Title (semibold)
-  Card Title (semibold)                Card Title (medium)
-    KPI: 24,500 (bold)                   KPI: 24,500 (semibold)
-    Label (medium)                       Label (medium, muted)
-    Helper text                          Helper text (muted)
+Before:                                    After:
+┌────────────────────────────────────┐    ┌────────────────────────────────────┐
+│  Primary Button                    │    │  Primary Button                    │
+│  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │    │  ─────────────────────────────────  │
+│  Heavy glow, 52px desktop height   │    │  Subtle shadow, fixed 48px height  │
+│  Multi-layer box-shadow            │    │  Single-layer soft shadow          │
+│  Responsive text sizing            │    │  Fixed text-sm                     │
+└────────────────────────────────────┘    └────────────────────────────────────┘
 
-  Aggressive, heavy feel               Calm, refined, breathable
+┌────────────────────────────────────┐    ┌────────────────────────────────────┐
+│  Secondary Button                  │    │  Secondary Button                  │
+│  ──────────────────────────────────│    │  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒│
+│  bg-black/3%, solid border         │    │  bg-white/60, glass border         │
+│  Visible shadow layers             │    │  backdrop-blur, no shadow          │
+│  Doesn't match glass surfaces      │    │  Matches card glass aesthetic      │
+└────────────────────────────────────┘    └────────────────────────────────────┘
+
+Visual Hierarchy:
+Primary CTA ████████████████████  (Dark gradient, prominent)
+Secondary   ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  (Glass, subtle)
+Ghost       ░░░░░░░░░░░░░░░░░░░░  (Minimal, text only)
 ```
 
-## Typography Hierarchy Summary
+## Button Hierarchy Summary
 
 ```text
-Level 1: Page Title
-  └─ text-xl sm:text-2xl font-semibold tracking-tight
+Level 1: Primary CTA (liquidGlass)
+  └─ Dark gradient, h-12, subtle shadow, maximum emphasis
 
-Level 2: Section Title  
-  └─ text-lg font-semibold tracking-tight
+Level 2: Secondary/Cancel (liquidGlassSecondary)
+  └─ Glass effect, h-12, backdrop-blur, no shadow
 
-Level 3: Card/Dialog Title
-  └─ text-lg font-medium tracking-tight
+Level 3: Outline (toolbar actions)
+  └─ Glass effect, h-10, consistent with secondary
 
-Level 4: KPI Values
-  └─ text-2xl font-semibold (no tracking)
+Level 4: Ghost (inline actions)
+  └─ Transparent, h-10/h-9, text emphasis only
 
-Level 5: Labels
-  └─ text-sm font-medium text-muted-foreground
-
-Level 6: Helper/Meta
-  └─ text-xs text-muted-foreground
+Level 5: Destructive
+  └─ Red background, uses standard sizing
 ```
 
 ## Technical Notes
 
-- **tracking-tight**: Only applied to headings for a refined, professional look
-- **font-bold**: Completely removed from the typography system (too aggressive)
-- **font-semibold**: Maximum weight for emphasis (page titles, section headers, KPIs)
-- **font-medium**: Default for card/dialog titles and labels
-- **font-normal**: Default for body text
-- **Muted foreground**: All secondary/meta text uses `text-muted-foreground`
+- **Fixed Heights**: Moving from responsive heights (h-12 sm:h-[52px]) to fixed h-12 for consistency
+- **Subtle Shadows**: Single-layer shadows instead of complex multi-layer effects
+- **Glass Consistency**: Secondary buttons now match the glass card aesthetic
+- **Touch Targets**: All buttons maintain minimum 44px+ touch targets
+- **Text Size**: Fixed at text-sm for all variants (no responsive text scaling)
 
 ## Unchanged Elements
 
-- Content text and wording
-- Layout and spacing
-- Component structure
-- Color scheme (except ensuring muted-foreground on metadata)
+- Ghost button styling (already minimal and appropriate)
+- Icon button sizes (maintain touch targets)
+- Link variant styling
+- Button border radius (20px maintained)
+- Gradient colors in primary buttons
 
