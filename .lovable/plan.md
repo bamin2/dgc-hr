@@ -1,196 +1,258 @@
 
-# Normalize Spacing Across Cards and Dialogs
+
+# Refine Typography Hierarchy
 
 ## Overview
-Standardize spacing throughout the application to create better breathing room. This involves increasing internal padding, expanding vertical gaps between sections, and preferring spacing over dividers where appropriate.
+Standardize typography across the application to create a calm, refined aesthetic. This involves adjusting font weights, applying `tracking-tight` only to headings, and ensuring metadata uses consistent muted styling.
 
 ## Design Specifications
 
-### Spacing Values
+### Typography Rules
 ```text
-Current State                    Updated State
-─────────────────────────────    ─────────────────────────────
-Card padding: p-4 sm:p-6         Card padding: p-5 sm:p-6
-Section gap: gap-4               Section gap: gap-5
-Vertical spacing: space-y-4      Vertical spacing: space-y-5
-Dialog content: gap-4            Dialog content: gap-5
+Element Type              Weight           Tracking        Color
+──────────────────────────────────────────────────────────────────────
+Page Titles (h1)          font-semibold    tracking-tight  foreground
+Section Headers (h2/h3)   font-semibold    tracking-tight  foreground
+Card Titles               font-medium      tracking-tight  foreground
+Dialog Titles             font-medium      tracking-tight  foreground
+KPI/Metric Values         font-semibold    (none)          foreground
+Metadata/Labels           font-medium      (none)          muted-foreground
+Helper Text               font-normal      (none)          muted-foreground
 ```
 
-### Philosophy
-- Use spacing to create visual separation instead of dividers
-- Maintain consistent rhythm across all surfaces
-- Keep layouts and card order unchanged
+### Key Changes
+- **Card titles**: `font-semibold` → `font-medium`
+- **Dialog titles**: `font-semibold` → `font-medium`
+- **KPI values**: `font-bold` → `font-semibold` (less aggressive)
+- **Report headers**: `font-bold` → `font-semibold`
+- **Metadata labels**: Ensure `text-sm text-muted-foreground`
+- **tracking-tight**: Only on headings, not on body text or values
 
 ## Implementation Plan
 
-### Step 1: Update Card Base Components
+### Step 1: Update Core UI Components
 
 **File:** `src/components/ui/card.tsx`
 
 | Component | Current | Updated |
 |-----------|---------|---------|
-| CardHeader | `p-4 sm:p-6` | `p-5 sm:p-6` |
-| CardContent | `p-4 pt-0 sm:p-6 sm:pt-0` | `p-5 pt-0 sm:p-6 sm:pt-0` |
-| CardFooter | `p-4 pt-0 sm:p-6 sm:pt-0` | `p-5 pt-0 sm:p-6 sm:pt-0` |
-| CardFooter gap | `gap-4` | `gap-5` |
-
-### Step 2: Update Dialog Components
+| CardTitle | `text-lg font-semibold leading-none tracking-tight` | `text-lg font-medium leading-none tracking-tight` |
 
 **File:** `src/components/ui/dialog.tsx`
 
 | Component | Current | Updated |
 |-----------|---------|---------|
-| DialogContent base | `gap-4` | `gap-5` |
-| DialogHeader gap | `gap-1.5` | `gap-2` |
-| DialogFooter pt | `pt-4` | `pt-5` |
+| DialogTitle | `text-lg font-semibold leading-none tracking-tight` | `text-lg font-medium leading-none tracking-tight` |
 
 **File:** `src/components/ui/alert-dialog.tsx`
 
 | Component | Current | Updated |
 |-----------|---------|---------|
-| AlertDialogContent | `gap-4` | `gap-5` |
-| AlertDialogHeader gap | `gap-2` | `gap-2.5` |
-| AlertDialogFooter pt | `pt-4` | `pt-5` |
+| AlertDialogTitle | `text-lg font-semibold` | `text-lg font-medium tracking-tight` |
 
-### Step 3: Update ResponsiveDialog
+**File:** `src/components/ui/drawer.tsx`
 
-**File:** `src/components/ui/responsive-dialog.tsx`
+| Component | Current | Updated |
+|-----------|---------|---------|
+| DrawerTitle | `text-lg font-semibold leading-none tracking-tight` | `text-lg font-medium leading-none tracking-tight` |
 
-| Element | Current | Updated |
-|---------|---------|---------|
-| Mobile header padding | `py-4` | `py-5` |
-| Mobile content padding | `py-4` | `py-5` |
-| Mobile footer padding | `py-4` | `py-5` |
-| Desktop content padding | `py-4` | `py-5` |
+### Step 2: Update Design Tokens
 
-### Step 4: Update BentoCard
+**File:** `src/lib/design-tokens.ts`
 
-**File:** `src/components/dashboard/bento/BentoCard.tsx`
+Update the typography tokens to reflect the refined hierarchy:
 
-BentoCard already uses `p-5` which is appropriate. No changes needed.
+```typescript
+export const typography = {
+  pageTitle: 'text-xl sm:text-2xl font-semibold tracking-tight text-foreground',
+  pageSubtitle: 'text-sm sm:text-base text-muted-foreground',
+  sectionTitle: 'text-lg font-semibold tracking-tight text-foreground',
+  sectionDescription: 'text-sm text-muted-foreground',
+  cardTitle: 'text-base font-medium tracking-tight text-foreground',
+  body: 'text-sm sm:text-base text-foreground',
+  bodySmall: 'text-sm text-foreground',
+  helper: 'text-xs text-muted-foreground',
+  label: 'text-sm font-medium text-muted-foreground',
+  kpiValue: 'text-2xl font-semibold text-foreground',  // New token
+} as const;
+```
 
-### Step 5: Update Dashboard Cards Spacing
+### Step 3: Update KPI/Metric Cards
 
-Update internal spacing in dashboard cards from `space-y-4` to `space-y-5`:
+These files use `text-2xl font-bold` for metric values. Change to `text-2xl font-semibold`:
 
-| File | Change |
-|------|--------|
-| `src/components/dashboard/personal/MyLeaveBalanceCard.tsx` | `space-y-4` → `space-y-5` |
-| `src/components/dashboard/personal/MyLoansCard.tsx` | `space-y-3` → `space-y-4` |
-| `src/components/dashboard/team/TeamTimeOffCard.tsx` | Check and update if needed |
-| `src/components/dashboard/team/PendingApprovalsCard.tsx` | Check and update if needed |
+| File | Location | Change |
+|------|----------|--------|
+| `src/pages/AuditTrail.tsx` | Lines 131, 139, 149, 159 | `font-bold` → `font-semibold` |
+| `src/components/employees/EmployeeLoansTab.tsx` | Lines 105, 116, 127, 142, 149 | `font-bold` → `font-semibold` |
+| `src/components/payroll/PayrollRegister.tsx` | Lines 148, 160, 172 | `font-bold` → `font-semibold` |
+| `src/components/payroll/PayrollRegister.tsx` | Lines 239, 263 (table totals) | `font-bold` → `font-semibold` |
+| `src/components/reports/overview/OverviewMetricCard.tsx` | Line 58 | `font-bold` → `font-semibold` |
+| `src/components/hiring/reports/HiringReportsDashboard.tsx` | Lines 23, 34, 45, 56, 72 | `font-bold` → `font-semibold` |
+| `src/components/dashboard/admin/LoanExposureCard.tsx` | Line 51 | `font-bold` → `font-semibold` |
+| `src/components/team/wizard/bulk-salary/steps/ReviewSummaryStep.tsx` | Line 127 | `font-bold` → `font-semibold` |
 
-### Step 6: Update Dialog Form Spacing
+### Step 4: Update Report Headers
 
-Update form content spacing in dialogs:
+These files use `text-2xl font-bold tracking-tight` for report titles. Change to `font-semibold`:
 
-| File | Current | Updated |
-|------|---------|---------|
-| `src/components/employees/BankDetailsDialog.tsx` | `space-y-4 py-4` | `space-y-5 py-5` |
-| `src/components/projects/CreateProjectDialog.tsx` | `gap-4 py-4` | `gap-5 py-5` |
-| `src/components/attendance/AttendanceCorrectionDialog.tsx` | `space-y-4` | `space-y-5` |
-| `src/components/timeoff/RequestTimeOffDialog.tsx` | `space-y-5` | Already correct |
+| File | Line | Change |
+|------|------|--------|
+| `src/components/reports/ReportViewer.tsx` | Line 73 | `font-bold` → `font-semibold` |
+| `src/components/reports/compliance/ComplianceSnapshotReport.tsx` | Line 105 | `font-bold` → `font-semibold` |
+| `src/components/reports/compliance/PayrollVarianceReport.tsx` | Line 111 | `font-bold` → `font-semibold` |
+| `src/components/reports/compliance/CTCReport.tsx` | Line 103 | `font-bold` → `font-semibold` |
+| `src/pages/HelpCenter.tsx` | Line 21 | `font-bold` → `font-semibold` |
 
-### Step 7: Remove Unnecessary Dividers in EditEnrollmentDialog
+### Step 5: Update TimeTracker Clock
 
-**File:** `src/components/benefits/EditEnrollmentDialog.tsx`
+**File:** `src/components/dashboard/TimeTracker.tsx`
 
-This dialog has 6+ Separators. Replace most with increased spacing:
+The clock display uses `font-bold` on large numbers. This is acceptable for the dramatic time display, but should be `font-semibold` for consistency:
 
-- Remove Separator after employee info → use `mb-6` instead
-- Remove Separator after plan info → use `mb-6` instead
-- Keep Separator before cost summary (visual grouping justified)
-- Remove Separator after car park section → use spacing
-- Update internal `space-y-6` sections
+Lines 126, 133, 140: `text-5xl font-bold` → `text-5xl font-semibold`
 
-### Step 8: Update Settings Cards
+### Step 6: Update Balance Display
 
-**File:** `src/components/settings/SettingsCard.tsx`
+**File:** `src/components/timeoff/RequestTimeOffDialog.tsx`
 
-| Element | Current | Updated |
-|---------|---------|---------|
-| CardHeader pb | `pb-4` | `pb-5` |
+Line 243: `text-lg font-bold` → `text-lg font-semibold`
 
-**File:** `src/components/settings/payroll/BanksSection.tsx`
+### Step 7: Update Auth/Reset Password Pages
 
-| Element | Current | Updated |
-|---------|---------|---------|
-| List spacing | `space-y-2` | `space-y-3` |
-| Item padding | `p-3` | `p-4` |
+**File:** `src/components/auth/ResetPasswordWizard.tsx`
 
-### Step 9: Update Payroll Components
+Update all `text-2xl font-bold` occurrences to `text-2xl font-semibold`:
+- Lines 132, 180, 188, 238, 283, 360
 
-**File:** `src/components/payroll/PayrollMetrics.tsx`
+### Step 8: Update Email Action Result Page
 
-| Element | Current | Updated |
-|---------|---------|---------|
-| Grid gap | `gap-4` | `gap-5` |
-| Card content | `p-5` | Already correct |
+**File:** `src/pages/EmailActionResult.tsx`
+
+Lines 142, 234: `text-2xl font-bold` → `text-2xl font-semibold`
+
+### Step 9: Update TimeOff Day View
+
+**File:** `src/components/timeoff/TimeOffDayView.tsx`
+
+Line 36: `text-2xl font-bold` → `text-2xl font-semibold`
+
+### Step 10: Update CSS Typography Classes
+
+**File:** `src/index.css`
+
+Update the `.text-heading-*` utility classes in the utilities layer:
+
+Current:
+```css
+.text-heading-1 {
+  @apply text-2xl sm:text-[28px] font-semibold leading-tight tracking-tight;
+}
+
+.text-heading-2 {
+  @apply text-xl sm:text-[22px] font-semibold leading-snug;
+}
+
+.text-heading-3 {
+  @apply text-lg font-medium leading-normal;
+}
+```
+
+These are already correct. No changes needed.
 
 ## Files to Modify
 
 ### Core UI Components
 | File | Changes |
 |------|---------|
-| `src/components/ui/card.tsx` | Increase base padding to p-5, gap-5 |
-| `src/components/ui/dialog.tsx` | Increase gap-4 to gap-5, header gap, footer pt |
-| `src/components/ui/alert-dialog.tsx` | Increase gap and footer spacing |
-| `src/components/ui/responsive-dialog.tsx` | Increase py-4 to py-5 throughout |
+| `src/components/ui/card.tsx` | CardTitle: `font-semibold` → `font-medium` |
+| `src/components/ui/dialog.tsx` | DialogTitle: `font-semibold` → `font-medium` |
+| `src/components/ui/alert-dialog.tsx` | AlertDialogTitle: `font-semibold` → `font-medium`, add `tracking-tight` |
+| `src/components/ui/drawer.tsx` | DrawerTitle: `font-semibold` → `font-medium` |
 
-### Dashboard Cards
+### Design Tokens
 | File | Changes |
 |------|---------|
-| `src/components/dashboard/personal/MyLeaveBalanceCard.tsx` | space-y-4 → space-y-5 |
-| `src/components/dashboard/personal/MyLoansCard.tsx` | space-y-3 → space-y-4 |
+| `src/lib/design-tokens.ts` | Update cardTitle, add kpiValue token |
 
-### Dialog Forms
+### KPI/Metric Components
 | File | Changes |
 |------|---------|
-| `src/components/employees/BankDetailsDialog.tsx` | space-y-4 → space-y-5, py-4 → py-5 |
-| `src/components/projects/CreateProjectDialog.tsx` | gap-4 → gap-5, py-4 → py-5 |
-| `src/components/attendance/AttendanceCorrectionDialog.tsx` | space-y-4 → space-y-5 |
-| `src/components/benefits/EditEnrollmentDialog.tsx` | Remove excess Separators, use spacing |
+| `src/pages/AuditTrail.tsx` | `font-bold` → `font-semibold` (4 instances) |
+| `src/components/employees/EmployeeLoansTab.tsx` | `font-bold` → `font-semibold` (5 instances) |
+| `src/components/payroll/PayrollRegister.tsx` | `font-bold` → `font-semibold` (5 instances) |
+| `src/components/reports/overview/OverviewMetricCard.tsx` | `font-bold` → `font-semibold` |
+| `src/components/hiring/reports/HiringReportsDashboard.tsx` | `font-bold` → `font-semibold` (5 instances) |
+| `src/components/dashboard/admin/LoanExposureCard.tsx` | `font-bold` → `font-semibold` |
+| `src/components/team/wizard/bulk-salary/steps/ReviewSummaryStep.tsx` | `font-bold` → `font-semibold` |
 
-### Settings
+### Report Components
 | File | Changes |
 |------|---------|
-| `src/components/settings/SettingsCard.tsx` | pb-4 → pb-5 |
-| `src/components/settings/payroll/BanksSection.tsx` | space-y-2 → space-y-3, p-3 → p-4 |
+| `src/components/reports/ReportViewer.tsx` | `font-bold` → `font-semibold` |
+| `src/components/reports/compliance/ComplianceSnapshotReport.tsx` | `font-bold` → `font-semibold` |
+| `src/components/reports/compliance/PayrollVarianceReport.tsx` | `font-bold` → `font-semibold` |
+| `src/components/reports/compliance/CTCReport.tsx` | `font-bold` → `font-semibold` |
 
-### Payroll
+### Other Components
 | File | Changes |
 |------|---------|
-| `src/components/payroll/PayrollMetrics.tsx` | gap-4 → gap-5 |
+| `src/components/dashboard/TimeTracker.tsx` | `font-bold` → `font-semibold` (3 instances) |
+| `src/components/timeoff/RequestTimeOffDialog.tsx` | `font-bold` → `font-semibold` |
+| `src/components/timeoff/TimeOffDayView.tsx` | `font-bold` → `font-semibold` |
+| `src/pages/HelpCenter.tsx` | `font-bold` → `font-semibold` |
+| `src/components/auth/ResetPasswordWizard.tsx` | `font-bold` → `font-semibold` (6 instances) |
+| `src/pages/EmailActionResult.tsx` | `font-bold` → `font-semibold` (2 instances) |
 
 ## Visual Result
 
 ```text
-Before:                          After:
-┌────────────────────┐           ┌────────────────────┐
-│ Header (p-4)       │           │ Header (p-5)       │
-├────────────────────┤           │                    │
-│ ─────────────────  │           │                    │
-│ Content            │           │ Content            │
-│ ─────────────────  │           │                    │
-│ Content            │           │                    │
-│                    │           │ Content            │
-└────────────────────┘           │                    │
-                                 │                    │
-                                 └────────────────────┘
-    Tight spacing +                 Breathing room +
-    Multiple dividers               Spacing-based separation
+Before:                              After:
+────────────────────────────────     ────────────────────────────────
+Page Title (bold)                    Page Title (semibold)
+  Card Title (semibold)                Card Title (medium)
+    KPI: 24,500 (bold)                   KPI: 24,500 (semibold)
+    Label (medium)                       Label (medium, muted)
+    Helper text                          Helper text (muted)
+
+  Aggressive, heavy feel               Calm, refined, breathable
+```
+
+## Typography Hierarchy Summary
+
+```text
+Level 1: Page Title
+  └─ text-xl sm:text-2xl font-semibold tracking-tight
+
+Level 2: Section Title  
+  └─ text-lg font-semibold tracking-tight
+
+Level 3: Card/Dialog Title
+  └─ text-lg font-medium tracking-tight
+
+Level 4: KPI Values
+  └─ text-2xl font-semibold (no tracking)
+
+Level 5: Labels
+  └─ text-sm font-medium text-muted-foreground
+
+Level 6: Helper/Meta
+  └─ text-xs text-muted-foreground
 ```
 
 ## Technical Notes
 
-- **Cascading Effect**: Changes to `card.tsx` will propagate to all Card usages automatically
-- **Dialog Changes**: Core dialog updates affect all dialogs application-wide
-- **Selective Dividers**: Keep dividers only where strong visual separation is semantically needed (e.g., before totals/summaries)
-- **Responsive**: Mobile maintains slightly tighter spacing (p-5) while desktop gets more room (sm:p-6)
+- **tracking-tight**: Only applied to headings for a refined, professional look
+- **font-bold**: Completely removed from the typography system (too aggressive)
+- **font-semibold**: Maximum weight for emphasis (page titles, section headers, KPIs)
+- **font-medium**: Default for card/dialog titles and labels
+- **font-normal**: Default for body text
+- **Muted foreground**: All secondary/meta text uses `text-muted-foreground`
 
 ## Unchanged Elements
 
-- Card order and layout structure
-- Grid column configurations
-- Component hierarchy
-- Mobile/desktop breakpoint behavior
+- Content text and wording
+- Layout and spacing
+- Component structure
+- Color scheme (except ensuring muted-foreground on metadata)
+
