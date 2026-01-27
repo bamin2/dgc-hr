@@ -64,9 +64,9 @@ export function useEmployees() {
 
 export function useEmployee(id: string | undefined) {
   return useQuery({
-    queryKey: queryKeys.employees.detail(id!),
+    queryKey: queryKeys.employees.detail(id || 'none'),
     queryFn: () => fetchEmployee(id!),
-    enabled: !!id,
+    enabled: !!id && id.length > 0,
   });
 }
 

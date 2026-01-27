@@ -33,7 +33,7 @@ const MyProfilePage = () => {
   const [searchParams] = useSearchParams();
   const tabFromUrl = searchParams.get('tab');
   const [activeTab, setActiveTab] = useState(tabFromUrl || 'overview');
-  const { data: employee, isLoading, error } = useMyEmployee();
+  const { data: employee, isLoading, error, isProfileLoading } = useMyEmployee();
   const { settings, isLoading: settingsLoading } = useCompanySettings();
   const isMobile = useMediaQuery("(max-width: 1023px)");
 
@@ -48,7 +48,7 @@ const MyProfilePage = () => {
   const canViewCompensation = settings?.employeeCanViewCompensation ?? true;
   const showLineItems = settings?.showCompensationLineItems ?? false;
 
-  if (isLoading || settingsLoading) {
+  if (isLoading || isProfileLoading || settingsLoading) {
     return <MyProfileSkeleton />;
   }
 

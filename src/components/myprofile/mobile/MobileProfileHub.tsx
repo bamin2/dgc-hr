@@ -18,15 +18,15 @@ import { FileText, Receipt, Bell, Shield } from 'lucide-react';
 type SheetType = 'personal' | 'documents' | 'payslips' | 'notifications' | 'security' | null;
 
 export function MobileProfileHub() {
-  const { data: employee, isLoading: employeeLoading } = useMyEmployee();
+  const { data: employee, isLoading: employeeLoading, isProfileLoading } = useMyEmployee();
   const { data: documents } = useMyDocuments(employee?.id);
   const { data: payslips } = useMyPayslips(employee?.id);
   const { signOut } = useAuth();
   
   const [activeSheet, setActiveSheet] = useState<SheetType>(null);
 
-  // Only show skeleton on initial load, not refetches (avoids flash when switching tabs)
-  if (employeeLoading && !employee) {
+  // Show skeleton while auth/profile is loading OR employee query is loading
+  if ((employeeLoading || isProfileLoading) && !employee) {
     return (
       <DashboardLayout>
         <div className="p-4 space-y-4">
