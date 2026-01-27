@@ -120,7 +120,7 @@ export function MobileStatusCards() {
           label="Pending"
           value={pendingCount > 0 ? `${pendingCount} request${pendingCount !== 1 ? 's' : ''}` : "None"}
           highlight={pendingCount > 0}
-          onClick={() => navigate("/time-off")}
+          onClick={() => navigate("/requests")}
           color="bg-amber-500/10 text-amber-600"
         />
 
