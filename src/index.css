@@ -162,6 +162,14 @@
  * xl: 28px - page titles, KPI numbers (once per screen)
  */
 @layer utilities {
+  /* Responsive metric typography utilities */
+  .text-metric {
+    @apply text-lg sm:text-xl font-bold;
+  }
+  
+  .text-metric-lg {
+    @apply text-xl sm:text-2xl font-bold;
+  }
   /* Responsive container with max-width for readability */
   .responsive-container {
     @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;

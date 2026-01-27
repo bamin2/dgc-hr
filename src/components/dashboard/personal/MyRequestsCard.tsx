@@ -69,7 +69,7 @@ export function MyRequestsCard({ summary, isLoading }: MyRequestsCardProps) {
                 className={`rounded-lg p-3 text-center ${item.bgColor}`}
               >
                 <Icon className={`h-5 w-5 mx-auto mb-1 ${item.color}`} />
-                <p className="text-xl font-bold">{item.count}</p>
+                <p className="text-lg sm:text-xl font-bold">{item.count}</p>
                 <p className="text-xs text-muted-foreground">{item.label}</p>
               </div>
             );
