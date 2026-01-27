@@ -1,147 +1,166 @@
 
-# Add Central Quick Action Button to Mobile Bottom Navigation
+
+# Fix Mobile Bottom Navigation - Floating Action Button
 
 ## Overview
-Add a prominent circular "Quick Action" button in the center of the mobile bottom navigation bar. Tapping it opens a bottom sheet with request options (Time Off, Loan, HR Letter) as a vertical list.
+Refactor the mobile bottom navigation so the "+" button becomes a true floating action button (FAB) that overlaps the navigation bar without affecting tab spacing.
 
 ---
 
-## Current Navigation Structure
+## Current Issue
 ```text
-┌─────────────────────────────────────────────┐
-│  Home  │  Requests  │  Approvals*  │ Profile│
-└─────────────────────────────────────────────┘
-* Approvals only for Manager/HR
+┌───────────────────────────────────────────────────┐
+│ Home │ Requests │ [+] │ Approvals │ Profile │
+└───────────────────────────────────────────────────┘
+                    ↑
+        Button is a flex item - affects spacing
 ```
 
-## New Navigation Structure
+## Target Layout
 ```text
-┌─────────────────────────────────────────────────┐
-│  Home  │  Requests  │  [+]  │  Approvals*  │ Profile│
-└─────────────────────────────────────────────────┘
-                        ↑
-              Circular gold button
-              Opens bottom sheet
-```
-
----
-
-## Quick Action Button Design
-
-| Property | Value |
-|----------|-------|
-| Shape | Circular (rounded-full) |
-| Size | 56px diameter (w-14 h-14) |
-| Background | DGC Gold (`bg-[#C6A45E]`) |
-| Icon | Plus (Lucide) - white |
-| Position | Center of navigation, raised slightly |
-| Touch area | Meets 56px minimum requirement |
-| Visual effect | Shadow for prominence, scale on active |
-
----
-
-## Bottom Sheet Content
-
-**Title**: "Requests"
-
-**Layout**: Vertical list with icon + label (not grid)
-
-| Action | Icon | Behavior |
-|--------|------|----------|
-| Time Off | `Calendar` | Opens `RequestTimeOffDialog` |
-| Loan | `Banknote` | Opens `EmployeeRequestLoanDialog` |
-| HR Letter | `FileText` | Opens `RequestHRDocumentDialog` |
-
-**Interaction Flow**:
-1. User taps Quick Action button
-2. Bottom sheet slides up with drag handle
-3. User taps an action item
-4. Sheet closes immediately
-5. Corresponding dialog opens (150ms delay for smooth transition)
-
----
-
-## Technical Implementation
-
-### Files to Modify
-
-**1. `src/components/dashboard/MobileActionBar.tsx`**
-
-Changes:
-- Add state for sheet open/close: `const [sheetOpen, setSheetOpen] = useState(false)`
-- Add states for each dialog (time off, loan, HR letter)
-- Insert central Quick Action button between navigation items
-- Render the bottom sheet (Drawer) with action list
-- Render the three request dialogs
-
-**Button implementation**:
-```text
-- Position: flex item between Home/Requests and Approvals/Profile
-- Not a Link (doesn't navigate)
-- onClick opens the sheet
-- Uses brand gold color (#C6A45E)
-- Plus icon centered
-- Elevated with shadow-lg
-- active:scale-95 for haptic feedback
-```
-
-**Sheet implementation (using existing Drawer)**:
-```text
-- Drawer component (vaul-based)
-- DrawerContent with rounded-t-[1.25rem]
-- Built-in drag handle (already in component)
-- DrawerHeader with title "Requests"
-- Vertical list of action buttons
+                   [+]  ← Floating, absolutely positioned
+                    │
+┌───────────────────│───────────────────────────────┐
+│   Home   │  Requests  │  Approvals  │  Profile   │
+└───────────────────────────────────────────────────┘
+            ↑ Tabs evenly spaced, unaffected by FAB
 ```
 
 ---
 
-## Component Structure
+## Technical Changes
+
+### File: `src/components/dashboard/MobileActionBar.tsx`
+
+**1. Merge navigation items into single array**
+
+Remove the split between `leftNavItems` and `rightNavItems`. Use a single `navItems` array:
+
+| Tab | Condition |
+|-----|-----------|
+| Home | Always visible |
+| Requests | Always visible |
+| Approvals | Only if `canAccessManagement` |
+| Profile | Always visible |
+
+**2. Remove the button from the flex flow**
+
+Current structure (problematic):
+```text
+<div className="flex justify-around">
+  {leftNavItems}
+  <button>+</button>  ← Takes up flex space
+  {rightNavItems}
+</div>
+```
+
+New structure:
+```text
+<nav className="relative">  ← Add relative positioning
+  <div className="flex justify-around">
+    {navItems}  ← All tabs, evenly spaced
+  </div>
+  <button className="absolute left-1/2 -translate-x-1/2 bottom-[calc(100%-28px)]">
+    +
+  </button>  ← Floating, centered, overlaps bar
+</nav>
+```
+
+**3. FAB positioning details**
+
+| Property | Value | Purpose |
+|----------|-------|---------|
+| `position` | `absolute` | Remove from document flow |
+| `left` | `50%` | Center point at viewport center |
+| `transform` | `-translate-x-1/2` | Offset by half width for true centering |
+| `bottom` | `calc(100% - 28px)` | Position so button overlaps the nav bar |
+| `z-index` | `10` | Ensure button sits above nav items |
+
+**4. Styling adjustments**
+
+The FAB styling remains mostly the same:
+- Circular: `rounded-full`
+- Size: `w-14 h-14` (56px)
+- Color: `bg-[#C6A45E]` (DGC Gold)
+- Shadow: `shadow-lg shadow-[#C6A45E]/30`
+- Icon: `Plus` with white color
+
+---
+
+## Updated Component Structure
 
 ```text
 MobileActionBar
-├── nav (flex container)
-│   ├── Home Link
-│   ├── Requests Link
-│   ├── Quick Action Button (circular, gold)
-│   ├── Approvals Link (conditional)
-│   └── Profile Link
-├── Drawer (Bottom Sheet)
-│   ├── DrawerContent
-│   │   ├── DrawerHeader → "Requests"
-│   │   └── Action List (vertical)
-│   │       ├── Time Off row
-│   │       ├── Loan row
-│   │       └── HR Letter row
-├── RequestTimeOffDialog
-├── EmployeeRequestLoanDialog
-└── RequestHRDocumentDialog
+├── <Fragment>
+│   ├── <nav> (fixed bottom, relative)
+│   │   ├── <div> (flex container, justify-around)
+│   │   │   ├── Home Link
+│   │   │   ├── Requests Link
+│   │   │   ├── Approvals Link (conditional)
+│   │   │   └── Profile Link
+│   │   └── <button> (FAB, absolute positioned)
+│   │       └── Plus icon
+│   ├── Drawer (Bottom Sheet)
+│   └── Request Dialogs
 ```
 
 ---
 
-## Action List Item Styling
+## Code Changes Summary
 
-Each item in the vertical list:
+### Lines to modify:
 
-| Property | Value |
-|----------|-------|
-| Layout | Horizontal: icon + label |
-| Height | min-h-[56px] (meets touch target) |
-| Padding | px-4 py-3 |
-| Icon container | h-10 w-10 rounded-xl bg-secondary/50 |
-| Label | text-base font-medium |
-| Separator | border-b between items (except last) |
-| Interaction | active:bg-muted/50, touch-manipulation |
+**1. Navigation items (lines 91-107)**
+- Combine into single `navItems` array
+- Remove `leftNavItems` and `rightNavItems` separation
+
+**2. Nav container (lines 168-202)**
+- Add `relative` class to nav element
+- Change flex container to render all `navItems` without the button
+- Move FAB button outside the flex container
+- Apply absolute positioning to FAB
+
+### New navItems structure:
+```text
+const navItems: NavItem[] = [
+  { icon: Home, label: "Home", path: "/" },
+  { icon: FileText, label: "Requests", path: "/requests" },
+  ...(canAccessManagement ? [{
+    icon: CheckSquare,
+    label: "Approvals", 
+    path: "/approvals",
+    badge: pendingCount
+  }] : []),
+  { icon: User, label: "Profile", path: "/my-profile" },
+];
+```
+
+### New FAB positioning:
+```text
+<button
+  className={cn(
+    "absolute left-1/2 -translate-x-1/2",
+    "bottom-[calc(100%-28px)] z-10",
+    "w-14 h-14 rounded-full",
+    "bg-[#C6A45E] text-white",
+    "flex items-center justify-center",
+    "shadow-lg shadow-[#C6A45E]/30",
+    "touch-manipulation transition-transform duration-150",
+    "active:scale-95"
+  )}
+>
+```
 
 ---
 
-## Navigation Array Update
+## Layout Behavior
 
-Current flow builds `navItems` array, then maps. New approach:
-- Split into two groups: left items (Home, Requests) and right items (Approvals, Profile)
-- Render left items, then Quick Action button, then right items
-- This ensures the circular button is always centered
+| Scenario | Tabs | Result |
+|----------|------|--------|
+| Regular employee | Home, Requests, Profile | 3 tabs evenly spaced |
+| Manager/HR | Home, Requests, Approvals, Profile | 4 tabs evenly spaced |
+
+The FAB remains centered at 50% viewport width regardless of tab count.
 
 ---
 
@@ -149,31 +168,15 @@ Current flow builds `navItems` array, then maps. New approach:
 
 | File | Action |
 |------|--------|
-| `src/components/dashboard/MobileActionBar.tsx` | Add Quick Action button + bottom sheet + dialogs |
-
-No new files needed - reusing existing Drawer component and request dialogs.
-
----
-
-## Imports to Add
-
-```text
-- useState from react
-- Plus from lucide-react
-- Calendar, Banknote, FileText from lucide-react (for sheet icons)
-- Drawer, DrawerContent, DrawerHeader, DrawerTitle from @/components/ui/drawer
-- RequestTimeOffDialog from @/components/timeoff/RequestTimeOffDialog
-- EmployeeRequestLoanDialog from @/components/loans/EmployeeRequestLoanDialog
-- RequestHRDocumentDialog from @/components/approvals/RequestHRDocumentDialog
-```
+| `src/components/dashboard/MobileActionBar.tsx` | Refactor FAB positioning |
 
 ---
 
 ## Expected Result
 
-- Mobile bottom navigation now has a prominent gold circular Plus button in the center
-- Tapping the button opens a bottom sheet titled "Requests"
-- Sheet contains a clean vertical list of three actions
-- Tapping any action closes the sheet and opens the corresponding form
-- Existing navigation tabs (Home, Requests, Approvals, Profile) remain functional
-- The design follows mobile design tokens (56px touch targets, rounded-2xl, proper spacing)
+- Navigation tabs (3 or 4) are evenly distributed across the bar
+- FAB floats above the navigation bar, centered horizontally
+- FAB does not affect tab spacing
+- Tapping FAB opens the Requests bottom sheet
+- No changes to desktop navigation (component already uses `lg:hidden`)
+
