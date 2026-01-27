@@ -13,6 +13,7 @@ import {
   ScheduleCard,
   MobileGreetingCard,
   MobileStatusCards,
+  MobileQuickActionsCard,
 } from './bento';
 
 function CardSkeleton({ colSpan = 4 }: { colSpan?: 4 | 5 | 7 | 8 | 12 }) {
@@ -39,6 +40,9 @@ function MobileDashboard() {
       
       {/* Quick Status Cards - Next Leave, Pending, Loan Balance */}
       <MobileStatusCards />
+      
+      {/* Quick Actions - 2x2 grid of common actions */}
+      <MobileQuickActionsCard />
       
       {/* Recent Notifications - 4 items with large touch targets */}
       <NotificationsCard variant="compact" itemCount={4} />
