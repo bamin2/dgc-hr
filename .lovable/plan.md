@@ -1,138 +1,147 @@
 
-# Add Quick Actions Section to Mobile Home Page
+# Add Central Quick Action Button to Mobile Bottom Navigation
 
 ## Overview
-Add a "Quick Actions" section to the mobile dashboard between the greeting card and notifications. This will provide quick access to common employee actions through a 2-column grid of tappable tiles.
+Add a prominent circular "Quick Action" button in the center of the mobile bottom navigation bar. Tapping it opens a bottom sheet with request options (Time Off, Loan, HR Letter) as a vertical list.
 
 ---
 
-## Current Mobile Dashboard Structure
+## Current Navigation Structure
 ```text
-┌─────────────────────────────┐
-│ MobileGreetingCard          │
-│ "Good morning, John!"       │
-│ "Monday, January 27"        │
-├─────────────────────────────┤
-│ MobileStatusCards           │
-│ (Next Leave, Pending, Loan) │
-├─────────────────────────────┤
-│ NotificationsCard           │
-│ (4 recent notifications)    │
-└─────────────────────────────┘
+┌─────────────────────────────────────────────┐
+│  Home  │  Requests  │  Approvals*  │ Profile│
+└─────────────────────────────────────────────┘
+* Approvals only for Manager/HR
 ```
 
-## Proposed Structure
+## New Navigation Structure
 ```text
-┌─────────────────────────────┐
-│ MobileGreetingCard          │
-├─────────────────────────────┤
-│ MobileStatusCards           │
-├─────────────────────────────┤
-│ Quick Actions (NEW)         │
-│ ┌──────────┬──────────┐     │
-│ │Time Off  │ Loan     │     │
-│ ├──────────┼──────────┤     │
-│ │Payslip   │ HR Letter│     │
-│ ├──────────┼──────────┤     │
-│ │Approvals*│Directory*│     │
-│ └──────────┴──────────┘     │
-│ *Manager/HR only            │
-├─────────────────────────────┤
-│ NotificationsCard           │
-└─────────────────────────────┘
+┌─────────────────────────────────────────────────┐
+│  Home  │  Requests  │  [+]  │  Approvals*  │ Profile│
+└─────────────────────────────────────────────────┘
+                        ↑
+              Circular gold button
+              Opens bottom sheet
 ```
 
 ---
 
-## Actions Configuration
+## Quick Action Button Design
 
-### Always Visible (All Employees)
+| Property | Value |
+|----------|-------|
+| Shape | Circular (rounded-full) |
+| Size | 56px diameter (w-14 h-14) |
+| Background | DGC Gold (`bg-[#C6A45E]`) |
+| Icon | Plus (Lucide) - white |
+| Position | Center of navigation, raised slightly |
+| Touch area | Meets 56px minimum requirement |
+| Visual effect | Shadow for prominence, scale on active |
+
+---
+
+## Bottom Sheet Content
+
+**Title**: "Requests"
+
+**Layout**: Vertical list with icon + label (not grid)
+
 | Action | Icon | Behavior |
 |--------|------|----------|
-| Request Time Off | `CalendarPlus` | Opens `RequestTimeOffDialog` |
-| Request Loan | `Banknote` | Opens `EmployeeRequestLoanDialog` |
-| View Payslip | `Receipt` | Opens `MobilePayslipsSheet` drawer |
-| Request HR Letter | `FileText` | Opens `RequestHRDocumentDialog` |
+| Time Off | `Calendar` | Opens `RequestTimeOffDialog` |
+| Loan | `Banknote` | Opens `EmployeeRequestLoanDialog` |
+| HR Letter | `FileText` | Opens `RequestHRDocumentDialog` |
 
-### Conditional (Manager/HR Only)
-| Action | Icon | Behavior | Condition |
-|--------|------|----------|-----------|
-| Approvals | `CheckSquare` | Navigate to `/approvals` | `isManager` OR `canEditEmployees` |
-| Directory | `BookUser` | Navigate to `/directory` | `isManager` OR `canEditEmployees` |
+**Interaction Flow**:
+1. User taps Quick Action button
+2. Bottom sheet slides up with drag handle
+3. User taps an action item
+4. Sheet closes immediately
+5. Corresponding dialog opens (150ms delay for smooth transition)
 
 ---
 
 ## Technical Implementation
 
-### File to Modify
-**`src/components/dashboard/bento/MobileQuickActionsCard.tsx`**
+### Files to Modify
 
-This component already exists but includes a greeting section. We will refactor it to:
-1. Remove the greeting (already handled by `MobileGreetingCard`)
-2. Add section title "Quick Actions"
-3. Update actions to match requirements
-4. Add role-based conditional actions
-5. Add payslips sheet support
+**1. `src/components/dashboard/MobileActionBar.tsx`**
 
-### Tile Styling (Reusing Existing Patterns)
-Following the pattern from `MobileNewRequestSheet`:
+Changes:
+- Add state for sheet open/close: `const [sheetOpen, setSheetOpen] = useState(false)`
+- Add states for each dialog (time off, loan, HR letter)
+- Insert central Quick Action button between navigation items
+- Render the bottom sheet (Drawer) with action list
+- Render the three request dialogs
+
+**Button implementation**:
 ```text
-- 2-column grid: grid-cols-2 gap-3
-- Min height: min-h-[88px] (meets 56px+ requirement)
-- Border radius: rounded-2xl
-- Background: bg-secondary/50
-- Touch: touch-manipulation, active:scale-[0.98]
-- Icon container: h-11 w-11 rounded-xl
-- Label: text-xs font-medium
+- Position: flex item between Home/Requests and Approvals/Profile
+- Not a Link (doesn't navigate)
+- onClick opens the sheet
+- Uses brand gold color (#C6A45E)
+- Plus icon centered
+- Elevated with shadow-lg
+- active:scale-95 for haptic feedback
 ```
 
-### Dashboard Integration
-**`src/components/dashboard/DashboardRenderer.tsx`**
-
-Update the `MobileDashboard` function to include the new Quick Actions section:
-
+**Sheet implementation (using existing Drawer)**:
 ```text
-MobileGreetingCard
-    ↓
-MobileStatusCards
-    ↓
-MobileQuickActionsCard (ADD HERE)
-    ↓
-NotificationsCard
+- Drawer component (vaul-based)
+- DrawerContent with rounded-t-[1.25rem]
+- Built-in drag handle (already in component)
+- DrawerHeader with title "Requests"
+- Vertical list of action buttons
 ```
 
 ---
 
-## Detailed Changes
+## Component Structure
 
-### 1. Refactor MobileQuickActionsCard.tsx
+```text
+MobileActionBar
+├── nav (flex container)
+│   ├── Home Link
+│   ├── Requests Link
+│   ├── Quick Action Button (circular, gold)
+│   ├── Approvals Link (conditional)
+│   └── Profile Link
+├── Drawer (Bottom Sheet)
+│   ├── DrawerContent
+│   │   ├── DrawerHeader → "Requests"
+│   │   └── Action List (vertical)
+│   │       ├── Time Off row
+│   │       ├── Loan row
+│   │       └── HR Letter row
+├── RequestTimeOffDialog
+├── EmployeeRequestLoanDialog
+└── RequestHRDocumentDialog
+```
 
-**Changes:**
-- Remove the greeting section (lines 74-80)
-- Add section header "Quick Actions"
-- Replace actions array with new configuration:
-  - Request Time Off → `RequestTimeOffDialog`
-  - Request Loan → `EmployeeRequestLoanDialog`
-  - View Payslip → `MobilePayslipsSheet`
-  - Request HR Letter → `RequestHRDocumentDialog`
-- Add conditional actions using `useRole()`:
-  - Approvals → `navigate('/approvals')`
-  - Directory → `navigate('/directory')`
-- Add state for payslips sheet and loan dialog
-- Import `useRole` and `useMyEmployee` for role checks and employee ID
+---
 
-**Imports to add:**
-- `Banknote`, `Receipt`, `CheckSquare`, `BookUser` from lucide-react
-- `useRole` from RoleContext
-- `useMyEmployee` from hooks
-- `EmployeeRequestLoanDialog` from loans
-- `MobilePayslipsSheet` from myprofile/mobile
+## Action List Item Styling
 
-### 2. Update DashboardRenderer.tsx
+Each item in the vertical list:
 
-**Changes:**
-- Import `MobileQuickActionsCard` (already exported in index.ts)
-- Add it to the `MobileDashboard` function between `MobileStatusCards` and `NotificationsCard`
+| Property | Value |
+|----------|-------|
+| Layout | Horizontal: icon + label |
+| Height | min-h-[56px] (meets touch target) |
+| Padding | px-4 py-3 |
+| Icon container | h-10 w-10 rounded-xl bg-secondary/50 |
+| Label | text-base font-medium |
+| Separator | border-b between items (except last) |
+| Interaction | active:bg-muted/50, touch-manipulation |
+
+---
+
+## Navigation Array Update
+
+Current flow builds `navItems` array, then maps. New approach:
+- Split into two groups: left items (Home, Requests) and right items (Approvals, Profile)
+- Render left items, then Quick Action button, then right items
+- This ensures the circular button is always centered
 
 ---
 
@@ -140,25 +149,31 @@ NotificationsCard
 
 | File | Action |
 |------|--------|
-| `src/components/dashboard/bento/MobileQuickActionsCard.tsx` | Refactor to new design |
-| `src/components/dashboard/DashboardRenderer.tsx` | Add MobileQuickActionsCard |
+| `src/components/dashboard/MobileActionBar.tsx` | Add Quick Action button + bottom sheet + dialogs |
+
+No new files needed - reusing existing Drawer component and request dialogs.
 
 ---
 
-## Design Tokens (Following Mobile Standards)
-- Grid gap: `gap-3` (12px)
-- Card padding: `p-4` (16px)
-- Border radius: `rounded-2xl` (16-20px)
-- Min touch height: `min-h-[88px]` (exceeds 56px requirement)
-- Icon container: `h-11 w-11 rounded-xl` (44px, follows mobile standard)
-- Typography: `text-xs font-medium` for labels
+## Imports to Add
 
-## Role Check Logic
 ```text
-const showManagerActions = isManager || canEditEmployees;
+- useState from react
+- Plus from lucide-react
+- Calendar, Banknote, FileText from lucide-react (for sheet icons)
+- Drawer, DrawerContent, DrawerHeader, DrawerTitle from @/components/ui/drawer
+- RequestTimeOffDialog from @/components/timeoff/RequestTimeOffDialog
+- EmployeeRequestLoanDialog from @/components/loans/EmployeeRequestLoanDialog
+- RequestHRDocumentDialog from @/components/approvals/RequestHRDocumentDialog
 ```
 
-This covers:
-- Managers (role === 'manager')
-- HR (role === 'hr')
-- Admins (role === 'admin')
+---
+
+## Expected Result
+
+- Mobile bottom navigation now has a prominent gold circular Plus button in the center
+- Tapping the button opens a bottom sheet titled "Requests"
+- Sheet contains a clean vertical list of three actions
+- Tapping any action closes the sheet and opens the corresponding form
+- Existing navigation tabs (Home, Requests, Approvals, Profile) remain functional
+- The design follows mobile design tokens (56px touch targets, rounded-2xl, proper spacing)
