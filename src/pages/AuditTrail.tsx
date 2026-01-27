@@ -128,7 +128,7 @@ export default function AuditTrail() {
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Entries</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">{data?.totalCount || 0}</p>
+              <p className="text-2xl font-semibold">{data?.totalCount || 0}</p>
             </CardContent>
           </Card>
           <Card>
@@ -136,7 +136,7 @@ export default function AuditTrail() {
               <CardTitle className="text-sm font-medium text-muted-foreground">Current Page</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">
+              <p className="text-2xl font-semibold">
                 {data?.currentPage || 1} of {data?.totalPages || 1}
               </p>
             </CardContent>
@@ -146,7 +146,7 @@ export default function AuditTrail() {
               <CardTitle className="text-sm font-medium text-muted-foreground">Active Filters</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">
+              <p className="text-2xl font-semibold">
                 {Object.values(filters).filter((v) => v && v !== 'all').length}
               </p>
             </CardContent>
@@ -156,7 +156,7 @@ export default function AuditTrail() {
               <CardTitle className="text-sm font-medium text-muted-foreground">Last Updated</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">
+              <p className="text-2xl font-semibold">
                 {data?.logs[0] ? format(new Date(data.logs[0].created_at), "MMM d") : "—"}
               </p>
             </CardContent>

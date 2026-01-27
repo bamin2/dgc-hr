@@ -139,7 +139,7 @@ const EmailActionResult = () => {
             <div className="flex justify-center mb-4">
               {getIcon()}
             </div>
-            <CardTitle className="text-2xl font-bold text-foreground">
+            <CardTitle className="text-2xl font-semibold text-foreground">
               {getTitle()}
             </CardTitle>
           </CardHeader>
@@ -231,7 +231,7 @@ const EmailActionResult = () => {
           <div className="flex justify-center mb-4">
             {getIcon()}
           </div>
-          <CardTitle className="text-2xl font-bold text-foreground">
+          <CardTitle className="text-2xl font-semibold text-foreground">
             {getTitle()}
           </CardTitle>
         </CardHeader>

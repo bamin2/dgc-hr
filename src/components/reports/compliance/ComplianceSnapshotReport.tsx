@@ -102,7 +102,7 @@ export function ComplianceSnapshotReport() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Compliance Snapshot</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">Compliance Snapshot</h2>
           <p className="text-muted-foreground">
             Identify missing documents, expired IDs, and GOSI registration issues
           </p>

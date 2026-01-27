@@ -123,21 +123,21 @@ export function TimeTracker() {
         {/* Timer Display */}
         <div className="flex items-center justify-center gap-2 mb-6">
           <div className="text-center">
-            <div className="text-5xl font-bold font-mono tracking-tight">
+            <div className="text-5xl font-semibold font-mono tracking-tight">
               {time.hours}
             </div>
             <div className="text-xs opacity-60 mt-1">HOURS</div>
           </div>
-          <div className="text-5xl font-bold opacity-60">:</div>
+          <div className="text-5xl font-semibold opacity-60">:</div>
           <div className="text-center">
-            <div className="text-5xl font-bold font-mono tracking-tight">
+            <div className="text-5xl font-semibold font-mono tracking-tight">
               {time.minutes}
             </div>
             <div className="text-xs opacity-60 mt-1">MINUTES</div>
           </div>
-          <div className="text-5xl font-bold opacity-60">:</div>
+          <div className="text-5xl font-semibold opacity-60">:</div>
           <div className="text-center">
-            <div className="text-5xl font-bold font-mono tracking-tight">
+            <div className="text-5xl font-semibold font-mono tracking-tight">
               {time.seconds}
             </div>
             <div className="text-xs opacity-60 mt-1">SECONDS</div>

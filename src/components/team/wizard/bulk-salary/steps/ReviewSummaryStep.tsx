@@ -124,7 +124,7 @@ export function ReviewSummaryStep({ data, impacts, totals, currency }: ReviewSum
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Employees</p>
-                <p className="text-xl font-bold">{impacts.length}</p>
+                <p className="text-xl font-semibold">{impacts.length}</p>
               </div>
             </div>
           </CardContent>

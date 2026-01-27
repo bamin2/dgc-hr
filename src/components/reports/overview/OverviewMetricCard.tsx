@@ -55,7 +55,7 @@ export function OverviewMetricCard({
               <div className="h-8 w-24 bg-muted animate-pulse rounded" />
             ) : (
               <p className={cn(
-                "font-bold",
+                "font-semibold",
                 String(value).length <= 10 && "text-2xl",
                 String(value).length > 10 && String(value).length <= 14 && "text-lg",
                 String(value).length > 14 && String(value).length <= 18 && "text-base",

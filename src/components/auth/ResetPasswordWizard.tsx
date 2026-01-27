@@ -129,7 +129,7 @@ export function ResetPasswordWizard() {
           <div className="w-10 h-10 bg-sidebar-primary/20 rounded-xl flex items-center justify-center">
             <Snowflake className="w-6 h-6 text-sidebar-foreground" />
           </div>
-          <span className="text-2xl font-bold text-sidebar-foreground">Franfer</span>
+          <span className="text-2xl font-semibold text-sidebar-foreground">Franfer</span>
         </div>
 
         {/* Steps */}
@@ -177,7 +177,7 @@ export function ResetPasswordWizard() {
               <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
                 <Snowflake className="w-6 h-6 text-primary-foreground" />
               </div>
-              <span className="text-2xl font-bold text-foreground">Franfer</span>
+              <span className="text-2xl font-semibold text-foreground">Franfer</span>
             </div>
           </div>
 
@@ -185,7 +185,7 @@ export function ResetPasswordWizard() {
           {step === "email" && (
             <>
               <div>
-                <h2 className="text-2xl font-bold text-foreground">Reset Your Password</h2>
+                <h2 className="text-2xl font-semibold text-foreground">Reset Your Password</h2>
                 <p className="text-muted-foreground mt-2">
                   Enter the email address associated with your account
                 </p>
@@ -235,7 +235,7 @@ export function ResetPasswordWizard() {
                 <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
                   <Mail className="w-8 h-8 text-primary" />
                 </div>
-                <h2 className="text-2xl font-bold text-foreground">Check Your Email</h2>
+                <h2 className="text-2xl font-semibold text-foreground">Check Your Email</h2>
                 <p className="text-muted-foreground mt-2">
                   We've sent a password reset link to
                 </p>
@@ -280,7 +280,7 @@ export function ResetPasswordWizard() {
           {step === "new-password" && (
             <>
               <div>
-                <h2 className="text-2xl font-bold text-foreground">Create New Password</h2>
+                <h2 className="text-2xl font-semibold text-foreground">Create New Password</h2>
                 <p className="text-muted-foreground mt-2">
                   Enter your new password below
                 </p>
@@ -357,7 +357,7 @@ export function ResetPasswordWizard() {
                 <div className="w-16 h-16 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-6">
                   <CheckCircle className="w-8 h-8 text-success" />
                 </div>
-                <h2 className="text-2xl font-bold text-foreground">Password Changed Successfully!</h2>
+                <h2 className="text-2xl font-semibold text-foreground">Password Changed Successfully!</h2>
                 <p className="text-muted-foreground mt-2">
                   You can now sign in with your new password
                 </p>

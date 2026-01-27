@@ -102,7 +102,7 @@ export function EmployeeLoansTab({ employeeId }: EmployeeLoansTabProps) {
             <Banknote className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totalBorrowed)}</div>
+            <div className="text-2xl font-semibold">{formatCurrency(totalBorrowed)}</div>
             <p className="text-xs text-muted-foreground">All time</p>
           </CardContent>
         </Card>
@@ -113,7 +113,7 @@ export function EmployeeLoansTab({ employeeId }: EmployeeLoansTabProps) {
             <TrendingDown className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(outstandingBalance)}</div>
+            <div className="text-2xl font-semibold">{formatCurrency(outstandingBalance)}</div>
             <p className="text-xs text-muted-foreground">Remaining to pay</p>
           </CardContent>
         </Card>
@@ -124,7 +124,7 @@ export function EmployeeLoansTab({ employeeId }: EmployeeLoansTabProps) {
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{activeLoans.length}</div>
+            <div className="text-2xl font-semibold">{activeLoans.length}</div>
             <p className="text-xs text-muted-foreground">
               {closedLoans.length} completed
             </p>
@@ -139,14 +139,14 @@ export function EmployeeLoansTab({ employeeId }: EmployeeLoansTabProps) {
           <CardContent>
             {nextPayment ? (
               <>
-                <div className="text-2xl font-bold">{formatCurrency(nextPayment.amount)}</div>
+                <div className="text-2xl font-semibold">{formatCurrency(nextPayment.amount)}</div>
                 <p className="text-xs text-muted-foreground">
                   {formatDisplayDate(nextPayment.date)}
                 </p>
               </>
             ) : (
               <>
-                <div className="text-2xl font-bold">—</div>
+                <div className="text-2xl font-semibold">—</div>
                 <p className="text-xs text-muted-foreground">No upcoming payments</p>
               </>
             )}

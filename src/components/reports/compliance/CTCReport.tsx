@@ -100,7 +100,7 @@ export function CTCReport() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Cost-to-Company Report</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">Cost-to-Company Report</h2>
           <p className="text-muted-foreground">
             Real-time employer cost per employee based on current salary, allowances, GOSI, and benefits
           </p>

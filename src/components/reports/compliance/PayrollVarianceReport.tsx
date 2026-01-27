@@ -108,7 +108,7 @@ export function PayrollVarianceReport() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Payroll Variance Report</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">Payroll Variance Report</h2>
           <p className="text-muted-foreground">
             Compare payroll costs between periods and identify change drivers
           </p>
