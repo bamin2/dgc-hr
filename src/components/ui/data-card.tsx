@@ -92,8 +92,8 @@ export function DataCard({
   return (
     <Card
       className={cn(
-        "transition-shadow",
-        onClick && "cursor-pointer hover:shadow-md",
+        "transition-all duration-200",
+        onClick && "cursor-pointer hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm",
         selected && "ring-2 ring-primary",
         className
       )}

@@ -48,7 +48,7 @@ export function MobileApprovalCard({ approval }: MobileApprovalCardProps) {
 
     return (
       <>
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden transition-all duration-200 hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm">
           <CardContent className="p-4 space-y-3">
             {/* Header Row */}
             <div className="flex items-center gap-3">
@@ -164,7 +164,7 @@ export function MobileApprovalCard({ approval }: MobileApprovalCardProps) {
 
     return (
       <>
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden transition-all duration-200 hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm">
           <CardContent className="p-4 space-y-3">
             {/* Header Row */}
             <div className="flex items-center gap-3">
@@ -246,7 +246,7 @@ export function MobileApprovalCard({ approval }: MobileApprovalCardProps) {
 
     return (
       <>
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden transition-all duration-200 hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm">
           <CardContent className="p-4 space-y-3">
             {/* Header Row */}
             <div className="flex items-center gap-3">

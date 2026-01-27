@@ -46,7 +46,7 @@ export function ApprovalCard({ approval }: ApprovalCardProps) {
 
     return (
       <>
-        <Card>
+        <Card className="transition-all duration-200 hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm">
           <CardHeader className="pb-3">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
@@ -157,7 +157,7 @@ export function ApprovalCard({ approval }: ApprovalCardProps) {
 
     return (
       <>
-        <Card>
+        <Card className="transition-all duration-200 hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm">
           <CardHeader className="pb-3">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">

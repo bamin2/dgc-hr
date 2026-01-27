@@ -161,7 +161,7 @@ export default function CandidateDetail() {
                 {offers.map((offer) => (
                   <div 
                     key={offer.id} 
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm cursor-pointer transition-all duration-200"
                     onClick={() => navigate(`/hiring/offers/${offer.id}`)}
                   >
                     <div className="flex items-center gap-4">

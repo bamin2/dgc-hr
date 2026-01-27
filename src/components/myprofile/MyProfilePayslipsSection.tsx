@@ -162,7 +162,7 @@ export function MyProfilePayslipsSection({ employeeId, noBorder = false }: MyPro
         {payslips.map((payslip) => (
           <div
             key={payslip.id}
-            className="flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors"
+            className="flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm transition-all duration-200"
           >
             <div className="flex items-center gap-3 min-w-0 flex-1">
               <div className="p-2 bg-background rounded-lg">
