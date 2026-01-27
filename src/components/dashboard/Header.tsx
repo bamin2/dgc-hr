@@ -56,7 +56,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 bg-background border-b border-border">
-      <div className="flex items-center justify-between h-14 sm:h-16 px-4 sm:px-6">
+      <div className="flex items-center justify-between h-14 sm:h-16 lg:h-20 px-4 sm:px-6">
         {/* Left side - Mobile nav trigger + Greeting */}
         <div className="flex items-center gap-3">
           {/* Mobile Navigation */}

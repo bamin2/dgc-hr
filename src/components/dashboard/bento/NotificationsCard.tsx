@@ -119,7 +119,7 @@ export function NotificationsCard({ variant = "default", itemCount }: Notificati
 
   // Default desktop variant
   return (
-    <BentoCard colSpan={5}>
+    <BentoCard colSpan={3}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Bell className="w-5 h-5 text-primary" />

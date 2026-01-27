@@ -69,7 +69,7 @@ export function ScheduleCard() {
 
   if (isLoading) {
     return (
-      <BentoCard colSpan={8} noPadding>
+      <BentoCard colSpan={5} noPadding>
         <div className="p-5">
           <div className="flex items-center gap-2 mb-4">
             <Skeleton className="w-5 h-5 rounded" />
@@ -82,7 +82,7 @@ export function ScheduleCard() {
   }
 
   return (
-    <BentoCard colSpan={8} noPadding>
+    <BentoCard colSpan={5} noPadding>
       <div className="flex flex-col lg:flex-row">
         {/* Calendar */}
         <div className="flex-1 p-5">

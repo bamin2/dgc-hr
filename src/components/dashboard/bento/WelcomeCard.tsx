@@ -88,7 +88,7 @@ export function WelcomeCard() {
 
   return (
     <>
-      <BentoCard colSpan={7} className="flex flex-col gap-4">
+      <BentoCard colSpan={5} className="flex flex-col gap-4">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
             <h1 className="text-lg sm:text-2xl font-semibold text-foreground flex items-center gap-2">

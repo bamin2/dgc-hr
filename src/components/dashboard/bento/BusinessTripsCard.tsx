@@ -95,10 +95,9 @@ export function BusinessTripsCard({ variant = "default" }: BusinessTripsCardProp
     );
   }
 
-  // Default desktop variant
   return (
     <BentoCard 
-      colSpan={4} 
+      colSpan={2} 
       onClick={() => navigate("/business-trips")}
       className="cursor-pointer"
     >
