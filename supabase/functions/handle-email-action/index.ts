@@ -315,6 +315,25 @@ async function processAction(
         .from("request_approval_steps")
         .update({ status: "pending" })
         .eq("id", (nextStepData as { id: string }).id);
+      
+      // Send approval request email to the next approver
+      // This reuses the existing "leave_request_submitted" email type
+      // which looks up the current pending step and sends to its approver
+      try {
+        if (step.request_type === "time_off") {
+          await supabase.functions.invoke("send-email", {
+            body: {
+              type: "leave_request_submitted",
+              leaveRequestId: step.request_id,
+            },
+          });
+          console.log("Sent approval email for next step");
+        }
+        // TODO: Add support for other request types (business_trip, loan, hr_letter)
+      } catch (emailError) {
+        console.error("Failed to send email for next step:", emailError);
+        // Continue even if email fails - the step is still activated
+      }
     } else {
       // No more steps - approve the request
       if (step.request_type === "time_off") {
