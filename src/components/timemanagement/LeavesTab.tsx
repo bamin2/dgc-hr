@@ -19,11 +19,9 @@ import {
 } from '@/components/timemanagement';
 import {
   LeaveMetrics,
-  LeaveBalanceCard,
   LeaveRequestsTable,
 } from '@/components/attendance';
 import { useLeaveRequests, usePendingLeaveRequests, LeaveRequestStatus } from '@/hooks/useLeaveRequests';
-import { useLeaveBalanceSummary } from '@/hooks/useLeaveBalances';
 
 export function LeavesTab() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -32,7 +30,6 @@ export function LeavesTab() {
   // Fetch leave data
   const { data: allLeaveRequests, isLoading: requestsLoading } = useLeaveRequests();
   const { data: pendingRequests, isLoading: pendingLoading } = usePendingLeaveRequests();
-  const { data: leaveBalances, isLoading: balancesLoading } = useLeaveBalanceSummary(undefined);
 
   // Filter leave requests
   const filteredLeaveRequests = (allLeaveRequests || []).filter((request) => {
@@ -73,43 +70,34 @@ export function LeavesTab() {
       <TabsContent value="overview" className="space-y-6">
         <LeaveMetrics />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Leave Balance */}
-          <div>
-            <LeaveBalanceCard balances={leaveBalances} isLoading={balancesLoading} />
-          </div>
-
-          {/* Pending Leave Requests */}
-          <div className="lg:col-span-2">
-            <Card className="border-0 shadow-sm">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base font-semibold">
-                    Pending Leave Requests
-                  </CardTitle>
-                  <Button
-                    variant="link"
-                    className="text-primary p-0 h-auto"
-                    onClick={() => setActiveTab('requests')}
-                  >
-                    View All
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="p-0">
-                {pendingLoading ? (
-                  <div className="p-4 space-y-3">
-                    {[1, 2, 3].map((i) => (
-                      <Skeleton key={i} className="h-12 w-full" />
-                    ))}
-                  </div>
-                ) : (
-                  <LeaveRequestsTable requests={(pendingRequests || []).slice(0, 5)} />
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+        {/* Pending Leave Requests */}
+        <Card className="border-0 shadow-sm">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base font-semibold">
+                Pending Leave Requests
+              </CardTitle>
+              <Button
+                variant="link"
+                className="text-primary p-0 h-auto"
+                onClick={() => setActiveTab('requests')}
+              >
+                View All
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            {pendingLoading ? (
+              <div className="p-4 space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-12 w-full" />
+                ))}
+              </div>
+            ) : (
+              <LeaveRequestsTable requests={(pendingRequests || []).slice(0, 5)} />
+            )}
+          </CardContent>
+        </Card>
       </TabsContent>
 
       {/* Leave Requests Tab */}
