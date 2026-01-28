@@ -16,7 +16,7 @@ const TabsList = React.forwardRef<
       "inline-flex h-auto items-center gap-1 p-1",
       "bg-white/15 border border-white/20 backdrop-blur-md rounded-full",
       // Mobile scroll support
-      "overflow-x-auto scrollbar-none",
+      "max-w-full overflow-x-auto scrollbar-none",
       className
     )}
     {...props}
