@@ -1,158 +1,115 @@
 
-# Fix Leave Request Action Items in Time Off Page
+# Fix Public Holidays Count and Year Synchronization in Time Off Calendar
 
-## Problem
-The action items dropdown menu in "Time Off → Leave and balances" tab has three menu items (View details, Edit, Cancel) but none of them have `onClick` handlers implemented. Clicking on any menu item does nothing.
+## Problems Identified
 
-## Root Cause
-In `src/components/timeoff/LeavesBalancesTab.tsx` (lines 202-211), the `DropdownMenuItem` components are rendered without any functionality:
+### Problem 1: Mismatched Numbers
+The summary shows "13 Public Holidays" with sublabel "14 total in 2026":
+- **13** = remaining holidays (where `observed_date >= today`)
+- **14** = total holidays in the year
 
-```tsx
-<DropdownMenuItem>View details</DropdownMenuItem>
-{entry.status === 'pending' && (
-  <>
-    <DropdownMenuItem>Edit</DropdownMenuItem>
-    <DropdownMenuItem className="text-destructive">Cancel</DropdownMenuItem>
-  </>
-)}
-```
+This is confusing because the main number and sublabel don't match.
+
+### Problem 2: Year Doesn't Update When Navigating
+When navigating to January 2027, the "About your time off" card still shows 2026 data because:
+- `TimeOffSummaryCard` uses `new Date().getFullYear()` (always current year)
+- `TimeOffMonthCalendar` manages its own date state internally
+- No state is shared between these components
 
 ## Solution
-Implement the three action items with appropriate functionality:
 
-1. **View details**: Open a dialog showing the leave request details (employee info, dates, status, reason, approval progress)
-2. **Edit**: Open the request editing dialog (only for pending requests) 
-3. **Cancel**: Show a confirmation dialog, then delete the request using `useDeleteLeaveRequest` hook
+### Approach: Lift State to Parent Component
+Share the selected year between both components via props, so when the calendar navigates to a different year, the summary card updates accordingly.
+
+### Visual Diagram
+```text
+Before:
+┌─────────────────────────────────────────────────────────────┐
+│  TimeOffCalendarTab                                         │
+│  ┌───────────────────┐   ┌────────────────────────────────┐ │
+│  │ TimeOffSummaryCard│   │ TimeOffMonthCalendar           │ │
+│  │ year = 2026       │   │ currentDate = state (can be    │ │
+│  │ (hardcoded)       │   │ navigated to any month/year)   │ │
+│  └───────────────────┘   └────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+
+After:
+┌─────────────────────────────────────────────────────────────┐
+│  TimeOffCalendarTab                                         │
+│  [selectedYear] ← state managed here                        │
+│  ┌───────────────────┐   ┌────────────────────────────────┐ │
+│  │ TimeOffSummaryCard│   │ TimeOffMonthCalendar           │ │
+│  │ year = prop ─────────→│ onYearChange callback          │ │
+│  └───────────────────┘   └────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+```
 
 ## Implementation Steps
 
-### Step 1: Create LeaveRequestDetailDialog Component
+### Step 1: Update TimeOffCalendarTab (Parent)
 
-**File**: `src/components/timeoff/LeaveRequestDetailDialog.tsx` (new)
+Add state to track the currently viewed year:
 
-Create a dialog that shows:
-- Leave type with color indicator
-- Date range and duration
-- Status badge
-- Reason/note
-- Submission date
-- For non-pending: reviewed by and reviewed at info
-- For rejected: rejection reason
-
-### Step 2: Create EditLeaveRequestDialog Component
-
-**File**: `src/components/timeoff/EditLeaveRequestDialog.tsx` (new)
-
-Create a dialog similar to `RequestTimeOffDialog` but:
-- Pre-populated with existing request data
-- Uses `useUpdateLeaveRequest` hook to save changes
-- Only allows editing pending requests
-
-### Step 3: Update LeavesBalancesTab Component
-
-**File**: `src/components/timeoff/LeavesBalancesTab.tsx`
-
-Changes:
-- Add state for selected request and dialog visibility
-- Import hooks: `useDeleteLeaveRequest`
-- Import dialogs: `LeaveRequestDetailDialog`, `EditLeaveRequestDialog`
-- Import `AlertDialog` for cancel confirmation
-- Add `onClick` handlers to all dropdown menu items
-- Add dialog components at the end of the component
-
-### Step 4: Update Exports
-
-**File**: `src/components/timeoff/index.ts`
-
-Export the new dialog components.
-
-## Technical Details
-
-### State Management in LeavesBalancesTab
 ```tsx
-const [selectedRequest, setSelectedRequest] = useState<LeaveRequest | null>(null);
-const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
-const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
-
-const deleteRequest = useDeleteLeaveRequest();
-
-const handleViewDetails = (request: LeaveRequest) => {
-  setSelectedRequest(request);
-  setIsDetailDialogOpen(true);
-};
-
-const handleEdit = (request: LeaveRequest) => {
-  setSelectedRequest(request);
-  setIsEditDialogOpen(true);
-};
-
-const handleCancelRequest = (request: LeaveRequest) => {
-  setSelectedRequest(request);
-  setIsCancelDialogOpen(true);
-};
-
-const confirmCancel = async () => {
-  if (selectedRequest) {
-    await deleteRequest.mutateAsync(selectedRequest.id);
-    setIsCancelDialogOpen(false);
-    setSelectedRequest(null);
-  }
-};
+const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 ```
 
-### Updated Dropdown Menu
+Pass props to both child components.
+
+### Step 2: Update TimeOffMonthCalendar
+
+Add callback prop to notify parent when year changes:
+
 ```tsx
-<DropdownMenuContent align="end">
-  <DropdownMenuItem onClick={() => handleViewDetails(entry)}>
-    <Eye className="w-4 h-4 mr-2" />
-    View details
-  </DropdownMenuItem>
-  {entry.status === 'pending' && (
-    <>
-      <DropdownMenuItem onClick={() => handleEdit(entry)}>
-        <Pencil className="w-4 h-4 mr-2" />
-        Edit
-      </DropdownMenuItem>
-      <DropdownMenuItem 
-        className="text-destructive"
-        onClick={() => handleCancelRequest(entry)}
-      >
-        <Trash2 className="w-4 h-4 mr-2" />
-        Cancel
-      </DropdownMenuItem>
-    </>
-  )}
-</DropdownMenuContent>
+interface TimeOffMonthCalendarProps {
+  onYearChange?: (year: number) => void;
+}
 ```
 
-## Files to Create/Modify
+Call `onYearChange` whenever the user navigates to a different year.
 
-| File | Action | Description |
-|------|--------|-------------|
-| `src/components/timeoff/LeaveRequestDetailDialog.tsx` | **Create** | Dialog to view leave request details |
-| `src/components/timeoff/EditLeaveRequestDialog.tsx` | **Create** | Dialog to edit pending leave requests |
-| `src/components/timeoff/LeavesBalancesTab.tsx` | **Update** | Add state, handlers, and wire up dropdown actions |
-| `src/components/timeoff/index.ts` | **Update** | Export new dialog components |
+### Step 3: Update TimeOffSummaryCard
 
-## User Experience
+Accept year as a prop instead of hardcoding:
 
-**View Details Flow:**
-1. User clicks three-dot menu on a leave request row
-2. Clicks "View details"
-3. Dialog opens showing all request information in read-only format
-4. User can close the dialog
+```tsx
+interface TimeOffSummaryCardProps {
+  year?: number;
+}
+```
 
-**Edit Flow:**
-1. User clicks three-dot menu on a pending leave request
-2. Clicks "Edit"
-3. Dialog opens with pre-filled form (leave type, dates, note)
-4. User makes changes and saves
-5. Toast confirms update, dialog closes
+Use the prop for fetching holidays and displaying the summary.
 
-**Cancel Flow:**
-1. User clicks three-dot menu on a pending leave request
-2. Clicks "Cancel" (destructive red text)
-3. Confirmation dialog appears: "Are you sure you want to cancel this leave request?"
-4. User confirms, request is deleted
-5. Toast confirms deletion, table refreshes
+### Step 4: Fix the Display Logic
+
+Change from showing "remaining holidays" to showing "total holidays" for consistency:
+
+**Current (confusing):**
+- Main number: 13 (remaining)
+- Sublabel: "14 total in 2026"
+
+**Fixed (consistent):**
+- Main number: 14 (total for the year)
+- Sublabel: "X remaining in 2026"
+
+This makes more sense because the card is about "the year" not just "remaining days".
+
+## Files to Modify
+
+| File | Changes |
+|------|---------|
+| `src/components/timeoff/TimeOffCalendarTab.tsx` | Add `selectedYear` state, pass props to children |
+| `src/components/timeoff/TimeOffSummaryCard.tsx` | Accept `year` prop, fix display logic |
+| `src/components/timeoff/TimeOffMonthCalendar.tsx` | Add `onYearChange` callback prop |
+
+## Expected Behavior After Fix
+
+1. **January 2026**: Shows "14 Public Holidays" with "X remaining in 2026"
+2. **Navigate to January 2027**: Summary updates to show 2027 data (e.g., "0 Public Holidays" with "0 remaining in 2027" if no holidays are configured for that year)
+3. **Numbers always match**: The main count and sublabel reference the same dataset
+
+## Technical Notes
+
+- The `usePublicHolidays` hook already accepts a `year` parameter, so no changes needed there
+- We detect year change in `TimeOffMonthCalendar` by comparing `currentDate.getFullYear()` with the previous value using a `useEffect`
+- All other metrics in the summary card (PTO, pending, booked) remain tied to the current user's leave balances regardless of the viewed year
