@@ -1,77 +1,158 @@
 
-# Fix: Make Leaves Subtabs Horizontally Scrollable
+# Fix Leave Request Action Items in Time Off Page
 
 ## Problem
-The subtabs in the Leaves tab (Overview, Leave Requests, Leave Policies, Employee Balances, Public Holidays, Adjustment History) are not scrollable on smaller screens. With 6 tabs containing icons and text, they overflow the container but users cannot scroll to see all options.
+The action items dropdown menu in "Time Off → Leave and balances" tab has three menu items (View details, Edit, Cancel) but none of them have `onClick` handlers implemented. Clicking on any menu item does nothing.
 
 ## Root Cause
-The `TabsList` component has `overflow-x-auto scrollbar-none` which should enable scrolling but:
-1. The `rounded-full` creates a pill container that can clip overflow content
-2. The `inline-flex` may prevent proper scroll behavior in some contexts
-3. The hidden scrollbar (`scrollbar-none`) provides no visual affordance that scrolling is possible
-4. The tab triggers may shrink instead of maintaining their minimum width
-
-## Solution
-Wrap the TabsList in a ScrollArea component with a horizontal scrollbar for better mobile experience, and ensure tab triggers don't shrink.
-
-## Implementation
-
-**File: `src/components/timemanagement/LeavesTab.tsx`**
-
-1. Import ScrollArea and ScrollBar from UI components
-2. Wrap the TabsList in a ScrollArea with horizontal orientation
-3. Add `flex-shrink-0` to TabsTrigger elements to prevent shrinking
-
-### Code Changes
+In `src/components/timeoff/LeavesBalancesTab.tsx` (lines 202-211), the `DropdownMenuItem` components are rendered without any functionality:
 
 ```tsx
-// Add import
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-
-// Wrap TabsList in ScrollArea
-<ScrollArea className="w-full whitespace-nowrap">
-  <TabsList className="w-max">
-    <TabsTrigger value="overview" className="flex-shrink-0">
-      <LayoutDashboard className="h-4 w-4" />
-      Overview
-    </TabsTrigger>
-    <TabsTrigger value="requests" className="flex-shrink-0">
-      <ClipboardList className="h-4 w-4" />
-      Leave Requests
-    </TabsTrigger>
-    {/* ... other tabs with flex-shrink-0 */}
-  </TabsList>
-  <ScrollBar orientation="horizontal" className="h-2" />
-</ScrollArea>
+<DropdownMenuItem>View details</DropdownMenuItem>
+{entry.status === 'pending' && (
+  <>
+    <DropdownMenuItem>Edit</DropdownMenuItem>
+    <DropdownMenuItem className="text-destructive">Cancel</DropdownMenuItem>
+  </>
+)}
 ```
 
-## Visual Result
+## Solution
+Implement the three action items with appropriate functionality:
 
-**Before:**
-```text
-┌─────────────────────────────────────────────────────────┐
-│ [Overview] [Leave Requests] [Leave Pol...] (cut off)    │
-│ ← Cannot scroll to see more tabs                        │
-└─────────────────────────────────────────────────────────┘
+1. **View details**: Open a dialog showing the leave request details (employee info, dates, status, reason, approval progress)
+2. **Edit**: Open the request editing dialog (only for pending requests) 
+3. **Cancel**: Show a confirmation dialog, then delete the request using `useDeleteLeaveRequest` hook
+
+## Implementation Steps
+
+### Step 1: Create LeaveRequestDetailDialog Component
+
+**File**: `src/components/timeoff/LeaveRequestDetailDialog.tsx` (new)
+
+Create a dialog that shows:
+- Leave type with color indicator
+- Date range and duration
+- Status badge
+- Reason/note
+- Submission date
+- For non-pending: reviewed by and reviewed at info
+- For rejected: rejection reason
+
+### Step 2: Create EditLeaveRequestDialog Component
+
+**File**: `src/components/timeoff/EditLeaveRequestDialog.tsx` (new)
+
+Create a dialog similar to `RequestTimeOffDialog` but:
+- Pre-populated with existing request data
+- Uses `useUpdateLeaveRequest` hook to save changes
+- Only allows editing pending requests
+
+### Step 3: Update LeavesBalancesTab Component
+
+**File**: `src/components/timeoff/LeavesBalancesTab.tsx`
+
+Changes:
+- Add state for selected request and dialog visibility
+- Import hooks: `useDeleteLeaveRequest`
+- Import dialogs: `LeaveRequestDetailDialog`, `EditLeaveRequestDialog`
+- Import `AlertDialog` for cancel confirmation
+- Add `onClick` handlers to all dropdown menu items
+- Add dialog components at the end of the component
+
+### Step 4: Update Exports
+
+**File**: `src/components/timeoff/index.ts`
+
+Export the new dialog components.
+
+## Technical Details
+
+### State Management in LeavesBalancesTab
+```tsx
+const [selectedRequest, setSelectedRequest] = useState<LeaveRequest | null>(null);
+const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
+
+const deleteRequest = useDeleteLeaveRequest();
+
+const handleViewDetails = (request: LeaveRequest) => {
+  setSelectedRequest(request);
+  setIsDetailDialogOpen(true);
+};
+
+const handleEdit = (request: LeaveRequest) => {
+  setSelectedRequest(request);
+  setIsEditDialogOpen(true);
+};
+
+const handleCancelRequest = (request: LeaveRequest) => {
+  setSelectedRequest(request);
+  setIsCancelDialogOpen(true);
+};
+
+const confirmCancel = async () => {
+  if (selectedRequest) {
+    await deleteRequest.mutateAsync(selectedRequest.id);
+    setIsCancelDialogOpen(false);
+    setSelectedRequest(null);
+  }
+};
 ```
 
-**After:**
-```text
-┌─────────────────────────────────────────────────────────┐
-│ [Overview] [Leave Requests] [Leave Policies] →          │
-│ ← Horizontal scroll bar visible, can drag to see more → │
-└─────────────────────────────────────────────────────────┘
+### Updated Dropdown Menu
+```tsx
+<DropdownMenuContent align="end">
+  <DropdownMenuItem onClick={() => handleViewDetails(entry)}>
+    <Eye className="w-4 h-4 mr-2" />
+    View details
+  </DropdownMenuItem>
+  {entry.status === 'pending' && (
+    <>
+      <DropdownMenuItem onClick={() => handleEdit(entry)}>
+        <Pencil className="w-4 h-4 mr-2" />
+        Edit
+      </DropdownMenuItem>
+      <DropdownMenuItem 
+        className="text-destructive"
+        onClick={() => handleCancelRequest(entry)}
+      >
+        <Trash2 className="w-4 h-4 mr-2" />
+        Cancel
+      </DropdownMenuItem>
+    </>
+  )}
+</DropdownMenuContent>
 ```
 
-## Files to Modify
+## Files to Create/Modify
 
-| File | Change |
-|------|--------|
-| `src/components/timemanagement/LeavesTab.tsx` | Wrap TabsList in ScrollArea, add flex-shrink-0 to triggers |
+| File | Action | Description |
+|------|--------|-------------|
+| `src/components/timeoff/LeaveRequestDetailDialog.tsx` | **Create** | Dialog to view leave request details |
+| `src/components/timeoff/EditLeaveRequestDialog.tsx` | **Create** | Dialog to edit pending leave requests |
+| `src/components/timeoff/LeavesBalancesTab.tsx` | **Update** | Add state, handlers, and wire up dropdown actions |
+| `src/components/timeoff/index.ts` | **Update** | Export new dialog components |
 
-## Technical Notes
-- The ScrollArea component uses Radix UI and provides consistent scrolling behavior across browsers
-- The horizontal ScrollBar provides a visual indicator that more content is available
-- `w-max` on TabsList ensures it takes the full width of its content
-- `whitespace-nowrap` on ScrollArea prevents the tabs from wrapping to multiple lines
-- `flex-shrink-0` on each TabsTrigger prevents tabs from compressing their content
+## User Experience
+
+**View Details Flow:**
+1. User clicks three-dot menu on a leave request row
+2. Clicks "View details"
+3. Dialog opens showing all request information in read-only format
+4. User can close the dialog
+
+**Edit Flow:**
+1. User clicks three-dot menu on a pending leave request
+2. Clicks "Edit"
+3. Dialog opens with pre-filled form (leave type, dates, note)
+4. User makes changes and saves
+5. Toast confirms update, dialog closes
+
+**Cancel Flow:**
+1. User clicks three-dot menu on a pending leave request
+2. Clicks "Cancel" (destructive red text)
+3. Confirmation dialog appears: "Are you sure you want to cancel this leave request?"
+4. User confirms, request is deleted
+5. Toast confirms deletion, table refreshes
