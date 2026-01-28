@@ -14,3 +14,4 @@ export { CorrectionsTab } from './CorrectionsTab';
 export { EditAttendanceDialog } from './EditAttendanceDialog';
 export { DeleteAttendanceDialog } from './DeleteAttendanceDialog';
 export { LeaveRequestDetailView } from './LeaveRequestDetailView';
+export { LeaveMetrics } from './LeaveMetrics';

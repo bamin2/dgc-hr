@@ -104,8 +104,7 @@ const App = () => (
                 <Route path="/directory" element={<ProtectedRoute><DashboardLazyPage><Directory /></DashboardLazyPage></ProtectedRoute>} />
                 <Route path="/calendar" element={<ProtectedRoute><DashboardLazyPage><Calendar /></DashboardLazyPage></ProtectedRoute>} />
                 <Route path="/projects" element={<ProtectedRoute><DashboardLazyPage><Projects /></DashboardLazyPage></ProtectedRoute>} />
-                <Route path="/attendance" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><TimeManagement /></DashboardLazyPage></ProtectedRoute>} />
-                <Route path="/attendance/leave/:id" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><LeaveRequestDetail /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/time-management/leave/:id" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><LeaveRequestDetail /></DashboardLazyPage></ProtectedRoute>} />
                 <Route path="/time-off" element={<ProtectedRoute><DashboardLazyPage><TimeOff /></DashboardLazyPage></ProtectedRoute>} />
                 <Route path="/business-trips" element={<ProtectedRoute><DashboardLazyPage><BusinessTrips /></DashboardLazyPage></ProtectedRoute>} />
                 <Route path="/business-trips/:id" element={<ProtectedRoute><DashboardLazyPage><BusinessTripDetail /></DashboardLazyPage></ProtectedRoute>} />

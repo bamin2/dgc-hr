@@ -27,7 +27,7 @@ export default function LeaveRequestDetail() {
     return (
       <DashboardLayout>
         <div className="space-y-4">
-          <Button variant="ghost" onClick={() => navigate('/attendance')}>
+          <Button variant="ghost" onClick={() => navigate('/time-management')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Time Management
           </Button>
@@ -50,7 +50,7 @@ export default function LeaveRequestDetail() {
           title="Leave Request Details"
           subtitle={`${request.leave_type?.name || 'Leave'} - ${employeeName}`}
           breadcrumbs={[
-            { label: 'Time Management', href: '/attendance' },
+            { label: 'Time Management', href: '/time-management' },
             { label: 'Leave Request Details' }
           ]}
         />

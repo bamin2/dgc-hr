@@ -114,7 +114,7 @@ export function LeaveRequestsTable({ requests, showActions = true }: LeaveReques
                         <Button
                           variant="ghost"
                           size="icon-sm"
-                          onClick={() => navigate(`/attendance/leave/${request.id}`)}
+                          onClick={() => navigate(`/time-management/leave/${request.id}`)}
                         >
                           <Eye className="h-4 w-4" />
                         </Button>

@@ -1,8 +1,7 @@
 import { DashboardLayout } from "@/components/dashboard";
 import { PageHeader } from "@/components/ui/page-header";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ClipboardCheck, CalendarDays, Mail } from "lucide-react";
-import { AttendanceTab } from "@/components/timemanagement/AttendanceTab";
+import { CalendarDays, Mail } from "lucide-react";
 import { LeavesTab } from "@/components/timemanagement/LeavesTab";
 import { LeaveEmailTemplatesTab } from "@/components/timemanagement/LeaveEmailTemplatesTab";
 
@@ -11,16 +10,12 @@ export default function TimeManagement() {
     <DashboardLayout>
       <PageHeader
         title="Time Management"
-        subtitle="Manage attendance tracking, leave policies, and employee time off."
+        subtitle="Manage leave policies, employee time off, and public holidays."
       />
 
       {/* Main Tabs */}
-      <Tabs defaultValue="attendance" className="space-y-6">
+      <Tabs defaultValue="leaves" className="space-y-6">
         <TabsList>
-          <TabsTrigger value="attendance">
-            <ClipboardCheck className="h-4 w-4" />
-            Attendance
-          </TabsTrigger>
           <TabsTrigger value="leaves">
             <CalendarDays className="h-4 w-4" />
             Leaves
@@ -30,10 +25,6 @@ export default function TimeManagement() {
             Email Templates
           </TabsTrigger>
         </TabsList>
-
-        <TabsContent value="attendance" className="mt-6">
-          <AttendanceTab />
-        </TabsContent>
 
         <TabsContent value="leaves" className="mt-6">
           <LeavesTab />
