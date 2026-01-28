@@ -30,13 +30,20 @@ function SummaryItem({ icon, bgColor, days, label, sublabel }: SummaryItemProps)
   );
 }
 
-export function TimeOffSummaryCard() {
-  const currentYear = new Date().getFullYear();
+interface TimeOffSummaryCardProps {
+  year?: number;
+}
+
+export function TimeOffSummaryCard({ year }: TimeOffSummaryCardProps) {
+  const displayYear = year ?? new Date().getFullYear();
   const { data: balances, isLoading: balancesLoading } = useMyLeaveBalances();
   const { data: leaveRequests, isLoading: requestsLoading } = useLeaveRequests();
-  const { data: publicHolidays, isLoading: holidaysLoading } = usePublicHolidays(currentYear);
+  const { data: publicHolidays, isLoading: holidaysLoading } = usePublicHolidays(displayYear);
 
   const isLoading = balancesLoading || requestsLoading || holidaysLoading;
+  
+  // Total public holidays for the selected year
+  const totalHolidays = publicHolidays?.length || 0;
   
   // Count remaining public holidays (observed dates that haven't passed)
   const remainingHolidays = publicHolidays?.filter(
@@ -107,9 +114,9 @@ export function TimeOffSummaryCard() {
         <SummaryItem
           icon={<Flag className="w-4 h-4" />}
           bgColor="bg-rose-400/85"
-          days={remainingHolidays}
+          days={totalHolidays}
           label="Public Holidays"
-          sublabel={`${publicHolidays?.length || 0} total in ${currentYear}`}
+          sublabel={`${remainingHolidays} remaining in ${displayYear}`}
         />
       </CardContent>
     </Card>
