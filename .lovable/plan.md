@@ -1,179 +1,160 @@
 
-# Fix: Remove Mock Data Fallback That Shows "Franfer Technologies"
+# Fix: Leave Request Detail Page Missing (404 Error)
 
 ## Problem Summary
-The Settings page intermittently shows "Franfer Technologies" (mock data) instead of real company data from the database. This happens due to a race condition where mock fallback data is used before the database query completes.
+When clicking the "View" button (eye icon) on a leave request in Time Management → Leave Requests, the app navigates to `/attendance/leave/:id` which returns a 404 error because this route doesn't exist in the application's router configuration.
 
 ## Root Cause
+The `LeaveRequestsTable.tsx` component (line 117) navigates to `/attendance/leave/${request.id}`, but:
+1. **No route is defined** for `/attendance/leave/:id` in `App.tsx`
+2. **No detail page exists** for viewing individual leave requests
 
-### Flow That Causes the Bug:
+## Solution Overview
+Create a new `LeaveRequestDetail` page that displays:
+- Employee information (name, avatar, department)
+- Leave type and duration
+- Request submission date
+- Reason for leave
+- Current status with visual indicator
+- Approval workflow progress (showing each step, who approved/rejected, when)
+- Rejection reason (if applicable)
+- Action buttons for HR/Admin to approve or reject pending requests
+
+## Implementation Details
+
+### Step 1: Create the Leave Request Detail Page
+
+**New File: `src/pages/LeaveRequestDetail.tsx`**
+
+This page will follow the same pattern as `BusinessTripDetail.tsx`:
+- Use `useParams` to get the leave request ID from the URL
+- Use `useLeaveRequest(id)` hook (already exists) to fetch the request data
+- Use `useRequestApprovalSteps(id, 'time_off')` to fetch approval workflow
+- Display loading state while fetching
+- Show error state if request not found
+- Render the detail view with all relevant information
+
+Key sections to display:
+1. **Back navigation** - Return to leave requests list
+2. **Header** - Employee info + request status badge
+3. **Leave Details Card** - Type, dates, duration, half-day indicator
+4. **Reason Card** - Why the employee requested leave
+5. **Approval Progress** - Visual timeline of approval steps using existing `ApprovalProgressSteps` component
+6. **Action Bar** (for HR/Admin) - Approve/Reject buttons if request is pending
+
+### Step 2: Add the Route to App.tsx
+
+**File: `src/App.tsx`**
+
+Add a new lazy-loaded import and route:
+
+```tsx
+// Add to lazy imports section
+const LeaveRequestDetail = lazy(() => import("./pages/LeaveRequestDetail"));
+
+// Add route (in the HR/Admin protected routes section, near line 106)
+<Route 
+  path="/attendance/leave/:id" 
+  element={
+    <ProtectedRoute requiredRoles={['hr', 'admin']}>
+      <DashboardLazyPage><LeaveRequestDetail /></DashboardLazyPage>
+    </ProtectedRoute>
+  } 
+/>
+```
+
+### Step 3: Create Leave Request Detail View Component
+
+**New File: `src/components/attendance/LeaveRequestDetailView.tsx`**
+
+A reusable component (similar to `TripDetailView.tsx`) that renders:
+
+```tsx
+interface LeaveRequestDetailViewProps {
+  request: LeaveRequest;
+}
+```
+
+Layout structure:
 ```text
-1. User navigates to /settings
-2. Settings.tsx renders
-3. useCompanySettings() returns:
-   - isLoading: true (DB query in progress)
-   - settings: defaultSettings (mock Franfer Technologies data)  ← PROBLEM
-4. useState(globalSettings) captures mock data as initial state
-5. DB query completes, but local state already has mock data
-6. useEffect syncs... but only if condition is properly met
+┌─────────────────────────────────────────────────────────────────┐
+│  Status & Actions Bar                                           │
+│  [Status Badge: Pending/Approved/Rejected]    [Approve] [Reject]│
+│  ⚠️ Negative balance warning (if applicable)                    │
+└─────────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────┐  ┌────────────────────────────────┐
+│  Leave Details             │  │  Request Information           │
+│                            │  │                                │
+│  📅 Leave Type             │  │  👤 Submitted By               │
+│     Annual Leave           │  │     [Avatar] Employee Name     │
+│                            │  │     Department                 │
+│  📆 Dates                  │  │                                │
+│     Mar 25 - Mar 26, 2026  │  │  🕐 Submitted On               │
+│                            │  │     Jan 15, 2026 at 10:30 AM   │
+│  ⏱️ Duration               │  │                                │
+│     2 days                 │  │  👁️ Reviewed By (if approved)  │
+│                            │  │     HR Manager Name            │
+│  📝 Half Day               │  │     Jan 16, 2026               │
+│     No                     │  │                                │
+└────────────────────────────┘  └────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│  Reason                                                         │
+│  "Personal appointment with family members visiting from abroad"│
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│  Approval Progress                                              │
+│  ○──────○──────●                                               │
+│  HR    HR     ✓                                                 │
+│  Done  Pending                                                  │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│  Rejection Reason (if rejected)                                 │
+│  "Insufficient leave balance remaining for this period"         │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-### Code Locations:
+## Files to Create/Modify
 
-**File 1: `src/contexts/CompanySettingsContext.tsx` (line 85)**
+| File | Action | Description |
+|------|--------|-------------|
+| `src/pages/LeaveRequestDetail.tsx` | **Create** | New page component for leave request details |
+| `src/components/attendance/LeaveRequestDetailView.tsx` | **Create** | Reusable detail view component |
+| `src/App.tsx` | **Modify** | Add route for `/attendance/leave/:id` |
+| `src/components/attendance/index.ts` | **Modify** | Export new component |
+
+## Existing Components/Hooks to Reuse
+
+- `useLeaveRequest(id)` - Already exists in `useLeaveRequests.ts` (line 110-148)
+- `useRequestApprovalSteps(requestId, 'time_off')` - Already exists in `useApprovalSteps.ts`
+- `LeaveStatusBadge` - Already exists for status display
+- `ApprovalProgressSteps` - Already exists for approval workflow visualization
+- `useApproveLeaveRequest()` / `useRejectLeaveRequest()` - Already exist for actions
+- `useRole()` / `useAuth()` - For permission checks
+
+## Access Control
+- Route protected for HR and Admin roles only
+- Regular employees cannot view other employees' leave request details through this route
+- Employees can view their own requests through the Time Off page
+
+## Technical Notes
+
+### Hook Usage Example
 ```tsx
-// This falls back to mock data when DB hasn't loaded yet
-const settings = useMemo(() => dbSettings || defaultSettings, [dbSettings]);
+// In LeaveRequestDetail.tsx
+const { id } = useParams<{ id: string }>();
+const { data: request, isLoading, error } = useLeaveRequest(id || '');
+const { data: approvalSteps } = useRequestApprovalSteps(id || '', 'time_off');
 ```
 
-**File 2: `src/data/settings.ts` (lines 146-180)**
+### Permission Checks
 ```tsx
-// Mock data that should NEVER appear in production
-export const companySettings: CompanySettings = {
-  name: 'Franfer Technologies',  // ← This is what you're seeing
-  // ...other mock values
-};
+const { currentUser } = useRole();
+const { profile } = useAuth();
+const isHROrAdmin = currentUser.role === 'hr' || currentUser.role === 'admin';
+const isPending = request.status === 'pending';
+const canApprove = isHROrAdmin && isPending;
 ```
-
-**File 3: `src/pages/Settings.tsx` (line 68)**
-```tsx
-// Captures whatever globalSettings is at first render (could be mock data)
-const [companySettings, setCompanySettings] = useState<CompanySettings>(globalSettings);
-```
-
-## Solution
-
-### Strategy: Remove Mock Data Completely
-
-Instead of having mock "Franfer Technologies" data as a fallback, create a proper empty/placeholder settings object. The app should show loading states while data loads, never mock data.
-
-### Changes Required
-
-**File 1: `src/data/settings.ts`**
-
-Replace the mock `companySettings` export with an empty placeholder that makes it obvious when real data hasn't loaded:
-
-```tsx
-// BEFORE: Mock data with "Franfer Technologies"
-export const companySettings: CompanySettings = {
-  id: 'company-1',
-  name: 'Franfer Technologies',
-  // ... mock values
-};
-
-// AFTER: Empty placeholder - should never be visible to users
-export const emptyCompanySettings: CompanySettings = {
-  id: '',
-  name: '',
-  legalName: '',
-  industry: '',
-  companySize: '',
-  taxId: '',
-  yearFounded: '',
-  email: '',
-  phone: '',
-  website: '',
-  address: {
-    street: '',
-    city: '',
-    state: '',
-    zipCode: '',
-    country: '',
-  },
-  branding: {
-    logoUrl: '',
-    documentLogoUrl: '',
-    emailLogoUrl: '',
-    dashboardDisplayType: 'logo',
-    dashboardIconName: 'Building2',
-    primaryColor: '#C6A45E',
-    timezone: 'Asia/Bahrain',
-    dateFormat: 'MM/DD/YYYY',
-    currency: 'BHD',
-    weekendDays: [5, 6],
-    reportingCurrency: 'BHD',
-  },
-  payrollDayOfMonth: 25,
-  employeeCanViewCompensation: true,
-  showCompensationLineItems: false,
-};
-```
-
-Also remove or comment out all the other mock exports (userPreferences, notificationSettings, securitySessions).
-
-**File 2: `src/contexts/CompanySettingsContext.tsx`**
-
-Update the import and fallback to use the empty settings:
-
-```tsx
-// BEFORE:
-import { CompanySettings, companySettings as defaultSettings, currencies } from '@/data/settings';
-const settings = useMemo(() => dbSettings || defaultSettings, [dbSettings]);
-
-// AFTER:
-import { CompanySettings, emptyCompanySettings, currencies } from '@/data/settings';
-const settings = useMemo(() => dbSettings || emptyCompanySettings, [dbSettings]);
-```
-
-**File 3: `src/pages/Settings.tsx`**
-
-Add a more robust check to prevent showing empty/placeholder data:
-
-```tsx
-// BEFORE (line 108-113):
-useEffect(() => {
-  if (!companyLoading && globalSettings) {
-    setCompanySettings(globalSettings);
-    setHasCompanySettingsLoaded(true);
-  }
-}, [globalSettings, companyLoading]);
-
-// AFTER: Only sync when we have real data (non-empty name)
-useEffect(() => {
-  if (!companyLoading && globalSettings && globalSettings.name) {
-    setCompanySettings(globalSettings);
-    setHasCompanySettingsLoaded(true);
-  }
-}, [globalSettings, companyLoading]);
-```
-
-Also update the initial state to not capture potentially stale data:
-
-```tsx
-// BEFORE (line 68):
-const [companySettings, setCompanySettings] = useState<CompanySettings>(globalSettings);
-
-// AFTER: Start with empty, let useEffect sync real data
-import { emptyCompanySettings } from '@/data/settings';
-const [companySettings, setCompanySettings] = useState<CompanySettings>(emptyCompanySettings);
-```
-
-## Files to Modify
-
-| File | Changes |
-|------|---------|
-| `src/data/settings.ts` | Replace `companySettings` mock with `emptyCompanySettings`, remove other mock exports |
-| `src/contexts/CompanySettingsContext.tsx` | Update import to use `emptyCompanySettings` |
-| `src/pages/Settings.tsx` | Initialize with empty settings, add name check in useEffect |
-
-## Why This Fixes the Problem
-
-1. **No More Mock Data**: The fallback is now empty strings, not fake company names
-2. **Loading States Work**: Empty name means loading indicator shows until real data arrives
-3. **Race Condition Safe**: Even if the initial state captures the fallback, it's empty (not misleading)
-4. **Tab-Specific Save Still Works**: The existing `hasCompanySettingsLoaded` flag prevents saving empty data
-
-## What Users Will See
-
-- **Before Fix**: "Franfer Technologies" briefly appears, then may or may not update
-- **After Fix**: Loading skeleton shows until real "DGC" data loads from database
-
-## Additional Cleanup
-
-The following mock exports in `src/data/settings.ts` should also be removed or marked as test-only:
-
-- `userPreferences` (mock user)
-- `notificationSettings` (mock notifications)  
-- `securitySessions` (mock sessions)
-
-These are all replaced by real database queries elsewhere in the app.
