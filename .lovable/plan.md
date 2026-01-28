@@ -1,168 +1,179 @@
 
-# Fix: Leave Request Stuck as Pending After Email Approval
+# Fix: Remove Mock Data Fallback That Shows "Franfer Technologies"
 
 ## Problem Summary
-Bader's leave request (March 25-26) is stuck as "pending" even though Nicy approved it via email. The approval workflow has 2 HR steps, both assigned to the same approver (Nicy). When step 1 was approved, step 2 was activated but **no email notification was sent for step 2**, leaving the request in limbo.
+The Settings page intermittently shows "Franfer Technologies" (mock data) instead of real company data from the database. This happens due to a race condition where mock fallback data is used before the database query completes.
 
-## Root Cause Analysis
+## Root Cause
 
-### Technical Flow That Occurred:
+### Flow That Causes the Bug:
 ```text
-1. Bader submits leave request
-2. System creates 2 approval steps:
-   - Step 1: HR (Nicy) - status: "pending"
-   - Step 2: HR (Nicy) - status: "queued"
-3. Email sent to Nicy for step 1
-4. Nicy clicks "Approve" in email
-5. Edge function (handle-email-action):
-   a. Marks step 1 as "approved" ✓
-   b. Finds step 2 with status "queued"
-   c. Updates step 2 to "pending" ✓
-   d. Does NOT send approval email for step 2 ✗  <-- BUG
-6. Step 2 is pending, no one knows, request stuck
+1. User navigates to /settings
+2. Settings.tsx renders
+3. useCompanySettings() returns:
+   - isLoading: true (DB query in progress)
+   - settings: defaultSettings (mock Franfer Technologies data)  ← PROBLEM
+4. useState(globalSettings) captures mock data as initial state
+5. DB query completes, but local state already has mock data
+6. useEffect syncs... but only if condition is properly met
 ```
 
-### The Bug Location
-**File**: `supabase/functions/handle-email-action/index.ts` (lines 312-317)
+### Code Locations:
 
-When activating the next step, the edge function only updates the status but doesn't notify the next approver:
-```typescript
-if (nextStepData) {
-  // Activate the next step
-  await supabase
-    .from("request_approval_steps")
-    .update({ status: "pending" })
-    .eq("id", (nextStepData as { id: string }).id);
-  // ❌ Missing: Send email to next step's approver
-} else {
-  // ... finalize the request
-}
+**File 1: `src/contexts/CompanySettingsContext.tsx` (line 85)**
+```tsx
+// This falls back to mock data when DB hasn't loaded yet
+const settings = useMemo(() => dbSettings || defaultSettings, [dbSettings]);
 ```
 
-### Secondary Issue: Workflow Configuration
-The current time_off workflow has a redundant configuration:
-```json
-{
-  "steps": [
-    {"approver": "hr", "fallback": "hr", "step": 1},
-    {"approver": "hr", "step": 2}
-  ]
-}
-```
-Both steps assign to the same HR approver (Nicy), which creates unnecessary friction.
-
-## Proposed Fix
-
-### 1. Update Edge Function to Send Email for Next Step
-When activating step 2 (or any subsequent step), send an approval request email to the new approver.
-
-```typescript
-if (nextStepData) {
-  // Activate the next step
-  await supabase
-    .from("request_approval_steps")
-    .update({ status: "pending" })
-    .eq("id", (nextStepData as { id: string }).id);
-  
-  // NEW: Send approval request email for the next step
-  await supabase.functions.invoke("send-email", {
-    body: {
-      type: "leave_request_submitted",
-      leaveRequestId: step.request_id,
-    },
-  });
-}
+**File 2: `src/data/settings.ts` (lines 146-180)**
+```tsx
+// Mock data that should NEVER appear in production
+export const companySettings: CompanySettings = {
+  name: 'Franfer Technologies',  // ← This is what you're seeing
+  // ...other mock values
+};
 ```
 
-### 2. Immediate Data Fix (One-Time SQL)
-To unblock Bader's current request, we can either:
-
-**Option A**: Manually approve the request (recommended for this case since both steps have the same approver):
-```sql
--- Update step 2 to approved
-UPDATE request_approval_steps 
-SET status = 'approved', 
-    acted_at = NOW(), 
-    acted_by = 'f0265a57-9145-47ae-ab37-9d688e1730ef'  -- Nicy's user_id
-WHERE id = 'f541adb0-f891-486a-bc09-d5c7669d9c31';
-
--- Update the leave request to approved
-UPDATE leave_requests 
-SET status = 'approved', 
-    reviewed_at = NOW(),
-    reviewed_by = 'f0265a57-9145-47ae-ab37-9d688e1730ef'
-WHERE id = '47433a64-8a7d-4164-b292-84293ce27f42';
+**File 3: `src/pages/Settings.tsx` (line 68)**
+```tsx
+// Captures whatever globalSettings is at first render (could be mock data)
+const [companySettings, setCompanySettings] = useState<CompanySettings>(globalSettings);
 ```
 
-**Option B**: Let Nicy approve step 2 through the app (it will show in her pending approvals)
+## Solution
 
-### 3. (Optional) Simplify Workflow Configuration
-Reduce the time_off workflow to a single step since both steps currently go to the same approver:
-```json
-{
-  "steps": [
-    {"approver": "hr", "fallback": "hr", "step": 1}
-  ]
-}
+### Strategy: Remove Mock Data Completely
+
+Instead of having mock "Franfer Technologies" data as a fallback, create a proper empty/placeholder settings object. The app should show loading states while data loads, never mock data.
+
+### Changes Required
+
+**File 1: `src/data/settings.ts`**
+
+Replace the mock `companySettings` export with an empty placeholder that makes it obvious when real data hasn't loaded:
+
+```tsx
+// BEFORE: Mock data with "Franfer Technologies"
+export const companySettings: CompanySettings = {
+  id: 'company-1',
+  name: 'Franfer Technologies',
+  // ... mock values
+};
+
+// AFTER: Empty placeholder - should never be visible to users
+export const emptyCompanySettings: CompanySettings = {
+  id: '',
+  name: '',
+  legalName: '',
+  industry: '',
+  companySize: '',
+  taxId: '',
+  yearFounded: '',
+  email: '',
+  phone: '',
+  website: '',
+  address: {
+    street: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    country: '',
+  },
+  branding: {
+    logoUrl: '',
+    documentLogoUrl: '',
+    emailLogoUrl: '',
+    dashboardDisplayType: 'logo',
+    dashboardIconName: 'Building2',
+    primaryColor: '#C6A45E',
+    timezone: 'Asia/Bahrain',
+    dateFormat: 'MM/DD/YYYY',
+    currency: 'BHD',
+    weekendDays: [5, 6],
+    reportingCurrency: 'BHD',
+  },
+  payrollDayOfMonth: 25,
+  employeeCanViewCompensation: true,
+  showCompensationLineItems: false,
+};
 ```
 
-This can be done through the Settings > Approval Workflows page.
+Also remove or comment out all the other mock exports (userPreferences, notificationSettings, securitySessions).
 
-## Implementation Details
+**File 2: `src/contexts/CompanySettingsContext.tsx`**
 
-### File to Modify
+Update the import and fallback to use the empty settings:
+
+```tsx
+// BEFORE:
+import { CompanySettings, companySettings as defaultSettings, currencies } from '@/data/settings';
+const settings = useMemo(() => dbSettings || defaultSettings, [dbSettings]);
+
+// AFTER:
+import { CompanySettings, emptyCompanySettings, currencies } from '@/data/settings';
+const settings = useMemo(() => dbSettings || emptyCompanySettings, [dbSettings]);
+```
+
+**File 3: `src/pages/Settings.tsx`**
+
+Add a more robust check to prevent showing empty/placeholder data:
+
+```tsx
+// BEFORE (line 108-113):
+useEffect(() => {
+  if (!companyLoading && globalSettings) {
+    setCompanySettings(globalSettings);
+    setHasCompanySettingsLoaded(true);
+  }
+}, [globalSettings, companyLoading]);
+
+// AFTER: Only sync when we have real data (non-empty name)
+useEffect(() => {
+  if (!companyLoading && globalSettings && globalSettings.name) {
+    setCompanySettings(globalSettings);
+    setHasCompanySettingsLoaded(true);
+  }
+}, [globalSettings, companyLoading]);
+```
+
+Also update the initial state to not capture potentially stale data:
+
+```tsx
+// BEFORE (line 68):
+const [companySettings, setCompanySettings] = useState<CompanySettings>(globalSettings);
+
+// AFTER: Start with empty, let useEffect sync real data
+import { emptyCompanySettings } from '@/data/settings';
+const [companySettings, setCompanySettings] = useState<CompanySettings>(emptyCompanySettings);
+```
+
+## Files to Modify
+
 | File | Changes |
 |------|---------|
-| `supabase/functions/handle-email-action/index.ts` | Add email notification when activating next approval step |
+| `src/data/settings.ts` | Replace `companySettings` mock with `emptyCompanySettings`, remove other mock exports |
+| `src/contexts/CompanySettingsContext.tsx` | Update import to use `emptyCompanySettings` |
+| `src/pages/Settings.tsx` | Initialize with empty settings, add name check in useEffect |
 
-### Code Changes
+## Why This Fixes the Problem
 
-In the approval processing section (around line 312-317), after activating the next step:
+1. **No More Mock Data**: The fallback is now empty strings, not fake company names
+2. **Loading States Work**: Empty name means loading indicator shows until real data arrives
+3. **Race Condition Safe**: Even if the initial state captures the fallback, it's empty (not misleading)
+4. **Tab-Specific Save Still Works**: The existing `hasCompanySettingsLoaded` flag prevents saving empty data
 
-```typescript
-if (nextStepData) {
-  // Activate the next step
-  await supabase
-    .from("request_approval_steps")
-    .update({ status: "pending" })
-    .eq("id", (nextStepData as { id: string }).id);
-  
-  // Send approval request email to the next approver
-  // This reuses the existing "leave_request_submitted" email type
-  // which looks up the current pending step and sends to its approver
-  try {
-    await supabase.functions.invoke("send-email", {
-      body: {
-        type: "leave_request_submitted",
-        leaveRequestId: step.request_id,
-      },
-    });
-    console.log("Sent approval email for next step");
-  } catch (emailError) {
-    console.error("Failed to send email for next step:", emailError);
-    // Continue even if email fails - the step is still activated
-  }
-}
-```
+## What Users Will See
 
-### Testing Plan
-1. Submit a new leave request when workflow has 2 steps
-2. Approve step 1 via email
-3. Verify step 2 becomes pending AND approver receives email
-4. Approve step 2 via email or app
-5. Verify leave request is finalized as "approved"
+- **Before Fix**: "Franfer Technologies" briefly appears, then may or may not update
+- **After Fix**: Loading skeleton shows until real "DGC" data loads from database
 
-## Visual Summary
+## Additional Cleanup
 
-```text
-BEFORE (Current Bug):
-Step 1 approved → Step 2 activated → No email → Request stuck
+The following mock exports in `src/data/settings.ts` should also be removed or marked as test-only:
 
-AFTER (Fixed):
-Step 1 approved → Step 2 activated → Email sent → Approver acts → Request finalized
-```
+- `userPreferences` (mock user)
+- `notificationSettings` (mock notifications)  
+- `securitySessions` (mock sessions)
 
-## Immediate Action Required
-To unblock Bader's request now, either:
-1. Nicy can approve step 2 through the app's "Pending Approvals" section, OR
-2. Run the SQL commands above to manually approve
+These are all replaced by real database queries elsewhere in the app.
