@@ -1,109 +1,77 @@
 
+# Fix: Make Leaves Subtabs Horizontally Scrollable
 
-# Remove Leave Balance Card and Extend Pending Requests to Full Width
+## Problem
+The subtabs in the Leaves tab (Overview, Leave Requests, Leave Policies, Employee Balances, Public Holidays, Adjustment History) are not scrollable on smaller screens. With 6 tabs containing icons and text, they overflow the container but users cannot scroll to see all options.
 
-## Summary
-Remove the Leave Balance bento card from the Time Management → Leaves → Overview tab and extend the Pending Leave Requests section to occupy the full width of the tab.
+## Root Cause
+The `TabsList` component has `overflow-x-auto scrollbar-none` which should enable scrolling but:
+1. The `rounded-full` creates a pill container that can clip overflow content
+2. The `inline-flex` may prevent proper scroll behavior in some contexts
+3. The hidden scrollbar (`scrollbar-none`) provides no visual affordance that scrolling is possible
+4. The tab triggers may shrink instead of maintaining their minimum width
 
-## Current Layout
-```text
-┌─────────────────────────────────────────────────────────────┐
-│  Leave Metrics (4 cards row)                                │
-└─────────────────────────────────────────────────────────────┘
+## Solution
+Wrap the TabsList in a ScrollArea component with a horizontal scrollbar for better mobile experience, and ensure tab triggers don't shrink.
 
-┌─────────────────┐  ┌────────────────────────────────────────┐
-│  Leave Balance  │  │  Pending Leave Requests                │
-│  Card           │  │  (lg:col-span-2)                       │
-│  (1 col)        │  │                                        │
-└─────────────────┘  └────────────────────────────────────────┘
-```
-
-## New Layout
-```text
-┌─────────────────────────────────────────────────────────────┐
-│  Leave Metrics (4 cards row)                                │
-└─────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────┐
-│  Pending Leave Requests                                     │
-│  (Full Width)                                               │
-└─────────────────────────────────────────────────────────────┘
-```
-
-## Changes Required
+## Implementation
 
 **File: `src/components/timemanagement/LeavesTab.tsx`**
 
-1. **Remove the grid layout wrapper** - No longer needed since there's only one card
-2. **Remove LeaveBalanceCard import** - Remove from the imports since it won't be used
-3. **Remove LeaveBalanceCard component** - Delete lines 77-80
-4. **Remove unused hook** - Remove `useLeaveBalanceSummary` import and the `leaveBalances` + `balancesLoading` variables
-5. **Make Pending Requests full width** - Remove the grid wrapper div and the `lg:col-span-2` class from the Pending Requests container
+1. Import ScrollArea and ScrollBar from UI components
+2. Wrap the TabsList in a ScrollArea with horizontal orientation
+3. Add `flex-shrink-0` to TabsTrigger elements to prevent shrinking
 
-## Code Changes
+### Code Changes
 
-### Before (lines 76-112):
 ```tsx
-<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-  {/* Leave Balance */}
-  <div>
-    <LeaveBalanceCard balances={leaveBalances} isLoading={balancesLoading} />
-  </div>
+// Add import
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
-  {/* Pending Leave Requests */}
-  <div className="lg:col-span-2">
-    <Card className="border-0 shadow-sm">
-      ...
-    </Card>
-  </div>
-</div>
+// Wrap TabsList in ScrollArea
+<ScrollArea className="w-full whitespace-nowrap">
+  <TabsList className="w-max">
+    <TabsTrigger value="overview" className="flex-shrink-0">
+      <LayoutDashboard className="h-4 w-4" />
+      Overview
+    </TabsTrigger>
+    <TabsTrigger value="requests" className="flex-shrink-0">
+      <ClipboardList className="h-4 w-4" />
+      Leave Requests
+    </TabsTrigger>
+    {/* ... other tabs with flex-shrink-0 */}
+  </TabsList>
+  <ScrollBar orientation="horizontal" className="h-2" />
+</ScrollArea>
 ```
 
-### After:
-```tsx
-{/* Pending Leave Requests */}
-<Card className="border-0 shadow-sm">
-  <CardHeader className="pb-3">
-    <div className="flex items-center justify-between">
-      <CardTitle className="text-base font-semibold">
-        Pending Leave Requests
-      </CardTitle>
-      <Button
-        variant="link"
-        className="text-primary p-0 h-auto"
-        onClick={() => setActiveTab('requests')}
-      >
-        View All
-      </Button>
-    </div>
-  </CardHeader>
-  <CardContent className="p-0">
-    {pendingLoading ? (
-      <div className="p-4 space-y-3">
-        {[1, 2, 3].map((i) => (
-          <Skeleton key={i} className="h-12 w-full" />
-        ))}
-      </div>
-    ) : (
-      <LeaveRequestsTable requests={(pendingRequests || []).slice(0, 5)} />
-    )}
-  </CardContent>
-</Card>
+## Visual Result
+
+**Before:**
+```text
+┌─────────────────────────────────────────────────────────┐
+│ [Overview] [Leave Requests] [Leave Pol...] (cut off)    │
+│ ← Cannot scroll to see more tabs                        │
+└─────────────────────────────────────────────────────────┘
 ```
 
-## Cleanup
-
-| Item | Action |
-|------|--------|
-| `LeaveBalanceCard` import | Remove from imports |
-| `useLeaveBalanceSummary` import | Remove from imports |
-| `leaveBalances` variable | Remove declaration |
-| `balancesLoading` variable | Remove declaration |
-| Grid wrapper `<div className="grid...">` | Remove entirely |
+**After:**
+```text
+┌─────────────────────────────────────────────────────────┐
+│ [Overview] [Leave Requests] [Leave Policies] →          │
+│ ← Horizontal scroll bar visible, can drag to see more → │
+└─────────────────────────────────────────────────────────┘
+```
 
 ## Files to Modify
 
-| File | Changes |
-|------|---------|
-| `src/components/timemanagement/LeavesTab.tsx` | Remove LeaveBalanceCard, remove grid layout, make Pending Requests full width |
+| File | Change |
+|------|--------|
+| `src/components/timemanagement/LeavesTab.tsx` | Wrap TabsList in ScrollArea, add flex-shrink-0 to triggers |
 
+## Technical Notes
+- The ScrollArea component uses Radix UI and provides consistent scrolling behavior across browsers
+- The horizontal ScrollBar provides a visual indicator that more content is available
+- `w-max` on TabsList ensures it takes the full width of its content
+- `whitespace-nowrap` on ScrollArea prevents the tabs from wrapping to multiple lines
+- `flex-shrink-0` on each TabsTrigger prevents tabs from compressing their content
