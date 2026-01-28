@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -39,32 +40,35 @@ export function LeavesTab() {
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-      <TabsList>
-        <TabsTrigger value="overview">
-          <LayoutDashboard className="h-4 w-4" />
-          Overview
-        </TabsTrigger>
-        <TabsTrigger value="requests">
-          <ClipboardList className="h-4 w-4" />
-          Leave Requests
-        </TabsTrigger>
-        <TabsTrigger value="policies">
-          <FileText className="h-4 w-4" />
-          Leave Policies
-        </TabsTrigger>
-        <TabsTrigger value="balances">
-          <Users className="h-4 w-4" />
-          Employee Balances
-        </TabsTrigger>
-        <TabsTrigger value="holidays">
-          <Calendar className="h-4 w-4" />
-          Public Holidays
-        </TabsTrigger>
-        <TabsTrigger value="history">
-          <History className="h-4 w-4" />
-          Adjustment History
-        </TabsTrigger>
-      </TabsList>
+      <ScrollArea className="w-full whitespace-nowrap">
+        <TabsList className="w-max">
+          <TabsTrigger value="overview" className="flex-shrink-0">
+            <LayoutDashboard className="h-4 w-4" />
+            Overview
+          </TabsTrigger>
+          <TabsTrigger value="requests" className="flex-shrink-0">
+            <ClipboardList className="h-4 w-4" />
+            Leave Requests
+          </TabsTrigger>
+          <TabsTrigger value="policies" className="flex-shrink-0">
+            <FileText className="h-4 w-4" />
+            Leave Policies
+          </TabsTrigger>
+          <TabsTrigger value="balances" className="flex-shrink-0">
+            <Users className="h-4 w-4" />
+            Employee Balances
+          </TabsTrigger>
+          <TabsTrigger value="holidays" className="flex-shrink-0">
+            <Calendar className="h-4 w-4" />
+            Public Holidays
+          </TabsTrigger>
+          <TabsTrigger value="history" className="flex-shrink-0">
+            <History className="h-4 w-4" />
+            Adjustment History
+          </TabsTrigger>
+        </TabsList>
+        <ScrollBar orientation="horizontal" className="h-2" />
+      </ScrollArea>
 
       {/* Overview Tab */}
       <TabsContent value="overview" className="space-y-6">
