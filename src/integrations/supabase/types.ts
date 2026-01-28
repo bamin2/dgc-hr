@@ -5216,6 +5216,87 @@ export type Database = {
           },
         ]
       }
+      pending_salary_changes: {
+        Row: {
+          applied_at: string | null
+          created_at: string
+          created_by: string | null
+          effective_date: string
+          employee_id: string
+          id: string
+          new_allowances: Json | null
+          new_deductions: Json | null
+          new_gosi_salary: number | null
+          new_salary: number
+          salary_history_id: string | null
+          status: string
+        }
+        Insert: {
+          applied_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          effective_date: string
+          employee_id: string
+          id?: string
+          new_allowances?: Json | null
+          new_deductions?: Json | null
+          new_gosi_salary?: number | null
+          new_salary: number
+          salary_history_id?: string | null
+          status?: string
+        }
+        Update: {
+          applied_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          effective_date?: string
+          employee_id?: string
+          id?: string
+          new_allowances?: Json | null
+          new_deductions?: Json | null
+          new_gosi_salary?: number | null
+          new_salary?: number
+          salary_history_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pending_salary_changes_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employee_summary_mv"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pending_salary_changes_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employee_summary_mv"
+            referencedColumns: ["manager_id"]
+          },
+          {
+            foreignKeyName: "pending_salary_changes_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pending_salary_changes_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees_safe_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pending_salary_changes_salary_history_id_fkey"
+            columns: ["salary_history_id"]
+            isOneToOne: false
+            referencedRelation: "salary_history"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       positions: {
         Row: {
           created_at: string

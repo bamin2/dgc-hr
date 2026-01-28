@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
-import { Plus, X, Loader2 } from "lucide-react";
+import { Plus, X, Loader2, CalendarIcon, Clock } from "lucide-react";
+import { format, startOfDay, isAfter } from "date-fns";
 import {
   Dialog,
   DialogContent,
@@ -13,6 +14,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "@/hooks/use-toast";
 import { formatAmount } from "@/lib/currencyUtils";
 import { Employee } from "@/hooks/useEmployees";
@@ -23,7 +27,7 @@ import { AddAllowanceDialog, AllowanceEntry } from "@/components/team/wizard/Add
 import { AddDeductionDialog, DeductionEntry } from "@/components/team/wizard/AddDeductionDialog";
 import { useWorkLocations } from "@/hooks/useWorkLocations";
 import { getCountryCodeByName } from "@/data/countries";
-
+import { cn } from "@/lib/utils";
 interface LocalAllowance {
   id: string;
   templateId: string | null;
@@ -100,6 +104,11 @@ export function EditSalaryDialog({
   const [reason, setReason] = useState('');
   const [showAllowanceDialog, setShowAllowanceDialog] = useState(false);
   const [showDeductionDialog, setShowDeductionDialog] = useState(false);
+  const [effectiveDate, setEffectiveDate] = useState<Date>(new Date());
+  
+  // Get today's date at start of day for comparison
+  const today = startOfDay(new Date());
+  const isFutureDate = isAfter(startOfDay(effectiveDate), today);
   
   // Initialize form when dialog opens
   useEffect(() => {
@@ -109,6 +118,7 @@ export function EditSalaryDialog({
       setAllowances(mapToLocalAllowances(currentAllowances));
       setDeductions(mapToLocalDeductions(currentDeductions));
       setReason('');
+      setEffectiveDate(new Date());
     }
   }, [open, employee, currentAllowances, currentDeductions]);
   
@@ -222,11 +232,15 @@ export function EditSalaryDialog({
         customAmount: d.amount,
       })),
       reason: reason || 'Compensation updated',
+      effectiveDate,
     }, {
       onSuccess: () => {
+        const successMessage = isFutureDate
+          ? `Salary change scheduled for ${format(effectiveDate, 'MMMM d, yyyy')}.`
+          : "The employee's salary has been updated and recorded in history.";
         toast({
-          title: "Compensation updated",
-          description: "The employee's salary has been updated and recorded in history.",
+          title: isFutureDate ? "Salary change scheduled" : "Compensation updated",
+          description: successMessage,
         });
         onOpenChange(false);
       },
@@ -264,6 +278,49 @@ export function EditSalaryDialog({
                 onChange={(e) => setBasicSalary(parseFloat(e.target.value) || 0)}
               />
             </div>
+            
+            {/* Effective Date */}
+            <div className="space-y-1.5">
+              <Label>Effective Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !effectiveDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {effectiveDate ? format(effectiveDate, "MMMM d, yyyy") : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={effectiveDate}
+                    onSelect={(date) => date && setEffectiveDate(date)}
+                    disabled={(date) => startOfDay(date) < today}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+              <p className="text-xs text-muted-foreground">
+                The date when this salary will take effect for payroll
+              </p>
+            </div>
+            
+            {/* Scheduled Change Alert */}
+            {isFutureDate && (
+              <Alert className="border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800/30">
+                <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                <AlertDescription className="text-amber-800 dark:text-amber-300">
+                  This salary change is scheduled for {format(effectiveDate, 'MMMM d, yyyy')}.
+                  The current salary will remain in effect until then.
+                </AlertDescription>
+              </Alert>
+            )}
             
             {/* Allowances Section */}
             <div className="space-y-3">
