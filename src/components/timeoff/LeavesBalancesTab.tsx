@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { format } from "date-fns";
-import { Search, Filter, MoreVertical, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, Filter, MoreVertical, ChevronLeft, ChevronRight, Eye, Pencil, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,11 +24,23 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { useLeaveRequests, LeaveRequestStatus } from "@/hooks/useLeaveRequests";
+import { useLeaveRequests, useDeleteLeaveRequest, LeaveRequestStatus, LeaveRequest } from "@/hooks/useLeaveRequests";
+import { LeaveRequestDetailDialog } from "./LeaveRequestDetailDialog";
+import { EditLeaveRequestDialog } from "./EditLeaveRequestDialog";
 
 const statusStyles: Record<LeaveRequestStatus, string> = {
   approved: "bg-emerald-100 text-emerald-700 border-emerald-200",
@@ -41,8 +53,38 @@ export function LeavesBalancesTab() {
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(8);
+  
+  // Dialog states
+  const [selectedRequest, setSelectedRequest] = useState<LeaveRequest | null>(null);
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
 
   const { data: leaveRequests, isLoading } = useLeaveRequests();
+  const deleteRequest = useDeleteLeaveRequest();
+
+  const handleViewDetails = (request: LeaveRequest) => {
+    setSelectedRequest(request);
+    setIsDetailDialogOpen(true);
+  };
+
+  const handleEdit = (request: LeaveRequest) => {
+    setSelectedRequest(request);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleCancelRequest = (request: LeaveRequest) => {
+    setSelectedRequest(request);
+    setIsCancelDialogOpen(true);
+  };
+
+  const confirmCancel = async () => {
+    if (selectedRequest) {
+      await deleteRequest.mutateAsync(selectedRequest.id);
+      setIsCancelDialogOpen(false);
+      setSelectedRequest(null);
+    }
+  };
 
   const filteredEntries = (leaveRequests || []).filter((entry) => {
     // Exclude public holidays - they should only show on the calendar
@@ -200,11 +242,23 @@ export function LeavesBalancesTab() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>View details</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleViewDetails(entry)}>
+                          <Eye className="w-4 h-4 mr-2" />
+                          View details
+                        </DropdownMenuItem>
                         {entry.status === 'pending' && (
                           <>
-                            <DropdownMenuItem>Edit</DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive">Cancel</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleEdit(entry)}>
+                              <Pencil className="w-4 h-4 mr-2" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              className="text-destructive"
+                              onClick={() => handleCancelRequest(entry)}
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Cancel
+                            </DropdownMenuItem>
                           </>
                         )}
                       </DropdownMenuContent>
@@ -279,6 +333,39 @@ export function LeavesBalancesTab() {
           </div>
         </div>
       )}
+
+      {/* Dialogs */}
+      <LeaveRequestDetailDialog
+        request={selectedRequest}
+        open={isDetailDialogOpen}
+        onOpenChange={setIsDetailDialogOpen}
+      />
+
+      <EditLeaveRequestDialog
+        request={selectedRequest}
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+      />
+
+      <AlertDialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel Leave Request</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to cancel this leave request? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep Request</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmCancel}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteRequest.isPending ? "Cancelling..." : "Cancel Request"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
