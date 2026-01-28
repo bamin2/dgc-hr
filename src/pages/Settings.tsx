@@ -20,7 +20,8 @@ import { EmailTemplatesTab } from '@/components/settings/email-templates';
 import { 
   CompanySettings,
   UserPreferences,
-  NotificationSettings
+  NotificationSettings,
+  emptyCompanySettings
 } from '@/data/settings';
 import { useCompanySettings } from '@/contexts/CompanySettingsContext';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
@@ -64,8 +65,8 @@ const SettingsPage = () => {
   const { canManageRoles } = useRole();
   const isMobile = useMediaQuery("(max-width: 1023px)");
   
-  // Local state for form editing
-  const [companySettings, setCompanySettings] = useState<CompanySettings>(globalSettings);
+  // Local state for form editing - start with empty to prevent mock data flash
+  const [companySettings, setCompanySettings] = useState<CompanySettings>(emptyCompanySettings);
   const [userPreferences, setUserPreferences] = useState<UserPreferences>(dbUserPreferences);
   const [hasCompanySettingsLoaded, setHasCompanySettingsLoaded] = useState(false);
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>(dbNotificationSettings);
@@ -104,9 +105,9 @@ const SettingsPage = () => {
     }
   }, [searchParams, isMobile]);
 
-  // Sync local state with database when data loads
+  // Sync local state with database when data loads - only when we have real data (non-empty name)
   useEffect(() => {
-    if (!companyLoading && globalSettings) {
+    if (!companyLoading && globalSettings && globalSettings.name) {
       setCompanySettings(globalSettings);
       setHasCompanySettingsLoaded(true);
     }

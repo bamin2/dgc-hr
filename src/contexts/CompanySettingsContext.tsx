@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useCallback, useMemo, ReactNode } from 'react';
 import { format as dateFnsFormat } from 'date-fns';
-import { CompanySettings, companySettings as defaultSettings, currencies } from '@/data/settings';
+import { CompanySettings, emptyCompanySettings, currencies } from '@/data/settings';
 import { useCompanySettingsDb } from '@/hooks/useCompanySettingsDb';
 
 interface CompanySettingsContextType {
@@ -82,7 +82,7 @@ export function CompanySettingsProvider({ children }: { children: ReactNode }) {
   } = useCompanySettingsDb();
 
   // Memoize settings to prevent object recreation on every render
-  const settings = useMemo(() => dbSettings || defaultSettings, [dbSettings]);
+  const settings = useMemo(() => dbSettings || emptyCompanySettings, [dbSettings]);
 
   // Apply brand color only after DB settings are loaded to prevent flash
   React.useEffect(() => {

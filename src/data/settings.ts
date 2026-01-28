@@ -142,124 +142,43 @@ export interface SecuritySession {
   isCurrent: boolean;
 }
 
-// Mock Data
-export const companySettings: CompanySettings = {
-  id: 'company-1',
-  name: 'Franfer Technologies',
-  legalName: 'Franfer Technologies Inc.',
-  industry: 'Technology',
-  companySize: '51-200',
-  taxId: '12-3456789',
-  yearFounded: '2018',
-  email: 'contact@franfer.com',
-  phone: '+1 (555) 123-4567',
-  website: 'https://franfer.com',
+// Empty placeholder settings - used as fallback while loading from database
+// This should NEVER be visible to users - loading states should show instead
+export const emptyCompanySettings: CompanySettings = {
+  id: '',
+  name: '',
+  legalName: '',
+  industry: '',
+  companySize: '',
+  taxId: '',
+  yearFounded: '',
+  email: '',
+  phone: '',
+  website: '',
   address: {
-    street: '123 Innovation Drive',
-    city: 'San Francisco',
-    state: 'CA',
-    zipCode: '94105',
-    country: 'United States'
+    street: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    country: '',
   },
   branding: {
-    logoUrl: '/placeholder.svg',
+    logoUrl: '',
     documentLogoUrl: '',
     emailLogoUrl: '',
     dashboardDisplayType: 'logo',
     dashboardIconName: 'Building2',
     primaryColor: '#C6A45E',
-    timezone: 'America/Los_Angeles',
+    timezone: 'Asia/Bahrain',
     dateFormat: 'MM/DD/YYYY',
-    currency: 'USD',
-    weekendDays: [5, 6], // Friday-Saturday
+    currency: 'BHD',
+    weekendDays: [5, 6],
     reportingCurrency: 'BHD',
   },
   payrollDayOfMonth: 25,
   employeeCanViewCompensation: true,
   showCompensationLineItems: false,
 };
-
-export const userPreferences: UserPreferences = {
-  userId: 'user-1',
-  profile: {
-    firstName: 'Sarah',
-    lastName: 'Johnson',
-    email: 'sarah.johnson@franfer.com',
-    phone: '+1 (555) 987-6543',
-    avatar: '/placeholder.svg',
-    jobTitle: 'HR Manager'
-  },
-  display: {
-    language: 'en',
-    theme: 'system',
-    defaultPage: 'dashboard',
-    itemsPerPage: 25,
-    compactMode: false,
-    employeeTableColumns: defaultEmployeeTableColumns,
-  },
-  regional: {
-    timezone: 'America/Los_Angeles',
-    dateFormat: 'MM/DD/YYYY',
-    timeFormat: '12h',
-    firstDayOfWeek: 'sunday'
-  }
-};
-
-export const notificationSettings: NotificationSettings = {
-  email: {
-    newEmployee: true,
-    leaveSubmissions: true,
-    leaveApprovals: true,
-    payrollReminders: true,
-    documentExpiration: true,
-    systemAnnouncements: true,
-    weeklySummary: false
-  },
-  push: {
-    enabled: true,
-    newLeaveRequests: true,
-    urgentApprovals: true,
-    payrollDeadlines: true,
-    systemUpdates: false
-  },
-  schedule: {
-    quietHoursEnabled: true,
-    quietHoursStart: '22:00',
-    quietHoursEnd: '07:00',
-    weekendNotifications: false
-  }
-};
-
-
-export const securitySessions: SecuritySession[] = [
-  {
-    id: 'session-1',
-    device: 'MacBook Pro',
-    browser: 'Chrome 120',
-    location: 'San Francisco, CA',
-    ipAddress: '192.168.1.100',
-    lastActive: '2024-01-15T14:30:00Z',
-    isCurrent: true
-  },
-  {
-    id: 'session-2',
-    device: 'iPhone 15',
-    browser: 'Safari Mobile',
-    location: 'San Francisco, CA',
-    ipAddress: '192.168.1.101',
-    lastActive: '2024-01-15T12:00:00Z',
-    isCurrent: false
-  },
-  {
-    id: 'session-3',
-    device: 'Windows PC',
-    browser: 'Firefox 121',
-    location: 'Oakland, CA',
-    ipAddress: '192.168.2.50',
-    lastActive: '2024-01-14T09:00:00Z',
-    isCurrent: false
-  }
-];
 
 export const industries = [
   'Technology',
