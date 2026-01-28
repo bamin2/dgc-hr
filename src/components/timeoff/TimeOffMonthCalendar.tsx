@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import {
   format,
   startOfMonth,
@@ -35,12 +35,26 @@ interface CalendarEvent {
   color: string;
 }
 
-export function TimeOffMonthCalendar() {
+interface TimeOffMonthCalendarProps {
+  onYearChange?: (year: number) => void;
+}
+
+export function TimeOffMonthCalendar({ onYearChange }: TimeOffMonthCalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>("month");
+  const prevYearRef = useRef(currentDate.getFullYear());
 
   const { data: leaveRequests, isLoading: isLoadingLeave } = useLeaveRequests();
   const { data: publicHolidays, isLoading: isLoadingHolidays } = usePublicHolidays(currentDate.getFullYear());
+
+  // Notify parent when year changes
+  useEffect(() => {
+    const currentYear = currentDate.getFullYear();
+    if (currentYear !== prevYearRef.current) {
+      prevYearRef.current = currentYear;
+      onYearChange?.(currentYear);
+    }
+  }, [currentDate, onYearChange]);
 
   const isLoading = isLoadingLeave || isLoadingHolidays;
 
