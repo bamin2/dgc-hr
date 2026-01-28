@@ -5,3 +5,5 @@ export * from "./LeavesBalancesTab";
 export * from "./RequestTimeOffDialog";
 export * from "./TimeOffDayView";
 export * from "./TimeOffWeekView";
+export * from "./LeaveRequestDetailDialog";
+export * from "./EditLeaveRequestDialog";
