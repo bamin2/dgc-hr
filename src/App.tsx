@@ -53,6 +53,7 @@ const MyPayslip = lazy(() => import("./pages/MyPayslip"));
 const AuditTrail = lazy(() => import("./pages/AuditTrail"));
 const Hiring = lazy(() => import("./pages/Hiring"));
 const CandidateDetail = lazy(() => import("./pages/CandidateDetail"));
+const LeaveRequestDetail = lazy(() => import("./pages/LeaveRequestDetail"));
 const OfferDetail = lazy(() => import("./pages/OfferDetail"));
 const BusinessTrips = lazy(() => import("./pages/BusinessTrips"));
 const BusinessTripDetail = lazy(() => import("./pages/BusinessTripDetail"));
@@ -104,6 +105,7 @@ const App = () => (
                 <Route path="/calendar" element={<ProtectedRoute><DashboardLazyPage><Calendar /></DashboardLazyPage></ProtectedRoute>} />
                 <Route path="/projects" element={<ProtectedRoute><DashboardLazyPage><Projects /></DashboardLazyPage></ProtectedRoute>} />
                 <Route path="/attendance" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><TimeManagement /></DashboardLazyPage></ProtectedRoute>} />
+                <Route path="/attendance/leave/:id" element={<ProtectedRoute requiredRoles={['hr', 'admin']}><DashboardLazyPage><LeaveRequestDetail /></DashboardLazyPage></ProtectedRoute>} />
                 <Route path="/time-off" element={<ProtectedRoute><DashboardLazyPage><TimeOff /></DashboardLazyPage></ProtectedRoute>} />
                 <Route path="/business-trips" element={<ProtectedRoute><DashboardLazyPage><BusinessTrips /></DashboardLazyPage></ProtectedRoute>} />
                 <Route path="/business-trips/:id" element={<ProtectedRoute><DashboardLazyPage><BusinessTripDetail /></DashboardLazyPage></ProtectedRoute>} />
