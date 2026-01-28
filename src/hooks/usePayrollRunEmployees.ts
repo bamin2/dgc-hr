@@ -48,7 +48,7 @@ export function usePayrollRunEmployees(runId: string | null) {
     enabled: !!runId,
   });
 
-  const snapshotEmployees = async (payrollRunId: string, employeeIds: string[]) => {
+  const snapshotEmployees = async (payrollRunId: string, employeeIds: string[], payPeriodEnd?: string) => {
     if (!payrollRunId || employeeIds.length === 0) {
       throw new Error("Payroll run ID and employee IDs are required");
     }
@@ -78,6 +78,40 @@ export function usePayrollRunEmployees(runId: string | null) {
     if (!employees || employees.length === 0) {
       throw new Error("No employees found for the selected IDs");
     }
+    
+    // Fetch pending salary changes that are effective on or before the pay period end
+    const effectiveEndDate = payPeriodEnd || new Date().toISOString().split('T')[0];
+    const { data: pendingChanges } = await supabase
+      .from("pending_salary_changes")
+      .select("*")
+      .in("employee_id", employeeIds)
+      .eq("status", "pending")
+      .lte("effective_date", effectiveEndDate);
+    
+    // Map pending changes by employee for quick lookup
+    const pendingByEmployee = new Map<string, {
+      new_salary: number;
+      new_gosi_salary: number | null;
+      new_allowances: { name: string; amount: number; templateId?: string }[] | null;
+      new_deductions: { name: string; amount: number; templateId?: string }[] | null;
+      id: string;
+      effective_date: string;
+    }>();
+    
+    // If multiple pending changes exist for same employee, use the one with latest effective_date
+    (pendingChanges || []).forEach(change => {
+      const existing = pendingByEmployee.get(change.employee_id);
+      if (!existing || change.effective_date > existing.effective_date) {
+        pendingByEmployee.set(change.employee_id, {
+          new_salary: Number(change.new_salary),
+          new_gosi_salary: change.new_gosi_salary ? Number(change.new_gosi_salary) : null,
+          new_allowances: change.new_allowances as { name: string; amount: number; templateId?: string }[] | null,
+          new_deductions: change.new_deductions as { name: string; amount: number; templateId?: string }[] | null,
+          id: change.id,
+          effective_date: change.effective_date,
+        });
+      }
+    });
 
     const { data: allAllowances, error: allowError } = await supabase
       .from("employee_allowances")
@@ -118,7 +152,13 @@ export function usePayrollRunEmployees(runId: string | null) {
     }
 
     const snapshots = (employees || []).map((emp) => {
-      const baseSalary = emp.salary || 0;
+      // Check if there's a pending salary change for this employee
+      const pendingChange = pendingByEmployee.get(emp.id);
+      
+      // Use pending salary if available, otherwise use current salary
+      const baseSalary = pendingChange?.new_salary ?? emp.salary ?? 0;
+      const gosiRegisteredSalary = pendingChange?.new_gosi_salary ?? emp.gosi_registered_salary;
+      
       const empAllowances = (allAllowances || []).filter(
         a => a.employee_id === emp.id
       ) as EmployeeAllowanceRow[];
