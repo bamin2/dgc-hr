@@ -107,7 +107,7 @@ export function WelcomeCard() {
 
   return (
     <>
-      <BentoCard colSpan={5} className="flex flex-col gap-3">
+      <BentoCard colSpan={5} className="flex flex-col gap-2 pb-3">
         {/* Header row with date pill */}
         <div className="flex items-start justify-between">
           <div className="space-y-0.5">
