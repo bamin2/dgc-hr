@@ -6627,6 +6627,20 @@ export type Database = {
         }
       }
       refresh_all_materialized_views: { Args: never; Returns: undefined }
+      upsert_notification: {
+        Args: {
+          p_action_url?: string
+          p_actor_avatar?: string
+          p_actor_name?: string
+          p_message: string
+          p_metadata?: Json
+          p_priority?: string
+          p_title: string
+          p_type: string
+          p_user_id: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       access_status: "active" | "scheduled" | "revoked"
