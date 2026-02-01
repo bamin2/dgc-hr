@@ -7,15 +7,21 @@ import {
   FileText, 
   ClipboardCheck,
   UserPlus,
-  Sparkles
+  Sparkles,
+  CalendarCheck,
+  Clock,
+  CheckCircle
 } from "lucide-react";
 import { BentoCard } from "./BentoCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
+import { usePersonalDashboard } from "@/hooks/usePersonalDashboard";
+import { usePendingApprovalsCount } from "@/hooks/usePendingApprovalsCount";
 import { RequestTimeOffDialog } from "@/components/timeoff/RequestTimeOffDialog";
 import { EmployeeRequestLoanDialog } from "@/components/loans/EmployeeRequestLoanDialog";
 import { RequestHRDocumentDialog } from "@/components/approvals/RequestHRDocumentDialog";
 import { CreateTripDialog } from "@/components/business-trips/CreateTripDialog";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 interface QuickAction {
@@ -28,6 +34,10 @@ export function WelcomeCard() {
   const navigate = useNavigate();
   const { profile } = useAuth();
   const { canEditEmployees, isManager } = useRole();
+  
+  // Data hooks for snapshot stats
+  const { data: dashboardData, isLoading: dashboardLoading } = usePersonalDashboard();
+  const { data: approvalsCount, isLoading: approvalsLoading } = usePendingApprovalsCount();
   
   const [isTimeOffDialogOpen, setIsTimeOffDialogOpen] = useState(false);
   const [isLoanDialogOpen, setIsLoanDialogOpen] = useState(false);
@@ -45,6 +55,16 @@ export function WelcomeCard() {
     if (hour < 17) return "Good afternoon";
     return "Good evening";
   };
+
+  // Compute snapshot stats
+  const nextLeave = dashboardData?.upcomingTimeOff[0];
+  const nextLeaveDisplay = nextLeave 
+    ? format(new Date(nextLeave.startDate), "MMM d") 
+    : "None";
+  const pendingRequests = dashboardData?.requestsSummary.pending ?? 0;
+  const showApprovals = isManager || canEditEmployees;
+  const approvalsWaiting = approvalsCount ?? 0;
+  const isStatsLoading = dashboardLoading || approvalsLoading;
 
   // Base actions for all employees
   const baseActions: QuickAction[] = [
@@ -105,6 +125,52 @@ export function WelcomeCard() {
             <span className="text-sm font-medium text-foreground">{formattedDate}</span>
           </div>
         </div>
+
+        {/* Today Snapshot Strip */}
+        {isStatsLoading ? (
+          <div className={cn(
+            "grid gap-2",
+            showApprovals ? "grid-cols-1 sm:grid-cols-3" : "grid-cols-1 sm:grid-cols-2"
+          )}>
+            {Array.from({ length: showApprovals ? 3 : 2 }).map((_, i) => (
+              <Skeleton key={i} className="h-12 rounded-lg" />
+            ))}
+          </div>
+        ) : (
+          <div className={cn(
+            "grid gap-2",
+            showApprovals ? "grid-cols-1 sm:grid-cols-3" : "grid-cols-1 sm:grid-cols-2"
+          )}>
+            {/* Next Leave */}
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary/30">
+              <CalendarCheck className="h-4 w-4 text-primary shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground">Next Leave</p>
+                <p className="text-sm font-medium truncate">{nextLeaveDisplay}</p>
+              </div>
+            </div>
+
+            {/* Pending Requests */}
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary/30">
+              <Clock className="h-4 w-4 text-amber-500 shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground">Pending</p>
+                <p className="text-sm font-medium">{pendingRequests}</p>
+              </div>
+            </div>
+
+            {/* Approvals Waiting (manager only) */}
+            {showApprovals && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary/30">
+                <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs text-muted-foreground">To Approve</p>
+                  <p className="text-sm font-medium">{approvalsWaiting}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Quick actions grid */}
         <div className="grid grid-cols-4 gap-2">
