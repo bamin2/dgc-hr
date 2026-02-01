@@ -164,6 +164,60 @@ export async function createBatchNotifications(params: BatchNotificationParams):
 }
 
 /**
+ * Create or update a notification for an entity.
+ * If a notification already exists for the same entity_type + entity_id + user,
+ * it will be updated instead of creating a duplicate.
+ * 
+ * This is useful for status updates (e.g., "Submitted" → "Approved") where
+ * the user only needs to see the latest state, not the entire history.
+ */
+export async function upsertNotification(params: CreateNotificationParams): Promise<{ success: boolean; notificationId?: string; error?: string }> {
+  const {
+    userId,
+    type,
+    priority = 'medium',
+    title,
+    message,
+    actionUrl,
+    actorName,
+    actorAvatar,
+    metadata,
+  } = params;
+
+  // Validate required metadata fields
+  if (!metadata.entity_type || !metadata.entity_id || !metadata.severity || !metadata.event_key) {
+    return { 
+      success: false, 
+      error: 'Missing required metadata fields: entity_type, entity_id, severity, event_key' 
+    };
+  }
+
+  try {
+    const { data, error } = await supabase.rpc('upsert_notification', {
+      p_user_id: userId,
+      p_type: type,
+      p_title: title,
+      p_message: message,
+      p_priority: priority,
+      p_action_url: actionUrl,
+      p_actor_name: actorName ?? null,
+      p_actor_avatar: actorAvatar ?? null,
+      p_metadata: metadata as unknown as Json,
+    });
+
+    if (error) {
+      console.error('Failed to upsert notification:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, notificationId: data };
+  } catch (error) {
+    console.error('Failed to upsert notification:', error);
+    return { success: false, error: String(error) };
+  }
+}
+
+/**
  * Archive a notification (soft delete via metadata)
  */
 export async function archiveNotification(notificationId: string): Promise<{ success: boolean; error?: string }> {

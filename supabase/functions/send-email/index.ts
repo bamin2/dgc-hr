@@ -376,16 +376,17 @@ serve(async (req: Request): Promise<Response> => {
           }
         }
 
-        // Create confirmation notification for the requester with standardized metadata
+        // Create confirmation notification for the requester using upsert
+        // This will update any existing notification for this entity instead of creating duplicates
         if (requesterUserId) {
-          await supabase.from("notifications").insert({
-            user_id: requesterUserId,
-            type: "approval",
-            title: "Leave Request Submitted",
-            message: `Your ${leaveTypeName} request for ${leaveRequest.days_count} day${leaveRequest.days_count !== 1 ? "s" : ""} has been submitted and is pending approval`,
-            priority: "low",
-            action_url: "/approvals?tab=my-requests",
-            metadata: {
+          await supabase.rpc('upsert_notification', {
+            p_user_id: requesterUserId,
+            p_type: "approval",
+            p_title: "Leave Request Submitted",
+            p_message: `Your ${leaveTypeName} request for ${leaveRequest.days_count} day${leaveRequest.days_count !== 1 ? "s" : ""} has been submitted and is pending approval`,
+            p_priority: "low",
+            p_action_url: "/approvals?tab=my-requests",
+            p_metadata: {
               entity_type: "leave_request",
               entity_id: leaveRequestId,
               severity: "info",
@@ -484,21 +485,22 @@ serve(async (req: Request): Promise<Response> => {
             });
           }
 
-          // Create in-app notification for the requester with standardized metadata
+          // Create/update in-app notification for the requester using upsert
+          // This consolidates "Submitted" → "Approved/Rejected" into a single notification
           const isApproved = type === "leave_request_approved";
           const notificationTitle = isApproved ? "Leave Request Approved" : "Leave Request Rejected";
           const notificationMessage = isApproved
             ? `Your ${leaveTypeName} request has been approved`
             : `Your ${leaveTypeName} request has been rejected${leaveRequest.rejection_reason ? `: ${leaveRequest.rejection_reason}` : ""}`;
 
-          await supabase.from("notifications").insert({
-            user_id: requesterUserId,
-            type: "approval",
-            title: notificationTitle,
-            message: notificationMessage,
-            priority: isApproved ? "medium" : "high",
-            action_url: "/approvals?tab=my-requests",
-            metadata: {
+          await supabase.rpc('upsert_notification', {
+            p_user_id: requesterUserId,
+            p_type: "approval",
+            p_title: notificationTitle,
+            p_message: notificationMessage,
+            p_priority: isApproved ? "medium" : "high",
+            p_action_url: "/approvals?tab=my-requests",
+            p_metadata: {
               entity_type: "leave_request",
               entity_id: leaveRequestId,
               severity: isApproved ? "success" : "danger",
