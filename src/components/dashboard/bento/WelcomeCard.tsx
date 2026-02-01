@@ -173,7 +173,7 @@ export function WelcomeCard() {
         )}
 
         {/* Quick actions grid */}
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {actions.map((action) => {
             const Icon = action.icon;
             return (
@@ -182,9 +182,11 @@ export function WelcomeCard() {
                 onClick={action.onClick}
                 className={cn(
                   "flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl",
-                  "bg-white/50 dark:bg-white/5 border border-white/40 dark:border-white/10",
-                  "hover:bg-white/70 dark:hover:bg-white/10 hover:border-white/60 dark:hover:border-white/15",
-                  "transition-all duration-150",
+                  "bg-secondary/20 dark:bg-white/[0.04]",
+                  "hover:bg-secondary/35 dark:hover:bg-white/[0.08]",
+                  "active:bg-secondary/45 dark:active:bg-white/[0.12]",
+                  "hover:shadow-sm",
+                  "transition-all duration-150 ease-out",
                   "text-foreground"
                 )}
               >
