@@ -16,6 +16,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { RequestTimeOffDialog } from "@/components/timeoff/RequestTimeOffDialog";
 import { EmployeeRequestLoanDialog } from "@/components/loans/EmployeeRequestLoanDialog";
 import { RequestHRDocumentDialog } from "@/components/approvals/RequestHRDocumentDialog";
+import { CreateTripDialog } from "@/components/business-trips/CreateTripDialog";
 
 interface QuickAction {
   label: string;
@@ -32,6 +33,7 @@ export function WelcomeCard() {
   const [isTimeOffDialogOpen, setIsTimeOffDialogOpen] = useState(false);
   const [isLoanDialogOpen, setIsLoanDialogOpen] = useState(false);
   const [isHRLetterDialogOpen, setIsHRLetterDialogOpen] = useState(false);
+  const [isBusinessTripDialogOpen, setIsBusinessTripDialogOpen] = useState(false);
 
   const firstName = profile?.first_name || "there";
   
@@ -53,7 +55,7 @@ export function WelcomeCard() {
     {
       label: "Business Trip",
       icon: Plane,
-      onClick: () => navigate("/business-trips/new"),
+      onClick: () => setIsBusinessTripDialogOpen(true),
       variant: "outline",
     },
     {
@@ -131,6 +133,10 @@ export function WelcomeCard() {
       <RequestHRDocumentDialog
         open={isHRLetterDialogOpen}
         onOpenChange={setIsHRLetterDialogOpen}
+      />
+      <CreateTripDialog
+        open={isBusinessTripDialogOpen}
+        onOpenChange={setIsBusinessTripDialogOpen}
       />
     </>
   );
