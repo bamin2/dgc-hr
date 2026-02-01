@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plane, MapPin, Calendar, Clock, Plus, ChevronRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -6,6 +7,7 @@ import { useMyBusinessTrips } from "@/hooks/useBusinessTrips";
 import { useRole } from "@/contexts/RoleContext";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { CreateTripDialog } from "@/components/business-trips/CreateTripDialog";
 
 interface BusinessTripsCardProps {
   /** Compact variant for mobile - shows next trip or quick action */
@@ -16,6 +18,7 @@ export function BusinessTripsCard({ variant = "default" }: BusinessTripsCardProp
   const navigate = useNavigate();
   const { canEditEmployees, isManager } = useRole();
   const { data: trips, isLoading } = useMyBusinessTrips();
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   const isCompact = variant === "compact";
 
@@ -49,49 +52,52 @@ export function BusinessTripsCard({ variant = "default" }: BusinessTripsCardProp
   // Compact mobile variant
   if (isCompact) {
     return (
-      <BentoCard 
-        colSpan={12} 
-        onClick={() => navigate(upcomingTrip ? "/business-trips" : "/business-trips/new")}
-        className="cursor-pointer p-4"
-      >
-        {upcomingTrip ? (
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
-              <Plane className="w-5 h-5 text-blue-600" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="font-medium text-foreground truncate">
-                  {upcomingTrip.destination?.name || "Business Trip"}
-                </span>
-                <span className={cn(
-                  "text-xs px-2 py-0.5 rounded-full shrink-0",
-                  isApproved 
-                    ? "bg-green-500/10 text-green-600" 
-                    : "bg-amber-500/10 text-amber-600"
-                )}>
-                  {isApproved ? "Approved" : "Pending"}
-                </span>
+      <>
+        <BentoCard 
+          colSpan={12} 
+          onClick={() => upcomingTrip ? navigate("/business-trips") : setCreateDialogOpen(true)}
+          className="cursor-pointer p-4"
+        >
+          {upcomingTrip ? (
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
+                <Plane className="w-5 h-5 text-blue-600" />
               </div>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {format(new Date(upcomingTrip.start_date), "MMM d")} - {format(new Date(upcomingTrip.end_date), "MMM d")}
-              </p>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-foreground truncate">
+                    {upcomingTrip.destination?.name || "Business Trip"}
+                  </span>
+                  <span className={cn(
+                    "text-xs px-2 py-0.5 rounded-full shrink-0",
+                    isApproved 
+                      ? "bg-green-500/10 text-green-600" 
+                      : "bg-amber-500/10 text-amber-600"
+                  )}>
+                    {isApproved ? "Approved" : "Pending"}
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {format(new Date(upcomingTrip.start_date), "MMM d")} - {format(new Date(upcomingTrip.end_date), "MMM d")}
+                </p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground/50 shrink-0" />
             </div>
-            <ChevronRight className="w-4 h-4 text-muted-foreground/50 shrink-0" />
-          </div>
-        ) : (
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center shrink-0">
-              <Plus className="w-5 h-5 text-muted-foreground" />
+          ) : (
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center shrink-0">
+                <Plus className="w-5 h-5 text-muted-foreground" />
+              </div>
+              <div className="flex-1">
+                <p className="font-medium text-foreground">Plan a Business Trip</p>
+                <p className="text-xs text-muted-foreground">Request travel for work</p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground/50 shrink-0" />
             </div>
-            <div className="flex-1">
-              <p className="font-medium text-foreground">Plan a Business Trip</p>
-              <p className="text-xs text-muted-foreground">Request travel for work</p>
-            </div>
-            <ChevronRight className="w-4 h-4 text-muted-foreground/50 shrink-0" />
-          </div>
-        )}
-      </BentoCard>
+          )}
+        </BentoCard>
+        <CreateTripDialog open={createDialogOpen} onOpenChange={setCreateDialogOpen} />
+      </>
     );
   }
 
