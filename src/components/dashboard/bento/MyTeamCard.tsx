@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Users, ArrowRight, Calendar } from "lucide-react";
+import { CalendarOff, ArrowRight, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -23,6 +23,8 @@ export function MyTeamCard() {
         <div className="space-y-3">
           <Skeleton className="h-10 w-full rounded-lg" />
           <Skeleton className="h-10 w-full rounded-lg" />
+          <Skeleton className="h-10 w-full rounded-lg" />
+          <Skeleton className="h-10 w-full rounded-lg" />
           <Skeleton className="h-9 w-full rounded-full" />
         </div>
       </BentoCard>
@@ -36,27 +38,24 @@ export function MyTeamCard() {
     <BentoCard colSpan={3}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <Users className="w-5 h-5 text-primary" />
-          <h3 className="font-semibold text-foreground">My Team</h3>
+          <CalendarOff className="w-5 h-5 text-primary" />
+          <h3 className="font-semibold text-foreground">Who's Off</h3>
         </div>
-        <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-secondary text-muted-foreground">
-          {teamSize} members
-        </span>
+        {upcomingTimeOff.length > 0 && (
+          <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-secondary text-muted-foreground">
+            {upcomingTimeOff.length} upcoming
+          </span>
+        )}
       </div>
 
-      {/* Who's out */}
       <div className="space-y-2 mb-4">
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-          Upcoming Time Off
-        </p>
-        
         {upcomingTimeOff.length === 0 ? (
           <div className="bg-secondary/30 rounded-xl p-3 text-center">
-            <p className="text-sm text-muted-foreground">No one is out soon</p>
+            <p className="text-sm text-muted-foreground">No upcoming time off</p>
           </div>
         ) : (
           <div className="space-y-2">
-            {upcomingTimeOff.slice(0, 2).map((timeOff, index) => {
+            {upcomingTimeOff.slice(0, 4).map((timeOff, index) => {
               // Parse the employee name to get initials
               const nameParts = timeOff.employeeName.split(" ");
               const initials = nameParts.length >= 2 
@@ -94,9 +93,9 @@ export function MyTeamCard() {
       <Button 
         variant="outline" 
         className="w-full rounded-full gap-2"
-        onClick={() => navigate("/employees")}
+        onClick={() => navigate("/time-management")}
       >
-        Open Directory
+        View Calendar
         <ArrowRight className="w-4 h-4" />
       </Button>
     </BentoCard>
