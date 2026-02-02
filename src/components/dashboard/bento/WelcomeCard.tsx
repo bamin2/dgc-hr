@@ -107,13 +107,13 @@ export function WelcomeCard() {
 
   return (
     <>
-      <BentoCard colSpan={5} className="flex flex-col gap-2 pb-3">
+      <BentoCard colSpan={5} className="flex flex-col gap-4">
         {/* Header row with date pill */}
         <div className="flex items-start justify-between">
-          <div className="space-y-0.5">
-            <h1 className="text-lg font-semibold text-foreground flex items-center gap-2">
+          <div className="space-y-1">
+            <h1 className="text-xl font-semibold text-foreground flex items-center gap-2">
               {getGreeting()}, {firstName}!
-              <Sparkles className="h-4 w-4 text-primary" />
+              <Sparkles className="h-5 w-5 text-primary" />
             </h1>
             <p className="text-sm text-muted-foreground">
               Here's what's happening today
@@ -129,43 +129,43 @@ export function WelcomeCard() {
         {/* Today Snapshot Strip */}
         {isStatsLoading ? (
           <div className={cn(
-            "grid gap-2",
+            "grid gap-3",
             showApprovals ? "grid-cols-1 sm:grid-cols-3" : "grid-cols-1 sm:grid-cols-2"
           )}>
             {Array.from({ length: showApprovals ? 3 : 2 }).map((_, i) => (
-              <Skeleton key={i} className="h-12 rounded-lg" />
+              <Skeleton key={i} className="h-14 rounded-lg" />
             ))}
           </div>
         ) : (
           <div className={cn(
-            "grid gap-2",
+            "grid gap-3",
             showApprovals ? "grid-cols-1 sm:grid-cols-3" : "grid-cols-1 sm:grid-cols-2"
           )}>
             {/* Next Leave */}
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary/30">
-              <CalendarCheck className="h-4 w-4 text-primary shrink-0" />
+            <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-secondary/30">
+              <CalendarCheck className="h-5 w-5 text-primary shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs text-muted-foreground">Next Leave</p>
-                <p className="text-sm font-medium truncate">{nextLeaveDisplay}</p>
+                <p className="text-base font-semibold truncate">{nextLeaveDisplay}</p>
               </div>
             </div>
 
             {/* Pending Requests */}
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary/30">
-              <Clock className="h-4 w-4 text-amber-500 shrink-0" />
+            <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-secondary/30">
+              <Clock className="h-5 w-5 text-amber-500 shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs text-muted-foreground">Pending</p>
-                <p className="text-sm font-medium">{pendingRequests}</p>
+                <p className="text-base font-semibold">{pendingRequests}</p>
               </div>
             </div>
 
             {/* Approvals Waiting (manager only) */}
             {showApprovals && (
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary/30">
-                <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
+              <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-secondary/30">
+                <CheckCircle className="h-5 w-5 text-green-500 shrink-0" />
                 <div className="min-w-0">
                   <p className="text-xs text-muted-foreground">To Approve</p>
-                  <p className="text-sm font-medium">{approvalsWaiting}</p>
+                  <p className="text-base font-semibold">{approvalsWaiting}</p>
                 </div>
               </div>
             )}
@@ -173,7 +173,7 @@ export function WelcomeCard() {
         )}
 
         {/* Quick actions grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {actions.map((action) => {
             const Icon = action.icon;
             return (
@@ -181,7 +181,7 @@ export function WelcomeCard() {
                 key={action.label}
                 onClick={action.onClick}
                 className={cn(
-                  "flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl",
+                  "flex flex-col items-center justify-center gap-2 p-4 rounded-xl",
                   "bg-secondary/20 dark:bg-white/[0.04]",
                   "hover:bg-secondary/35 dark:hover:bg-white/[0.08]",
                   "active:bg-secondary/45 dark:active:bg-white/[0.12]",
@@ -190,8 +190,8 @@ export function WelcomeCard() {
                   "text-foreground"
                 )}
               >
-                <Icon className="h-5 w-5 text-primary" />
-                <span className="text-xs font-medium text-center leading-tight">{action.label}</span>
+                <Icon className="h-6 w-6 text-primary" />
+                <span className="text-sm font-medium text-center leading-tight">{action.label}</span>
               </button>
             );
           })}
