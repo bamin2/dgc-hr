@@ -61,7 +61,7 @@ export function ProjectDetailSheet({ project, open, onOpenChange, onAddComment, 
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-[480px] overflow-y-auto">
+      <SheetContent className="sm:max-w-[480px]">
         <SheetHeader className="pb-4">
           <div className="flex items-start justify-between">
             <div className="flex-1">
