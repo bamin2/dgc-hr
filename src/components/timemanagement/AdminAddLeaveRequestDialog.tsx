@@ -197,12 +197,10 @@ export function AdminAddLeaveRequestDialog({ open, onOpenChange }: AdminAddLeave
                     <PopoverContent
                       className="w-[--radix-popover-trigger-width] p-0"
                       align="start"
-                      onWheel={(e) => e.stopPropagation()}
-                      onTouchMove={(e) => e.stopPropagation()}
                     >
                       <Command shouldFilter={false}>
                         <CommandInput placeholder="Search employees..." value={empSearch} onValueChange={setEmpSearch} />
-                        <CommandList className="max-h-[240px] overflow-y-auto overscroll-contain">
+                        <CommandList>
                           <CommandEmpty>{loadingEmployees ? 'Loading employees...' : 'No employee found.'}</CommandEmpty>
                           <CommandGroup>
                             {filteredEmps?.map((emp) => (

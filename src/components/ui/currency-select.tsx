@@ -61,7 +61,7 @@ export function CurrencySelect({
           <CommandInput placeholder="Search currency..." />
           <CommandList>
             <CommandEmpty>No currency found.</CommandEmpty>
-            <CommandGroup className="max-h-[300px] overflow-y-auto">
+            <CommandGroup>
               {currencyList.map((currency) => (
                 <CommandItem
                   key={currency.code}

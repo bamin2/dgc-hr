@@ -111,7 +111,7 @@ export function ApprovalSettingsTab() {
                   <CommandInput placeholder="Search employees..." />
                   <CommandList>
                     <CommandEmpty>No employee found.</CommandEmpty>
-                    <CommandGroup className="max-h-[300px] overflow-y-auto">
+                    <CommandGroup>
                       {employees?.map((employee) => (
                         <CommandItem
                           key={employee.id}
