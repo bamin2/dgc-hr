@@ -1,9 +1,9 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format, differenceInCalendarDays } from 'date-fns';
-import { CalendarIcon, Plus, Search } from 'lucide-react';
+import { CalendarIcon, Plus, Check, ChevronsUpDown } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
