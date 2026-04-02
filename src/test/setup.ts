@@ -1,4 +1,5 @@
-import '@testing-library/jest-dom/vitest';
+// @ts-expect-error - jest-dom type declarations
+import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 
 // Mock matchMedia for components that use it
