@@ -1,78 +1,59 @@
 
-## Fix employee dropdown scrolling in the actual dialog in use
 
-### What I found
-The active component is `src/components/timemanagement/AdminAddLeaveRequestDialog.tsx`, used by `src/components/timemanagement/LeavesTab.tsx`.
+# Fix Dialog & Sheet Alignment Issues Across Loan Components
 
-The employee list still feels non-scrollable because the scroll constraint is applied to `CommandList`, while the actual item wrapper is `CommandGroup`. In this codebase, the working pattern used elsewhere is:
+## Problem Identified
+The `LoanDetailSheet` has a structural conflict: `SheetContent` wraps children in `<div class="flex flex-col h-full overflow-hidden">`, but the component puts `overflow-y-auto` on `SheetContent` itself and dumps all content into a raw `<div class="mt-6 space-y-6">` without using the `SheetBody` layout primitive. This causes:
+- Scroll behavior conflicts (overflow-hidden vs overflow-y-auto)
+- Content not properly contained within the sheet's flex layout
+- No proper padding structure (content uses inline padding inconsistently)
 
-- `CommandList` as the outer list
-- `CommandGroup className="max-h-[300px] overflow-y-auto"` as the scrollable region
+## Changes
 
-Right now this dialog uses:
-- `CommandList className="max-h-[200px] overflow-y-auto"`
-- plain `CommandGroup`
+### 1. Fix `LoanDetailSheet.tsx` — use proper Sheet layout primitives
+- Remove `overflow-y-auto` from `SheetContent` className
+- Wrap the main content in `SheetBody` (provides `flex-1 overflow-y-auto px-6`)
+- Remove `mt-6` from the content wrapper (SheetHeader already has `p-6` bottom padding)
+- Keep `space-y-6` for internal spacing
+- Move the sub-dialogs (Delete, Payment, Restructure, Skip, Approval) outside the `Sheet` component entirely — they are currently siblings of `SheetContent` inside `Sheet`, which is correct, but ensure they render properly
 
-That mismatch is likely why the list still doesn’t scroll reliably inside the nested Popover/Dialog setup.
+### 2. Fix other Sheet-based components with the same pattern
+- `ProjectDetailSheet.tsx` — same issue: `overflow-y-auto` on `SheetContent`, raw div content
+- `EventDetailSheet.tsx` — check and fix if same pattern
+- `CandidatesList.tsx` sheets — same `overflow-y-auto` on `SheetContent`
 
-### Plan
-1. Update the employee picker in `src/components/timemanagement/AdminAddLeaveRequestDialog.tsx`
-   - Remove the height/overflow classes from `CommandList`
-   - Move the scroll behavior to `CommandGroup`
-   - Use the same working pattern already used in `ApprovalSettingsTab`
+### 3. Audit Dialog components for alignment
+The following loan dialogs use `DialogContent` correctly but have minor inconsistencies:
+- `CreateLoanDialog` — uses `size="xl"` with `max-h-[85vh] overflow-y-auto`, structure is fine
+- `LoanApprovalDialog` — uses `size="lg"`, content directly inside `DialogContent`, no body wrapper needed (short content)
+- `AdHocPaymentDialog` — uses `size="md"`, structure is fine
+- `RestructureLoanDialog` — uses `size="lg"`, structure is fine
+- `DeleteLoanDialog` — AlertDialog, structure is fine
+- `SkipInstallmentDialog` — Dialog, structure is fine
+- `EmployeeRequestLoanDialog` — uses `size="lg"` with `max-h-[90vh] overflow-y-auto`, structure is fine
 
-2. Improve the scroll container behavior
-   - Give `CommandGroup` a fixed max height such as `max-h-[240px]` or `max-h-[300px]`
-   - Add `overflow-y-auto`
-   - Optionally add a little right padding so the scrollbar does not crowd the content
+No major issues in the Dialog-based components. The primary fix is the Sheet components.
 
-3. Keep the current search behavior intact
-   - Preserve `shouldFilter={false}`
-   - Preserve manual `empSearch` filtering
-   - Do not change the fetch/query logic since that issue is already fixed
+## Technical Details
 
-4. Keep the popover compact and stable
-   - Leave `PopoverContent` width behavior as-is
-   - Avoid changing layout outside the employee dropdown
+### File: `src/components/loans/LoanDetailSheet.tsx`
+- Import `SheetBody` from `@/components/ui/sheet`
+- Change `SheetContent className="w-full sm:max-w-xl overflow-y-auto"` → `SheetContent className="w-full sm:max-w-xl"`
+- Wrap lines 105-289 (the `<div className="mt-6 space-y-6">...</div>`) in `<SheetBody>` and change inner div to `<div className="space-y-6 pb-6">`
+- Also wrap the loading spinner in `<SheetBody>`
 
-### Exact change shape
-Current structure:
-```tsx
-<Command shouldFilter={false}>
-  <CommandInput ... />
-  <CommandList className="max-h-[200px] overflow-y-auto">
-    <CommandEmpty ... />
-    <CommandGroup>
-      ...
-    </CommandGroup>
-  </CommandList>
-</Command>
-```
+### File: `src/components/projects/ProjectDetailSheet.tsx`
+- Same pattern: import `SheetBody`, remove `overflow-y-auto` from `SheetContent`, wrap content in `SheetBody`
 
-Planned structure:
-```tsx
-<Command shouldFilter={false}>
-  <CommandInput ... />
-  <CommandList>
-    <CommandEmpty ... />
-    <CommandGroup className="max-h-[240px] overflow-y-auto">
-      ...
-    </CommandGroup>
-  </CommandList>
-</Command>
-```
+### File: `src/components/calendar/EventDetailSheet.tsx`
+- Same fix if applicable
 
-### Expected result
-- Mouse wheel scrolling works inside the employee dropdown
-- Trackpad/touchpad scrolling works
-- The list remains searchable
-- The dropdown stays compact and usable even with many employees
+### File: `src/components/hiring/candidates/CandidatesList.tsx`
+- Fix the 3 sheet instances that use `overflow-y-auto` on `SheetContent`
 
-### Technical details
-Files to update:
-- `src/components/timemanagement/AdminAddLeaveRequestDialog.tsx`
+## Impact
+- Proper scrolling in all sheet panels
+- Consistent padding and alignment
+- No visual overflow or clipping issues
+- Header stays fixed at top while body scrolls
 
-Pattern reference already in codebase:
-- `src/components/settings/approvals/ApprovalSettingsTab.tsx`
-
-If needed during implementation, I would also add `overscroll-contain` to the scrollable group to prevent scroll chaining into the dialog, but only if the first fix alone does not fully solve it.
