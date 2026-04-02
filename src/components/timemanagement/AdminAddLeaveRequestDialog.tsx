@@ -95,14 +95,7 @@ export function AdminAddLeaveRequestDialog({ open, onOpenChange }: AdminAddLeave
     return watchIsHalfDay ? 0.5 : days;
   })();
 
-  const filteredEmployees = useMemo(() => {
-    if (!employees) return [];
-    if (!employeeSearch) return employees;
-    const q = employeeSearch.toLowerCase();
-    return employees.filter(e =>
-      `${e.first_name} ${e.last_name}`.toLowerCase().includes(q)
-    );
-  }, [employees, employeeSearch]);
+  const selectedEmployee = employees?.find(e => e.id === watchEmployeeId);
 
   const handleSubmit = async (data: FormData) => {
     setIsSubmitting(true);
