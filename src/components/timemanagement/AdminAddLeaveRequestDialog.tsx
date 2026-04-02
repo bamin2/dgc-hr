@@ -162,47 +162,74 @@ export function AdminAddLeaveRequestDialog({ open, onOpenChange }: AdminAddLeave
               control={form.control}
               name="employeeId"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="flex flex-col">
                   <FormLabel>Employee</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select employee" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <div className="px-2 pb-2">
-                        <div className="relative">
-                          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            placeholder="Search employees..."
-                            className="pl-8 h-9"
-                            value={employeeSearch}
-                            onChange={(e) => setEmployeeSearch(e.target.value)}
-                            onKeyDown={(e) => e.stopPropagation()}
-                          />
-                        </div>
-                      </div>
-                      {filteredEmployees.map((emp) => (
-                        <SelectItem key={emp.id} value={emp.id}>
-                          <div className="flex items-center gap-2">
-                            <Avatar className="h-5 w-5">
-                              <AvatarImage src={emp.avatar_url || undefined} />
-                              <AvatarFallback className="text-[10px]">
-                                {emp.first_name?.[0]}{emp.last_name?.[0]}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span>{emp.first_name} {emp.last_name}</span>
-                            {(emp.department as any)?.name && (
-                              <span className="text-xs text-muted-foreground">
-                                · {(emp.department as any).name}
-                              </span>
-                            )}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Popover open={employeePopoverOpen} onOpenChange={setEmployeePopoverOpen}>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className={cn(
+                            'w-full justify-between font-normal',
+                            !field.value && 'text-muted-foreground'
+                          )}
+                        >
+                          {selectedEmployee ? (
+                            <div className="flex items-center gap-2">
+                              <Avatar className="h-5 w-5">
+                                <AvatarImage src={selectedEmployee.avatar_url || undefined} />
+                                <AvatarFallback className="text-[10px]">
+                                  {selectedEmployee.first_name?.[0]}{selectedEmployee.last_name?.[0]}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span>{selectedEmployee.first_name} {selectedEmployee.last_name}</span>
+                            </div>
+                          ) : (
+                            'Select employee...'
+                          )}
+                          <ChevronsUpDown className="ml-auto h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                      <Command>
+                        <CommandInput placeholder="Search employees..." />
+                        <CommandList>
+                          <CommandEmpty>No employee found.</CommandEmpty>
+                          <CommandGroup>
+                            {employees?.map((emp) => (
+                              <CommandItem
+                                key={emp.id}
+                                value={`${emp.first_name} ${emp.last_name}`}
+                                onSelect={() => {
+                                  field.onChange(emp.id);
+                                  setEmployeePopoverOpen(false);
+                                }}
+                              >
+                                <Avatar className="h-5 w-5 mr-2">
+                                  <AvatarImage src={emp.avatar_url || undefined} />
+                                  <AvatarFallback className="text-[10px]">
+                                    {emp.first_name?.[0]}{emp.last_name?.[0]}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <span>{emp.first_name} {emp.last_name}</span>
+                                {(emp.department as any)?.name && (
+                                  <span className="text-xs text-muted-foreground ml-1">
+                                    · {(emp.department as any).name}
+                                  </span>
+                                )}
+                                <Check className={cn(
+                                  'ml-auto h-4 w-4',
+                                  field.value === emp.id ? 'opacity-100' : 'opacity-0'
+                                )} />
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   <FormMessage />
                 </FormItem>
               )}
