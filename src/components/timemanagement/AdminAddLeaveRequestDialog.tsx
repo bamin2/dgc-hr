@@ -197,8 +197,6 @@ export function AdminAddLeaveRequestDialog({ open, onOpenChange }: AdminAddLeave
                     <PopoverContent
                       className="w-[--radix-popover-trigger-width] p-0"
                       align="start"
-                      onWheel={(e) => e.stopPropagation()}
-                      onTouchMove={(e) => e.stopPropagation()}
                     >
                       <Command shouldFilter={false}>
                         <CommandInput placeholder="Search employees..." value={empSearch} onValueChange={setEmpSearch} />
