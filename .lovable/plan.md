@@ -1,49 +1,56 @@
 
-## Fix the employee dropdown scroll issue in the actual Add Leave Request dialog
 
-### What I found
-The active component is `src/components/timemanagement/AdminAddLeaveRequestDialog.tsx`.
+# Standardize Scrollable Command Dropdowns
 
-The employee picker already has:
-- manual filtering with `shouldFilter={false}`
-- a scrollable `CommandGroup`
+## Problem
+Scrollable dropdowns are implemented inconsistently across the app:
+- Some put scroll classes on `CommandGroup`, some on `CommandList`, some on both
+- The `CommandList` primitive already has `max-h-[300px] overflow-y-auto` built in, but components override or duplicate this
+- Popovers inside Dialogs need `onWheel`/`onTouchMove` stopPropagation to prevent scroll locking — this is only done in one place
 
-So the remaining problem is not the search logic. The likely issue is the interaction between:
-- `Dialog` modal scroll locking
-- a portalled `PopoverContent`
-- nested `CommandList` / `CommandGroup` overflow containers
+## Solution
 
-This is a common Radix pattern where mouse-wheel scrolling fails even though the list visually looks scrollable.
+### 1. Update `CommandList` primitive (`src/components/ui/command.tsx`)
+Add `overscroll-contain` to the default `CommandList` styles so every dropdown automatically prevents scroll chaining:
+```
+"max-h-[300px] overflow-y-auto overflow-x-hidden overscroll-contain"
+```
 
-### Plan
-1. Simplify the employee list to a single scroll container
-   - Keep `CommandList` as the only scrollable region
-   - Remove extra overflow handling from `CommandGroup`
-   - Give the list a clear max height (for example `max-h-[280px]`)
+### 2. Remove redundant scroll classes from individual components
+These components add `max-h-[300px] overflow-y-auto` to `CommandGroup` when `CommandList` already handles it:
 
-2. Make the employee popover work correctly inside the dialog
-   - Update the employee `Popover` to render in a dialog-friendly way so wheel/trackpad events are not blocked by the modal layer
-   - Use the established Radix-safe approach for popovers inside dialogs rather than relying on the default portal behavior
+| File | Change |
+|------|--------|
+| `src/components/ui/country-select.tsx` | Remove `className="max-h-[300px] overflow-y-auto"` from `CommandGroup` |
+| `src/components/ui/currency-select.tsx` | Remove `className="max-h-[300px] overflow-y-auto"` from `CommandGroup` |
+| `src/components/settings/approvals/ApprovalSettingsTab.tsx` | Remove `className="max-h-[300px] overflow-y-auto"` from `CommandGroup` |
+| `src/components/timemanagement/AdminAddLeaveRequestDialog.tsx` | Remove `className="max-h-[240px] overflow-y-auto overscroll-contain"` from `CommandList` (let primitive default handle it) |
 
-3. Keep the current employee search behavior
-   - Preserve `shouldFilter={false}`
-   - Preserve local `empSearch` + `filteredEmps`
-   - Do not change the employee query or selection logic
+### 3. Add `onWheel`/`onTouchMove` stopPropagation to `PopoverContent` primitive (`src/components/ui/popover.tsx`)
+This is the key fix for popovers inside dialogs. Add these handlers directly to the `PopoverContent` component so **all** popovers automatically handle scroll events correctly — no per-component workarounds needed:
+```tsx
+onWheel={(e) => e.stopPropagation()}
+onTouchMove={(e) => e.stopPropagation()}
+```
+Then remove these same handlers from `AdminAddLeaveRequestDialog.tsx` since they'll be inherited.
 
-4. Tighten the popover container sizing
-   - Ensure `PopoverContent` has a stable width and no conflicting overflow styles
-   - Keep the search input fixed at the top and only the results area scrollable
+### 4. Summary of files changed
 
-5. Verify the same pattern against existing comboboxes
-   - Align the final structure with the project’s other searchable pickers where possible
-   - Only update shared primitives if needed; otherwise keep the fix scoped to this dialog
+| File | What |
+|------|------|
+| `src/components/ui/command.tsx` | Add `overscroll-contain` to `CommandList` defaults |
+| `src/components/ui/popover.tsx` | Add `onWheel`/`onTouchMove` stopPropagation to `PopoverContent` |
+| `src/components/ui/country-select.tsx` | Remove redundant scroll classes from `CommandGroup` |
+| `src/components/ui/currency-select.tsx` | Remove redundant scroll classes from `CommandGroup` |
+| `src/components/ui/phone-input.tsx` | No change needed (already clean) |
+| `src/components/ui/multi-select.tsx` | No change needed (already clean) |
+| `src/components/settings/approvals/ApprovalSettingsTab.tsx` | Remove redundant scroll classes from `CommandGroup` |
+| `src/components/timemanagement/AdminAddLeaveRequestDialog.tsx` | Remove per-component overrides (scroll classes on `CommandList`, stopPropagation on `PopoverContent`) |
+| `src/components/dashboard/GlobalSearch.tsx` | No change needed (uses `CommandDialog`, not `Popover`) |
 
-### Expected implementation outcome
-- Employee list scrolls with mouse wheel and trackpad
-- Scroll remains smooth inside the modal dialog
-- Search still works
-- No change to layout, fields, or submit behavior
+### Result
+- Every `CommandList` is scrollable by default with consistent max height and overscroll behavior
+- Every `PopoverContent` handles scroll events safely inside modals
+- No per-component scroll hacks needed for current or future dropdowns
+- New dropdowns built with `Command` + `Popover` will just work
 
-### Files to update
-- `src/components/timemanagement/AdminAddLeaveRequestDialog.tsx`
-- Possibly `src/components/ui/popover.tsx` only if a scoped dialog-safe popover option is needed
