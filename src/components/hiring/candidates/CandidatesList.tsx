@@ -183,11 +183,13 @@ export function CandidatesList() {
 
       {/* Add Candidate Sheet */}
       <Sheet open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <SheetContent className="sm:max-w-lg overflow-y-auto">
+        <SheetContent className="sm:max-w-lg">
           <SheetHeader>
             <SheetTitle>Add Candidate</SheetTitle>
           </SheetHeader>
-          <CandidateForm onSuccess={() => setIsFormOpen(false)} />
+          <SheetBody>
+            <CandidateForm onSuccess={() => setIsFormOpen(false)} />
+          </SheetBody>
         </SheetContent>
       </Sheet>
 
