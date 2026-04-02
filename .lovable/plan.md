@@ -1,55 +1,78 @@
 
-Root cause is now clear from the actual code and network logs:
+## Fix employee dropdown scrolling in the actual dialog in use
 
-- The employee picker is not empty because of cmdk filtering anymore.
-- It is empty because the employee fetch itself is failing.
-- `AdminAddLeaveRequestDialog` currently queries:
-  `department:departments(name)`
-- In this schema, `employees` and `departments` have more than one relationship, so Supabase returns:
-  `PGRST201 Could not embed because more than one relationship was found`
-- Because that query errors, `employees` becomes empty and the popover shows `No employee found`.
+### What I found
+The active component is `src/components/timemanagement/AdminAddLeaveRequestDialog.tsx`, used by `src/components/timemanagement/LeavesTab.tsx`.
 
-Plan
+The employee list still feels non-scrollable because the scroll constraint is applied to `CommandList`, while the actual item wrapper is `CommandGroup`. In this codebase, the working pattern used elsewhere is:
 
-1. Fix the employee query in `src/components/timemanagement/AdminAddLeaveRequestDialog.tsx`
-- Change the select to use the explicit relationship:
-  `department:departments!employees_department_id_fkey(name)`
-- Keep the rest of the active employee filtering and ordering the same.
+- `CommandList` as the outer list
+- `CommandGroup className="max-h-[300px] overflow-y-auto"` as the scrollable region
 
-2. Keep the manual employee search approach
-- Preserve `shouldFilter={false}` on `Command`
-- Preserve local `empSearch` + `filteredEmps`
-- This avoids the nested Dialog/Popover/cmdk filtering issue already identified.
+Right now this dialog uses:
+- `CommandList className="max-h-[200px] overflow-y-auto"`
+- plain `CommandGroup`
 
-3. Clean up the employee combobox trigger structure
-- Remove the extra `FormControl` wrapper around the `Button` inside `PopoverTrigger asChild`
-- The console warning shows a ref issue coming from that composition
-- Replace it with a structure that still keeps accessibility/message wiring but does not pass a ref into a non-forwardRef wrapper chain incorrectly
+That mismatch is likely why the list still doesn’t scroll reliably inside the nested Popover/Dialog setup.
 
-4. Add basic loading/error UX for the employee list
-- While `loadingEmployees`, show a lightweight loading state in the popover instead of “No employee found”
-- If the employee query errors, show a clear message like “Failed to load employees”
-- Only show “No employee found” when data loaded successfully and the filtered list is truly empty
+### Plan
+1. Update the employee picker in `src/components/timemanagement/AdminAddLeaveRequestDialog.tsx`
+   - Remove the height/overflow classes from `CommandList`
+   - Move the scroll behavior to `CommandGroup`
+   - Use the same working pattern already used in `ApprovalSettingsTab`
 
-5. Verify against existing project patterns
-- Match the explicit FK relation style already used elsewhere in the codebase for employees + departments
-- Keep all date pickers and the rest of the dialog behavior unchanged
+2. Improve the scroll container behavior
+   - Give `CommandGroup` a fixed max height such as `max-h-[240px]` or `max-h-[300px]`
+   - Add `overflow-y-auto`
+   - Optionally add a little right padding so the scrollbar does not crowd the content
 
-Technical details
+3. Keep the current search behavior intact
+   - Preserve `shouldFilter={false}`
+   - Preserve manual `empSearch` filtering
+   - Do not change the fetch/query logic since that issue is already fixed
 
+4. Keep the popover compact and stable
+   - Leave `PopoverContent` width behavior as-is
+   - Avoid changing layout outside the employee dropdown
+
+### Exact change shape
+Current structure:
+```tsx
+<Command shouldFilter={false}>
+  <CommandInput ... />
+  <CommandList className="max-h-[200px] overflow-y-auto">
+    <CommandEmpty ... />
+    <CommandGroup>
+      ...
+    </CommandGroup>
+  </CommandList>
+</Command>
+```
+
+Planned structure:
+```tsx
+<Command shouldFilter={false}>
+  <CommandInput ... />
+  <CommandList>
+    <CommandEmpty ... />
+    <CommandGroup className="max-h-[240px] overflow-y-auto">
+      ...
+    </CommandGroup>
+  </CommandList>
+</Command>
+```
+
+### Expected result
+- Mouse wheel scrolling works inside the employee dropdown
+- Trackpad/touchpad scrolling works
+- The list remains searchable
+- The dropdown stays compact and usable even with many employees
+
+### Technical details
 Files to update:
 - `src/components/timemanagement/AdminAddLeaveRequestDialog.tsx`
 
-Exact issue confirmed:
-```text
-GET /employees?select=id,first_name,last_name,avatar_url,department:departments(name)...
-Status: 300
-PGRST201: more than one relationship found for employees and departments
-Hint: use departments!employees_department_id_fkey
-```
+Pattern reference already in codebase:
+- `src/components/settings/approvals/ApprovalSettingsTab.tsx`
 
-Expected implementation outcome:
-- Employee list loads correctly
-- Search works
-- “No employee found” only appears for real empty search results
-- Ref warning is removed or reduced from the combobox trigger composition
+If needed during implementation, I would also add `overscroll-contain` to the scrollable group to prevent scroll chaining into the dialog, but only if the first fix alone does not fully solve it.
