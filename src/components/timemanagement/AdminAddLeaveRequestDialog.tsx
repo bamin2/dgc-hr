@@ -66,6 +66,7 @@ function useActiveEmployees() {
 export function AdminAddLeaveRequestDialog({ open, onOpenChange }: AdminAddLeaveRequestDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [employeePopoverOpen, setEmployeePopoverOpen] = useState(false);
+  const [empSearch, setEmpSearch] = useState('');
 
   const { data: employees, isLoading: loadingEmployees } = useActiveEmployees();
   const { data: leaveTypes, isLoading: loadingTypes } = useAllLeaveTypes();
@@ -96,6 +97,9 @@ export function AdminAddLeaveRequestDialog({ open, onOpenChange }: AdminAddLeave
   })();
 
   const selectedEmployee = employees?.find(e => e.id === watchEmployeeId);
+  const filteredEmps = employees?.filter(e =>
+    `${e.first_name} ${e.last_name}`.toLowerCase().includes(empSearch.toLowerCase())
+  );
 
   const handleSubmit = async (data: FormData) => {
     setIsSubmitting(true);
@@ -193,12 +197,12 @@ export function AdminAddLeaveRequestDialog({ open, onOpenChange }: AdminAddLeave
                       </FormControl>
                     </PopoverTrigger>
                     <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-                      <Command>
-                        <CommandInput placeholder="Search employees..." />
+                      <Command shouldFilter={false}>
+                        <CommandInput placeholder="Search employees..." value={empSearch} onValueChange={setEmpSearch} />
                         <CommandList>
                           <CommandEmpty>No employee found.</CommandEmpty>
                           <CommandGroup>
-                            {employees?.map((emp) => (
+                            {filteredEmps?.map((emp) => (
                               <CommandItem
                                 key={emp.id}
                                 value={`${emp.first_name} ${emp.last_name}`}
