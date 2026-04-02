@@ -111,7 +111,7 @@ export function LeavesTab() {
 
       {/* Leave Requests Tab */}
       <TabsContent value="requests" className="space-y-6">
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
           <Select
             value={leaveStatusFilter}
             onValueChange={(value) =>
@@ -128,6 +128,12 @@ export function LeavesTab() {
               <SelectItem value="rejected">Rejected</SelectItem>
             </SelectContent>
           </Select>
+          {canAddLeave && (
+            <Button onClick={() => setIsAddLeaveOpen(true)} size="sm">
+              <Plus className="h-4 w-4 mr-1" />
+              Add Leave Request
+            </Button>
+          )}
         </div>
         {requestsLoading ? (
           <div className="space-y-3">
