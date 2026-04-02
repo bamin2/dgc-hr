@@ -1,9 +1,9 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format, differenceInCalendarDays } from 'date-fns';
-import { CalendarIcon, Plus, Search } from 'lucide-react';
+import { CalendarIcon, Plus, Check, ChevronsUpDown } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
@@ -16,7 +16,9 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
+import {
+  Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
+} from '@/components/ui/command';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -63,7 +65,7 @@ function useActiveEmployees() {
 
 export function AdminAddLeaveRequestDialog({ open, onOpenChange }: AdminAddLeaveRequestDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [employeeSearch, setEmployeeSearch] = useState('');
+  const [employeePopoverOpen, setEmployeePopoverOpen] = useState(false);
 
   const { data: employees, isLoading: loadingEmployees } = useActiveEmployees();
   const { data: leaveTypes, isLoading: loadingTypes } = useAllLeaveTypes();
@@ -93,14 +95,7 @@ export function AdminAddLeaveRequestDialog({ open, onOpenChange }: AdminAddLeave
     return watchIsHalfDay ? 0.5 : days;
   })();
 
-  const filteredEmployees = useMemo(() => {
-    if (!employees) return [];
-    if (!employeeSearch) return employees;
-    const q = employeeSearch.toLowerCase();
-    return employees.filter(e =>
-      `${e.first_name} ${e.last_name}`.toLowerCase().includes(q)
-    );
-  }, [employees, employeeSearch]);
+  const selectedEmployee = employees?.find(e => e.id === watchEmployeeId);
 
   const handleSubmit = async (data: FormData) => {
     setIsSubmitting(true);
@@ -134,7 +129,6 @@ export function AdminAddLeaveRequestDialog({ open, onOpenChange }: AdminAddLeave
 
       toast.success('Leave request added successfully');
       form.reset();
-      setEmployeeSearch('');
       onOpenChange(false);
     } catch (error: any) {
       toast.error(`Failed to add leave request: ${error.message}`);
@@ -145,7 +139,6 @@ export function AdminAddLeaveRequestDialog({ open, onOpenChange }: AdminAddLeave
 
   const handleClose = () => {
     form.reset();
-    setEmployeeSearch('');
     onOpenChange(false);
   };
 
@@ -169,47 +162,74 @@ export function AdminAddLeaveRequestDialog({ open, onOpenChange }: AdminAddLeave
               control={form.control}
               name="employeeId"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="flex flex-col">
                   <FormLabel>Employee</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select employee" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <div className="px-2 pb-2">
-                        <div className="relative">
-                          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            placeholder="Search employees..."
-                            className="pl-8 h-9"
-                            value={employeeSearch}
-                            onChange={(e) => setEmployeeSearch(e.target.value)}
-                            onKeyDown={(e) => e.stopPropagation()}
-                          />
-                        </div>
-                      </div>
-                      {filteredEmployees.map((emp) => (
-                        <SelectItem key={emp.id} value={emp.id}>
-                          <div className="flex items-center gap-2">
-                            <Avatar className="h-5 w-5">
-                              <AvatarImage src={emp.avatar_url || undefined} />
-                              <AvatarFallback className="text-[10px]">
-                                {emp.first_name?.[0]}{emp.last_name?.[0]}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span>{emp.first_name} {emp.last_name}</span>
-                            {(emp.department as any)?.name && (
-                              <span className="text-xs text-muted-foreground">
-                                · {(emp.department as any).name}
-                              </span>
-                            )}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Popover open={employeePopoverOpen} onOpenChange={setEmployeePopoverOpen}>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className={cn(
+                            'w-full justify-between font-normal',
+                            !field.value && 'text-muted-foreground'
+                          )}
+                        >
+                          {selectedEmployee ? (
+                            <div className="flex items-center gap-2">
+                              <Avatar className="h-5 w-5">
+                                <AvatarImage src={selectedEmployee.avatar_url || undefined} />
+                                <AvatarFallback className="text-[10px]">
+                                  {selectedEmployee.first_name?.[0]}{selectedEmployee.last_name?.[0]}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span>{selectedEmployee.first_name} {selectedEmployee.last_name}</span>
+                            </div>
+                          ) : (
+                            'Select employee...'
+                          )}
+                          <ChevronsUpDown className="ml-auto h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                      <Command>
+                        <CommandInput placeholder="Search employees..." />
+                        <CommandList>
+                          <CommandEmpty>No employee found.</CommandEmpty>
+                          <CommandGroup>
+                            {employees?.map((emp) => (
+                              <CommandItem
+                                key={emp.id}
+                                value={`${emp.first_name} ${emp.last_name}`}
+                                onSelect={() => {
+                                  field.onChange(emp.id);
+                                  setEmployeePopoverOpen(false);
+                                }}
+                              >
+                                <Avatar className="h-5 w-5 mr-2">
+                                  <AvatarImage src={emp.avatar_url || undefined} />
+                                  <AvatarFallback className="text-[10px]">
+                                    {emp.first_name?.[0]}{emp.last_name?.[0]}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <span>{emp.first_name} {emp.last_name}</span>
+                                {(emp.department as any)?.name && (
+                                  <span className="text-xs text-muted-foreground ml-1">
+                                    · {(emp.department as any).name}
+                                  </span>
+                                )}
+                                <Check className={cn(
+                                  'ml-auto h-4 w-4',
+                                  field.value === emp.id ? 'opacity-100' : 'opacity-0'
+                                )} />
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   <FormMessage />
                 </FormItem>
               )}
