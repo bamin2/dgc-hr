@@ -198,7 +198,7 @@ export function AdminAddLeaveRequestDialog({ open, onOpenChange }: AdminAddLeave
                       <Command shouldFilter={false}>
                         <CommandInput placeholder="Search employees..." value={empSearch} onValueChange={setEmpSearch} />
                         <CommandList>
-                          <CommandEmpty>No employee found.</CommandEmpty>
+                          <CommandEmpty>{loadingEmployees ? 'Loading employees...' : 'No employee found.'}</CommandEmpty>
                           <CommandGroup>
                             {filteredEmps?.map((emp) => (
                               <CommandItem
