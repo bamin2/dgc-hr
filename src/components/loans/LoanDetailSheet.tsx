@@ -289,6 +289,7 @@ export function LoanDetailSheet({ loanId, open, onOpenChange }: LoanDetailSheetP
             )}
           </div>
         ) : null}
+        </SheetBody>
       </SheetContent>
 
       {/* Delete Dialog */}

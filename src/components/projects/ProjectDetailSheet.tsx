@@ -179,9 +179,10 @@ export function ProjectDetailSheet({ project, open, onOpenChange, onAddComment, 
             Edit Project
           </Button>
           <Button variant="destructive" className="flex-1" onClick={handleDelete}>
-            Delete
+          Delete
           </Button>
         </div>
+        </SheetBody>
       </SheetContent>
     </Sheet>
   );

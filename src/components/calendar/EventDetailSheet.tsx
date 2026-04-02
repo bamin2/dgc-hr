@@ -240,6 +240,7 @@ export function EventDetailSheet({
             </Button>
           </div>
         </div>
+        </SheetBody>
       </SheetContent>
     </Sheet>
   );

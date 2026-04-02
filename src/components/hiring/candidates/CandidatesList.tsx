@@ -211,14 +211,16 @@ export function CandidatesList() {
 
       {/* Edit Candidate Sheet */}
       <Sheet open={!!candidateToEdit} onOpenChange={(open) => !open && setCandidateToEdit(null)}>
-        <SheetContent className="sm:max-w-lg overflow-y-auto">
+        <SheetContent className="sm:max-w-lg">
           <SheetHeader>
             <SheetTitle>Edit Candidate</SheetTitle>
           </SheetHeader>
-          <CandidateForm 
-            candidate={candidateToEdit} 
-            onSuccess={() => setCandidateToEdit(null)} 
-          />
+          <SheetBody>
+            <CandidateForm 
+              candidate={candidateToEdit} 
+              onSuccess={() => setCandidateToEdit(null)} 
+            />
+          </SheetBody>
         </SheetContent>
       </Sheet>
 
