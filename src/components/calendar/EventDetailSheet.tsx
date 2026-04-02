@@ -149,7 +149,8 @@ export function EventDetailSheet({
           <SheetDescription>{event.description}</SheetDescription>
         </SheetHeader>
 
-        <div className="mt-6 space-y-6">
+        <SheetBody>
+        <div className="space-y-6 pb-6">
           {/* Date and Time */}
           <div className="space-y-3">
             <div className="flex items-center gap-3 text-sm">
