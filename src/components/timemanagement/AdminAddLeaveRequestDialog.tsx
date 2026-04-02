@@ -97,6 +97,9 @@ export function AdminAddLeaveRequestDialog({ open, onOpenChange }: AdminAddLeave
   })();
 
   const selectedEmployee = employees?.find(e => e.id === watchEmployeeId);
+  const filteredEmps = employees?.filter(e =>
+    `${e.first_name} ${e.last_name}`.toLowerCase().includes(empSearch.toLowerCase())
+  );
 
   const handleSubmit = async (data: FormData) => {
     setIsSubmitting(true);
