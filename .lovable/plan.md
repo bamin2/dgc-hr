@@ -1,98 +1,41 @@
 
 
-# Transform "My Team" Card to "Who's Off" Card
+# Add "Add Leave Request" Button for HR/Admin in Leave Requests Tab
 
 ## Overview
-Refocus the card from general team information to specifically showing upcoming team member absences. The card will display the next 3-4 employees who will be on leave with their leave dates.
+Add an "Add Leave Request" button in the Leave Requests sub-tab of Time Management. This button is visible only to HR and Super Admin roles. It opens a dialog similar to the existing `AdminAddLeaveDialog` but with an employee selector, and uses `useAllLeaveTypes()` (all types regardless of visibility).
 
-## Changes Summary
+## Changes
 
-| Current | New |
-|---------|-----|
-| Title: "My Team" | Title: "Who's Off" |
-| Users icon | CalendarOff or UserMinus icon |
-| Shows team member count badge | Remove or show "X upcoming" count |
-| "Upcoming Time Off" sub-header | Remove (redundant with new title) |
-| Shows 2 employees | Shows 3-4 employees |
-| "Open Directory" button | "View Calendar" or similar button |
+### 1. New Component: `src/components/timemanagement/AdminAddLeaveRequestDialog.tsx`
+Based on the existing `AdminAddLeaveDialog` but with these differences:
+- **Employee picker**: Add an employee `Select` dropdown (fetched from employees table) with search
+- **All leave types**: Use `useAllLeaveTypes()` instead of `useActiveLeaveTypes()` so hidden types also appear
+- **No `employeeId` prop**: The employee is selected inside the dialog
+- Same submission logic: inserts directly as `approved`, updates leave balance
 
-## Visual Comparison
+### 2. Update: `src/components/timemanagement/LeavesTab.tsx`
+- Import `useRole` to check permissions
+- Import the new `AdminAddLeaveRequestDialog`
+- Add state `isAddLeaveOpen`
+- In the Leave Requests tab toolbar (lines 108-126), add an "Add Leave Request" button next to the status filter, conditionally rendered when user `hasRole('hr') || hasRole('admin')`
+- Render the dialog at the bottom of the component
 
-**Before:**
-```
-┌─────────────────────────────────────┐
-│ 👥 My Team                 3 members│
-│                                     │
-│ UPCOMING TIME OFF                   │
-│ ┌─────────────────────────────────┐ │
-│ │ AB  Alice Brown                 │ │
-│ │     📅 Feb 15 - Feb 18          │ │
-│ └─────────────────────────────────┘ │
-│ ┌─────────────────────────────────┐ │
-│ │ JD  John Doe                    │ │
-│ │     📅 Feb 20 - Feb 22          │ │
-│ └─────────────────────────────────┘ │
-│                                     │
-│ [ Open Directory → ]                │
-└─────────────────────────────────────┘
-```
+### 3. Employee Data
+- Use a simple query to fetch employees for the selector: `supabase.from('employees').select('id, first_name, last_name, avatar_url, department:departments(name)').eq('status', 'active').order('first_name')`
+- Or reuse an existing employees hook if available
 
-**After:**
-```
-┌─────────────────────────────────────┐
-│ 📅 Who's Off               3 upcoming│
-│                                     │
-│ ┌─────────────────────────────────┐ │
-│ │ AB  Alice Brown     Feb 15 - 18 │ │
-│ └─────────────────────────────────┘ │
-│ ┌─────────────────────────────────┐ │
-│ │ JD  John Doe        Feb 20 - 22 │ │
-│ └─────────────────────────────────┘ │
-│ ┌─────────────────────────────────┐ │
-│ │ SM  Sarah Miller    Feb 25 - 28 │ │
-│ └─────────────────────────────────┘ │
-│                                     │
-│ [ View Calendar → ]                 │
-└─────────────────────────────────────┘
-```
+## Technical Details
 
-## Technical Changes
+**Dialog form fields (in order):**
+1. Employee selector (searchable select with avatar + name + department)
+2. Leave type selector (all types via `useAllLeaveTypes()`)
+3. Start date / End date (Popover + Calendar)
+4. Half day checkbox (single day only)
+5. Days count display
+6. Reason/notes textarea
 
-### File: `src/components/dashboard/bento/MyTeamCard.tsx`
+**Role gating:** `useRole().hasRole('hr') || useRole().hasRole('admin')` controls button visibility.
 
-**1. Update imports (line 2)**
-- Replace `Users` icon with `CalendarOff` or `UserMinus` for the "off" concept
-
-**2. Header section (lines 37-45)**
-- Change title from "My Team" to "Who's Off"
-- Update icon to match new concept
-- Change badge from team count to upcoming absences count
-
-**3. Remove sub-header (lines 48-51)**
-- Remove the "Upcoming Time Off" label since it's now redundant with the card title
-
-**4. Increase displayed items (line 59)**
-- Change `.slice(0, 2)` to `.slice(0, 4)` to show 3-4 employees
-
-**5. Update empty state message (line 55)**
-- Change from "No one is out soon" to something like "No upcoming time off"
-
-**6. Update CTA button (lines 94-101)**
-- Change label from "Open Directory" to "View Calendar"
-- Navigate to `/time-off` or `/time-management` instead of `/employees`
-
-**7. Skeleton loading state (lines 23-26)**
-- Add additional skeleton rows to match the new 3-4 item display
-
-## Summary
-
-| Change | Location | Details |
-|--------|----------|---------|
-| Title & icon | Header | "My Team" → "Who's Off", new icon |
-| Badge | Header | Team count → upcoming count |
-| Sub-header | Content | Remove redundant label |
-| List items | Content | 2 → 4 employees |
-| Empty state | Content | Updated message |
-| CTA button | Footer | "Open Directory" → "View Calendar" |
-| Skeletons | Loading | Add 2 more rows |
+**On submit:** Same pattern as `AdminAddLeaveDialog` - insert with `status: 'approved'`, update leave balance, invalidate queries, show toast.
 
