@@ -139,7 +139,6 @@ export function AdminAddLeaveRequestDialog({ open, onOpenChange }: AdminAddLeave
 
   const handleClose = () => {
     form.reset();
-    setEmployeeSearch('');
     onOpenChange(false);
   };
 
