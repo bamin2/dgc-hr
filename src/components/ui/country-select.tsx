@@ -60,7 +60,7 @@ export function CountrySelect({
           <CommandInput placeholder="Search country..." />
           <CommandList>
             <CommandEmpty>No country found.</CommandEmpty>
-            <CommandGroup className="max-h-[300px] overflow-y-auto">
+            <CommandGroup>
               {countries.map((country) => (
                 <CommandItem
                   key={country.code}
