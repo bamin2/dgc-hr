@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { LayoutDashboard, FileText, Users, History, Calendar, ClipboardList } from 'lucide-react';
+import { LayoutDashboard, FileText, Users, History, Calendar, ClipboardList, Plus } from 'lucide-react';
 import {
   LeaveTypePoliciesTab,
   EmployeeBalancesTab,
@@ -23,6 +23,8 @@ import {
   LeaveRequestsTable,
 } from '@/components/attendance';
 import { useLeaveRequests, usePendingLeaveRequests, LeaveRequestStatus } from '@/hooks/useLeaveRequests';
+import { useRole } from '@/contexts/RoleContext';
+import { AdminAddLeaveRequestDialog } from './AdminAddLeaveRequestDialog';
 
 export function LeavesTab() {
   const [activeTab, setActiveTab] = useState('overview');
