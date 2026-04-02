@@ -71,6 +71,7 @@ export function ProjectDetailSheet({ project, open, onOpenChange, onAddComment, 
           </div>
         </SheetHeader>
 
+        <SheetBody>
         <Separator className="my-4" />
 
         {/* Status and Priority */}
