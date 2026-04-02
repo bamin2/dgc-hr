@@ -54,7 +54,7 @@ function useActiveEmployees() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('employees')
-        .select('id, first_name, last_name, avatar_url, department:departments(name)')
+        .select('id, first_name, last_name, avatar_url, department:departments!employees_department_id_fkey(name)')
         .eq('status', 'active')
         .order('first_name');
       if (error) throw error;
