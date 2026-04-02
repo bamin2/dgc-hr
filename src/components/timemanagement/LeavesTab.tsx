@@ -30,8 +30,8 @@ export function LeavesTab() {
   const [activeTab, setActiveTab] = useState('overview');
   const [leaveStatusFilter, setLeaveStatusFilter] = useState<LeaveRequestStatus | 'all'>('all');
   const [isAddLeaveOpen, setIsAddLeaveOpen] = useState(false);
-  const { userRoles } = useRole();
-  const canAddLeave = userRoles.includes('hr') || userRoles.includes('admin');
+  const { hasRole } = useRole();
+  const canAddLeave = hasRole('hr') || hasRole('admin');
 
   // Fetch leave data
   const { data: allLeaveRequests, isLoading: requestsLoading } = useLeaveRequests();
