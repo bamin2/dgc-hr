@@ -197,7 +197,7 @@ export function AdminAddLeaveRequestDialog({ open, onOpenChange }: AdminAddLeave
                     <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
                       <Command shouldFilter={false}>
                         <CommandInput placeholder="Search employees..." value={empSearch} onValueChange={setEmpSearch} />
-                        <CommandList>
+                        <CommandList className="max-h-[200px] overflow-y-auto">
                           <CommandEmpty>{loadingEmployees ? 'Loading employees...' : 'No employee found.'}</CommandEmpty>
                           <CommandGroup>
                             {filteredEmps?.map((emp) => (
