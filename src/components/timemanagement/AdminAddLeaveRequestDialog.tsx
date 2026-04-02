@@ -66,6 +66,7 @@ function useActiveEmployees() {
 export function AdminAddLeaveRequestDialog({ open, onOpenChange }: AdminAddLeaveRequestDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [employeePopoverOpen, setEmployeePopoverOpen] = useState(false);
+  const [empSearch, setEmpSearch] = useState('');
 
   const { data: employees, isLoading: loadingEmployees } = useActiveEmployees();
   const { data: leaveTypes, isLoading: loadingTypes } = useAllLeaveTypes();
