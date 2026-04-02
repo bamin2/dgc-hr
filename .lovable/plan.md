@@ -1,41 +1,33 @@
 
 
-# Add "Add Leave Request" Button for HR/Admin in Leave Requests Tab
+# Fix Employee Selector in Add Leave Request Dialog
 
-## Overview
-Add an "Add Leave Request" button in the Leave Requests sub-tab of Time Management. This button is visible only to HR and Super Admin roles. It opens a dialog similar to the existing `AdminAddLeaveDialog` but with an employee selector, and uses `useAllLeaveTypes()` (all types regardless of visibility).
+## Problem
+The employee dropdown in `AdminAddLeaveRequestDialog` shows no employees. The database has data and RLS policies are correct. The issue is a **UI conflict**: Radix `Select` has built-in typeahead filtering that interferes with the embedded search `Input`. Radix internally hides items that don't match its own typeahead buffer, making all items invisible.
+
+## Solution
+Replace the Radix `Select` with a `Popover` + `Command` (cmdk) pattern for the employee picker. This is the standard shadcn approach for searchable selects and is already used elsewhere in the project (e.g., `command.tsx` exists).
 
 ## Changes
 
-### 1. New Component: `src/components/timemanagement/AdminAddLeaveRequestDialog.tsx`
-Based on the existing `AdminAddLeaveDialog` but with these differences:
-- **Employee picker**: Add an employee `Select` dropdown (fetched from employees table) with search
-- **All leave types**: Use `useAllLeaveTypes()` instead of `useActiveLeaveTypes()` so hidden types also appear
-- **No `employeeId` prop**: The employee is selected inside the dialog
-- Same submission logic: inserts directly as `approved`, updates leave balance
+### File: `src/components/timemanagement/AdminAddLeaveRequestDialog.tsx`
 
-### 2. Update: `src/components/timemanagement/LeavesTab.tsx`
-- Import `useRole` to check permissions
-- Import the new `AdminAddLeaveRequestDialog`
-- Add state `isAddLeaveOpen`
-- In the Leave Requests tab toolbar (lines 108-126), add an "Add Leave Request" button next to the status filter, conditionally rendered when user `hasRole('hr') || hasRole('admin')`
-- Render the dialog at the bottom of the component
+**1. Update imports**
+- Remove `Select, SelectContent, SelectItem, SelectTrigger, SelectValue`
+- Remove `Search`, `Input` (no longer needed for custom search)
+- Add `Popover, PopoverContent, PopoverTrigger` and `Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem`
+- Add `Check` icon from lucide for selected state
 
-### 3. Employee Data
-- Use a simple query to fetch employees for the selector: `supabase.from('employees').select('id, first_name, last_name, avatar_url, department:departments(name)').eq('status', 'active').order('first_name')`
-- Or reuse an existing employees hook if available
+**2. Replace employee `Select` block (lines 168-216) with Popover + Command**
+- `Popover` wrapping a `Button` trigger that shows selected employee name or "Select employee..."
+- `PopoverContent` containing `Command` with `CommandInput` for search
+- `CommandList` with `CommandGroup` mapping over employees
+- `CommandItem` for each employee with avatar, name, department
+- On select: call `field.onChange(empId)` and close popover
 
-## Technical Details
+**3. Remove `employeeSearch` state** — `Command` handles search internally via cmdk
 
-**Dialog form fields (in order):**
-1. Employee selector (searchable select with avatar + name + department)
-2. Leave type selector (all types via `useAllLeaveTypes()`)
-3. Start date / End date (Popover + Calendar)
-4. Half day checkbox (single day only)
-5. Days count display
-6. Reason/notes textarea
+**4. Remove `filteredEmployees` useMemo** — cmdk handles filtering internally
 
-**Role gating:** `useRole().hasRole('hr') || useRole().hasRole('admin')` controls button visibility.
-
-**On submit:** Same pattern as `AdminAddLeaveDialog` - insert with `status: 'approved'`, update leave balance, invalidate queries, show toast.
+This matches the proven pattern used in other searchable selects across the app and eliminates the Radix Select typeahead conflict entirely.
 
