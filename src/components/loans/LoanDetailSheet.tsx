@@ -87,7 +87,7 @@ export function LoanDetailSheet({ loanId, open, onOpenChange }: LoanDetailSheetP
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
+      <SheetContent className="w-full sm:max-w-xl">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <Banknote className="h-5 w-5" />
@@ -98,12 +98,13 @@ export function LoanDetailSheet({ loanId, open, onOpenChange }: LoanDetailSheetP
           </SheetDescription>
         </SheetHeader>
 
+        <SheetBody>
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
         ) : loan ? (
-          <div className="mt-6 space-y-6">
+          <div className="space-y-6 pb-6">
             {/* Status and Actions */}
             <div className="flex items-center justify-between">
               <LoanStatusBadge status={loan.status} />
