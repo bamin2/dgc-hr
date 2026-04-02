@@ -170,7 +170,6 @@ export function AdminAddLeaveRequestDialog({ open, onOpenChange }: AdminAddLeave
                   <FormLabel>Employee</FormLabel>
                   <Popover open={employeePopoverOpen} onOpenChange={setEmployeePopoverOpen}>
                     <PopoverTrigger asChild>
-                      <FormControl>
                         <Button
                           variant="outline"
                           role="combobox"
@@ -194,7 +193,6 @@ export function AdminAddLeaveRequestDialog({ open, onOpenChange }: AdminAddLeave
                           )}
                           <ChevronsUpDown className="ml-auto h-4 w-4 shrink-0 opacity-50" />
                         </Button>
-                      </FormControl>
                     </PopoverTrigger>
                     <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
                       <Command shouldFilter={false}>
