@@ -80,7 +80,7 @@ export function TimeOffSnapshotCard({ variant = "default" }: TimeOffSnapshotCard
   return (
     <BentoCard 
       colSpan={3} 
-      onClick={() => navigate("/leave")}
+      onClick={() => navigate("/time-off")}
       className="cursor-pointer"
     >
       <div className="flex items-center gap-2 mb-4">
