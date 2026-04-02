@@ -3,6 +3,7 @@ import { formatDisplayDate } from "@/lib/dateUtils";
 import { CheckCircle, XCircle, Banknote, User, FileText, Trash2, CreditCard, RefreshCw, History } from "lucide-react";
 import {
   Sheet,
+  SheetBody,
   SheetContent,
   SheetDescription,
   SheetHeader,
