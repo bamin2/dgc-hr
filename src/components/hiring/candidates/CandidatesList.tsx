@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetBody, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useCandidates, useArchiveCandidate, useDeleteCandidate, type CandidateStatus, type Candidate } from "@/hooks/useCandidates";
 import { useDepartmentsManagement } from "@/hooks/useDepartmentsManagement";
@@ -183,11 +183,13 @@ export function CandidatesList() {
 
       {/* Add Candidate Sheet */}
       <Sheet open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <SheetContent className="sm:max-w-lg overflow-y-auto">
+        <SheetContent className="sm:max-w-lg">
           <SheetHeader>
             <SheetTitle>Add Candidate</SheetTitle>
           </SheetHeader>
-          <CandidateForm onSuccess={() => setIsFormOpen(false)} />
+          <SheetBody>
+            <CandidateForm onSuccess={() => setIsFormOpen(false)} />
+          </SheetBody>
         </SheetContent>
       </Sheet>
 
@@ -209,14 +211,16 @@ export function CandidatesList() {
 
       {/* Edit Candidate Sheet */}
       <Sheet open={!!candidateToEdit} onOpenChange={(open) => !open && setCandidateToEdit(null)}>
-        <SheetContent className="sm:max-w-lg overflow-y-auto">
+        <SheetContent className="sm:max-w-lg">
           <SheetHeader>
             <SheetTitle>Edit Candidate</SheetTitle>
           </SheetHeader>
-          <CandidateForm 
-            candidate={candidateToEdit} 
-            onSuccess={() => setCandidateToEdit(null)} 
-          />
+          <SheetBody>
+            <CandidateForm 
+              candidate={candidateToEdit} 
+              onSuccess={() => setCandidateToEdit(null)} 
+            />
+          </SheetBody>
         </SheetContent>
       </Sheet>
 

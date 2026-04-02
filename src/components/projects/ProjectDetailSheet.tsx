@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
   Sheet,
+  SheetBody,
   SheetContent,
   SheetDescription,
   SheetHeader,
@@ -60,7 +61,7 @@ export function ProjectDetailSheet({ project, open, onOpenChange, onAddComment, 
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-[480px] overflow-y-auto">
+      <SheetContent className="sm:max-w-[480px]">
         <SheetHeader className="pb-4">
           <div className="flex items-start justify-between">
             <div className="flex-1">
@@ -70,6 +71,7 @@ export function ProjectDetailSheet({ project, open, onOpenChange, onAddComment, 
           </div>
         </SheetHeader>
 
+        <SheetBody>
         <Separator className="my-4" />
 
         {/* Status and Priority */}
@@ -177,9 +179,10 @@ export function ProjectDetailSheet({ project, open, onOpenChange, onAddComment, 
             Edit Project
           </Button>
           <Button variant="destructive" className="flex-1" onClick={handleDelete}>
-            Delete
+          Delete
           </Button>
         </div>
+        </SheetBody>
       </SheetContent>
     </Sheet>
   );
