@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { LayoutDashboard, FileText, Users, History, Calendar, ClipboardList } from 'lucide-react';
+import { LayoutDashboard, FileText, Users, History, Calendar, ClipboardList, Plus } from 'lucide-react';
 import {
   LeaveTypePoliciesTab,
   EmployeeBalancesTab,
@@ -23,10 +23,15 @@ import {
   LeaveRequestsTable,
 } from '@/components/attendance';
 import { useLeaveRequests, usePendingLeaveRequests, LeaveRequestStatus } from '@/hooks/useLeaveRequests';
+import { useRole } from '@/contexts/RoleContext';
+import { AdminAddLeaveRequestDialog } from './AdminAddLeaveRequestDialog';
 
 export function LeavesTab() {
   const [activeTab, setActiveTab] = useState('overview');
   const [leaveStatusFilter, setLeaveStatusFilter] = useState<LeaveRequestStatus | 'all'>('all');
+  const [isAddLeaveOpen, setIsAddLeaveOpen] = useState(false);
+  const { hasRole } = useRole();
+  const canAddLeave = hasRole('hr') || hasRole('admin');
 
   // Fetch leave data
   const { data: allLeaveRequests, isLoading: requestsLoading } = useLeaveRequests();
@@ -106,7 +111,7 @@ export function LeavesTab() {
 
       {/* Leave Requests Tab */}
       <TabsContent value="requests" className="space-y-6">
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
           <Select
             value={leaveStatusFilter}
             onValueChange={(value) =>
@@ -123,6 +128,12 @@ export function LeavesTab() {
               <SelectItem value="rejected">Rejected</SelectItem>
             </SelectContent>
           </Select>
+          {canAddLeave && (
+            <Button onClick={() => setIsAddLeaveOpen(true)} size="sm">
+              <Plus className="h-4 w-4 mr-1" />
+              Add Leave Request
+            </Button>
+          )}
         </div>
         {requestsLoading ? (
           <div className="space-y-3">
@@ -150,6 +161,8 @@ export function LeavesTab() {
       <TabsContent value="history" className="mt-6">
         <AdjustmentHistoryTab />
       </TabsContent>
+
+      <AdminAddLeaveRequestDialog open={isAddLeaveOpen} onOpenChange={setIsAddLeaveOpen} />
     </Tabs>
   );
 }
