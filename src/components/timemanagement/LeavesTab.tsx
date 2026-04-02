@@ -161,6 +161,8 @@ export function LeavesTab() {
       <TabsContent value="history" className="mt-6">
         <AdjustmentHistoryTab />
       </TabsContent>
+
+      <AdminAddLeaveRequestDialog open={isAddLeaveOpen} onOpenChange={setIsAddLeaveOpen} />
     </Tabs>
   );
 }
