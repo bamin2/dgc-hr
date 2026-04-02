@@ -129,7 +129,6 @@ export function AdminAddLeaveRequestDialog({ open, onOpenChange }: AdminAddLeave
 
       toast.success('Leave request added successfully');
       form.reset();
-      setEmployeeSearch('');
       onOpenChange(false);
     } catch (error: any) {
       toast.error(`Failed to add leave request: ${error.message}`);
