@@ -29,6 +29,9 @@ import { AdminAddLeaveRequestDialog } from './AdminAddLeaveRequestDialog';
 export function LeavesTab() {
   const [activeTab, setActiveTab] = useState('overview');
   const [leaveStatusFilter, setLeaveStatusFilter] = useState<LeaveRequestStatus | 'all'>('all');
+  const [isAddLeaveOpen, setIsAddLeaveOpen] = useState(false);
+  const { userRoles } = useRole();
+  const canAddLeave = userRoles.includes('hr') || userRoles.includes('admin');
 
   // Fetch leave data
   const { data: allLeaveRequests, isLoading: requestsLoading } = useLeaveRequests();
