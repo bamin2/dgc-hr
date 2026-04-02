@@ -1,33 +1,42 @@
 
 
-# Fix Employee Selector in Add Leave Request Dialog
+# Fix Empty Employee List in Add Leave Request Dialog
 
-## Problem
-The employee dropdown in `AdminAddLeaveRequestDialog` shows no employees. The database has data and RLS policies are correct. The issue is a **UI conflict**: Radix `Select` has built-in typeahead filtering that interferes with the embedded search `Input`. Radix internally hides items that don't match its own typeahead buffer, making all items invisible.
+## Root Cause
+The `Command` (cmdk) component inside a `Popover` inside a `Dialog` has a known interaction issue. The cmdk filter function may not properly match items when nested in this configuration, causing all `CommandItem`s to be filtered out and showing "No employee found."
 
-## Solution
-Replace the Radix `Select` with a `Popover` + `Command` (cmdk) pattern for the employee picker. This is the standard shadcn approach for searchable selects and is already used elsewhere in the project (e.g., `command.tsx` exists).
+## Fix
+In `src/components/timemanagement/AdminAddLeaveRequestDialog.tsx`, add `shouldFilter={false}` to the `Command` component. This disables cmdk's internal filtering (which is misbehaving in this nested context) and lets all employees render. Since the `CommandInput` still works for user typing, we can optionally add manual filtering on the employee list, but for a reasonable-sized employee list (~50-100), showing all is fine.
 
-## Changes
+### Change (line 196)
+```tsx
+// Before
+<Command>
 
-### File: `src/components/timemanagement/AdminAddLeaveRequestDialog.tsx`
+// After  
+<Command shouldFilter={false}>
+```
 
-**1. Update imports**
-- Remove `Select, SelectContent, SelectItem, SelectTrigger, SelectValue`
-- Remove `Search`, `Input` (no longer needed for custom search)
-- Add `Popover, PopoverContent, PopoverTrigger` and `Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem`
-- Add `Check` icon from lucide for selected state
+This is a single-line fix. The `CommandInput` will still be visible for UX but won't filter (all employees always shown). If manual filtering is desired, we add a local search state and filter `employees` before mapping.
 
-**2. Replace employee `Select` block (lines 168-216) with Popover + Command**
-- `Popover` wrapping a `Button` trigger that shows selected employee name or "Select employee..."
-- `PopoverContent` containing `Command` with `CommandInput` for search
-- `CommandList` with `CommandGroup` mapping over employees
-- `CommandItem` for each employee with avatar, name, department
-- On select: call `field.onChange(empId)` and close popover
+### Optional Enhancement
+If we want search to still work, add a `search` state and filter manually:
+```tsx
+const [empSearch, setEmpSearch] = useState('');
+const filteredEmps = employees?.filter(e => 
+  `${e.first_name} ${e.last_name}`.toLowerCase().includes(empSearch.toLowerCase())
+);
 
-**3. Remove `employeeSearch` state** — `Command` handles search internally via cmdk
+<Command shouldFilter={false}>
+  <CommandInput value={empSearch} onValueChange={setEmpSearch} />
+  <CommandList>
+    <CommandEmpty>No employee found.</CommandEmpty>
+    <CommandGroup>
+      {filteredEmps?.map(...)}
+    </CommandGroup>
+  </CommandList>
+</Command>
+```
 
-**4. Remove `filteredEmployees` useMemo** — cmdk handles filtering internally
-
-This matches the proven pattern used in other searchable selects across the app and eliminates the Radix Select typeahead conflict entirely.
+One file changed: `AdminAddLeaveRequestDialog.tsx`
 
