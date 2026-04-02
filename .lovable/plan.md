@@ -1,59 +1,49 @@
 
+## Fix the employee dropdown scroll issue in the actual Add Leave Request dialog
 
-# Fix Dialog & Sheet Alignment Issues Across Loan Components
+### What I found
+The active component is `src/components/timemanagement/AdminAddLeaveRequestDialog.tsx`.
 
-## Problem Identified
-The `LoanDetailSheet` has a structural conflict: `SheetContent` wraps children in `<div class="flex flex-col h-full overflow-hidden">`, but the component puts `overflow-y-auto` on `SheetContent` itself and dumps all content into a raw `<div class="mt-6 space-y-6">` without using the `SheetBody` layout primitive. This causes:
-- Scroll behavior conflicts (overflow-hidden vs overflow-y-auto)
-- Content not properly contained within the sheet's flex layout
-- No proper padding structure (content uses inline padding inconsistently)
+The employee picker already has:
+- manual filtering with `shouldFilter={false}`
+- a scrollable `CommandGroup`
 
-## Changes
+So the remaining problem is not the search logic. The likely issue is the interaction between:
+- `Dialog` modal scroll locking
+- a portalled `PopoverContent`
+- nested `CommandList` / `CommandGroup` overflow containers
 
-### 1. Fix `LoanDetailSheet.tsx` — use proper Sheet layout primitives
-- Remove `overflow-y-auto` from `SheetContent` className
-- Wrap the main content in `SheetBody` (provides `flex-1 overflow-y-auto px-6`)
-- Remove `mt-6` from the content wrapper (SheetHeader already has `p-6` bottom padding)
-- Keep `space-y-6` for internal spacing
-- Move the sub-dialogs (Delete, Payment, Restructure, Skip, Approval) outside the `Sheet` component entirely — they are currently siblings of `SheetContent` inside `Sheet`, which is correct, but ensure they render properly
+This is a common Radix pattern where mouse-wheel scrolling fails even though the list visually looks scrollable.
 
-### 2. Fix other Sheet-based components with the same pattern
-- `ProjectDetailSheet.tsx` — same issue: `overflow-y-auto` on `SheetContent`, raw div content
-- `EventDetailSheet.tsx` — check and fix if same pattern
-- `CandidatesList.tsx` sheets — same `overflow-y-auto` on `SheetContent`
+### Plan
+1. Simplify the employee list to a single scroll container
+   - Keep `CommandList` as the only scrollable region
+   - Remove extra overflow handling from `CommandGroup`
+   - Give the list a clear max height (for example `max-h-[280px]`)
 
-### 3. Audit Dialog components for alignment
-The following loan dialogs use `DialogContent` correctly but have minor inconsistencies:
-- `CreateLoanDialog` — uses `size="xl"` with `max-h-[85vh] overflow-y-auto`, structure is fine
-- `LoanApprovalDialog` — uses `size="lg"`, content directly inside `DialogContent`, no body wrapper needed (short content)
-- `AdHocPaymentDialog` — uses `size="md"`, structure is fine
-- `RestructureLoanDialog` — uses `size="lg"`, structure is fine
-- `DeleteLoanDialog` — AlertDialog, structure is fine
-- `SkipInstallmentDialog` — Dialog, structure is fine
-- `EmployeeRequestLoanDialog` — uses `size="lg"` with `max-h-[90vh] overflow-y-auto`, structure is fine
+2. Make the employee popover work correctly inside the dialog
+   - Update the employee `Popover` to render in a dialog-friendly way so wheel/trackpad events are not blocked by the modal layer
+   - Use the established Radix-safe approach for popovers inside dialogs rather than relying on the default portal behavior
 
-No major issues in the Dialog-based components. The primary fix is the Sheet components.
+3. Keep the current employee search behavior
+   - Preserve `shouldFilter={false}`
+   - Preserve local `empSearch` + `filteredEmps`
+   - Do not change the employee query or selection logic
 
-## Technical Details
+4. Tighten the popover container sizing
+   - Ensure `PopoverContent` has a stable width and no conflicting overflow styles
+   - Keep the search input fixed at the top and only the results area scrollable
 
-### File: `src/components/loans/LoanDetailSheet.tsx`
-- Import `SheetBody` from `@/components/ui/sheet`
-- Change `SheetContent className="w-full sm:max-w-xl overflow-y-auto"` → `SheetContent className="w-full sm:max-w-xl"`
-- Wrap lines 105-289 (the `<div className="mt-6 space-y-6">...</div>`) in `<SheetBody>` and change inner div to `<div className="space-y-6 pb-6">`
-- Also wrap the loading spinner in `<SheetBody>`
+5. Verify the same pattern against existing comboboxes
+   - Align the final structure with the project’s other searchable pickers where possible
+   - Only update shared primitives if needed; otherwise keep the fix scoped to this dialog
 
-### File: `src/components/projects/ProjectDetailSheet.tsx`
-- Same pattern: import `SheetBody`, remove `overflow-y-auto` from `SheetContent`, wrap content in `SheetBody`
+### Expected implementation outcome
+- Employee list scrolls with mouse wheel and trackpad
+- Scroll remains smooth inside the modal dialog
+- Search still works
+- No change to layout, fields, or submit behavior
 
-### File: `src/components/calendar/EventDetailSheet.tsx`
-- Same fix if applicable
-
-### File: `src/components/hiring/candidates/CandidatesList.tsx`
-- Fix the 3 sheet instances that use `overflow-y-auto` on `SheetContent`
-
-## Impact
-- Proper scrolling in all sheet panels
-- Consistent padding and alignment
-- No visual overflow or clipping issues
-- Header stays fixed at top while body scrolls
-
+### Files to update
+- `src/components/timemanagement/AdminAddLeaveRequestDialog.tsx`
+- Possibly `src/components/ui/popover.tsx` only if a scoped dialog-safe popover option is needed
