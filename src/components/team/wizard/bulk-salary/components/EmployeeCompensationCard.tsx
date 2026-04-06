@@ -173,7 +173,7 @@ export function EmployeeCompensationCard({
                         )}
                       </div>
                       {editable ? (
-                        <div className="relative w-28">
+                        <div className="relative w-32">
                           <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
                             {currencySymbol}
                           </span>
@@ -181,12 +181,12 @@ export function EmployeeCompensationCard({
                             type="number"
                             value={allowance.amount}
                             onChange={(e) => handleAllowanceAmountChange(allowance.id, e.target.value)}
-                            className="h-7 text-sm pl-6 pr-2"
+                            className="h-7 text-sm pl-12 pr-2"
                           />
                         </div>
                       ) : (
-                        <span className="text-sm font-medium w-28 text-right">
-                          {currencySymbol}{allowance.amount.toLocaleString()}
+                        <span className="text-sm font-medium w-32 text-right">
+                          {currencySymbol} {allowance.amount.toLocaleString()}
                         </span>
                       )}
                       <Button
