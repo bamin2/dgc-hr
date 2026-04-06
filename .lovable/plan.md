@@ -1,56 +1,63 @@
 
 
-# Standardize Scrollable Command Dropdowns
+# Fix Bulk Salary Update Wizard — 4 Issues
 
-## Problem
-Scrollable dropdowns are implemented inconsistently across the app:
-- Some put scroll classes on `CommandGroup`, some on `CommandList`, some on both
-- The `CommandList` primitive already has `max-h-[300px] overflow-y-auto` built in, but components override or duplicate this
-- Popovers inside Dialogs need `onWheel`/`onTouchMove` stopPropagation to prevent scroll locking — this is only done in one place
+## 1. Make sidebar steps clickable
 
-## Solution
+**File:** `src/components/team/wizard/VerticalWizardProgress.tsx`
 
-### 1. Update `CommandList` primitive (`src/components/ui/command.tsx`)
-Add `overscroll-contain` to the default `CommandList` styles so every dropdown automatically prevents scroll chaining:
-```
-"max-h-[300px] overflow-y-auto overflow-x-hidden overscroll-contain"
-```
+Add an `onStepClick` callback prop. Make completed and current steps clickable (not future steps). Wrap step content in a `button` element for completed/current steps.
 
-### 2. Remove redundant scroll classes from individual components
-These components add `max-h-[300px] overflow-y-auto` to `CommandGroup` when `CommandList` already handles it:
+**File:** `src/components/team/wizard/bulk-salary/BulkSalaryUpdateWizard.tsx`
 
-| File | Change |
-|------|--------|
-| `src/components/ui/country-select.tsx` | Remove `className="max-h-[300px] overflow-y-auto"` from `CommandGroup` |
-| `src/components/ui/currency-select.tsx` | Remove `className="max-h-[300px] overflow-y-auto"` from `CommandGroup` |
-| `src/components/settings/approvals/ApprovalSettingsTab.tsx` | Remove `className="max-h-[300px] overflow-y-auto"` from `CommandGroup` |
-| `src/components/timemanagement/AdminAddLeaveRequestDialog.tsx` | Remove `className="max-h-[240px] overflow-y-auto overscroll-contain"` from `CommandList` (let primitive default handle it) |
+Pass `onStepClick` to `VerticalWizardProgress`. When a step is clicked, validate that it's a completed step (index < currentStepIndex) or current step, then call `setCurrentStep(effectiveSteps[clickedIndex].id)`. Also reset the compensation loaded ref if jumping back before step 3.
 
-### 3. Add `onWheel`/`onTouchMove` stopPropagation to `PopoverContent` primitive (`src/components/ui/popover.tsx`)
-This is the key fix for popovers inside dialogs. Add these handlers directly to the `PopoverContent` component so **all** popovers automatically handle scroll events correctly — no per-component workarounds needed:
-```tsx
-onWheel={(e) => e.stopPropagation()}
-onTouchMove={(e) => e.stopPropagation()}
-```
-Then remove these same handlers from `AdminAddLeaveRequestDialog.tsx` since they'll be inherited.
+## 2. Allow backdated effective dates
 
-### 4. Summary of files changed
+**File:** `src/components/team/wizard/bulk-salary/steps/EffectiveDateStep.tsx`
 
-| File | What |
-|------|------|
-| `src/components/ui/command.tsx` | Add `overscroll-contain` to `CommandList` defaults |
-| `src/components/ui/popover.tsx` | Add `onWheel`/`onTouchMove` stopPropagation to `PopoverContent` |
-| `src/components/ui/country-select.tsx` | Remove redundant scroll classes from `CommandGroup` |
-| `src/components/ui/currency-select.tsx` | Remove redundant scroll classes from `CommandGroup` |
-| `src/components/ui/phone-input.tsx` | No change needed (already clean) |
-| `src/components/ui/multi-select.tsx` | No change needed (already clean) |
-| `src/components/settings/approvals/ApprovalSettingsTab.tsx` | Remove redundant scroll classes from `CommandGroup` |
-| `src/components/timemanagement/AdminAddLeaveRequestDialog.tsx` | Remove per-component overrides (scroll classes on `CommandList`, stopPropagation on `PopoverContent`) |
-| `src/components/dashboard/GlobalSearch.tsx` | No change needed (uses `CommandDialog`, not `Popover`) |
+- Remove the `disabled={(date) => date < today}` constraint from the calendar
+- Replace the "cannot be backdated" alert with an informational note that says backdated changes will be recorded but may require retroactive payroll adjustments
+- Add a warning alert when a past date is selected (amber/yellow) explaining the implications
 
-### Result
-- Every `CommandList` is scrollable by default with consistent max height and overscroll behavior
-- Every `PopoverContent` handles scroll events safely inside modals
-- No per-component scroll hacks needed for current or future dropdowns
-- New dropdowns built with `Command` + `Popover` will just work
+## 3. Fix currency symbol overlap in compensation card inputs
+
+**File:** `src/components/team/wizard/bulk-salary/components/EmployeeCompensationCard.tsx`
+
+The currency symbol (e.g. "SAR") overlaps the input value because `pl-6` only accommodates short symbols like "$". Fix:
+- For the allowance input (line 184): change `pl-6` to dynamically account for symbol length. Use `pl-10` for 3-char symbols or compute based on `currencySymbol.length`
+- For the deduction input (line 246): same fix
+- For the header totals (lines 129, 132): add a space between symbol and amount
+- A simple approach: use `pl-12` universally to fit any symbol (SAR, AED, BHD, etc.) and adjust the symbol `left` position slightly
+
+## 4. Fix Review step showing wrong currency for mixed-currency selections
+
+**File:** `src/components/team/wizard/bulk-salary/BulkSalaryUpdateWizard.tsx`
+
+The `currency` is derived from the first employee only (line 59-67). This single currency is passed to `ReviewSummaryStep` which uses `Intl.NumberFormat` with that one currency for ALL employees.
+
+**Fix approach:** Instead of passing a single currency, the Review step needs per-employee currency awareness.
+
+**File:** `src/components/team/wizard/bulk-salary/steps/ReviewSummaryStep.tsx`
+
+- Add per-employee currency from the `EmployeeImpact` — extend the `EmployeeImpact` interface in `types.ts` to include `currency: string`
+- In the per-employee breakdown, format each employee's amounts with their own currency
+- For the totals section: if mixed currencies exist, either show totals grouped by currency or show a warning that totals are approximate across currencies
+
+**File:** `src/components/team/wizard/bulk-salary/types.ts`
+
+- Add `currency: string` to `EmployeeImpact` interface
+
+**File:** `src/hooks/useBulkSalaryWizard.ts`
+
+- In `calculateEmployeeImpacts`, include `currency: employee.currency || 'BHD'` in each impact object
+
+## Technical Summary
+
+| Issue | Files | Change |
+|-------|-------|--------|
+| Clickable sidebar steps | `VerticalWizardProgress.tsx`, `BulkSalaryUpdateWizard.tsx` | Add `onStepClick` prop, handle navigation |
+| Backdated dates | `EffectiveDateStep.tsx` | Remove date restriction, add warning for past dates |
+| Currency symbol overlap | `EmployeeCompensationCard.tsx` | Increase input padding from `pl-6` to `pl-12` |
+| Mixed currency in Review | `types.ts`, `useBulkSalaryWizard.ts`, `ReviewSummaryStep.tsx` | Per-employee currency formatting |
 
