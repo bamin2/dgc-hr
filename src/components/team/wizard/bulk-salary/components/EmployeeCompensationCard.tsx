@@ -126,10 +126,10 @@ export function EmployeeCompensationCard({
               {allowances.length} allowance{allowances.length !== 1 ? 's' : ''}, {deductions.length} deduction{deductions.length !== 1 ? 's' : ''}
             </span>
             <span className="font-medium text-primary">
-              +{currencySymbol}{totalAllowances.toLocaleString()}
+              +{currencySymbol} {totalAllowances.toLocaleString()}
             </span>
             <span className="font-medium text-destructive">
-              -{currencySymbol}{totalDeductions.toLocaleString()}
+              -{currencySymbol} {totalDeductions.toLocaleString()}
             </span>
           </div>
         </button>
