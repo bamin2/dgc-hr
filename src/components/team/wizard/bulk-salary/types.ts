@@ -71,6 +71,7 @@ export interface EmployeeImpact {
     gosiRegisteredSalary?: number;
     isSubjectToGosi?: boolean;
   };
+  currency: string;
   beforeBasicSalary: number;
   afterBasicSalary: number;
   beforeAllowances: number;

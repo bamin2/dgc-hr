@@ -126,10 +126,10 @@ export function EmployeeCompensationCard({
               {allowances.length} allowance{allowances.length !== 1 ? 's' : ''}, {deductions.length} deduction{deductions.length !== 1 ? 's' : ''}
             </span>
             <span className="font-medium text-primary">
-              +{currencySymbol}{totalAllowances.toLocaleString()}
+              +{currencySymbol} {totalAllowances.toLocaleString()}
             </span>
             <span className="font-medium text-destructive">
-              -{currencySymbol}{totalDeductions.toLocaleString()}
+              -{currencySymbol} {totalDeductions.toLocaleString()}
             </span>
           </div>
         </button>
@@ -173,7 +173,7 @@ export function EmployeeCompensationCard({
                         )}
                       </div>
                       {editable ? (
-                        <div className="relative w-28">
+                        <div className="relative w-32">
                           <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
                             {currencySymbol}
                           </span>
@@ -181,12 +181,12 @@ export function EmployeeCompensationCard({
                             type="number"
                             value={allowance.amount}
                             onChange={(e) => handleAllowanceAmountChange(allowance.id, e.target.value)}
-                            className="h-7 text-sm pl-6 pr-2"
+                            className="h-7 text-sm pl-12 pr-2"
                           />
                         </div>
                       ) : (
-                        <span className="text-sm font-medium w-28 text-right">
-                          {currencySymbol}{allowance.amount.toLocaleString()}
+                        <span className="text-sm font-medium w-32 text-right">
+                          {currencySymbol} {allowance.amount.toLocaleString()}
                         </span>
                       )}
                       <Button
@@ -235,7 +235,7 @@ export function EmployeeCompensationCard({
                         <Badge variant="secondary" className="text-[10px] px-1.5">Custom</Badge>
                       )}
                     </div>
-                    <div className="relative w-28">
+                    <div className="relative w-32">
                       <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
                         {currencySymbol}
                       </span>
@@ -243,7 +243,7 @@ export function EmployeeCompensationCard({
                         type="number"
                         value={deduction.amount}
                         onChange={(e) => handleDeductionAmountChange(deduction.id, e.target.value)}
-                        className="h-7 text-sm pl-6 pr-2"
+                        className="h-7 text-sm pl-12 pr-2"
                       />
                     </div>
                     <Button

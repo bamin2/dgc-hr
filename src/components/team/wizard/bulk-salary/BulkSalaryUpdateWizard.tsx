@@ -205,6 +205,15 @@ export function BulkSalaryUpdateWizard() {
         <VerticalWizardProgress
           steps={effectiveSteps.map((s, idx) => ({ id: idx + 1, label: s.label, description: s.description }))}
           currentStep={currentStepIndex + 1}
+          onStepClick={(clickedIndex) => {
+            if (clickedIndex <= currentStepIndex) {
+              const targetStep = effectiveSteps[clickedIndex];
+              if (targetStep.id < 3) {
+                compensationLoadedRef.current = false;
+              }
+              setCurrentStep(targetStep.id);
+            }
+          }}
         />
       </div>
 

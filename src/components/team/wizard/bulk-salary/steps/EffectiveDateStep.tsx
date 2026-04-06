@@ -2,7 +2,7 @@ import { Label } from "@/components/ui/label";
 import { HierarchicalCalendar } from "@/components/ui/hierarchical-calendar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CalendarDays, Info } from "lucide-react";
+import { CalendarDays, Info, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
 import { BulkSalaryWizardData } from "../types";
 
@@ -14,6 +14,8 @@ interface EffectiveDateStepProps {
 export function EffectiveDateStep({ data, onUpdateData }: EffectiveDateStepProps) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+
+  const isBackdated = data.effectiveDate && data.effectiveDate < today;
 
   return (
     <div className="space-y-6">
@@ -27,10 +29,20 @@ export function EffectiveDateStep({ data, onUpdateData }: EffectiveDateStepProps
       <Alert>
         <Info className="h-4 w-4" />
         <AlertDescription>
-          Salary changes cannot be backdated. Please select today or a future date.
-          Retroactive calculations are not supported in this version.
+          You may select a past, current, or future date. Backdated changes will be recorded
+          but may require retroactive payroll adjustments.
         </AlertDescription>
       </Alert>
+
+      {isBackdated && (
+        <Alert className="border-amber-500/50 bg-amber-500/10">
+          <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+          <AlertDescription className="text-amber-600 dark:text-amber-400">
+            You have selected a past date. This change will be backdated and may require
+            manual retroactive payroll corrections for affected pay periods.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <div className="flex flex-col md:flex-row gap-6">
         <Card className="flex-1">
@@ -38,7 +50,6 @@ export function EffectiveDateStep({ data, onUpdateData }: EffectiveDateStepProps
             <HierarchicalCalendar
               selected={data.effectiveDate || undefined}
               onSelect={(date) => onUpdateData('effectiveDate', date || null)}
-              disabled={(date) => date < today}
             />
           </CardContent>
         </Card>
@@ -78,6 +89,14 @@ export function EffectiveDateStep({ data, onUpdateData }: EffectiveDateStepProps
                   <div className="bg-amber-500/10 rounded-lg p-3">
                     <p className="text-sm text-amber-600 dark:text-amber-400 font-medium">
                       Changes will be applied on the selected date
+                    </p>
+                  </div>
+                )}
+
+                {isBackdated && (
+                  <div className="bg-amber-500/10 rounded-lg p-3">
+                    <p className="text-sm text-amber-600 dark:text-amber-400 font-medium">
+                      Backdated — retroactive payroll adjustment may be needed
                     </p>
                   </div>
                 )}

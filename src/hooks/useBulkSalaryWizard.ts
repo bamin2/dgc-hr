@@ -303,6 +303,7 @@ export function useBulkSalaryWizard() {
       
       return {
         employee: employee as TeamMemberWithGosi,
+        currency: employee.currency || 'BHD',
         beforeBasicSalary,
         afterBasicSalary,
         beforeAllowances,
