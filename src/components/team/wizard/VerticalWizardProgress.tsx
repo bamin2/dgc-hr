@@ -11,12 +11,14 @@ interface VerticalWizardProgressProps {
   steps: Step[];
   currentStep: number;
   className?: string;
+  onStepClick?: (stepIndex: number) => void;
 }
 
 export function VerticalWizardProgress({
   steps,
   currentStep,
   className,
+  onStepClick,
 }: VerticalWizardProgressProps) {
   return (
     <div className={cn("flex flex-col gap-1", className)}>
@@ -24,9 +26,10 @@ export function VerticalWizardProgress({
         const isCompleted = currentStep > step.id;
         const isCurrent = currentStep === step.id;
         const isLast = index === steps.length - 1;
+        const isClickable = onStepClick && (isCompleted || isCurrent);
 
-        return (
-          <div key={step.id} className="flex gap-3">
+        const stepContent = (
+          <>
             {/* Step indicator and line */}
             <div className="flex flex-col items-center">
               <div
@@ -73,6 +76,21 @@ export function VerticalWizardProgress({
                 </p>
               )}
             </div>
+          </>
+        );
+
+        return isClickable ? (
+          <button
+            key={step.id}
+            type="button"
+            className="flex gap-3 text-left cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => onStepClick(index)}
+          >
+            {stepContent}
+          </button>
+        ) : (
+          <div key={step.id} className="flex gap-3">
+            {stepContent}
           </div>
         );
       })}

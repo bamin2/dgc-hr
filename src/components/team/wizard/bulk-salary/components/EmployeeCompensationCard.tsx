@@ -235,7 +235,7 @@ export function EmployeeCompensationCard({
                         <Badge variant="secondary" className="text-[10px] px-1.5">Custom</Badge>
                       )}
                     </div>
-                    <div className="relative w-28">
+                    <div className="relative w-32">
                       <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
                         {currencySymbol}
                       </span>
@@ -243,7 +243,7 @@ export function EmployeeCompensationCard({
                         type="number"
                         value={deduction.amount}
                         onChange={(e) => handleDeductionAmountChange(deduction.id, e.target.value)}
-                        className="h-7 text-sm pl-6 pr-2"
+                        className="h-7 text-sm pl-12 pr-2"
                       />
                     </div>
                     <Button
