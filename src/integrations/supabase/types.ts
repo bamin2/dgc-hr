@@ -3235,6 +3235,47 @@ export type Database = {
           },
         ]
       }
+      leave_request_attachments: {
+        Row: {
+          created_at: string | null
+          file_name: string
+          file_path: string
+          file_size: number | null
+          id: string
+          leave_request_id: string
+          mime_type: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          id?: string
+          leave_request_id: string
+          mime_type?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          leave_request_id?: string
+          mime_type?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_request_attachments_leave_request_id_fkey"
+            columns: ["leave_request_id"]
+            isOneToOne: false
+            referencedRelation: "leave_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leave_requests: {
         Row: {
           created_at: string | null
@@ -3366,6 +3407,7 @@ export type Database = {
       leave_types: {
         Row: {
           allow_carryover: boolean | null
+          attachment_required: boolean | null
           color: string | null
           count_weekends: boolean | null
           created_at: string | null
@@ -3388,6 +3430,7 @@ export type Database = {
         }
         Insert: {
           allow_carryover?: boolean | null
+          attachment_required?: boolean | null
           color?: string | null
           count_weekends?: boolean | null
           created_at?: string | null
@@ -3410,6 +3453,7 @@ export type Database = {
         }
         Update: {
           allow_carryover?: boolean | null
+          attachment_required?: boolean | null
           color?: string | null
           count_weekends?: boolean | null
           created_at?: string | null

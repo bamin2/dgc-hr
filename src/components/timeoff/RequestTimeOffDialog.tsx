@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { format, differenceInCalendarDays } from "date-fns";
 import { DateRange } from "react-day-picker";
-import { Calendar as CalendarIcon, Paperclip, Upload, X, Folder, AlertTriangle } from "lucide-react";
+import { Calendar as CalendarIcon, X, AlertTriangle } from "lucide-react";
 import { ResponsiveDialog, ResponsiveDialogFooter } from "@/components/ui/responsive-dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -29,6 +29,8 @@ import { useMyLeaveBalances } from "@/hooks/useLeaveBalances";
 import { useInitiateApproval } from "@/hooks/useApprovalEngine";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { FileDropzone } from "@/components/ui/file-dropzone";
+import { uploadLeaveAttachments } from "@/hooks/useLeaveAttachments";
 
 interface RequestTimeOffDialogProps {
   open: boolean;
@@ -41,7 +43,7 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
   const [note, setNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isHalfDay, setIsHalfDay] = useState(false);
-
+  const [attachmentFiles, setAttachmentFiles] = useState<File[]>([]);
   const { data: leaveTypes, isLoading: typesLoading } = useLeaveTypes();
   const { data: myBalances } = useMyLeaveBalances();
   const createRequest = useCreateLeaveRequest();
@@ -54,6 +56,7 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
       setDateRange(undefined);
       setNote("");
       setIsHalfDay(false);
+      setAttachmentFiles([]);
     }
   }, [open]);
 
@@ -74,6 +77,12 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
   const handleSubmit = async () => {
     if (!dateRange?.from || !leaveTypeId) {
       toast.error("Please select a leave type and dates");
+      return;
+    }
+
+    // Check attachment requirement
+    if (selectedLeaveType?.attachment_required && attachmentFiles.length === 0) {
+      toast.error("This leave type requires at least one attachment");
       return;
     }
 
@@ -122,6 +131,16 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
 
       // Initiate the approval workflow
       if (result?.id) {
+        // Upload attachments if any
+        if (attachmentFiles.length > 0) {
+          try {
+            await uploadLeaveAttachments(result.id, attachmentFiles);
+          } catch (err) {
+            console.error('Failed to upload attachments:', err);
+            toast.error('Leave request created but attachments failed to upload');
+          }
+        }
+
         await initiateApproval.mutateAsync({
           requestId: result.id,
           requestType: "time_off",
@@ -382,25 +401,13 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
             </p>
           </div>
 
-          {/* File Upload - placeholder for future */}
+          {/* File Upload */}
           <div className="space-y-2">
-            <div className="border-2 border-dashed border-primary/30 rounded-lg p-6 text-center">
-              <div className="w-12 h-12 rounded-full bg-muted mx-auto mb-3 flex items-center justify-center">
-                <Folder className="w-6 h-6 text-muted-foreground" />
-              </div>
-              <p className="font-medium">Drag or Drop your Receipts</p>
-              <p className="text-sm text-muted-foreground mb-3">
-                Maximum file size allowed is 20MB
-              </p>
-              <Button variant="outline" size="sm" disabled>
-                <Upload className="w-4 h-4 mr-2" />
-                Upload your files
-              </Button>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Paperclip className="w-4 h-4" />
-              <span>No file added</span>
-            </div>
+            <FileDropzone
+              files={attachmentFiles}
+              onFilesChange={setAttachmentFiles}
+              required={selectedLeaveType?.attachment_required === true}
+            />
           </div>
 
           {/* Negative Balance Warning */}

@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Pencil, Trash2, Calendar, FileText, Eye, EyeOff, Clock, ArrowRight } from "lucide-react";
+import { Pencil, Trash2, Calendar, FileText, Eye, EyeOff, Clock, ArrowRight, Paperclip } from "lucide-react";
 import { LeaveType, useUpdateLeaveType } from "@/hooks/useLeaveTypes";
 import { LeaveTypeFormDialog } from "./LeaveTypeFormDialog";
 import {
@@ -124,6 +124,12 @@ export function LeaveTypeCard({ leaveType }: LeaveTypeCardProps) {
                       {leaveType.max_carryover_days && (
                         <span>(max {leaveType.max_carryover_days}d)</span>
                       )}
+                    </Badge>
+                  )}
+                  {(leaveType as any).attachment_required && (
+                    <Badge variant="secondary" className="text-xs gap-1">
+                      <Paperclip className="w-3 h-3" />
+                      Attachment required
                     </Badge>
                   )}
                 </div>

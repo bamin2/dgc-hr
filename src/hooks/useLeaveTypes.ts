@@ -34,6 +34,8 @@ export interface LeaveType {
   // Salary deduction settings
   has_salary_deduction: boolean | null;
   salary_deduction_tiers: SalaryDeductionTier[] | null;
+  // Attachment settings
+  attachment_required: boolean | null;
 }
 
 function parseLeaveType(data: any): LeaveType {

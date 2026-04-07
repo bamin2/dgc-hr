@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { useLeaveRequestAttachments, getSignedAttachmentUrl } from '@/hooks/useLeaveAttachments';
 import { LeaveStatusBadge } from './LeaveStatusBadge';
 import { ApprovalProgressSteps } from '@/components/approvals/ApprovalProgressSteps';
 import { LeaveRequest } from '@/hooks/useLeaveRequests';
@@ -18,7 +19,9 @@ import {
   FileText, 
   AlertTriangle,
   CheckCircle2,
-  XCircle
+  XCircle,
+  Paperclip,
+  Download,
 } from 'lucide-react';
 import { useState } from 'react';
 import {
@@ -42,6 +45,7 @@ export function LeaveRequestDetailView({ request, approvalSteps }: LeaveRequestD
   const { currentUser } = useRole();
   const approveLeave = useApproveLeaveRequest();
   const rejectLeave = useRejectLeaveRequest();
+  const { data: attachments } = useLeaveRequestAttachments(request.id);
   
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
@@ -224,6 +228,48 @@ export function LeaveRequestDetailView({ request, approvalSteps }: LeaveRequestD
           </CardHeader>
           <CardContent>
             <p className="text-sm whitespace-pre-wrap">{request.reason}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Attachments */}
+      {attachments && attachments.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Paperclip className="h-4 w-4 text-muted-foreground" />
+              Attachments ({attachments.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {attachments.map((att) => (
+                <div key={att.id} className="flex items-center gap-3 p-2 rounded-md bg-muted/50">
+                  <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <span className="text-sm truncate flex-1">{att.file_name}</span>
+                  {att.file_size && (
+                    <span className="text-xs text-muted-foreground shrink-0">
+                      {(att.file_size / 1024).toFixed(0)} KB
+                    </span>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 shrink-0"
+                    onClick={async () => {
+                      try {
+                        const url = await getSignedAttachmentUrl(att.file_path);
+                        window.open(url, '_blank');
+                      } catch {
+                        // fallback
+                      }
+                    }}
+                  >
+                    <Download className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       )}
