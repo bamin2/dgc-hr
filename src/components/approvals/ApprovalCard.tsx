@@ -39,17 +39,6 @@ export function ApprovalCard({ approval }: ApprovalCardProps) {
     }).format(amount);
   };
 
-  // Actually, the simplest check: does the current user's ID match any employee_id on the request?
-  // We already have user.id and can check against the step's approver_user_id.
-  // The real guard is: if this approval's underlying request was submitted by the current user.
-  // We need to check if the employee's user_id equals user.id.
-  // Since we don't have user_id in the approval data, we check if approval.step.approver_user_id === user?.id
-  // AND the request employee seems to be "self". But we can't know without user_id.
-  // Best approach: pass a flag from the query. For now, we'll disable if not possible to determine.
-  // Actually - we DO know the current user's ID. We just need to know the requester's user_id.
-  // The leave_request has employee_id (employees table ID), not user_id.
-  // Let's just skip the client-side guard in ApprovalCard since the engine-level fix prevents self-assignment.
-  // But we should still show a warning if somehow it happens.
 
   if (approval.request_type === "time_off" && approval.leave_request) {
     const { leave_request } = approval;
