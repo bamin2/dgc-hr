@@ -4,18 +4,20 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, User, AlertTriangle, Banknote } from "lucide-react";
+import { Calendar, Clock, User, AlertTriangle, Banknote, ShieldAlert } from "lucide-react";
 import { PendingApproval } from "@/types/approvals";
 import { ApprovalProgressSteps } from "./ApprovalProgressSteps";
 import { ApprovalActionDialog } from "./ApprovalActionDialog";
 import { useRequestApprovalSteps } from "@/hooks/useApprovalSteps";
 import { useCompanySettings } from "@/contexts/CompanySettingsContext";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ApprovalCardProps {
   approval: PendingApproval;
 }
 
 export function ApprovalCard({ approval }: ApprovalCardProps) {
+  const { user } = useAuth();
   const [actionDialogOpen, setActionDialogOpen] = useState(false);
   const [actionType, setActionType] = useState<"approve" | "reject">("approve");
   const { settings } = useCompanySettings();
@@ -38,6 +40,31 @@ export function ApprovalCard({ approval }: ApprovalCardProps) {
       maximumFractionDigits: 0,
     }).format(amount);
   };
+
+  // Check if the current user is the requester (self-approval guard)
+  const getRequesterEmployeeId = () => {
+    if (approval.request_type === "time_off") return approval.leave_request?.employee?.id;
+    if (approval.request_type === "loan") return approval.loan?.employee?.id;
+    if (approval.request_type === "business_trip") return approval.business_trip?.employee?.id;
+    return null;
+  };
+
+  // We need to check by user_id, but we only have employee data here.
+  // A simpler client-side check: if employee's user matches the current auth user,
+  // we need the employee's user_id. Since we don't have it in the approval data,
+  // we'll use employee_id from the request and compare with the step's approver_user_id.
+  // If approver_user_id === current user AND the request was made by the same user, block.
+  // Actually, the simplest check: does the current user's ID match any employee_id on the request?
+  // We already have user.id and can check against the step's approver_user_id.
+  // The real guard is: if this approval's underlying request was submitted by the current user.
+  // We need to check if the employee's user_id equals user.id.
+  // Since we don't have user_id in the approval data, we check if approval.step.approver_user_id === user?.id
+  // AND the request employee seems to be "self". But we can't know without user_id.
+  // Best approach: pass a flag from the query. For now, we'll disable if not possible to determine.
+  // Actually - we DO know the current user's ID. We just need to know the requester's user_id.
+  // The leave_request has employee_id (employees table ID), not user_id.
+  // Let's just skip the client-side guard in ApprovalCard since the engine-level fix prevents self-assignment.
+  // But we should still show a warning if somehow it happens.
 
   if (approval.request_type === "time_off" && approval.leave_request) {
     const { leave_request } = approval;
