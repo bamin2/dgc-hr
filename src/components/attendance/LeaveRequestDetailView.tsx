@@ -48,7 +48,10 @@ export function LeaveRequestDetailView({ request, approvalSteps }: LeaveRequestD
 
   const isHROrAdmin = currentUser.role === 'hr' || currentUser.role === 'admin';
   const isPending = request.status === 'pending';
-  const canTakeAction = isHROrAdmin && isPending;
+  
+  // Self-approval guard: check if the current user is the employee who submitted the request
+  const isOwnRequest = request.employee?.user_id === profile?.id;
+  const canTakeAction = isHROrAdmin && isPending && !isOwnRequest;
 
   const employeeName = request.employee 
     ? `${request.employee.first_name} ${request.employee.last_name}`

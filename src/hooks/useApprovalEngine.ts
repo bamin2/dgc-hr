@@ -34,18 +34,23 @@ async function getManagerUserId(employeeId: string): Promise<string | null> {
   return getEmployeeUserId(employee.manager_id);
 }
 
-// Get a default HR approver
-async function getDefaultHRApprover(workflowDefaultId?: string | null): Promise<string | null> {
-  // First try workflow's default
-  if (workflowDefaultId) return workflowDefaultId;
+// Get a default HR approver, optionally excluding a specific user (to prevent self-approval)
+async function getDefaultHRApprover(workflowDefaultId?: string | null, excludeUserId?: string | null): Promise<string | null> {
+  // First try workflow's default (only if it's not the excluded user)
+  if (workflowDefaultId && workflowDefaultId !== excludeUserId) return workflowDefaultId;
 
-  // Get first user with HR or Admin role
-  const { data: roleData } = await supabase
+  // Get first user with HR or Admin role, excluding the requester
+  const query = supabase
     .from("user_roles")
     .select("user_id")
     .in("role", ["hr", "admin"])
-    .limit(1)
-    .single();
+    .limit(1);
+
+  if (excludeUserId) {
+    query.neq("user_id", excludeUserId);
+  }
+
+  const { data: roleData } = await query.single();
 
   return roleData?.user_id || null;
 }
@@ -56,6 +61,9 @@ export function useInitiateApproval() {
 
   return useMutation({
     mutationFn: async ({ requestId, requestType, employeeId }: InitiateApprovalParams) => {
+      // 0. Get the requester's user_id to prevent self-approval
+      const requesterUserId = await getEmployeeUserId(employeeId);
+
       // 1. Load workflow config
       const { data: workflow, error: workflowError } = await supabase
         .from("approval_workflows")
@@ -128,20 +136,24 @@ export function useInitiateApproval() {
         let effectiveApproverType = stepConfig.approver;
 
         if (stepConfig.approver === "manager") {
-          if (managerUserId) {
+          if (managerUserId && managerUserId !== requesterUserId) {
             approverUserId = managerUserId;
           } else if (stepConfig.fallback === "hr") {
-            // Fallback to HR
-            approverUserId = await getDefaultHRApprover(workflow.default_hr_approver_id);
+            // Fallback to HR (exclude requester to prevent self-approval)
+            approverUserId = await getDefaultHRApprover(workflow.default_hr_approver_id, requesterUserId);
             effectiveApproverType = "hr";
           } else {
             // Skip this step if no manager and no fallback
             continue;
           }
         } else if (stepConfig.approver === "hr") {
-          approverUserId = await getDefaultHRApprover(workflow.default_hr_approver_id);
+          approverUserId = await getDefaultHRApprover(workflow.default_hr_approver_id, requesterUserId);
         } else if (stepConfig.approver === "specific_user") {
           approverUserId = stepConfig.specific_user_id || null;
+          // If specific user is the requester, skip
+          if (approverUserId === requesterUserId) {
+            continue;
+          }
         }
 
         if (!approverUserId) {

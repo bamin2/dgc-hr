@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, User, AlertTriangle, Banknote } from "lucide-react";
+import { Calendar, Clock, AlertTriangle, Banknote } from "lucide-react";
 import { PendingApproval } from "@/types/approvals";
 import { ApprovalProgressSteps } from "./ApprovalProgressSteps";
 import { ApprovalActionDialog } from "./ApprovalActionDialog";
@@ -38,6 +38,7 @@ export function ApprovalCard({ approval }: ApprovalCardProps) {
       maximumFractionDigits: 0,
     }).format(amount);
   };
+
 
   if (approval.request_type === "time_off" && approval.leave_request) {
     const { leave_request } = approval;

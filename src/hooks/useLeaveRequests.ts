@@ -28,6 +28,7 @@ export interface LeaveRequest {
     last_name: string;
     email: string;
     avatar_url: string | null;
+    user_id?: string | null;
     department?: {
       id: string;
       name: string;
@@ -63,6 +64,7 @@ export function useLeaveRequests(options: UseLeaveRequestsOptions = {}) {
           *,
           employee:employees!leave_requests_employee_id_fkey (
             id,
+            user_id,
             first_name,
             last_name,
             email,
@@ -117,6 +119,7 @@ export function useLeaveRequest(id: string) {
           *,
           employee:employees!leave_requests_employee_id_fkey (
             id,
+            user_id,
             first_name,
             last_name,
             email,
