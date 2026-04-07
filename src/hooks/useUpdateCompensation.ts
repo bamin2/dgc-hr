@@ -29,6 +29,7 @@ export interface UpdateCompensationInput {
   newDeductions: DeductionInput[];
   reason?: string;
   effectiveDate: Date;
+  isSubjectToGosi?: boolean;
 }
 
 export function useUpdateCompensation() {
@@ -61,12 +62,16 @@ export function useUpdateCompensation() {
         // IMMEDIATE CHANGE: Apply changes now (existing behavior)
         
         // 1. Update employee salary
+        const employeeUpdate: Record<string, unknown> = {
+          salary: input.newSalary,
+          gosi_registered_salary: input.newGosiSalary,
+        };
+        if (input.isSubjectToGosi !== undefined) {
+          employeeUpdate.is_subject_to_gosi = input.isSubjectToGosi;
+        }
         const { error: empError } = await supabase
           .from('employees')
-          .update({
-            salary: input.newSalary,
-            gosi_registered_salary: input.newGosiSalary,
-          })
+          .update(employeeUpdate)
           .eq('id', input.employeeId);
         
         if (empError) throw empError;
