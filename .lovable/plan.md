@@ -1,62 +1,30 @@
 
 
-# Fix Loan Deductions Missing from Finalized Payroll View
+# Fix Payroll Run Total Amount Mismatch
 
 ## Problem
-Loan deductions selected during the payroll wizard (Step 3) exist only in React component state. When finalization happens, two things are broken:
-1. **Finalization doesn't persist loan deductions** — `usePayrollWizard.finalize()` doesn't mark loan installments as paid or store the loan deduction data
-2. **PayrollRegister (view) doesn't fetch loan deductions** — after finalization, the register view only reads `payroll_run_employees` and `payroll_run_adjustments`, ignoring loan installments linked to the run
+The `totalAmount` stored during finalization does not account for one-time adjustments (earnings/deductions from Step 3). It only uses base `netPay` from employee snapshots minus loan deductions. The register view correctly recalculates with adjustments, showing the right number (BHD 34,187.8), but the stored value (BHD 34,202.8) is wrong by 15 — exactly the amount of a "Telephone Deduction" adjustment.
 
-## Solution
-
-### 1. Persist loan deductions during finalization
-
-**Files:** `src/hooks/usePayrollWizard.ts`, `src/components/payroll/PayrollRunWizard/index.tsx`
-
-- Pass `loanDeductions` into the `finalize` function
-- During finalization, call `useMarkInstallmentsPaidByPayroll` to mark selected loan installments as paid with `paid_in_payroll_run_id = runId`
-- Adjust `totalAmount` calculation to subtract loan deduction totals from net pay
-
-### 2. Fetch loan deductions in the register view
-
-**File:** `src/components/payroll/PayrollRegister.tsx`
-
-- Query `loan_installments` where `paid_in_payroll_run_id = run.id` and join with `loans` to get `employee_id` and employee name
-- Include loan deduction amounts in `getAdjustedTotals` (add to `totalDeductions`, subtract from `netPay`)
-- Add a "Loan Deductions" column or include loan amounts in the "Other Ded." column
-- Display a loan deductions summary section (similar to the existing adjustments section)
-
-### 3. Wire loan deductions from wizard to finalize
-
-**File:** `src/components/payroll/PayrollRunWizard/index.tsx`
-
-- Pass `loanDeductions` state to `actions.finalize()` call
-- Update the finalize button's onClick to pass the current loan deductions
+## Fix
 
 **File:** `src/hooks/usePayrollWizard.ts`
 
-- Update `finalize` to accept `loanDeductions` parameter
-- Use `useMarkInstallmentsPaidByPayroll` mutation inside finalize
-- Recalculate `totalAmount` accounting for loan deductions
+In the `finalize` function, include adjustments in the `totalAmount` calculation. The `adjustments` data is already available from `usePayrollRunAdjustments(runId)`.
 
-## Technical Details
+Change the totalAmount calculation from:
+```
+const totalAmount = runEmployees.reduce((sum, emp) => sum + (emp.netPay || 0), 0) - loanTotal;
+```
+
+To:
+```
+const earningsAdj = adjustments.filter(a => a.type === 'earning').reduce((sum, a) => sum + a.amount, 0);
+const deductionsAdj = adjustments.filter(a => a.type === 'deduction').reduce((sum, a) => sum + a.amount, 0);
+const totalAmount = runEmployees.reduce((sum, emp) => sum + (emp.netPay || 0), 0) + earningsAdj - deductionsAdj - loanTotal;
+```
+
+This matches the same logic used by the register view's `getAdjustedTotals` function, ensuring the stored total equals the displayed total.
 
 ### Files to modify
-
-| File | Change |
-|------|--------|
-| `src/hooks/usePayrollWizard.ts` | Accept loan deductions in `finalize`, mark installments as paid, adjust total |
-| `src/components/payroll/PayrollRunWizard/index.tsx` | Pass `loanDeductions` to `actions.finalize()` |
-| `src/components/payroll/PayrollRegister.tsx` | Fetch loan installments by `paid_in_payroll_run_id`, include in totals and display |
-
-### Data flow after fix
-
-```text
-Wizard Step 3 → loanDeductions state
-    ↓
-Finalize → mark loan_installments as paid (paid_in_payroll_run_id = runId)
-    ↓
-Register View → query loan_installments WHERE paid_in_payroll_run_id = runId
-    → include in deductions totals and per-employee breakdown
-```
+- `src/hooks/usePayrollWizard.ts` — one line change in `finalize` callback
 
