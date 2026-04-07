@@ -88,6 +88,7 @@ export function PayrollRunWizard({
               payPeriodEnd={state.payPeriodEnd}
               employees={data.runEmployees}
               adjustments={data.adjustments}
+              loanDeductions={loanDeductions}
             />
           )}
 

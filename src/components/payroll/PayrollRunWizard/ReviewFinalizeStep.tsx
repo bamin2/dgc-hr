@@ -264,7 +264,7 @@ export function ReviewFinalizeStep({
                 </div>
                 
                 {/* Show adjustments if any */}
-                {empAdjustments.length > 0 && (
+                {(empAdjustments.length > 0 || getEmployeeLoanDeductions(emp.employeeId).length > 0) && (
                   <div className="mt-2 pt-2 border-t border-dashed space-y-1">
                     {empAdjustments.map((adj) => (
                       <div key={adj.id} className="flex items-center justify-between text-xs">
@@ -278,6 +278,17 @@ export function ReviewFinalizeStep({
                         </span>
                         <span className={adj.type === "earning" ? "text-success" : "text-destructive"}>
                           {adj.type === "earning" ? "+" : "-"}{location.currency} {adj.amount.toLocaleString()}
+                        </span>
+                      </div>
+                    ))}
+                    {getEmployeeLoanDeductions(emp.employeeId).map((ld) => (
+                      <div key={ld.installmentId} className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground flex items-center gap-1">
+                          <Banknote className="h-3 w-3 text-destructive" />
+                          {ld.description}
+                        </span>
+                        <span className="text-destructive">
+                          -{location.currency} {ld.amount.toLocaleString()}
                         </span>
                       </div>
                     ))}

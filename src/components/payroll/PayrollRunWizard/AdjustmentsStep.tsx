@@ -257,6 +257,7 @@ export function AdjustmentsStep({ runId, employees, payPeriodStart, payPeriodEnd
           payPeriodStart={payPeriodStart}
           payPeriodEnd={payPeriodEnd}
           employeeIds={employees.map((e) => e.employeeId)}
+          onLoanDeductionsChange={onLoanDeductionsChange}
         />
       )}
 
