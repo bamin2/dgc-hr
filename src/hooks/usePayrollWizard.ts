@@ -221,7 +221,9 @@ export function usePayrollWizard({
         });
       }
 
-      const totalAmount = runEmployees.reduce((sum, emp) => sum + (emp.netPay || 0), 0) - loanTotal;
+      const earningsAdj = adjustments.filter(a => a.type === 'earning').reduce((sum, a) => sum + a.amount, 0);
+      const deductionsAdj = adjustments.filter(a => a.type === 'deduction').reduce((sum, a) => sum + a.amount, 0);
+      const totalAmount = runEmployees.reduce((sum, emp) => sum + (emp.netPay || 0), 0) + earningsAdj - deductionsAdj - loanTotal;
       
       await updateRun.mutateAsync({
         runId,
