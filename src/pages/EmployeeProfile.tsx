@@ -602,6 +602,12 @@ export default function EmployeeProfile() {
                       </>
                     )}
                     
+                    <Separator />
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-sm font-medium">Gross Monthly Salary</span>
+                      <span className="text-sm font-semibold">{formatCurrency(compensationBreakdown.baseSalary + compensationBreakdown.allowanceItems.reduce((sum, item) => sum + item.amount, 0))}</span>
+                    </div>
+                    
                     {compensationBreakdown.deductionItems.length > 0 && (
                       <>
                         <Separator />
