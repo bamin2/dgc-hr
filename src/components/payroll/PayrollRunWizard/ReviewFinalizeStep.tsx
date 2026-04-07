@@ -29,22 +29,30 @@ export function ReviewFinalizeStep({
     return adjustments.filter(a => a.employeeId === employeeId);
   };
 
+  // Get loan deductions per employee
+  const getEmployeeLoanDeductions = (employeeId: string) => {
+    return loanDeductions.filter(d => d.employeeId === employeeId);
+  };
+
   // Calculate adjusted totals per employee
   const getAdjustedTotals = (emp: PayrollRunEmployee) => {
     const empAdjustments = getEmployeeAdjustments(emp.employeeId);
+    const empLoans = getEmployeeLoanDeductions(emp.employeeId);
     const earningsAdj = empAdjustments
       .filter(a => a.type === "earning")
       .reduce((sum, a) => sum + a.amount, 0);
     const deductionsAdj = empAdjustments
       .filter(a => a.type === "deduction")
       .reduce((sum, a) => sum + a.amount, 0);
+    const loanTotal = empLoans.reduce((sum, d) => sum + d.amount, 0);
 
     return {
       grossPay: emp.grossPay + earningsAdj,
-      totalDeductions: emp.totalDeductions + deductionsAdj,
-      netPay: emp.netPay + earningsAdj - deductionsAdj,
+      totalDeductions: emp.totalDeductions + deductionsAdj + loanTotal,
+      netPay: emp.netPay + earningsAdj - deductionsAdj - loanTotal,
       earningsAdjustment: earningsAdj,
       deductionsAdjustment: deductionsAdj,
+      loanDeductionTotal: loanTotal,
     };
   };
 
