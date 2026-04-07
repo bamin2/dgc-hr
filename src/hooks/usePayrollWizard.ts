@@ -9,7 +9,9 @@ import { WorkLocation } from "@/hooks/useWorkLocations";
 import { useCreatePayrollRun, usePayrollRun, useUpdatePayrollRun, useCheckExistingDraft } from "@/hooks/usePayrollRunsV2";
 import { usePayrollRunEmployees } from "@/hooks/usePayrollRunEmployees";
 import { usePayrollRunAdjustments } from "@/hooks/usePayrollRunAdjustments";
+import { useMarkInstallmentsPaidByPayroll } from "@/hooks/useLoans";
 import { toast } from "@/hooks/use-toast";
+import type { LoanDeductionForReview } from "@/components/loans/PayrollLoanInstallments";
 
 // ============================================
 // Types
@@ -46,7 +48,7 @@ export interface PayrollWizardActions {
   setSelectedEmployeeIds: (ids: string[]) => void;
   resumeDraft: (draftId: string) => void;
   saveDraft: () => Promise<void>;
-  finalize: () => Promise<void>;
+  finalize: (loanDeductions?: LoanDeductionForReview[]) => Promise<void>;
 }
 
 export interface PayrollWizardData {
@@ -106,6 +108,7 @@ export function usePayrollWizard({
 
   const createRun = useCreatePayrollRun();
   const updateRun = useUpdatePayrollRun();
+  const markInstallmentsPaid = useMarkInstallmentsPaidByPayroll();
   const { data: adjustments = [] } = usePayrollRunAdjustments(runId);
   const { data: runEmployees = [], snapshotEmployees } = usePayrollRunEmployees(runId);
 
@@ -205,11 +208,20 @@ export function usePayrollWizard({
     onComplete();
   }, [onComplete]);
 
-  const finalize = useCallback(async () => {
+  const finalize = useCallback(async (loanDeductions?: LoanDeductionForReview[]) => {
     if (!runId) return;
 
     try {
-      const totalAmount = runEmployees.reduce((sum, emp) => sum + (emp.netPay || 0), 0);
+      // Mark loan installments as paid
+      const loanTotal = loanDeductions?.reduce((sum, d) => sum + d.amount, 0) || 0;
+      if (loanDeductions && loanDeductions.length > 0) {
+        await markInstallmentsPaid.mutateAsync({
+          installmentIds: loanDeductions.map((d) => d.installmentId),
+          payrollRunId: runId,
+        });
+      }
+
+      const totalAmount = runEmployees.reduce((sum, emp) => sum + (emp.netPay || 0), 0) - loanTotal;
       
       await updateRun.mutateAsync({
         runId,
@@ -230,7 +242,7 @@ export function usePayrollWizard({
         variant: "destructive",
       });
     }
-  }, [runId, runEmployees, updateRun, onComplete]);
+  }, [runId, runEmployees, updateRun, markInstallmentsPaid, onComplete]);
 
   // Computed status
   const canProceed = currentStep !== 2 || selectedEmployeeIds.length > 0;
