@@ -104,8 +104,6 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
     nationality: '',
     avatar: '',
     managerId: '',
-    isSubjectToGosi: false,
-    gosiRegisteredSalary: '',
     passportNumber: '',
     cprNumber: '',
     joinDate: '',
