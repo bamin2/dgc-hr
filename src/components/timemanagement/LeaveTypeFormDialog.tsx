@@ -52,6 +52,8 @@ const formSchema = z.object({
   // Salary deduction settings
   has_salary_deduction: z.boolean(),
   salary_deduction_tiers: z.array(tierSchema),
+  // Attachment settings
+  attachment_required: z.boolean(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -115,6 +117,7 @@ export function LeaveTypeFormDialog({
       max_consecutive_days: leaveType?.max_consecutive_days || null,
       has_salary_deduction: leaveType?.has_salary_deduction ?? false,
       salary_deduction_tiers: leaveType?.salary_deduction_tiers || [],
+      attachment_required: leaveType?.attachment_required ?? false,
     },
   });
 
@@ -419,7 +422,7 @@ export function LeaveTypeFormDialog({
                 )}
               />
 
-              {requiresDocument && (
+               {requiresDocument && (
                 <FormField
                   control={form.control}
                   name="document_required_after_days"
@@ -443,6 +446,24 @@ export function LeaveTypeFormDialog({
                   )}
                 />
               )}
+
+              <FormField
+                control={form.control}
+                name="attachment_required"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between rounded-lg border p-3">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-sm">Require Attachment</FormLabel>
+                      <FormDescription className="text-xs">
+                        Employee must upload at least one file when requesting this leave
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
             </div>
 
             {/* Carryover Settings */}
