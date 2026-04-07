@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 import { formatMonthYear } from "@/lib/dateUtils";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ import { PayrollRunStatusBadge } from "./PayrollRunStatusBadge";
 import { PayslipsTab } from "./PayslipsTab";
 import { usePayrollRunEmployees, PayrollRunEmployee } from "@/hooks/usePayrollRunEmployees";
 import { usePayrollRunAdjustments } from "@/hooks/usePayrollRunAdjustments";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PayrollRegisterProps {
   run: PayrollRunData;
@@ -36,6 +38,40 @@ export function PayrollRegister({
   const [activeTab, setActiveTab] = useState<string>(initialTab);
   const { data: employees = [], isLoading: employeesLoading } = usePayrollRunEmployees(run.id);
   const { data: adjustments = [] } = usePayrollRunAdjustments(run.id);
+
+  // Fetch loan installments paid in this payroll run
+  const { data: loanInstallments = [] } = useQuery({
+    queryKey: ["payroll-loan-installments", run.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("loan_installments")
+        .select(`
+          id,
+          amount,
+          installment_number,
+          loan:loans(
+            id,
+            employee_id,
+            duration_months,
+            employee:employees(id, first_name, last_name)
+          )
+        `)
+        .eq("paid_in_payroll_run_id", run.id)
+        .eq("status", "paid");
+
+      if (error) throw error;
+      return (data || []).map((inst: any) => ({
+        id: inst.id,
+        amount: Number(inst.amount),
+        installmentNumber: inst.installment_number,
+        totalInstallments: inst.loan?.duration_months || 0,
+        employeeId: inst.loan?.employee_id,
+        employeeName: inst.loan?.employee
+          ? `${inst.loan.employee.first_name} ${inst.loan.employee.last_name}`.trim()
+          : "Unknown",
+      }));
+    },
+  });
 
   // Map employees to the format expected by PayslipsTab
   const payslipEmployees = employees.map(emp => ({
@@ -66,11 +102,15 @@ export function PayrollRegister({
     const deductionsAdj = empAdjustments
       .filter((a) => a.type === "deduction")
       .reduce((sum, a) => sum + a.amount, 0);
+    const loanDed = loanInstallments
+      .filter((l) => l.employeeId === emp.employeeId)
+      .reduce((sum, l) => sum + l.amount, 0);
 
     return {
       grossPay: emp.grossPay + earningsAdj,
-      totalDeductions: emp.totalDeductions + deductionsAdj,
-      netPay: emp.netPay + earningsAdj - deductionsAdj,
+      totalDeductions: emp.totalDeductions + deductionsAdj + loanDed,
+      netPay: emp.netPay + earningsAdj - deductionsAdj - loanDed,
+      loanDeductions: loanDed,
     };
   };
 
@@ -89,6 +129,7 @@ export function PayrollRegister({
         gosiDeduction: acc.gosiDeduction + emp.gosiDeduction,
         otherDeductions:
           acc.otherDeductions + emp.otherDeductions.reduce((s, d) => s + d.amount, 0),
+        loanDeductions: acc.loanDeductions + adjusted.loanDeductions,
         totalDeductions: acc.totalDeductions + adjusted.totalDeductions,
         netPay: acc.netPay + adjusted.netPay,
       };
@@ -99,6 +140,7 @@ export function PayrollRegister({
       grossPay: 0,
       gosiDeduction: 0,
       otherDeductions: 0,
+      loanDeductions: 0,
       totalDeductions: 0,
       netPay: 0,
     }
@@ -194,13 +236,16 @@ export function PayrollRegister({
                     <TableHeader>
                       <TableRow>
                         <TableHead>Employee</TableHead>
-                        <TableHead className="text-right">Base Salary</TableHead>
-                        <TableHead className="text-right">Allowances</TableHead>
-                        <TableHead className="text-right">Gross Pay</TableHead>
-                        <TableHead className="text-right">GOSI</TableHead>
-                        <TableHead className="text-right">Other Ded.</TableHead>
-                        <TableHead className="text-right">Net Pay</TableHead>
-                      </TableRow>
+                         <TableHead className="text-right">Base Salary</TableHead>
+                         <TableHead className="text-right">Allowances</TableHead>
+                         <TableHead className="text-right">Gross Pay</TableHead>
+                         <TableHead className="text-right">GOSI</TableHead>
+                         <TableHead className="text-right">Other Ded.</TableHead>
+                         {totals.loanDeductions > 0 && (
+                           <TableHead className="text-right">Loan Ded.</TableHead>
+                         )}
+                         <TableHead className="text-right">Net Pay</TableHead>
+                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {employees.map((emp) => {
@@ -234,11 +279,16 @@ export function PayrollRegister({
                               {emp.gosiDeduction > 0 ? `-${formatCurrency(emp.gosiDeduction)}` : "-"}
                             </TableCell>
                             <TableCell className="text-right text-destructive">
-                              {otherDed > 0 ? `-${formatCurrency(otherDed)}` : "-"}
-                            </TableCell>
-                            <TableCell className="text-right font-semibold text-primary">
-                              {formatCurrency(adjusted.netPay)}
-                            </TableCell>
+                               {otherDed > 0 ? `-${formatCurrency(otherDed)}` : "-"}
+                             </TableCell>
+                             {totals.loanDeductions > 0 && (
+                               <TableCell className="text-right text-destructive">
+                                 {adjusted.loanDeductions > 0 ? `-${formatCurrency(adjusted.loanDeductions)}` : "-"}
+                               </TableCell>
+                             )}
+                             <TableCell className="text-right font-semibold text-primary">
+                               {formatCurrency(adjusted.netPay)}
+                             </TableCell>
                           </TableRow>
                         );
                       })}
@@ -255,14 +305,19 @@ export function PayrollRegister({
                           {formatCurrency(totals.grossPay)}
                         </TableCell>
                         <TableCell className="text-right text-destructive">
-                          -{formatCurrency(totals.gosiDeduction)}
-                        </TableCell>
-                        <TableCell className="text-right text-destructive">
-                          -{formatCurrency(totals.otherDeductions)}
-                        </TableCell>
-                        <TableCell className="text-right font-semibold text-primary">
-                          {formatCurrency(totals.netPay)}
-                        </TableCell>
+                           -{formatCurrency(totals.gosiDeduction)}
+                         </TableCell>
+                         <TableCell className="text-right text-destructive">
+                           -{formatCurrency(totals.otherDeductions)}
+                         </TableCell>
+                         {totals.loanDeductions > 0 && (
+                           <TableCell className="text-right text-destructive">
+                             -{formatCurrency(totals.loanDeductions)}
+                           </TableCell>
+                         )}
+                         <TableCell className="text-right font-semibold text-primary">
+                           {formatCurrency(totals.netPay)}
+                         </TableCell>
                       </TableRow>
                     </TableBody>
                   </Table>
@@ -323,6 +378,41 @@ export function PayrollRegister({
                         </TableRow>
                       );
                     })}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Loan Deductions Section */}
+          {loanInstallments.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">
+                  Loan Deductions ({loanInstallments.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Employee</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead className="text-right">Amount</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {loanInstallments.map((inst) => (
+                      <TableRow key={inst.id}>
+                        <TableCell>{inst.employeeName}</TableCell>
+                        <TableCell>
+                          Loan Installment #{inst.installmentNumber}/{inst.totalInstallments}
+                        </TableCell>
+                        <TableCell className="text-right font-medium text-destructive">
+                          -{formatCurrency(inst.amount)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
                   </TableBody>
                 </Table>
               </CardContent>

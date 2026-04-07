@@ -120,12 +120,12 @@ export function PayrollRunWizard({
                   <Button variant="outline" onClick={actions.saveDraft}>
                     Save Draft
                   </Button>
-                  <Button
-                    onClick={actions.finalize}
-                    disabled={status.isUpdating}
-                  >
-                    {status.isUpdating ? "Finalizing..." : "Finalize Payroll"}
-                  </Button>
+                   <Button
+                     onClick={() => actions.finalize(loanDeductions)}
+                     disabled={status.isUpdating}
+                   >
+                     {status.isUpdating ? "Finalizing..." : "Finalize Payroll"}
+                   </Button>
                 </div>
               )}
             </div>
