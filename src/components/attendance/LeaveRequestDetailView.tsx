@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { useLeaveRequestAttachments, getSignedAttachmentUrl } from '@/hooks/useLeaveAttachments';
 import { LeaveStatusBadge } from './LeaveStatusBadge';
 import { ApprovalProgressSteps } from '@/components/approvals/ApprovalProgressSteps';
 import { LeaveRequest } from '@/hooks/useLeaveRequests';
@@ -18,7 +19,9 @@ import {
   FileText, 
   AlertTriangle,
   CheckCircle2,
-  XCircle
+  XCircle,
+  Paperclip,
+  Download,
 } from 'lucide-react';
 import { useState } from 'react';
 import {
@@ -42,6 +45,7 @@ export function LeaveRequestDetailView({ request, approvalSteps }: LeaveRequestD
   const { currentUser } = useRole();
   const approveLeave = useApproveLeaveRequest();
   const rejectLeave = useRejectLeaveRequest();
+  const { data: attachments } = useLeaveRequestAttachments(request.id);
   
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
