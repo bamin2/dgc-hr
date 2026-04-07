@@ -1,25 +1,59 @@
 
 
-# Re-add Missing March 2026 Loan Installments
+# Fix Document Upload RLS Policy
 
 ## Problem
-Installment #3 (due 2026-03-01) was accidentally deleted from both loans:
-- **Muhammad Saleem** — loan `2201691d-3c51-45d4-b8d0-d90e5840576a`, installment amount: 150
-- **Omar Alraee** — loan `2e2e57a7-0c12-4082-a762-43b3da83abfb`, installment amount: 255
+The `employee_documents` table has only SELECT policies — no INSERT, UPDATE, or DELETE RLS policies. When an HR/admin user uploads a document, the insert into `employee_documents` is blocked by RLS, causing the "Upload failed" error.
 
-Both loans have installments 1, 2, 4, 5, ... but #3 is missing.
+The storage bucket upload succeeds (it has proper policies), but the database record insert fails.
+
+## Evidence
+Database logs show: `new row violates row-level security policy for table "employee_documents"`
+
+Current policies on `employee_documents`: 3 SELECT policies only, zero INSERT/UPDATE/DELETE policies.
 
 ## Fix
-Insert two rows into `loan_installments` using the Supabase insert tool:
+
+**Database migration** — add INSERT, UPDATE, and DELETE policies for HR/admin users:
 
 ```sql
-INSERT INTO loan_installments (loan_id, installment_number, due_date, amount, status)
-VALUES
-  ('2201691d-3c51-45d4-b8d0-d90e5840576a', 3, '2026-03-01', 150, 'due'),
-  ('2e2e57a7-0c12-4082-a762-43b3da83abfb', 3, '2026-03-01', 255, 'due');
+-- HR and admin can insert documents
+CREATE POLICY "HR and admin can insert employee documents"
+ON public.employee_documents
+FOR INSERT
+TO authenticated
+WITH CHECK (
+  public.has_any_role(auth.uid(), ARRAY['hr'::app_role, 'admin'::app_role])
+);
+
+-- HR and admin can update documents
+CREATE POLICY "HR and admin can update employee documents"
+ON public.employee_documents
+FOR UPDATE
+TO authenticated
+USING (
+  public.has_any_role(auth.uid(), ARRAY['hr'::app_role, 'admin'::app_role])
+)
+WITH CHECK (
+  public.has_any_role(auth.uid(), ARRAY['hr'::app_role, 'admin'::app_role])
+);
+
+-- HR and admin can delete documents
+CREATE POLICY "HR and admin can delete employee documents"
+ON public.employee_documents
+FOR DELETE
+TO authenticated
+USING (
+  public.has_any_role(auth.uid(), ARRAY['hr'::app_role, 'admin'::app_role])
+);
 ```
 
-No schema changes needed. This is a data-only operation.
+Also add the same for `document_expiry_notifications` table (used when setting expiry notification preferences during upload):
+
+```sql
+-- Check current policies on document_expiry_notifications and add INSERT/UPDATE/DELETE if missing
+```
 
 ## Files changed
-None — database insert only.
+No code changes — database migration only.
+
