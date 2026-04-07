@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Plus, X, Loader2, CalendarIcon, Clock } from "lucide-react";
+import { Plus, X, Loader2, CalendarIcon, Clock, AlertTriangle } from "lucide-react";
 import { format, startOfDay, isAfter } from "date-fns";
 import {
   Dialog,
@@ -17,6 +17,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
 import { formatAmount } from "@/lib/currencyUtils";
 import { Employee } from "@/hooks/useEmployees";
@@ -105,6 +116,9 @@ export function EditSalaryDialog({
   const [showAllowanceDialog, setShowAllowanceDialog] = useState(false);
   const [showDeductionDialog, setShowDeductionDialog] = useState(false);
   const [effectiveDate, setEffectiveDate] = useState<Date>(new Date());
+  const [isSubjectToGosi, setIsSubjectToGosi] = useState(false);
+  const [gosiConfirmOpen, setGosiConfirmOpen] = useState(false);
+  const [pendingGosiValue, setPendingGosiValue] = useState<boolean | null>(null);
   
   // Get today's date at start of day for comparison
   const today = startOfDay(new Date());
@@ -115,6 +129,7 @@ export function EditSalaryDialog({
     if (open) {
       setBasicSalary(employee.salary || 0);
       setGosiSalary(employee.gosiRegisteredSalary || null);
+      setIsSubjectToGosi(employee.isSubjectToGosi || false);
       setAllowances(mapToLocalAllowances(currentAllowances));
       setDeductions(mapToLocalDeductions(currentDeductions));
       setReason('');
@@ -127,7 +142,7 @@ export function EditSalaryDialog({
   
   // Calculate GOSI deduction based on nationality rates
   const gosiCalculation = useMemo(() => {
-    if (!employee.isSubjectToGosi || !gosiSalary) {
+    if (!isSubjectToGosi || !gosiSalary) {
       return { gosiDeduction: 0, employeeRate: 0 };
     }
     
@@ -148,7 +163,7 @@ export function EditSalaryDialog({
     const gosiDeduction = (gosiSalary * employeeRate) / 100;
     
     return { gosiDeduction, employeeRate };
-  }, [employee.isSubjectToGosi, employee.nationality, gosiSalary, workLocationId, workLocations]);
+  }, [isSubjectToGosi, employee.nationality, gosiSalary, workLocationId, workLocations]);
   
   // Calculated totals
   const totals = useMemo(() => {
@@ -218,7 +233,8 @@ export function EditSalaryDialog({
       previousSalary: employee.salary || 0,
       newSalary: basicSalary,
       previousGosiSalary: employee.gosiRegisteredSalary || null,
-      newGosiSalary: employee.isSubjectToGosi ? gosiSalary : null,
+      newGosiSalary: isSubjectToGosi ? gosiSalary : null,
+      isSubjectToGosi,
       previousAllowances,
       newAllowances: allowances.map(a => ({
         templateId: a.templateId,
@@ -419,11 +435,31 @@ export function EditSalaryDialog({
               )}
             </div>
             
-            {/* GOSI Section - Above Summary */}
-            {employee.isSubjectToGosi && (
-              <div className="space-y-3">
-                  <Label className="text-sm font-medium">GOSI</Label>
-                  <div className="space-y-4 p-4 bg-muted/30 rounded-lg">
+            {/* GOSI Section */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">GOSI</Label>
+              <div className="space-y-4 p-4 bg-muted/30 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="gosi-toggle-comp" className="font-medium cursor-pointer text-sm">
+                      Subject to GOSI
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Enable if this employee is subject to GOSI social insurance
+                    </p>
+                  </div>
+                  <Switch
+                    id="gosi-toggle-comp"
+                    checked={isSubjectToGosi}
+                    onCheckedChange={(checked) => {
+                      setPendingGosiValue(checked);
+                      setGosiConfirmOpen(true);
+                    }}
+                  />
+                </div>
+                
+                {isSubjectToGosi && (
+                  <>
                     <div className="space-y-1.5">
                       <Label htmlFor="gosiSalary" className="text-sm text-muted-foreground">
                         Registered Salary
@@ -450,9 +486,10 @@ export function EditSalaryDialog({
                         </span>
                       </div>
                     )}
-                  </div>
-                </div>
-            )}
+                  </>
+                )}
+              </div>
+            </div>
             
             {/* Summary Section */}
             <div className="bg-muted/50 rounded-lg p-4 space-y-3">
@@ -548,6 +585,44 @@ export function EditSalaryDialog({
         workLocationId={workLocationId}
         existingTemplateIds={deductions.filter(d => d.templateId).map(d => d.templateId!)}
       />
+      
+      {/* GOSI Confirmation Dialog */}
+      <AlertDialog open={gosiConfirmOpen} onOpenChange={setGosiConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              {pendingGosiValue ? 'Enable GOSI for this employee?' : 'Disable GOSI for this employee?'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingGosiValue ? (
+                <>
+                  This will mark the employee as subject to GOSI. You'll need to set their GOSI registered salary,
+                  and the appropriate rate will be calculated as a deduction for social insurance contributions.
+                </>
+              ) : (
+                <>
+                  This will remove the employee from GOSI calculations. Their GOSI registered salary will be cleared,
+                  and no GOSI deductions will be applied to their salary.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => { setGosiConfirmOpen(false); setPendingGosiValue(null); }}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              if (pendingGosiValue !== null) {
+                setIsSubjectToGosi(pendingGosiValue);
+                if (!pendingGosiValue) setGosiSalary(null);
+              }
+              setGosiConfirmOpen(false);
+              setPendingGosiValue(null);
+            }}>
+              {pendingGosiValue ? 'Enable GOSI' : 'Disable GOSI'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

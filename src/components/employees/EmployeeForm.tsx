@@ -67,8 +67,6 @@ interface FormData {
   nationality: string;
   avatar: string;
   managerId: string;
-  isSubjectToGosi: boolean;
-  gosiRegisteredSalary: string;
   passportNumber: string;
   cprNumber: string;
   joinDate: string;
@@ -85,8 +83,6 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
   
   const [cropperOpen, setCropperOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [gosiConfirmOpen, setGosiConfirmOpen] = useState(false);
-  const [pendingGosiValue, setPendingGosiValue] = useState<boolean | null>(null);
   
   const [formData, setFormData] = useState<FormData>({
     firstName: '',
@@ -146,8 +142,6 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
         nationality: employee.nationality || '',
         avatar: employee.avatar || '',
         managerId: employee.managerId || '',
-        isSubjectToGosi: employee.isSubjectToGosi || false,
-        gosiRegisteredSalary: employee.gosiRegisteredSalary?.toString() || '',
         passportNumber: employee.passportNumber || '',
         cprNumber: employee.cprNumber || '',
         joinDate: employee.joinDate || '',
@@ -173,8 +167,6 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
         nationality: '',
         avatar: '',
         managerId: '',
-        isSubjectToGosi: false,
-        gosiRegisteredSalary: '',
         passportNumber: '',
         cprNumber: '',
         joinDate: '',
@@ -185,14 +177,8 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Convert gosiRegisteredSalary to number if provided
-    const gosiSalary = formData.gosiRegisteredSalary 
-      ? parseFloat(formData.gosiRegisteredSalary) 
-      : undefined;
-    
     onSave({
       ...formData,
-      gosiRegisteredSalary: gosiSalary,
     } as Partial<Employee>);
     onOpenChange(false);
   };
@@ -221,28 +207,6 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
     });
   };
 
-  const handleGosiToggle = (checked: boolean) => {
-    // Show confirmation dialog
-    setPendingGosiValue(checked);
-    setGosiConfirmOpen(true);
-  };
-
-  const confirmGosiChange = () => {
-    if (pendingGosiValue !== null) {
-      handleChange('isSubjectToGosi', pendingGosiValue);
-      // Clear GOSI salary if disabling
-      if (!pendingGosiValue) {
-        handleChange('gosiRegisteredSalary', '');
-      }
-    }
-    setGosiConfirmOpen(false);
-    setPendingGosiValue(null);
-  };
-
-  const cancelGosiChange = () => {
-    setGosiConfirmOpen(false);
-    setPendingGosiValue(null);
-  };
 
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -624,45 +588,6 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
               </div>
             </div>
 
-            {/* GOSI Settings */}
-            <div className="space-y-4">
-              <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
-                GOSI Settings
-              </h3>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="gosi-toggle" className="font-medium cursor-pointer">
-                      Subject to GOSI
-                    </Label>
-                    <p className="text-sm text-muted-foreground">
-                      Enable if this employee is subject to GOSI (General Organization for Social Insurance)
-                    </p>
-                  </div>
-                  <Switch
-                    id="gosi-toggle"
-                    checked={formData.isSubjectToGosi}
-                    onCheckedChange={handleGosiToggle}
-                  />
-                </div>
-                
-                {formData.isSubjectToGosi && (
-                  <div className="space-y-2">
-                    <Label htmlFor="gosiSalary">GOSI Registered Salary</Label>
-                    <Input
-                      id="gosiSalary"
-                      type="number"
-                      value={formData.gosiRegisteredSalary}
-                      onChange={(e) => handleChange('gosiRegisteredSalary', e.target.value)}
-                      placeholder="Enter GOSI registered salary"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      The salary registered with GOSI for social insurance calculations (8% deduction)
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
 
             {/* Form Actions */}
             <div className="flex justify-end gap-3 pt-4 border-t">
@@ -677,36 +602,6 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
         </DialogContent>
       </Dialog>
 
-      {/* GOSI Confirmation Dialog */}
-      <AlertDialog open={gosiConfirmOpen} onOpenChange={setGosiConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-amber-500" />
-              {pendingGosiValue ? 'Enable GOSI for this employee?' : 'Disable GOSI for this employee?'}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {pendingGosiValue ? (
-                <>
-                  This will mark the employee as subject to GOSI. You'll need to set their GOSI registered salary,
-                  and 8% will be calculated as a deduction for social insurance contributions.
-                </>
-              ) : (
-                <>
-                  This will remove the employee from GOSI calculations. Their GOSI registered salary will be cleared,
-                  and no GOSI deductions will be applied to their salary.
-                </>
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={cancelGosiChange}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmGosiChange}>
-              {pendingGosiValue ? 'Enable GOSI' : 'Disable GOSI'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 }
