@@ -1,47 +1,54 @@
 
 
-# Fix Loan Deductions Not Reflected in Payroll Review Step
-
-## Problem
-Loan installments selected for payroll deduction in Step 3 (Adjustments) are managed entirely within `PayrollLoanInstallments` local state. They are never passed to Step 4 (Review & Finalize), so loan deductions like Muhammad Saleem's 850 are invisible in the final review and not included in the totals.
+# Self-Approval Bug: Nicy Daijo Approved Her Own Leave
 
 ## Root Cause
-`PayrollLoanInstallments` is a self-contained component with internal state (`selections`). It has no callback to bubble selected loan deductions up to the wizard. The `ReviewFinalizeStep` only knows about `adjustments` (one-time adjustments from `usePayrollRunAdjustments`), not loan installments.
 
-## Solution
+The approval workflow for time off has one step: **HR approval**, with the default HR approver set to **Nicy Daijo** (`f0265a57-...`).
 
-### 1. Lift loan installment selections out of `PayrollLoanInstallments`
+When Nicy submitted her own leave request, the system assigned her as the approver of her own request. She then approved it herself. The approval engine has no guard against self-approval.
 
-**File:** `src/components/loans/PayrollLoanInstallments.tsx`
-- Add an `onLoanDeductionsChange` callback prop that emits the list of included loan deductions (employee ID, amount, employee name, installment details)
-- Call this callback whenever selections change
+## Evidence from Database
 
-### 2. Pass loan deductions through `AdjustmentsStep`
+| Field | Value |
+|-------|-------|
+| Request ID | `06859ae8-...` |
+| Requester user_id | `f0265a57-...` (Nicy Daijo) |
+| Approver user_id | `f0265a57-...` (Nicy Daijo) |
+| Default HR Approver | `f0265a57-...` (Nicy Daijo) |
+| Status | Approved (25 seconds after creation) |
 
-**File:** `src/components/payroll/PayrollRunWizard/AdjustmentsStep.tsx`
-- Add an `onLoanDeductionsChange` callback prop
-- Wire it to `PayrollLoanInstallments`
+## Fix
 
-### 3. Store loan deductions in the wizard
+**File:** `src/hooks/useApprovalEngine.ts`
 
-**File:** `src/components/payroll/PayrollRunWizard/index.tsx`
-- Add state for `loanDeductions` (array of `{employeeId, employeeName, amount, installmentId, description}`)
-- Pass the setter to `AdjustmentsStep`
-- Pass `loanDeductions` to `ReviewFinalizeStep`
+In the approval step creation loop, after resolving the `approverUserId`, add a check: if the resolved approver is the same as the requesting employee's `user_id`, skip that approver and try to find an alternative:
 
-### 4. Include loan deductions in Review totals
+1. Get the requester's `user_id` at the start of the flow
+2. When `approverUserId === requesterUserId`:
+   - For "hr" steps: query `user_roles` for another user with `hr` or `admin` role (excluding the requester)
+   - For "manager" steps: this is less likely (you'd rarely be your own manager), but skip if it happens
+3. If no alternative approver is found, skip the step (existing behavior handles "no steps created" by auto-approving, but we could also flag it for manual review)
 
-**File:** `src/components/payroll/PayrollRunWizard/ReviewFinalizeStep.tsx`
-- Accept `loanDeductions` prop
-- In `getAdjustedTotals`, add loan deduction amounts to `totalDeductions` and subtract from `netPay`
-- Show loan deductions in the per-employee breakdown and the summary section (similar to how one-time adjustments are shown)
+**Additionally**, in the approval action handlers (`PendingApprovalsTab`, `LeaveRequestDetailView`), add a client-side guard that hides or disables the approve/reject buttons when the current user is the requester. This is a UI-level safeguard on top of the engine fix.
 
-## Files Changed
+### Changes
 
 | File | Change |
 |------|--------|
-| `PayrollLoanInstallments.tsx` | Add `onLoanDeductionsChange` callback |
-| `AdjustmentsStep.tsx` | Forward loan deduction callback |
-| `PayrollRunWizard/index.tsx` | State for loan deductions, pass to review step |
-| `ReviewFinalizeStep.tsx` | Include loan deductions in totals and display |
+| `src/hooks/useApprovalEngine.ts` | Add self-approval prevention: resolve alternative approver when requester === approver |
+| `src/components/approvals/PendingApprovalsTab.tsx` | Hide approve/reject for own requests |
+| `src/components/attendance/LeaveRequestDetailView.tsx` | Disable actions when viewing own request |
+
+### Technical Detail
+
+```text
+Current flow:
+  Nicy submits → HR step → approver = Nicy → Nicy approves herself
+
+Fixed flow:
+  Nicy submits → HR step → approver = Nicy (self!) 
+    → find next HR/admin user → assign them instead
+    → if none found → skip step (or keep pending for manual resolution)
+```
 
