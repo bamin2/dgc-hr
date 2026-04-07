@@ -29,6 +29,11 @@ export function PayrollRunWizard({
     onComplete,
   });
 
+  const [loanDeductions, setLoanDeductions] = useState<LoanDeductionForReview[]>([]);
+  const handleLoanDeductionsChange = useCallback((deductions: LoanDeductionForReview[]) => {
+    setLoanDeductions(deductions);
+  }, []);
+
   const isFirstStep = state.currentStep === 0;
   const isLastStep = state.currentStep === steps.length - 1;
   const showSaveDraft = state.currentStep >= 1 && !isLastStep;
