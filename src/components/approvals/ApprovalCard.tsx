@@ -4,20 +4,18 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, User, AlertTriangle, Banknote, ShieldAlert } from "lucide-react";
+import { Calendar, Clock, AlertTriangle, Banknote } from "lucide-react";
 import { PendingApproval } from "@/types/approvals";
 import { ApprovalProgressSteps } from "./ApprovalProgressSteps";
 import { ApprovalActionDialog } from "./ApprovalActionDialog";
 import { useRequestApprovalSteps } from "@/hooks/useApprovalSteps";
 import { useCompanySettings } from "@/contexts/CompanySettingsContext";
-import { useAuth } from "@/hooks/useAuth";
 
 interface ApprovalCardProps {
   approval: PendingApproval;
 }
 
 export function ApprovalCard({ approval }: ApprovalCardProps) {
-  const { user } = useAuth();
   const [actionDialogOpen, setActionDialogOpen] = useState(false);
   const [actionType, setActionType] = useState<"approve" | "reject">("approve");
   const { settings } = useCompanySettings();
