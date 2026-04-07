@@ -244,7 +244,7 @@ export function usePayrollWizard({
         variant: "destructive",
       });
     }
-  }, [runId, runEmployees, updateRun, markInstallmentsPaid, onComplete]);
+  }, [runId, runEmployees, adjustments, updateRun, markInstallmentsPaid, onComplete]);
 
   // Computed status
   const canProceed = currentStep !== 2 || selectedEmployeeIds.length > 0;
