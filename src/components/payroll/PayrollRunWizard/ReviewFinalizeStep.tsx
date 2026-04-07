@@ -180,6 +180,28 @@ export function ReviewFinalizeStep({
         </div>
       )}
 
+      {/* Loan Deductions Summary */}
+      {hasLoanDeductions && (
+        <div className="bg-accent/30 rounded-lg p-4 border mb-6">
+          <h4 className="font-medium text-foreground mb-2 flex items-center gap-2">
+            <Banknote className="h-4 w-4" />
+            Loan Deductions ({loanDeductions.length})
+          </h4>
+          <div className="space-y-1 text-sm">
+            {loanDeductions.map((ld) => (
+              <div key={ld.installmentId} className="flex items-center justify-between">
+                <span className="text-muted-foreground">
+                  {ld.employeeName}: {ld.description}
+                </span>
+                <span className="text-destructive">
+                  -{location.currency} {ld.amount.toLocaleString()}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Validation Messages */}
       {errors.length > 0 && (
         <Alert variant="destructive" className="mb-4">
