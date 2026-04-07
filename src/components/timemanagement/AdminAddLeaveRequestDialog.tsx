@@ -417,6 +417,13 @@ export function AdminAddLeaveRequestDialog({ open, onOpenChange }: AdminAddLeave
               )}
             />
 
+            {/* Attachments */}
+            <FileDropzone
+              files={attachmentFiles}
+              onFilesChange={setAttachmentFiles}
+              required={selectedLeaveType?.attachment_required === true}
+            />
+
             <DialogFooter>
               <Button type="button" variant="outline" onClick={handleClose}>Cancel</Button>
               <Button type="submit" disabled={isSubmitting || loadingTypes || loadingEmployees}>
