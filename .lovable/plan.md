@@ -1,54 +1,39 @@
 
 
-# Self-Approval Bug: Nicy Daijo Approved Her Own Leave
+# Move GOSI Toggle from Employee Edit Form to Compensation Edit Dialog
 
-## Root Cause
+## Problem
+The "Subject to GOSI" toggle and GOSI registered salary fields are currently in the general employee edit form (`EmployeeForm.tsx`). They belong in the compensation edit dialog (`EditSalaryDialog.tsx`) since GOSI is a compensation concern.
 
-The approval workflow for time off has one step: **HR approval**, with the default HR approver set to **Nicy Daijo** (`f0265a57-...`).
+## Changes
 
-When Nicy submitted her own leave request, the system assigned her as the approver of her own request. She then approved it herself. The approval engine has no guard against self-approval.
+### 1. Remove GOSI section from `EmployeeForm.tsx`
+- Remove the entire "GOSI Settings" block (lines 627-665): the toggle, registered salary input, and description text
+- Remove the GOSI confirmation `AlertDialog` (lines 680-709)
+- Remove related state variables (`gosiConfirmOpen`, `pendingGosiValue`) and handler functions (`handleGosiToggle`, `confirmGosiChange`, `cancelGosiChange`)
+- Remove `isSubjectToGosi` and `gosiRegisteredSalary` from `formData` and from the `onSave` payload
+- Keep the `Switch` import only if used elsewhere; otherwise remove it
 
-## Evidence from Database
+### 2. Add GOSI toggle to `EditSalaryDialog.tsx`
+- Add a "Subject to GOSI" toggle with confirmation dialog (same pattern as current `EmployeeForm`)
+- Add local state: `isSubjectToGosi` (initialized from `employee.isSubjectToGosi`)
+- Place the toggle above the existing GOSI registered salary section
+- When toggled ON: show the registered salary input (already exists)
+- When toggled OFF: hide the salary input and clear `gosiSalary`
+- Include the confirmation `AlertDialog` for toggling GOSI on/off
+- Update `handleSave` to include `isSubjectToGosi` in the update payload
+- Update `useUpdateCompensation` to persist `is_subject_to_gosi` to the `employees` table
 
-| Field | Value |
-|-------|-------|
-| Request ID | `06859ae8-...` |
-| Requester user_id | `f0265a57-...` (Nicy Daijo) |
-| Approver user_id | `f0265a57-...` (Nicy Daijo) |
-| Default HR Approver | `f0265a57-...` (Nicy Daijo) |
-| Status | Approved (25 seconds after creation) |
+### 3. Update `useUpdateCompensation.ts`
+- Add `isSubjectToGosi?: boolean` to `UpdateCompensationInput`
+- In the immediate update path, include `is_subject_to_gosi` in the employee update query when the field is provided
 
-## Fix
+## Technical Details
 
-**File:** `src/hooks/useApprovalEngine.ts`
+**Files to modify:**
+- `src/components/employees/EmployeeForm.tsx` — remove GOSI section
+- `src/components/employees/EditSalaryDialog.tsx` — add GOSI toggle + confirmation
+- `src/hooks/useUpdateCompensation.ts` — persist GOSI flag
 
-In the approval step creation loop, after resolving the `approverUserId`, add a check: if the resolved approver is the same as the requesting employee's `user_id`, skip that approver and try to find an alternative:
-
-1. Get the requester's `user_id` at the start of the flow
-2. When `approverUserId === requesterUserId`:
-   - For "hr" steps: query `user_roles` for another user with `hr` or `admin` role (excluding the requester)
-   - For "manager" steps: this is less likely (you'd rarely be your own manager), but skip if it happens
-3. If no alternative approver is found, skip the step (existing behavior handles "no steps created" by auto-approving, but we could also flag it for manual review)
-
-**Additionally**, in the approval action handlers (`PendingApprovalsTab`, `LeaveRequestDetailView`), add a client-side guard that hides or disables the approve/reject buttons when the current user is the requester. This is a UI-level safeguard on top of the engine fix.
-
-### Changes
-
-| File | Change |
-|------|--------|
-| `src/hooks/useApprovalEngine.ts` | Add self-approval prevention: resolve alternative approver when requester === approver |
-| `src/components/approvals/PendingApprovalsTab.tsx` | Hide approve/reject for own requests |
-| `src/components/attendance/LeaveRequestDetailView.tsx` | Disable actions when viewing own request |
-
-### Technical Detail
-
-```text
-Current flow:
-  Nicy submits → HR step → approver = Nicy → Nicy approves herself
-
-Fixed flow:
-  Nicy submits → HR step → approver = Nicy (self!) 
-    → find next HR/admin user → assign them instead
-    → if none found → skip step (or keep pending for manual resolution)
-```
+The GOSI section in the Edit Salary dialog will appear between the Deductions section and the Summary, with the toggle controlling visibility of the registered salary input and the existing GOSI calculation display.
 
