@@ -1,10 +1,11 @@
 import { format } from "date-fns";
-import { Building2, Calendar, Users, AlertCircle, CheckCircle, Plus, Minus } from "lucide-react";
+import { Building2, Calendar, Users, AlertCircle, CheckCircle, Plus, Minus, Banknote } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { WorkLocation } from "@/hooks/useWorkLocations";
 import { PayrollRunEmployee } from "@/hooks/usePayrollRunEmployees";
 import { PayrollRunAdjustment } from "@/hooks/usePayrollRunAdjustments";
+import type { LoanDeductionForReview } from "@/components/loans/PayrollLoanInstallments";
 
 interface ReviewFinalizeStepProps {
   location: WorkLocation;
@@ -12,6 +13,7 @@ interface ReviewFinalizeStepProps {
   payPeriodEnd: string;
   employees: PayrollRunEmployee[];
   adjustments: PayrollRunAdjustment[];
+  loanDeductions?: LoanDeductionForReview[];
 }
 
 export function ReviewFinalizeStep({
@@ -20,28 +22,37 @@ export function ReviewFinalizeStep({
   payPeriodEnd,
   employees,
   adjustments,
+  loanDeductions = [],
 }: ReviewFinalizeStepProps) {
   // Get adjustments per employee
   const getEmployeeAdjustments = (employeeId: string) => {
     return adjustments.filter(a => a.employeeId === employeeId);
   };
 
+  // Get loan deductions per employee
+  const getEmployeeLoanDeductions = (employeeId: string) => {
+    return loanDeductions.filter(d => d.employeeId === employeeId);
+  };
+
   // Calculate adjusted totals per employee
   const getAdjustedTotals = (emp: PayrollRunEmployee) => {
     const empAdjustments = getEmployeeAdjustments(emp.employeeId);
+    const empLoans = getEmployeeLoanDeductions(emp.employeeId);
     const earningsAdj = empAdjustments
       .filter(a => a.type === "earning")
       .reduce((sum, a) => sum + a.amount, 0);
     const deductionsAdj = empAdjustments
       .filter(a => a.type === "deduction")
       .reduce((sum, a) => sum + a.amount, 0);
+    const loanTotal = empLoans.reduce((sum, d) => sum + d.amount, 0);
 
     return {
       grossPay: emp.grossPay + earningsAdj,
-      totalDeductions: emp.totalDeductions + deductionsAdj,
-      netPay: emp.netPay + earningsAdj - deductionsAdj,
+      totalDeductions: emp.totalDeductions + deductionsAdj + loanTotal,
+      netPay: emp.netPay + earningsAdj - deductionsAdj - loanTotal,
       earningsAdjustment: earningsAdj,
       deductionsAdjustment: deductionsAdj,
+      loanDeductionTotal: loanTotal,
     };
   };
 
@@ -78,6 +89,7 @@ export function ReviewFinalizeStep({
 
   const hasErrors = errors.length > 0;
   const hasAdjustments = adjustments.length > 0;
+  const hasLoanDeductions = loanDeductions.length > 0;
 
   return (
     <div>
@@ -168,6 +180,28 @@ export function ReviewFinalizeStep({
         </div>
       )}
 
+      {/* Loan Deductions Summary */}
+      {hasLoanDeductions && (
+        <div className="bg-accent/30 rounded-lg p-4 border mb-6">
+          <h4 className="font-medium text-foreground mb-2 flex items-center gap-2">
+            <Banknote className="h-4 w-4" />
+            Loan Deductions ({loanDeductions.length})
+          </h4>
+          <div className="space-y-1 text-sm">
+            {loanDeductions.map((ld) => (
+              <div key={ld.installmentId} className="flex items-center justify-between">
+                <span className="text-muted-foreground">
+                  {ld.employeeName}: {ld.description}
+                </span>
+                <span className="text-destructive">
+                  -{location.currency} {ld.amount.toLocaleString()}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Validation Messages */}
       {errors.length > 0 && (
         <Alert variant="destructive" className="mb-4">
@@ -230,7 +264,7 @@ export function ReviewFinalizeStep({
                 </div>
                 
                 {/* Show adjustments if any */}
-                {empAdjustments.length > 0 && (
+                {(empAdjustments.length > 0 || getEmployeeLoanDeductions(emp.employeeId).length > 0) && (
                   <div className="mt-2 pt-2 border-t border-dashed space-y-1">
                     {empAdjustments.map((adj) => (
                       <div key={adj.id} className="flex items-center justify-between text-xs">
@@ -244,6 +278,17 @@ export function ReviewFinalizeStep({
                         </span>
                         <span className={adj.type === "earning" ? "text-success" : "text-destructive"}>
                           {adj.type === "earning" ? "+" : "-"}{location.currency} {adj.amount.toLocaleString()}
+                        </span>
+                      </div>
+                    ))}
+                    {getEmployeeLoanDeductions(emp.employeeId).map((ld) => (
+                      <div key={ld.installmentId} className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground flex items-center gap-1">
+                          <Banknote className="h-3 w-3 text-destructive" />
+                          {ld.description}
+                        </span>
+                        <span className="text-destructive">
+                          -{location.currency} {ld.amount.toLocaleString()}
                         </span>
                       </div>
                     ))}

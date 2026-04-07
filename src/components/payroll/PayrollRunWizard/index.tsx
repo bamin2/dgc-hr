@@ -1,3 +1,4 @@
+import { useState, useCallback } from "react";
 import { WorkLocation } from "@/hooks/useWorkLocations";
 import { usePayrollWizard } from "@/hooks/usePayrollWizard";
 import { WizardProgress } from "./WizardProgress";
@@ -7,6 +8,7 @@ import { SelectEmployeesStep } from "./SelectEmployeesStep";
 import { AdjustmentsStep } from "./AdjustmentsStep";
 import { ReviewFinalizeStep } from "./ReviewFinalizeStep";
 import { Button } from "@/components/ui/button";
+import type { LoanDeductionForReview } from "@/components/loans/PayrollLoanInstallments";
 
 interface PayrollRunWizardProps {
   location: WorkLocation;
@@ -26,6 +28,11 @@ export function PayrollRunWizard({
     existingRunId,
     onComplete,
   });
+
+  const [loanDeductions, setLoanDeductions] = useState<LoanDeductionForReview[]>([]);
+  const handleLoanDeductionsChange = useCallback((deductions: LoanDeductionForReview[]) => {
+    setLoanDeductions(deductions);
+  }, []);
 
   const isFirstStep = state.currentStep === 0;
   const isLastStep = state.currentStep === steps.length - 1;
@@ -70,6 +77,7 @@ export function PayrollRunWizard({
               employees={data.runEmployees}
               payPeriodStart={state.payPeriodStart}
               payPeriodEnd={state.payPeriodEnd}
+              onLoanDeductionsChange={handleLoanDeductionsChange}
             />
           )}
 
@@ -80,6 +88,7 @@ export function PayrollRunWizard({
               payPeriodEnd={state.payPeriodEnd}
               employees={data.runEmployees}
               adjustments={data.adjustments}
+              loanDeductions={loanDeductions}
             />
           )}
 

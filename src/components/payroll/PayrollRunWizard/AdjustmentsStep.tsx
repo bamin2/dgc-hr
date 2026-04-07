@@ -24,16 +24,17 @@ import {
 } from "@/components/ui/collapsible";
 import { PayrollRunEmployee } from "@/hooks/usePayrollRunEmployees";
 import { usePayrollRunAdjustments } from "@/hooks/usePayrollRunAdjustments";
-import { PayrollLoanInstallments } from "@/components/loans/PayrollLoanInstallments";
+import { PayrollLoanInstallments, LoanDeductionForReview } from "@/components/loans/PayrollLoanInstallments";
 
 interface AdjustmentsStepProps {
   runId: string | null;
   employees: PayrollRunEmployee[];
   payPeriodStart?: string;
   payPeriodEnd?: string;
+  onLoanDeductionsChange?: (deductions: LoanDeductionForReview[]) => void;
 }
 
-export function AdjustmentsStep({ runId, employees, payPeriodStart, payPeriodEnd }: AdjustmentsStepProps) {
+export function AdjustmentsStep({ runId, employees, payPeriodStart, payPeriodEnd, onLoanDeductionsChange }: AdjustmentsStepProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [expandedEmployee, setExpandedEmployee] = useState<string | null>(null);
   const [newAdjustment, setNewAdjustment] = useState({
@@ -256,6 +257,7 @@ export function AdjustmentsStep({ runId, employees, payPeriodStart, payPeriodEnd
           payPeriodStart={payPeriodStart}
           payPeriodEnd={payPeriodEnd}
           employeeIds={employees.map((e) => e.employeeId)}
+          onLoanDeductionsChange={onLoanDeductionsChange}
         />
       )}
 
