@@ -1,30 +1,25 @@
 
 
-# Fix Payroll Run Total Amount Mismatch
+# Re-add Missing March 2026 Loan Installments
 
 ## Problem
-The `totalAmount` stored during finalization does not account for one-time adjustments (earnings/deductions from Step 3). It only uses base `netPay` from employee snapshots minus loan deductions. The register view correctly recalculates with adjustments, showing the right number (BHD 34,187.8), but the stored value (BHD 34,202.8) is wrong by 15 — exactly the amount of a "Telephone Deduction" adjustment.
+Installment #3 (due 2026-03-01) was accidentally deleted from both loans:
+- **Muhammad Saleem** — loan `2201691d-3c51-45d4-b8d0-d90e5840576a`, installment amount: 150
+- **Omar Alraee** — loan `2e2e57a7-0c12-4082-a762-43b3da83abfb`, installment amount: 255
+
+Both loans have installments 1, 2, 4, 5, ... but #3 is missing.
 
 ## Fix
+Insert two rows into `loan_installments` using the Supabase insert tool:
 
-**File:** `src/hooks/usePayrollWizard.ts`
-
-In the `finalize` function, include adjustments in the `totalAmount` calculation. The `adjustments` data is already available from `usePayrollRunAdjustments(runId)`.
-
-Change the totalAmount calculation from:
-```
-const totalAmount = runEmployees.reduce((sum, emp) => sum + (emp.netPay || 0), 0) - loanTotal;
-```
-
-To:
-```
-const earningsAdj = adjustments.filter(a => a.type === 'earning').reduce((sum, a) => sum + a.amount, 0);
-const deductionsAdj = adjustments.filter(a => a.type === 'deduction').reduce((sum, a) => sum + a.amount, 0);
-const totalAmount = runEmployees.reduce((sum, emp) => sum + (emp.netPay || 0), 0) + earningsAdj - deductionsAdj - loanTotal;
+```sql
+INSERT INTO loan_installments (loan_id, installment_number, due_date, amount, status)
+VALUES
+  ('2201691d-3c51-45d4-b8d0-d90e5840576a', 3, '2026-03-01', 150, 'due'),
+  ('2e2e57a7-0c12-4082-a762-43b3da83abfb', 3, '2026-03-01', 255, 'due');
 ```
 
-This matches the same logic used by the register view's `getAdjustedTotals` function, ensuring the stored total equals the displayed total.
+No schema changes needed. This is a data-only operation.
 
-### Files to modify
-- `src/hooks/usePayrollWizard.ts` — one line change in `finalize` callback
-
+## Files changed
+None — database insert only.
