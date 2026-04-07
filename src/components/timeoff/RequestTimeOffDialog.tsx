@@ -56,6 +56,7 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
       setDateRange(undefined);
       setNote("");
       setIsHalfDay(false);
+      setAttachmentFiles([]);
     }
   }, [open]);
 
