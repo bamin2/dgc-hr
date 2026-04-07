@@ -77,6 +77,7 @@ export function PayrollRunWizard({
               employees={data.runEmployees}
               payPeriodStart={state.payPeriodStart}
               payPeriodEnd={state.payPeriodEnd}
+              onLoanDeductionsChange={handleLoanDeductionsChange}
             />
           )}
 
