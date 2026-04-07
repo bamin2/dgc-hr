@@ -1,3 +1,4 @@
+import { useState, useCallback } from "react";
 import { WorkLocation } from "@/hooks/useWorkLocations";
 import { usePayrollWizard } from "@/hooks/usePayrollWizard";
 import { WizardProgress } from "./WizardProgress";
@@ -7,6 +8,7 @@ import { SelectEmployeesStep } from "./SelectEmployeesStep";
 import { AdjustmentsStep } from "./AdjustmentsStep";
 import { ReviewFinalizeStep } from "./ReviewFinalizeStep";
 import { Button } from "@/components/ui/button";
+import type { LoanDeductionForReview } from "@/components/loans/PayrollLoanInstallments";
 
 interface PayrollRunWizardProps {
   location: WorkLocation;
