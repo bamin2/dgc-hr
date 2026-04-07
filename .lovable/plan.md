@@ -1,39 +1,62 @@
 
 
-# Move GOSI Toggle from Employee Edit Form to Compensation Edit Dialog
+# Fix Loan Deductions Missing from Finalized Payroll View
 
 ## Problem
-The "Subject to GOSI" toggle and GOSI registered salary fields are currently in the general employee edit form (`EmployeeForm.tsx`). They belong in the compensation edit dialog (`EditSalaryDialog.tsx`) since GOSI is a compensation concern.
+Loan deductions selected during the payroll wizard (Step 3) exist only in React component state. When finalization happens, two things are broken:
+1. **Finalization doesn't persist loan deductions** — `usePayrollWizard.finalize()` doesn't mark loan installments as paid or store the loan deduction data
+2. **PayrollRegister (view) doesn't fetch loan deductions** — after finalization, the register view only reads `payroll_run_employees` and `payroll_run_adjustments`, ignoring loan installments linked to the run
 
-## Changes
+## Solution
 
-### 1. Remove GOSI section from `EmployeeForm.tsx`
-- Remove the entire "GOSI Settings" block (lines 627-665): the toggle, registered salary input, and description text
-- Remove the GOSI confirmation `AlertDialog` (lines 680-709)
-- Remove related state variables (`gosiConfirmOpen`, `pendingGosiValue`) and handler functions (`handleGosiToggle`, `confirmGosiChange`, `cancelGosiChange`)
-- Remove `isSubjectToGosi` and `gosiRegisteredSalary` from `formData` and from the `onSave` payload
-- Keep the `Switch` import only if used elsewhere; otherwise remove it
+### 1. Persist loan deductions during finalization
 
-### 2. Add GOSI toggle to `EditSalaryDialog.tsx`
-- Add a "Subject to GOSI" toggle with confirmation dialog (same pattern as current `EmployeeForm`)
-- Add local state: `isSubjectToGosi` (initialized from `employee.isSubjectToGosi`)
-- Place the toggle above the existing GOSI registered salary section
-- When toggled ON: show the registered salary input (already exists)
-- When toggled OFF: hide the salary input and clear `gosiSalary`
-- Include the confirmation `AlertDialog` for toggling GOSI on/off
-- Update `handleSave` to include `isSubjectToGosi` in the update payload
-- Update `useUpdateCompensation` to persist `is_subject_to_gosi` to the `employees` table
+**Files:** `src/hooks/usePayrollWizard.ts`, `src/components/payroll/PayrollRunWizard/index.tsx`
 
-### 3. Update `useUpdateCompensation.ts`
-- Add `isSubjectToGosi?: boolean` to `UpdateCompensationInput`
-- In the immediate update path, include `is_subject_to_gosi` in the employee update query when the field is provided
+- Pass `loanDeductions` into the `finalize` function
+- During finalization, call `useMarkInstallmentsPaidByPayroll` to mark selected loan installments as paid with `paid_in_payroll_run_id = runId`
+- Adjust `totalAmount` calculation to subtract loan deduction totals from net pay
+
+### 2. Fetch loan deductions in the register view
+
+**File:** `src/components/payroll/PayrollRegister.tsx`
+
+- Query `loan_installments` where `paid_in_payroll_run_id = run.id` and join with `loans` to get `employee_id` and employee name
+- Include loan deduction amounts in `getAdjustedTotals` (add to `totalDeductions`, subtract from `netPay`)
+- Add a "Loan Deductions" column or include loan amounts in the "Other Ded." column
+- Display a loan deductions summary section (similar to the existing adjustments section)
+
+### 3. Wire loan deductions from wizard to finalize
+
+**File:** `src/components/payroll/PayrollRunWizard/index.tsx`
+
+- Pass `loanDeductions` state to `actions.finalize()` call
+- Update the finalize button's onClick to pass the current loan deductions
+
+**File:** `src/hooks/usePayrollWizard.ts`
+
+- Update `finalize` to accept `loanDeductions` parameter
+- Use `useMarkInstallmentsPaidByPayroll` mutation inside finalize
+- Recalculate `totalAmount` accounting for loan deductions
 
 ## Technical Details
 
-**Files to modify:**
-- `src/components/employees/EmployeeForm.tsx` — remove GOSI section
-- `src/components/employees/EditSalaryDialog.tsx` — add GOSI toggle + confirmation
-- `src/hooks/useUpdateCompensation.ts` — persist GOSI flag
+### Files to modify
 
-The GOSI section in the Edit Salary dialog will appear between the Deductions section and the Summary, with the toggle controlling visibility of the registered salary input and the existing GOSI calculation display.
+| File | Change |
+|------|--------|
+| `src/hooks/usePayrollWizard.ts` | Accept loan deductions in `finalize`, mark installments as paid, adjust total |
+| `src/components/payroll/PayrollRunWizard/index.tsx` | Pass `loanDeductions` to `actions.finalize()` |
+| `src/components/payroll/PayrollRegister.tsx` | Fetch loan installments by `paid_in_payroll_run_id`, include in totals and display |
+
+### Data flow after fix
+
+```text
+Wizard Step 3 → loanDeductions state
+    ↓
+Finalize → mark loan_installments as paid (paid_in_payroll_run_id = runId)
+    ↓
+Register View → query loan_installments WHERE paid_in_payroll_run_id = runId
+    → include in deductions totals and per-employee breakdown
+```
 
