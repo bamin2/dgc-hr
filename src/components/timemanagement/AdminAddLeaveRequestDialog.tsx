@@ -28,6 +28,8 @@ import { useAllLeaveTypes } from '@/hooks/useLeaveTypes';
 import { useUpdateLeaveBalance, useLeaveBalances } from '@/hooks/useLeaveBalances';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { FileDropzone } from '@/components/ui/file-dropzone';
+import { uploadLeaveAttachments } from '@/hooks/useLeaveAttachments';
 
 const formSchema = z.object({
   employeeId: z.string().min(1, 'Please select an employee'),
@@ -67,6 +69,7 @@ export function AdminAddLeaveRequestDialog({ open, onOpenChange }: AdminAddLeave
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [employeePopoverOpen, setEmployeePopoverOpen] = useState(false);
   const [empSearch, setEmpSearch] = useState('');
+  const [attachmentFiles, setAttachmentFiles] = useState<File[]>([]);
 
   const { data: employees, isLoading: loadingEmployees } = useActiveEmployees();
   const { data: leaveTypes, isLoading: loadingTypes } = useAllLeaveTypes();
@@ -101,10 +104,19 @@ export function AdminAddLeaveRequestDialog({ open, onOpenChange }: AdminAddLeave
     `${e.first_name} ${e.last_name}`.toLowerCase().includes(empSearch.toLowerCase())
   );
 
+  const watchLeaveTypeId = form.watch('leaveTypeId');
+  const selectedLeaveType = leaveTypes?.find(t => t.id === watchLeaveTypeId);
+
   const handleSubmit = async (data: FormData) => {
+    // Check attachment requirement
+    if (selectedLeaveType?.attachment_required && attachmentFiles.length === 0) {
+      toast.error('This leave type requires at least one attachment');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      const { error: insertError } = await supabase
+      const { data: insertedData, error: insertError } = await supabase
         .from('leave_requests')
         .insert({
           employee_id: data.employeeId,
@@ -116,9 +128,21 @@ export function AdminAddLeaveRequestDialog({ open, onOpenChange }: AdminAddLeave
           reason: data.reason || 'Added by admin',
           status: 'approved',
           reviewed_at: new Date().toISOString(),
-        });
+        })
+        .select('id')
+        .single();
 
       if (insertError) throw insertError;
+
+      // Upload attachments if any
+      if (attachmentFiles.length > 0 && insertedData?.id) {
+        try {
+          await uploadLeaveAttachments(insertedData.id, attachmentFiles);
+        } catch (err) {
+          console.error('Failed to upload attachments:', err);
+          toast.error('Leave request created but attachments failed to upload');
+        }
+      }
 
       const balance = balances?.find(b => b.leave_type_id === data.leaveTypeId);
       if (balance) {
@@ -133,6 +157,7 @@ export function AdminAddLeaveRequestDialog({ open, onOpenChange }: AdminAddLeave
 
       toast.success('Leave request added successfully');
       form.reset();
+      setAttachmentFiles([]);
       onOpenChange(false);
     } catch (error: any) {
       toast.error(`Failed to add leave request: ${error.message}`);
@@ -143,6 +168,7 @@ export function AdminAddLeaveRequestDialog({ open, onOpenChange }: AdminAddLeave
 
   const handleClose = () => {
     form.reset();
+    setAttachmentFiles([]);
     onOpenChange(false);
   };
 
