@@ -383,6 +383,41 @@ export function PayrollRegister({
               </CardContent>
             </Card>
           )}
+
+          {/* Loan Deductions Section */}
+          {loanInstallments.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">
+                  Loan Deductions ({loanInstallments.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Employee</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead className="text-right">Amount</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {loanInstallments.map((inst) => (
+                      <TableRow key={inst.id}>
+                        <TableCell>{inst.employeeName}</TableCell>
+                        <TableCell>
+                          Loan Installment #{inst.installmentNumber}/{inst.totalInstallments}
+                        </TableCell>
+                        <TableCell className="text-right font-medium text-destructive">
+                          -{formatCurrency(inst.amount)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="payslips" className="mt-6">
