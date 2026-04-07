@@ -39,19 +39,6 @@ export function ApprovalCard({ approval }: ApprovalCardProps) {
     }).format(amount);
   };
 
-  // Check if the current user is the requester (self-approval guard)
-  const getRequesterEmployeeId = () => {
-    if (approval.request_type === "time_off") return approval.leave_request?.employee?.id;
-    if (approval.request_type === "loan") return approval.loan?.employee?.id;
-    if (approval.request_type === "business_trip") return approval.business_trip?.employee?.id;
-    return null;
-  };
-
-  // We need to check by user_id, but we only have employee data here.
-  // A simpler client-side check: if employee's user matches the current auth user,
-  // we need the employee's user_id. Since we don't have it in the approval data,
-  // we'll use employee_id from the request and compare with the step's approver_user_id.
-  // If approver_user_id === current user AND the request was made by the same user, block.
   // Actually, the simplest check: does the current user's ID match any employee_id on the request?
   // We already have user.id and can check against the step's approver_user_id.
   // The real guard is: if this approval's underlying request was submitted by the current user.
