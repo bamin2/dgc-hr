@@ -1,10 +1,11 @@
 import { format } from "date-fns";
-import { Building2, Calendar, Users, AlertCircle, CheckCircle, Plus, Minus } from "lucide-react";
+import { Building2, Calendar, Users, AlertCircle, CheckCircle, Plus, Minus, Banknote } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { WorkLocation } from "@/hooks/useWorkLocations";
 import { PayrollRunEmployee } from "@/hooks/usePayrollRunEmployees";
 import { PayrollRunAdjustment } from "@/hooks/usePayrollRunAdjustments";
+import type { LoanDeductionForReview } from "@/components/loans/PayrollLoanInstallments";
 
 interface ReviewFinalizeStepProps {
   location: WorkLocation;
@@ -12,6 +13,7 @@ interface ReviewFinalizeStepProps {
   payPeriodEnd: string;
   employees: PayrollRunEmployee[];
   adjustments: PayrollRunAdjustment[];
+  loanDeductions?: LoanDeductionForReview[];
 }
 
 export function ReviewFinalizeStep({
