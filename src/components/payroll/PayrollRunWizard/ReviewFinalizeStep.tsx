@@ -89,6 +89,7 @@ export function ReviewFinalizeStep({
 
   const hasErrors = errors.length > 0;
   const hasAdjustments = adjustments.length > 0;
+  const hasLoanDeductions = loanDeductions.length > 0;
 
   return (
     <div>
