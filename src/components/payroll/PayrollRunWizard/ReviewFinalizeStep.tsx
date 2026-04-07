@@ -22,6 +22,7 @@ export function ReviewFinalizeStep({
   payPeriodEnd,
   employees,
   adjustments,
+  loanDeductions = [],
 }: ReviewFinalizeStepProps) {
   // Get adjustments per employee
   const getEmployeeAdjustments = (employeeId: string) => {
