@@ -137,7 +137,7 @@ export function SmartTagsTab({ docxStoragePath }: SmartTagsTabProps) {
           <CardTitle>Available Smart Tags</CardTitle>
           <CardDescription>
             Use these tags in your DOCX template with double curly braces. They will be replaced with actual data when generating payslips.
-            For conditional sections, wrap content with <code className="text-xs bg-muted px-1 rounded">{"{{#SHOW_TAG}}...{{/SHOW_TAG}}"}</code> to show/hide blocks based on employee data.
+            For conditional sections, wrap content with {`{{#SHOW_TAG}}...{{/SHOW_TAG}}`} to show/hide blocks based on employee data.
           </CardDescription>
           </CardDescription>
         </CardHeader>
