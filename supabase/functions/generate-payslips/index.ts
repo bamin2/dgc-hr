@@ -574,6 +574,14 @@ const handler = async (req: Request): Promise<Response> => {
           earningsAdjLoop.push({ name: adj.description || "One-time Earning", amount: formatCurrency(adj.amount, currencyCode) });
         }
 
+        // Compute adjusted totals including one-time adjustments and loans
+        const earningsAdjTotal = empEarningAdj.reduce((s: number, a: any) => s + (Number(a.amount) || 0), 0);
+        const deductionsAdjTotal = empDeductionAdj.reduce((s: number, a: any) => s + (Number(a.amount) || 0), 0);
+        const loanTotal = empLoanInstallments.reduce((s: number, li: any) => s + (Number(li.amount) || 0), 0);
+        const adjustedGross = (Number(payrollEmployee.gross_pay) || 0) + earningsAdjTotal;
+        const adjustedDeductions = (Number(payrollEmployee.total_deductions) || 0) + deductionsAdjTotal + loanTotal;
+        const adjustedNet = adjustedGross - adjustedDeductions;
+
         const tagData: Record<string, any> = {
           // Employee info
           EMPLOYEE_FULL_NAME: employeeName,
@@ -608,17 +616,17 @@ const handler = async (req: Request): Promise<Response> => {
           HOUSING_ALLOWANCE: formatCurrency(housingAmount, currencyCode),
           TRANSPORTATION_ALLOWANCE: formatCurrency(transportAmount, currencyCode),
           OTHER_ALLOWANCES: formatCurrency(otherAllowancesAmount, currencyCode),
-          GROSS_PAY: formatCurrency(payrollEmployee.gross_pay, currencyCode),
-          TOTAL_EARNINGS: formatCurrency(payrollEmployee.gross_pay, currencyCode),
+          GROSS_PAY: formatCurrency(adjustedGross, currencyCode),
+          TOTAL_EARNINGS: formatCurrency(adjustedGross, currencyCode),
           
           // Deductions
           GOSI_DEDUCTION: formatCurrency(gosiDeductionAmount, currencyCode),
           OTHER_DEDUCTIONS: formatCurrency(otherDeductionsAmount, currencyCode),
           LOAN_DEDUCTION: formatCurrency(loanDeductionAmount, currencyCode),
-          TOTAL_DEDUCTIONS: formatCurrency(payrollEmployee.total_deductions, currencyCode),
+          TOTAL_DEDUCTIONS: formatCurrency(adjustedDeductions, currencyCode),
           
           // Net pay
-          NET_PAY: formatCurrency(payrollEmployee.net_pay, currencyCode),
+          NET_PAY: formatCurrency(adjustedNet, currencyCode),
           
           // Currency
           CURRENCY: currencyCode,
