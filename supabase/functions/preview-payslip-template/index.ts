@@ -18,7 +18,8 @@ interface PreviewPayslipRequest {
 // Format currency with proper decimal places
 function formatCurrency(amount: number | string | null | undefined, currency: string): string {
   const value = Number(amount) || 0;
-  return `${currency} ${value.toFixed(2)}`;
+  const decimals = ['BHD', 'KWD', 'OMR'].includes(currency) ? 3 : 2;
+  return `${currency} ${value.toFixed(decimals)}`;
 }
 
 // Sum amounts from array fields (other_allowances, other_deductions)
