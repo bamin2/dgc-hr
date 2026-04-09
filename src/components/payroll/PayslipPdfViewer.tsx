@@ -14,6 +14,7 @@ export function PayslipPdfViewer({ pdfStoragePath, periodStart, periodEnd }: Pay
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [iframeError, setIframeError] = useState(false);
 
   useEffect(() => {
     async function getSignedUrl() {
