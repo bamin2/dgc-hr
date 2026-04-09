@@ -1,35 +1,59 @@
 
 
-# Fix HR Letter View and Payslip Display Issues
+# Dynamic Conditional Sections in Payslip Templates
 
-## Problem 1: HR Letter — "Nothing happens" when clicking View
-The `handleView` function calls `window.open(signedUrl, '_blank')` from inside an async `mutateAsync` callback. Browsers block popups that aren't triggered by a direct user gesture. The signed URL is generated successfully (confirmed in network logs), but the popup is silently blocked.
+## Problem
+The DOCX payslip template always renders all fields (like Social Insurance / GOSI deduction) even when they don't apply to the employee. Nicy Daijo is not subject to GOSI, but her payslip shows "Social Insurance: BHD 0.00".
 
-## Problem 2: Payslip — iframe shows blank
-The `PayslipPdfViewer` embeds the signed PDF URL in an iframe. The signed URL is generated successfully, but the PDF does not render inside the iframe (cross-origin restrictions in the preview environment). Meanwhile, the `PayslipCard` fallback (which renders the payslip data as a styled card) is skipped because the code prioritizes the PDF viewer when a `payslip_documents` record exists.
+## Solution
+Docxtemplater already supports conditional sections using `{#FLAG}...{/FLAG}` syntax. We need to:
 
-## Fixes
+1. **Pass boolean flags** as tag data during generation so the template can conditionally show/hide sections
+2. **Fetch `is_subject_to_gosi`** from the employee record (it's not currently selected)
+3. **Update the Smart Tags reference** so template authors know which conditional flags are available
 
-### 1. HR Letter View — use link click instead of window.open
-**File:** `src/components/myprofile/MyProfileHRLettersSection.tsx`
+### How it works for template authors
+In the DOCX template, wrap conditional content like this:
+```
+{{#SHOW_GOSI}}
+Social Insurance    {{GOSI_DEDUCTION}}
+{{/SHOW_GOSI}}
+```
+If the employee is not subject to GOSI, the entire block (including the row) is removed from the output.
 
-Change `handleView` to create a temporary `<a>` element with `target="_blank"` and click it programmatically, similar to the download pattern already in the code. This avoids popup blocker issues. Also add a loading state to the view button so users see feedback while the URL is being generated.
+## Changes
 
-### 2. Payslip — show PayslipCard as primary, PDF as secondary action
-**File:** `src/pages/MyPayslip.tsx`
+### 1. Edge Function: `supabase/functions/generate-payslips/index.ts`
+- Add `is_subject_to_gosi` to the employee SELECT query (line ~393)
+- Add conditional boolean flags to `tagData`:
+  - `SHOW_GOSI` — true when employee is subject to GOSI and deduction > 0
+  - `SHOW_HOUSING_ALLOWANCE` — true when housing allowance > 0
+  - `SHOW_TRANSPORT_ALLOWANCE` — true when transport allowance > 0
+  - `SHOW_OTHER_ALLOWANCES` — true when other allowances > 0
+  - `SHOW_OTHER_DEDUCTIONS` — true when other deductions > 0
+  - `SHOW_LOAN_DEDUCTION` — true when loan deduction > 0
 
-Change the rendering logic: always show `PayslipCard` when payslip data is available (it always works). If a PDF document exists, show "View PDF" and "Download PDF" buttons that open/download the PDF, rather than embedding an iframe that may not work.
+### 2. Edge Function: `supabase/functions/preview-payslip-template/index.ts`
+- Same changes as above for the preview function so template authors can test conditional sections
 
-### 3. PayslipPdfViewer — add error detection fallback
-**File:** `src/components/payroll/PayslipPdfViewer.tsx`
+### 3. Smart Tags Tab: `src/components/payroll/templates/SmartTagsTab.tsx`
+- Add a new "Conditional Sections" category documenting available `SHOW_*` flags with usage instructions
 
-Add an `onError` handler to the iframe and a timeout-based fallback. If the iframe fails to load, show action buttons (Open in New Tab / Download) instead of a blank iframe.
+### 4. Smart Tags reference: `src/utils/payslipTemplateGenerator.ts`
+- Add `SHOW_*` flags to the `PAYSLIP_SMART_TAGS` array
+
+## Technical Detail
+
+Docxtemplater's `paragraphLoop: true` (already enabled) means `{#SHOW_GOSI}...{/SHOW_GOSI}` will remove entire paragraphs/rows when the flag is falsy. The tag data passes `true`/`false` — docxtemplater treats falsy values as "hide section".
+
+The `angularParser` currently returns `scope[tag] ?? ""` which would return `""` (falsy) for missing flags, so existing templates without conditional sections continue to work unchanged.
 
 ## Files to modify
 
 | File | Change |
 |------|--------|
-| `src/components/myprofile/MyProfileHRLettersSection.tsx` | Use `<a>` click pattern instead of `window.open`; add loading state |
-| `src/pages/MyPayslip.tsx` | Show `PayslipCard` as primary view; add PDF download/open buttons when PDF exists |
-| `src/components/payroll/PayslipPdfViewer.tsx` | Add iframe error detection with fallback to action buttons |
+| `supabase/functions/generate-payslips/index.ts` | Fetch `is_subject_to_gosi`, add `SHOW_*` boolean flags to tagData |
+| `supabase/functions/preview-payslip-template/index.ts` | Same conditional flags for preview |
+| `src/components/payroll/templates/SmartTagsTab.tsx` | Add "Conditional" category with `SHOW_*` tags and usage instructions |
+| `src/utils/payslipTemplateGenerator.ts` | Add `SHOW_*` entries to `PAYSLIP_SMART_TAGS` |
 
