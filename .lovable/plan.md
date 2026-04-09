@@ -1,40 +1,35 @@
 
 
-# Add Gross Salary to Employee Profile Compensation Card
+# Fix HR Letter View and Payslip Display Issues
 
-## Problem
-The compensation card in Employee Management → Employee Profile → Employment tab shows Base Salary, then Allowances, then Deductions, then Net Monthly Salary — but does not show a **Gross Salary** subtotal (Base + Allowances) before the deductions section.
+## Problem 1: HR Letter — "Nothing happens" when clicking View
+The `handleView` function calls `window.open(signedUrl, '_blank')` from inside an async `mutateAsync` callback. Browsers block popups that aren't triggered by a direct user gesture. The signed URL is generated successfully (confirmed in network logs), but the popup is silently blocked.
 
-## Change
+## Problem 2: Payslip — iframe shows blank
+The `PayslipPdfViewer` embeds the signed PDF URL in an iframe. The signed URL is generated successfully, but the PDF does not render inside the iframe (cross-origin restrictions in the preview environment). Meanwhile, the `PayslipCard` fallback (which renders the payslip data as a styled card) is skipped because the code prioritizes the PDF viewer when a `payslip_documents` record exists.
 
-**File:** `src/pages/EmployeeProfile.tsx` (lines 592-619)
+## Fixes
 
-Restructure the compensation display order to:
+### 1. HR Letter View — use link click instead of window.open
+**File:** `src/components/myprofile/MyProfileHRLettersSection.tsx`
 
-1. **Base Salary** (existing)
-2. **Allowances** section with line items (existing)
-3. **Gross Monthly Salary** — new row showing `baseSalary + totalAllowances`, styled as a subtotal with a separator and slightly emphasized text
-4. **Deductions** section with line items (existing, moved below gross)
-5. **Net Monthly Salary** (existing)
+Change `handleView` to create a temporary `<a>` element with `target="_blank"` and click it programmatically, similar to the download pattern already in the code. This avoids popup blocker issues. Also add a loading state to the view button so users see feedback while the URL is being generated.
 
-The `grossPay` value is already calculated at line 199 (`baseSalary + totalAllowances`), so no logic changes are needed — just add a new display row between allowances and deductions.
+### 2. Payslip — show PayslipCard as primary, PDF as secondary action
+**File:** `src/pages/MyPayslip.tsx`
 
-### Layout after fix
-```text
-Base Salary                    X,XXX
-─────────────────────────────────────
-ALLOWANCES
-  Housing                      X,XXX
-  Transport                      XXX
-─────────────────────────────────────
-Gross Monthly Salary           X,XXX  ← NEW
-─────────────────────────────────────
-DEDUCTIONS
-  GOSI (X%)                     -XXX
-─────────────────────────────────────
-Net Monthly Salary             X,XXX
-```
+Change the rendering logic: always show `PayslipCard` when payslip data is available (it always works). If a PDF document exists, show "View PDF" and "Download PDF" buttons that open/download the PDF, rather than embedding an iframe that may not work.
+
+### 3. PayslipPdfViewer — add error detection fallback
+**File:** `src/components/payroll/PayslipPdfViewer.tsx`
+
+Add an `onError` handler to the iframe and a timeout-based fallback. If the iframe fails to load, show action buttons (Open in New Tab / Download) instead of a blank iframe.
 
 ## Files to modify
-- `src/pages/EmployeeProfile.tsx` — add Gross Salary row between allowances and deductions
+
+| File | Change |
+|------|--------|
+| `src/components/myprofile/MyProfileHRLettersSection.tsx` | Use `<a>` click pattern instead of `window.open`; add loading state |
+| `src/pages/MyPayslip.tsx` | Show `PayslipCard` as primary view; add PDF download/open buttons when PDF exists |
+| `src/components/payroll/PayslipPdfViewer.tsx` | Add iframe error detection with fallback to action buttons |
 
