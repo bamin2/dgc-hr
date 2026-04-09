@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/ui/page-header";
 import { PayslipCard } from "@/components/payroll";
-import { PayslipPdfViewer } from "@/components/payroll/PayslipPdfViewer";
 import { PayslipData } from "@/types/payslip";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -208,14 +207,7 @@ export default function MyPayslip() {
           ]}
         />
 
-        {/* If there's a generated PDF, show the PDF viewer; otherwise show PayslipCard */}
-        {payslipDocument?.pdf_storage_path ? (
-          <PayslipPdfViewer
-            pdfStoragePath={payslipDocument.pdf_storage_path}
-            periodStart={periodStart}
-            periodEnd={periodEnd}
-          />
-        ) : payslip ? (
+        {payslip ? (
           <PayslipCard payslip={payslip} />
         ) : null}
       </div>

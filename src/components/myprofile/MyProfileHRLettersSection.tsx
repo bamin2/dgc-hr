@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -22,12 +23,23 @@ export function MyProfileHRLettersSection({ employeeId, noBorder = false }: MyPr
   const { data: letters, isLoading } = useMyHRLetters(employeeId);
   const getLetterUrl = useGetHRLetterUrl();
 
+  const [viewingId, setViewingId] = useState<string | null>(null);
+
   const handleView = async (storagePath: string) => {
+    setViewingId(storagePath);
     try {
       const signedUrl = await getLetterUrl.mutateAsync(storagePath);
-      window.open(signedUrl, '_blank');
+      const link = document.createElement('a');
+      link.href = signedUrl;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } catch (error) {
       toast.error('Failed to open letter');
+    } finally {
+      setViewingId(null);
     }
   };
 
