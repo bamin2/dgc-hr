@@ -96,7 +96,7 @@ function findTagLocations(zip: PizZip, tagName: string): string[] {
 // Process DOCX template with smart tags
 async function processDocxTemplate(
   templateBuffer: ArrayBuffer,
-  tagData: Record<string, string>
+  tagData: Record<string, any>
 ): Promise<{ filledDocx: Uint8Array; diagnostics: Record<string, unknown> }> {
   const zip = new PizZip(templateBuffer);
   
@@ -390,7 +390,7 @@ const handler = async (req: Request): Promise<Response> => {
       .select(`
         *,
         employee:employees(
-          id, first_name, last_name, employee_code, email, join_date, gosi_registered_salary,
+          id, first_name, last_name, employee_code, email, join_date, gosi_registered_salary, is_subject_to_gosi,
           department:departments!employees_department_id_fkey(name),
           position:positions(title),
           work_location_id
@@ -500,7 +500,15 @@ const handler = async (req: Request): Promise<Response> => {
         console.log(`Processing payslip for ${employeeName}...`);
 
         // Build tag data for template replacement
-        const tagData: Record<string, string> = {
+        // Calculate amounts for conditional flags
+        const housingAmount = Number(payrollEmployee.housing_allowance) || 0;
+        const transportAmount = Number(payrollEmployee.transportation_allowance) || 0;
+        const otherAllowancesAmount = sumArrayField(payrollEmployee.other_allowances);
+        const gosiDeductionAmount = Number(payrollEmployee.gosi_deduction) || 0;
+        const otherDeductionsAmount = sumArrayField(payrollEmployee.other_deductions);
+        const loanDeductionAmount = Number(payrollEmployee.loan_deduction) || 0;
+
+        const tagData: Record<string, any> = {
           // Employee info
           EMPLOYEE_FULL_NAME: employeeName,
           EMPLOYEE_FIRST_NAME: emp.first_name || '',
@@ -531,16 +539,16 @@ const handler = async (req: Request): Promise<Response> => {
           
           // Earnings - raw amounts
           BASE_SALARY: formatCurrency(payrollEmployee.base_salary, currencyCode),
-          HOUSING_ALLOWANCE: formatCurrency(payrollEmployee.housing_allowance, currencyCode),
-          TRANSPORTATION_ALLOWANCE: formatCurrency(payrollEmployee.transportation_allowance, currencyCode),
-          OTHER_ALLOWANCES: formatCurrency(sumArrayField(payrollEmployee.other_allowances), currencyCode),
+          HOUSING_ALLOWANCE: formatCurrency(housingAmount, currencyCode),
+          TRANSPORTATION_ALLOWANCE: formatCurrency(transportAmount, currencyCode),
+          OTHER_ALLOWANCES: formatCurrency(otherAllowancesAmount, currencyCode),
           GROSS_PAY: formatCurrency(payrollEmployee.gross_pay, currencyCode),
           TOTAL_EARNINGS: formatCurrency(payrollEmployee.gross_pay, currencyCode),
           
           // Deductions
-          GOSI_DEDUCTION: formatCurrency(payrollEmployee.gosi_deduction, currencyCode),
-          OTHER_DEDUCTIONS: formatCurrency(sumArrayField(payrollEmployee.other_deductions), currencyCode),
-          LOAN_DEDUCTION: formatCurrency(payrollEmployee.loan_deduction ?? 0, currencyCode),
+          GOSI_DEDUCTION: formatCurrency(gosiDeductionAmount, currencyCode),
+          OTHER_DEDUCTIONS: formatCurrency(otherDeductionsAmount, currencyCode),
+          LOAN_DEDUCTION: formatCurrency(loanDeductionAmount, currencyCode),
           TOTAL_DEDUCTIONS: formatCurrency(payrollEmployee.total_deductions, currencyCode),
           
           // Net pay
@@ -552,6 +560,14 @@ const handler = async (req: Request): Promise<Response> => {
           // Metadata
           GENERATED_DATE: formatDate(new Date().toISOString()),
           PAYSLIP_ID: payrollEmployee.id || '',
+
+          // Conditional section flags (boolean - for {{#SHOW_*}}...{{/SHOW_*}} blocks)
+          SHOW_GOSI: !!(emp.is_subject_to_gosi && gosiDeductionAmount > 0),
+          SHOW_HOUSING_ALLOWANCE: housingAmount > 0,
+          SHOW_TRANSPORT_ALLOWANCE: transportAmount > 0,
+          SHOW_OTHER_ALLOWANCES: otherAllowancesAmount > 0,
+          SHOW_OTHER_DEDUCTIONS: otherDeductionsAmount > 0,
+          SHOW_LOAN_DEDUCTION: loanDeductionAmount > 0,
         };
 
         // Process DOCX template with tag data
