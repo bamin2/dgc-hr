@@ -1,67 +1,45 @@
 
 
-# Individual Deduction Line Items in Payslip Templates
+# Fix NET_PAY, GROSS_PAY, and TOTAL_DEDUCTIONS to Include Adjustments
 
 ## Problem
-Currently, deductions are only available as aggregate totals (`GOSI_DEDUCTION`, `OTHER_DEDUCTIONS`, `LOAN_DEDUCTION`). You cannot show each deduction separately in the template — e.g., if an employee has a "Parking Fee" deduction and a "Meal Deduction", they are lumped into one `OTHER_DEDUCTIONS` amount.
+`NET_PAY`, `GROSS_PAY`, and `TOTAL_DEDUCTIONS` in generated payslips use raw snapshot values from `payroll_run_employees`. These snapshots are taken before one-time adjustments (earnings/deductions from wizard Step 3) and loan installments are applied. The DEDUCTIONS loop correctly includes these items individually, but the aggregate totals don't match.
 
-Additionally, payroll adjustments (one-time deductions added in Step 3) and individual loan installments are not available at all in the template.
+## Fix
+In `generate-payslips/index.ts` (and `preview-payslip-template/index.ts`), compute adjusted totals that include:
+- **Adjusted Gross Pay** = snapshot gross_pay + earning adjustments
+- **Adjusted Total Deductions** = snapshot total_deductions + deduction adjustments + loan installments
+- **Adjusted Net Pay** = adjusted gross - adjusted total deductions
 
-## Solution
-Add a **DEDUCTIONS** loop array and individual tags for each deduction, plus fetch adjustments and loan installments during payslip generation.
+This matches the same logic used by `ReviewFinalizeStep` and `PayrollRegister`.
 
-### Template usage (in DOCX)
-```text
-{{#DEDUCTIONS}}
-{{name}}                    {{amount}}
-{{/DEDUCTIONS}}
+## Changes
+
+### File: `supabase/functions/generate-payslips/index.ts`
+After building the adjustment/loan arrays (~line 575), compute adjusted totals:
+
+```typescript
+const earningsAdjTotal = empEarningAdj.reduce((s, a) => s + (Number(a.amount) || 0), 0);
+const deductionsAdjTotal = empDeductionAdj.reduce((s, a) => s + (Number(a.amount) || 0), 0);
+const loanTotal = empLoanInstallments.reduce((s, li) => s + (Number(li.amount) || 0), 0);
+
+const adjustedGross = (Number(payrollEmployee.gross_pay) || 0) + earningsAdjTotal;
+const adjustedDeductions = (Number(payrollEmployee.total_deductions) || 0) + deductionsAdjTotal + loanTotal;
+const adjustedNet = adjustedGross - adjustedDeductions;
 ```
-This will render one row per deduction (GOSI, each `other_deduction`, each loan installment, each one-time adjustment deduction). Empty/zero deductions are excluded automatically.
 
-Also add an **ALLOWANCES** loop for individual allowances and an **ADJUSTMENTS_EARNINGS** loop for one-time earning adjustments:
-```text
-{{#ALLOWANCES}}
-{{name}}                    {{amount}}
-{{/ALLOWANCES}}
-```
+Then use these in tagData:
+- `GROSS_PAY` and `TOTAL_EARNINGS` → `adjustedGross`
+- `TOTAL_DEDUCTIONS` → `adjustedDeductions`
+- `NET_PAY` → `adjustedNet`
 
-### What gets included in DEDUCTIONS loop
-1. GOSI deduction (if applicable and > 0)
-2. Each item from `other_deductions` array (named deductions from templates)
-3. Loan installments paid in this payroll run (fetched from `loan_installments` table)
-4. One-time deduction adjustments (fetched from `payroll_run_adjustments` table)
-
-### What gets included in ALLOWANCES loop
-1. Housing allowance (if > 0)
-2. Transportation allowance (if > 0)
-3. Each item from `other_allowances` array
-
-### What gets included in ADJUSTMENTS_EARNINGS loop
-1. One-time earning adjustments from `payroll_run_adjustments`
+### File: `supabase/functions/preview-payslip-template/index.ts`
+Same adjustment calculation for the preview function.
 
 ## Files to modify
 
 | File | Change |
 |------|--------|
-| `supabase/functions/generate-payslips/index.ts` | Fetch adjustments + loan installments; build `DEDUCTIONS`, `ALLOWANCES`, `ADJUSTMENTS_EARNINGS` loop arrays in tagData |
-| `supabase/functions/preview-payslip-template/index.ts` | Same loop arrays for preview |
-| `src/components/payroll/templates/SmartTagsTab.tsx` | Add loop tags to documentation with usage instructions |
-| `src/utils/payslipTemplateGenerator.ts` | Add loop entries to `PAYSLIP_SMART_TAGS` reference |
-
-## Technical Detail
-
-The loop arrays will be structured as:
-```typescript
-DEDUCTIONS: [
-  { name: "Social Insurance", amount: "BHD 50.00" },
-  { name: "Parking Fee", amount: "BHD 20.00" },
-  { name: "Loan Repayment", amount: "BHD 150.00" },
-],
-ALLOWANCES: [
-  { name: "Housing", amount: "BHD 300.00" },
-  { name: "Transportation", amount: "BHD 100.00" },
-],
-```
-
-Docxtemplater's `{#DEDUCTIONS}...{/DEDUCTIONS}` iterates and renders `{name}` and `{amount}` from each item. Existing individual tags (`GOSI_DEDUCTION`, `OTHER_DEDUCTIONS`, etc.) remain available for backward compatibility.
+| `supabase/functions/generate-payslips/index.ts` | Compute adjusted gross/deductions/net including adjustments and loans |
+| `supabase/functions/preview-payslip-template/index.ts` | Same adjusted calculations for preview |
 
