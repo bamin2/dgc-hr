@@ -91,12 +91,43 @@ export function PayslipPdfViewer({ pdfStoragePath, periodStart, periodEnd }: Pay
       </div>
 
       <Card className="overflow-hidden">
-        <CardContent className="p-0">
+        <CardContent className="p-0 relative">
           <iframe
             src={signedUrl}
             className="w-full h-[800px] border-0"
             title="Payslip PDF"
+            onError={() => setIframeError(true)}
+            onLoad={(e) => {
+              // Detect blank iframe via timeout fallback
+              setTimeout(() => {
+                try {
+                  const iframe = e.target as HTMLIFrameElement;
+                  if (!iframe.contentDocument && !iframe.contentWindow) {
+                    setIframeError(true);
+                  }
+                } catch {
+                  // Cross-origin - can't access, show fallback
+                  setIframeError(true);
+                }
+              }, 3000);
+            }}
           />
+          {iframeError && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-background">
+              <FileText className="h-12 w-12 text-muted-foreground mb-4" />
+              <p className="text-muted-foreground mb-4">PDF preview is not available in this browser.</p>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={handleOpenInNewTab}>
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Open in New Tab
+                </Button>
+                <Button onClick={handleDownload}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Download PDF
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
