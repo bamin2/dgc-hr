@@ -205,10 +205,12 @@ export function usePayrollRunEmployees(runId: string | null) {
       
       if (emp.is_subject_to_gosi && workLocation?.gosi_enabled) {
         let gosiBase: number;
-        if (workLocation.gosi_base_calculation === 'basic_plus_housing') {
+        if (gosiRegisteredSalary) {
+          gosiBase = gosiRegisteredSalary;
+        } else if (workLocation.gosi_base_calculation === 'basic_plus_housing') {
           gosiBase = baseSalary + housingAllowance;
         } else {
-          gosiBase = emp.gosi_registered_salary || baseSalary;
+          gosiBase = baseSalary;
         }
         
         const rates = workLocation.gosi_nationality_rates || [];
