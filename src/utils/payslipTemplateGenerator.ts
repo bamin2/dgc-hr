@@ -321,4 +321,12 @@ export const PAYSLIP_SMART_TAGS = [
   { name: 'GENERATED_DATE', category: 'Generated', description: 'Document generation date' },
   { name: 'GENERATED_TIME', category: 'Generated', description: 'Document generation time' },
   { name: 'CURRENCY', category: 'Generated', description: 'Currency code' },
+  
+  // Conditional
+  { name: 'SHOW_GOSI', category: 'Conditional', description: 'True when employee is subject to GOSI and deduction > 0' },
+  { name: 'SHOW_HOUSING_ALLOWANCE', category: 'Conditional', description: 'True when housing allowance > 0' },
+  { name: 'SHOW_TRANSPORT_ALLOWANCE', category: 'Conditional', description: 'True when transport allowance > 0' },
+  { name: 'SHOW_OTHER_ALLOWANCES', category: 'Conditional', description: 'True when other allowances > 0' },
+  { name: 'SHOW_OTHER_DEDUCTIONS', category: 'Conditional', description: 'True when other deductions > 0' },
+  { name: 'SHOW_LOAN_DEDUCTION', category: 'Conditional', description: 'True when loan deduction > 0' },
 ];

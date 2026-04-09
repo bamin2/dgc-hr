@@ -57,6 +57,14 @@ const PAYROLL_SMART_TAGS = [
   // Metadata
   { tag: "GENERATED_DATE", category: "Metadata", description: "Date payslip was generated" },
   { tag: "PAYSLIP_ID", category: "Metadata", description: "Unique payslip identifier" },
+
+  // Conditional Sections (use with {{#TAG}}...{{/TAG}} syntax)
+  { tag: "SHOW_GOSI", category: "Conditional", description: "Show block only if employee is subject to GOSI and deduction > 0" },
+  { tag: "SHOW_HOUSING_ALLOWANCE", category: "Conditional", description: "Show block only if housing allowance > 0" },
+  { tag: "SHOW_TRANSPORT_ALLOWANCE", category: "Conditional", description: "Show block only if transport allowance > 0" },
+  { tag: "SHOW_OTHER_ALLOWANCES", category: "Conditional", description: "Show block only if other allowances > 0" },
+  { tag: "SHOW_OTHER_DEDUCTIONS", category: "Conditional", description: "Show block only if other deductions > 0" },
+  { tag: "SHOW_LOAN_DEDUCTION", category: "Conditional", description: "Show block only if loan deduction > 0" },
 ];
 
 interface SmartTagsTabProps {
@@ -104,7 +112,7 @@ export function SmartTagsTab({ docxStoragePath }: SmartTagsTabProps) {
 
   const sortedCategories = Object.keys(groupedTags).sort((a, b) => {
     // Priority order for categories
-    const order = ["Employee", "Company", "Pay Period", "Earnings", "Deductions", "Net Pay", "Metadata"];
+    const order = ["Employee", "Company", "Pay Period", "Earnings", "Deductions", "Net Pay", "Metadata", "Conditional"];
     const aIndex = order.indexOf(a);
     const bIndex = order.indexOf(b);
     if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
@@ -129,6 +137,8 @@ export function SmartTagsTab({ docxStoragePath }: SmartTagsTabProps) {
           <CardTitle>Available Smart Tags</CardTitle>
           <CardDescription>
             Use these tags in your DOCX template with double curly braces. They will be replaced with actual data when generating payslips.
+            For conditional sections, wrap content with <code className="text-xs bg-muted px-1 rounded">{"{{#SHOW_TAG}}...{{/SHOW_TAG}}"}</code> to show/hide blocks based on employee data.
+          </CardDescription>
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
