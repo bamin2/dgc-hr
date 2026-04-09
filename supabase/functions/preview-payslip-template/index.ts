@@ -240,7 +240,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Fetch loan installments paid in this payroll run
     const { data: paidLoanInstallments } = await supabaseClient
       .from("loan_installments")
-      .select("*, loan:loans(employee_id, loan_type)")
+      .select("*, loan:loans(employee_id)")
       .eq("paid_in_payroll_run_id", payroll_run_id);
 
     // Calculate amounts for conditional flags
@@ -285,8 +285,7 @@ const handler = async (req: Request): Promise<Response> => {
       (li: any) => li.loan?.employee_id === employee_id
     );
     for (const li of empLoanInstallments) {
-      const loanType = li.loan?.loan_type || "Loan";
-      deductionsLoop.push({ name: `${loanType} Repayment`, amount: formatCurrency(li.amount, currencyCode) });
+      deductionsLoop.push({ name: "Loan Repayment", amount: formatCurrency(li.amount, currencyCode) });
     }
     const empDeductionAdj = (adjustments || []).filter((a: any) => a.type === "deduction");
     for (const adj of empDeductionAdj) {
