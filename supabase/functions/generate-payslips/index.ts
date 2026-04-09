@@ -491,6 +491,18 @@ const handler = async (req: Request): Promise<Response> => {
     const periodEnd = payrollRun.pay_period_end;
     const currencyCode = payrollRun.work_location?.currency || "BHD";
 
+    // Fetch adjustments for this payroll run
+    const { data: adjustments } = await supabaseClient
+      .from("payroll_run_adjustments")
+      .select("*")
+      .eq("payroll_run_id", payroll_run_id);
+
+    // Fetch loan installments paid in this payroll run
+    const { data: paidLoanInstallments } = await supabaseClient
+      .from("loan_installments")
+      .select("*, loan:loans(employee_id, loan_type)")
+      .eq("paid_in_payroll_run_id", payroll_run_id);
+
     // Process each employee
     for (const payrollEmployee of payrollEmployees || []) {
       const emp = payrollEmployee.employee;
@@ -499,7 +511,6 @@ const handler = async (req: Request): Promise<Response> => {
       try {
         console.log(`Processing payslip for ${employeeName}...`);
 
-        // Build tag data for template replacement
         // Calculate amounts for conditional flags
         const housingAmount = Number(payrollEmployee.housing_allowance) || 0;
         const transportAmount = Number(payrollEmployee.transportation_allowance) || 0;
@@ -507,6 +518,61 @@ const handler = async (req: Request): Promise<Response> => {
         const gosiDeductionAmount = Number(payrollEmployee.gosi_deduction) || 0;
         const otherDeductionsAmount = sumArrayField(payrollEmployee.other_deductions);
         const loanDeductionAmount = Number(payrollEmployee.loan_deduction) || 0;
+
+        // Build ALLOWANCES loop array
+        const allowancesLoop: Array<{ name: string; amount: string }> = [];
+        if (housingAmount > 0) {
+          allowancesLoop.push({ name: "Housing Allowance", amount: formatCurrency(housingAmount, currencyCode) });
+        }
+        if (transportAmount > 0) {
+          allowancesLoop.push({ name: "Transportation Allowance", amount: formatCurrency(transportAmount, currencyCode) });
+        }
+        if (Array.isArray(payrollEmployee.other_allowances)) {
+          for (const item of payrollEmployee.other_allowances) {
+            const amt = Number(item.amount) || 0;
+            if (amt > 0) {
+              allowancesLoop.push({ name: item.name || "Other Allowance", amount: formatCurrency(amt, currencyCode) });
+            }
+          }
+        }
+
+        // Build DEDUCTIONS loop array
+        const deductionsLoop: Array<{ name: string; amount: string }> = [];
+        if (emp.is_subject_to_gosi && gosiDeductionAmount > 0) {
+          deductionsLoop.push({ name: "Social Insurance", amount: formatCurrency(gosiDeductionAmount, currencyCode) });
+        }
+        if (Array.isArray(payrollEmployee.other_deductions)) {
+          for (const item of payrollEmployee.other_deductions) {
+            const amt = Number(item.amount) || 0;
+            if (amt > 0) {
+              deductionsLoop.push({ name: item.name || "Other Deduction", amount: formatCurrency(amt, currencyCode) });
+            }
+          }
+        }
+        // Add loan installments for this employee
+        const empLoanInstallments = (paidLoanInstallments || []).filter(
+          (li: any) => li.loan?.employee_id === emp.id
+        );
+        for (const li of empLoanInstallments) {
+          const loanType = li.loan?.loan_type || "Loan";
+          deductionsLoop.push({ name: `${loanType} Repayment`, amount: formatCurrency(li.amount, currencyCode) });
+        }
+        // Add one-time deduction adjustments for this employee
+        const empDeductionAdj = (adjustments || []).filter(
+          (a: any) => a.employee_id === emp.id && a.type === "deduction"
+        );
+        for (const adj of empDeductionAdj) {
+          deductionsLoop.push({ name: adj.description || "One-time Deduction", amount: formatCurrency(adj.amount, currencyCode) });
+        }
+
+        // Build ADJUSTMENTS_EARNINGS loop array
+        const earningsAdjLoop: Array<{ name: string; amount: string }> = [];
+        const empEarningAdj = (adjustments || []).filter(
+          (a: any) => a.employee_id === emp.id && a.type === "earning"
+        );
+        for (const adj of empEarningAdj) {
+          earningsAdjLoop.push({ name: adj.description || "One-time Earning", amount: formatCurrency(adj.amount, currencyCode) });
+        }
 
         const tagData: Record<string, any> = {
           // Employee info
@@ -560,6 +626,11 @@ const handler = async (req: Request): Promise<Response> => {
           // Metadata
           GENERATED_DATE: formatDate(new Date().toISOString()),
           PAYSLIP_ID: payrollEmployee.id || '',
+
+          // Loop arrays for individual line items
+          ALLOWANCES: allowancesLoop,
+          DEDUCTIONS: deductionsLoop,
+          ADJUSTMENTS_EARNINGS: earningsAdjLoop,
 
           // Conditional section flags (boolean - for {{#SHOW_*}}...{{/SHOW_*}} blocks)
           SHOW_GOSI: !!(emp.is_subject_to_gosi && gosiDeductionAmount > 0),

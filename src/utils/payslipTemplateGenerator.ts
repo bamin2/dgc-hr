@@ -322,6 +322,11 @@ export const PAYSLIP_SMART_TAGS = [
   { name: 'GENERATED_TIME', category: 'Generated', description: 'Document generation time' },
   { name: 'CURRENCY', category: 'Generated', description: 'Currency code' },
   
+  // Loop Arrays
+  { name: 'ALLOWANCES', category: 'Loops', description: 'Loop array of individual allowances (each has name + amount)' },
+  { name: 'DEDUCTIONS', category: 'Loops', description: 'Loop array of individual deductions incl. GOSI, loans, manual (each has name + amount)' },
+  { name: 'ADJUSTMENTS_EARNINGS', category: 'Loops', description: 'Loop array of one-time earning adjustments (each has name + amount)' },
+  
   // Conditional
   { name: 'SHOW_GOSI', category: 'Conditional', description: 'True when employee is subject to GOSI and deduction > 0' },
   { name: 'SHOW_HOUSING_ALLOWANCE', category: 'Conditional', description: 'True when housing allowance > 0' },

@@ -58,6 +58,11 @@ const PAYROLL_SMART_TAGS = [
   { tag: "GENERATED_DATE", category: "Metadata", description: "Date payslip was generated" },
   { tag: "PAYSLIP_ID", category: "Metadata", description: "Unique payslip identifier" },
 
+  // Loop Arrays (use with {{#TAG}}...{{/TAG}} syntax to repeat rows)
+  { tag: "#ALLOWANCES", category: "Loops", description: "Loop: repeats for each allowance. Use {{name}} and {{amount}} inside." },
+  { tag: "#DEDUCTIONS", category: "Loops", description: "Loop: repeats for each deduction (GOSI, loans, manual deductions). Use {{name}} and {{amount}} inside." },
+  { tag: "#ADJUSTMENTS_EARNINGS", category: "Loops", description: "Loop: repeats for each one-time earning adjustment. Use {{name}} and {{amount}} inside." },
+
   // Conditional Sections (use with {{#TAG}}...{{/TAG}} syntax)
   { tag: "SHOW_GOSI", category: "Conditional", description: "Show block only if employee is subject to GOSI and deduction > 0" },
   { tag: "SHOW_HOUSING_ALLOWANCE", category: "Conditional", description: "Show block only if housing allowance > 0" },
@@ -111,8 +116,7 @@ export function SmartTagsTab({ docxStoragePath }: SmartTagsTabProps) {
   };
 
   const sortedCategories = Object.keys(groupedTags).sort((a, b) => {
-    // Priority order for categories
-    const order = ["Employee", "Company", "Pay Period", "Earnings", "Deductions", "Net Pay", "Metadata", "Conditional"];
+    const order = ["Employee", "Company", "Pay Period", "Earnings", "Deductions", "Net Pay", "Metadata", "Loops", "Conditional"];
     const aIndex = order.indexOf(a);
     const bIndex = order.indexOf(b);
     if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
