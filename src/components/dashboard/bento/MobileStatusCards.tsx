@@ -102,7 +102,7 @@ export function MobileStatusCards() {
     <div className="col-span-12">
       <div className={cn(
         "grid gap-3",
-        hasLoan ? "grid-cols-2" : "grid-cols-2"
+        hasLoan ? "grid-cols-3" : "grid-cols-2"
       )}>
         {/* Next Leave */}
         <StatusCard
