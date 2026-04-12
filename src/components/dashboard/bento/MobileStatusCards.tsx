@@ -72,7 +72,7 @@ export function MobileStatusCards() {
 
   if (isLoading) {
     return (
-      <div className="col-span-12">
+      <div className="col-span-1">
         <div className="grid grid-cols-2 gap-3">
           <StatusCardSkeleton />
           <StatusCardSkeleton />
@@ -99,7 +99,7 @@ export function MobileStatusCards() {
   const loanCurrency = data?.loanCurrency || "SAR";
 
   return (
-    <div className="col-span-12">
+    <div className="col-span-1">
       <div className={cn(
         "grid gap-3",
         hasLoan ? "grid-cols-3" : "grid-cols-2"
