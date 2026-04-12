@@ -61,7 +61,7 @@ export function MobileProfileHub() {
 
   return (
     <DashboardLayout>
-      <div className="p-4 pb-24 space-y-4">
+      <div className="p-4 pb-28 space-y-4">
         {/* Profile Header */}
         <MobileProfileHeader employee={employee} />
         

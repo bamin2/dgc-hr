@@ -65,7 +65,7 @@ export default function Directory() {
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
-        <div className="relative flex-1 max-w-md">
+        <div className="relative flex-1 max-w-full sm:max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search by name..."
@@ -133,7 +133,7 @@ export default function Directory() {
               <button
                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="px-3 py-1.5 text-sm rounded-md border bg-card hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2.5 min-h-[44px] text-sm rounded-md border bg-card hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
               >
                 Previous
               </button>
@@ -143,7 +143,7 @@ export default function Directory() {
               <button
                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="px-3 py-1.5 text-sm rounded-md border bg-card hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2.5 min-h-[44px] text-sm rounded-md border bg-card hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
               >
                 Next
               </button>

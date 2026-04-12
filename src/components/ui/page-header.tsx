@@ -50,7 +50,7 @@ export function PageHeader({
   children,
 }: PageHeaderProps) {
   return (
-    <div className={cn("mb-6 sm:mb-8", className)}>
+    <div className={cn("mb-4 sm:mb-8", className)}>
       {/* Breadcrumbs */}
       {breadcrumbs && breadcrumbs.length > 0 && (
         <nav className="flex items-center gap-1.5 text-sm text-muted-foreground mb-3">

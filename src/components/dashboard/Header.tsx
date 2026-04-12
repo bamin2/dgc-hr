@@ -64,7 +64,7 @@ export function Header() {
             <MobileNav />
           </div>
           <div>
-            <h1 className="text-lg sm:text-xl font-semibold text-foreground">
+            <h1 className="text-base sm:text-xl font-semibold text-foreground">
               Hello, {displayName.split(' ')[0]}! 👋
             </h1>
             <p className="hidden sm:block text-sm text-muted-foreground">
@@ -74,7 +74,7 @@ export function Header() {
         </div>
 
         {/* Right Side */}
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex items-center gap-1.5 sm:gap-4">
           {/* Search */}
           <button
             onClick={() => setSearchOpen(true)}

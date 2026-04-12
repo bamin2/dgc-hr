@@ -66,7 +66,7 @@ export const NotificationCard = ({ notification, onMarkAsRead, onDelete }: Notif
           {/* Content */}
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2 mb-1">
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-2 flex-wrap min-w-0">
                 <h4 className={cn(
                   'font-medium',
                   !notification.isRead && 'font-semibold'
@@ -90,10 +90,9 @@ export const NotificationCard = ({ notification, onMarkAsRead, onDelete }: Notif
             </p>
 
             <div className="flex items-center justify-between">
-              <div className="text-xs text-muted-foreground">
+              <div className="text-xs text-muted-foreground truncate">
                 <span title={formattedDate}>{timeAgo}</span>
-                <span className="mx-2">•</span>
-                <span>{formattedDate}</span>
+                <span className="hidden sm:inline"><span className="mx-2">•</span>{formattedDate}</span>
               </div>
 
               <div className="flex items-center gap-1">

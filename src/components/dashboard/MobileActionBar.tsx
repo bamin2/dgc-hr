@@ -114,12 +114,13 @@ export function MobileActionBar() {
       className={cn(
         "fixed bottom-0 left-0 right-0 z-50",
         "bg-background/95 backdrop-blur-md border-t border-border",
-        "safe-area-inset-bottom",
+        "shadow-[0_-2px_10px_rgba(0,0,0,0.05)]",
+        "safe-area-inset-bottom pb-safe",
         "lg:hidden"
       )}
     >
       {/* Navigation tabs - evenly spaced */}
-      <div className="flex items-stretch justify-around h-[72px]">
+      <div className="flex items-stretch justify-around h-16">
         {navItems.map(renderNavItem)}
       </div>
     </nav>
