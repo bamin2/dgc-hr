@@ -57,23 +57,6 @@ export function MobilePayslipsSheet({
     return docData.pdf_storage_path;
   };
 
-  const handleView = async (payslipId: string) => {
-    try {
-      setLoadingId(payslipId);
-      const pdfPath = await getPayslipPdfPath(payslipId);
-
-      const { data, error } = await supabase.storage
-        .from('payslips')
-        .createSignedUrl(pdfPath, 300);
-
-      if (error) throw error;
-      window.open(data.signedUrl, '_blank');
-    } catch {
-      toast.error('Failed to open payslip');
-    } finally {
-      setLoadingId(null);
-    }
-  };
 
   const handleDownload = async (payslipId: string, periodStart: string) => {
     try {
