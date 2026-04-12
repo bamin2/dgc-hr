@@ -1,26 +1,21 @@
 
 
-# Fix Stacked Loan Balance Card on Mobile Dashboard
+# Fix Mobile Dashboard Card Overlap & Width Issues
 
 ## Problem
-The Loan Balance card renders as a full-width (`col-span-2`) card on its own row below the two status cards, creating an awkward isolated box. It should be part of the same grid row as the other status cards.
+- `MobileStatusCards` uses a raw `col-span-12` class, but `BentoGrid` is `grid-cols-1` on mobile. Spanning 12 columns in a 1-column grid causes layout breakage and overlap with adjacent cards.
+- `MobileGreetingCard` uses `<BentoCard colSpan={12}>` which correctly maps to `col-span-1` on mobile, but may appear not full-width due to the broken grid from the sibling.
 
-## Solution
-Change the layout from a 2-column grid with a full-width loan card to a 3-column grid when loans exist. All three cards (Next Leave, Pending, Loan Balance) sit side by side in one row. The loan card loses its `col-span-2` wrapper and becomes a regular grid item.
+## Fix
 
-When there's no loan, keep the current 2-column layout.
+### File: `src/components/dashboard/bento/MobileStatusCards.tsx`
+- Change `col-span-12` to `col-span-1` on both the loading and loaded wrapper divs. Since this component is only rendered on mobile (inside `MobileDashboard`), `col-span-1` in a `grid-cols-1` grid = full width. This is consistent with how `BentoCard colSpan={12}` maps on mobile.
 
-## Technical Change
-
-**File: `src/components/dashboard/bento/MobileStatusCards.tsx`**
-
-Change the grid from `grid-cols-2` to `grid-cols-3` when `hasLoan` is true, and remove the `col-span-2` wrapper div around the Loan Balance card so it renders as a normal grid cell alongside the other two.
-
-The StatusCard `min-h-[88px]` stays the same -- the cards will be narrower but still readable at ~33% width on mobile (roughly 115px each at 390px viewport minus padding/gaps).
+**Lines 75 and 102**: Replace `col-span-12` with `col-span-1`.
 
 ## Files to modify
 
 | File | Change |
 |------|--------|
-| `src/components/dashboard/bento/MobileStatusCards.tsx` | Use `grid-cols-3` when loan exists, remove `col-span-2` wrapper on loan card |
+| `src/components/dashboard/bento/MobileStatusCards.tsx` | Change `col-span-12` → `col-span-1` on wrapper divs (lines 75, 102) |
 
