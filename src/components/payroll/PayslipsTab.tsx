@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Download, FileText, Loader2, RefreshCw, AlertCircle, CheckCircle2, Mail } from "lucide-react";
+import JSZip from "jszip";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -23,7 +24,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { usePayslipDocuments, downloadPayslipPDF } from "@/hooks/usePayslipDocuments";
+import { usePayslipDocuments, downloadPayslipPDF, getPayslipBlob } from "@/hooks/usePayslipDocuments";
 import { useActivePayslipTemplates } from "@/hooks/usePayslipTemplates";
 import { useIssuePayslips } from "@/hooks/usePayrollRunsV2";
 import { supabase } from "@/integrations/supabase/client";

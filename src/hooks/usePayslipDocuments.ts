@@ -179,5 +179,17 @@ export async function getPayslipDownloadUrl(storagePath: string): Promise<string
   return data.signedUrl;
 }
 
+export async function getPayslipBlob(storagePath: string): Promise<Blob> {
+  const { data: signedData, error } = await supabase.storage
+    .from('payslips')
+    .createSignedUrl(storagePath, 60);
+
+  if (error) throw error;
+
+  const response = await fetch(`${signedData.signedUrl}&t=${Date.now()}`);
+  if (!response.ok) throw new Error('Failed to fetch payslip');
+  return response.blob();
+}
+
 // Export query keys for external use
 export { payslipDocumentKeys };
