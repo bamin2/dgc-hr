@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Download, FileText, Loader2, RefreshCw, AlertCircle, CheckCircle2, Mail } from "lucide-react";
+import JSZip from "jszip";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -23,7 +24,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { usePayslipDocuments, downloadPayslipPDF } from "@/hooks/usePayslipDocuments";
+import { usePayslipDocuments, downloadPayslipPDF, getPayslipBlob } from "@/hooks/usePayslipDocuments";
 import { useActivePayslipTemplates } from "@/hooks/usePayslipTemplates";
 import { useIssuePayslips } from "@/hooks/usePayrollRunsV2";
 import { supabase } from "@/integrations/supabase/client";
@@ -62,6 +63,14 @@ export function PayslipsTab({ payrollRunId, payrollRun, employees }: PayslipsTab
   const [generating, setGenerating] = useState(false);
   const [downloadingAll, setDownloadingAll] = useState(false);
   const [sendingEmails, setSendingEmails] = useState(false);
+
+  const getPayslipFilename = (employee: PayslipDocument['employee'], periodStart: string) => {
+    const month = format(new Date(periodStart), 'MMMM');
+    const year = format(new Date(periodStart), 'yyyy');
+    const code = employee?.employee_code || 'UNKNOWN';
+    const name = `${employee?.first_name}_${employee?.last_name}`;
+    return `${code}_${name}_Salary_Slip_${month}_${year}.pdf`;
+  };
 
   // Create a map of employee_id to payslip document
   const payslipMap = new Map<string, PayslipDocument>();
@@ -148,17 +157,32 @@ export function PayslipsTab({ payrollRunId, payrollRun, employees }: PayslipsTab
 
     setDownloadingAll(true);
     try {
-      // Download each payslip
-      for (const doc of payslipDocuments) {
-        if (doc.status === 'generated') {
-          const employee = doc.employee;
-          const filename = `${employee?.employee_code || 'payslip'}_${format(new Date(doc.period_start), 'yyyy-MM')}.pdf`;
-          await downloadPayslipPDF(doc.pdf_storage_path, filename);
-        }
+      const zip = new JSZip();
+      const generatedDocs = payslipDocuments.filter(doc => doc.status === 'generated');
+
+      for (const doc of generatedDocs) {
+        const filename = getPayslipFilename(doc.employee, doc.period_start);
+        const blob = await getPayslipBlob(doc.pdf_storage_path);
+        zip.file(filename, blob);
       }
-      toast.success(`Downloaded ${generatedCount} payslips`);
+
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const month = format(new Date(payrollRun.period_start), 'MMMM');
+      const year = format(new Date(payrollRun.period_start), 'yyyy');
+      const zipFilename = `Payslips_${month}_${year}.zip`;
+
+      const url = URL.createObjectURL(zipBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = zipFilename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast.success(`Downloaded ${generatedCount} payslips as ZIP`);
     } catch (error) {
-      toast.error("Failed to download some payslips");
+      toast.error("Failed to download payslips");
     } finally {
       setDownloadingAll(false);
     }
@@ -166,8 +190,7 @@ export function PayslipsTab({ payrollRunId, payrollRun, employees }: PayslipsTab
 
   const handleDownloadSingle = async (doc: PayslipDocument) => {
     try {
-      const employee = doc.employee;
-      const filename = `${employee?.employee_code || 'payslip'}_${format(new Date(doc.period_start), 'yyyy-MM')}.pdf`;
+      const filename = getPayslipFilename(doc.employee, doc.period_start);
       await downloadPayslipPDF(doc.pdf_storage_path, filename);
     } catch (error) {
       toast.error("Failed to download payslip");
