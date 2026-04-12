@@ -102,7 +102,7 @@ export function MobileStatusCards() {
     <div className="col-span-12">
       <div className={cn(
         "grid gap-3",
-        hasLoan ? "grid-cols-2" : "grid-cols-2"
+        hasLoan ? "grid-cols-3" : "grid-cols-2"
       )}>
         {/* Next Leave */}
         <StatusCard
@@ -126,15 +126,13 @@ export function MobileStatusCards() {
 
         {/* Loan Balance (conditional - full width if shown) */}
         {hasLoan && (
-          <div className="col-span-2">
-            <StatusCard
-              icon={Wallet}
-              label="Loan Balance"
-              value={formatCurrencyWithCode(totalLoanBalance, loanCurrency)}
-              onClick={() => navigate("/my-profile?tab=loans")}
-              color="bg-blue-500/10 text-blue-600"
-            />
-          </div>
+          <StatusCard
+            icon={Wallet}
+            label="Loan Balance"
+            value={formatCurrencyWithCode(totalLoanBalance, loanCurrency)}
+            onClick={() => navigate("/my-profile?tab=loans")}
+            color="bg-blue-500/10 text-blue-600"
+          />
         )}
       </div>
     </div>
