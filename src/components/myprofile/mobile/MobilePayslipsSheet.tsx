@@ -13,7 +13,7 @@ import { useMyPayslips } from '@/hooks/useMyPayslips';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { Receipt, Eye, Download, Loader2, Calendar } from 'lucide-react';
+import { Receipt, Download, Loader2, Calendar } from 'lucide-react';
 
 interface MobilePayslipsSheetProps {
   open: boolean;
@@ -57,23 +57,6 @@ export function MobilePayslipsSheet({
     return docData.pdf_storage_path;
   };
 
-  const handleView = async (payslipId: string) => {
-    try {
-      setLoadingId(payslipId);
-      const pdfPath = await getPayslipPdfPath(payslipId);
-
-      const { data, error } = await supabase.storage
-        .from('payslips')
-        .createSignedUrl(pdfPath, 300);
-
-      if (error) throw error;
-      window.open(data.signedUrl, '_blank');
-    } catch {
-      toast.error('Failed to open payslip');
-    } finally {
-      setLoadingId(null);
-    }
-  };
 
   const handleDownload = async (payslipId: string, periodStart: string) => {
     try {
@@ -156,41 +139,21 @@ export function MobilePayslipsSheet({
                     </div>
                   </div>
                   
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1 h-11"
-                      onClick={() => handleView(payslip.id)}
-                      disabled={loadingId === payslip.id}
-                    >
-                      {loadingId === payslip.id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <>
-                          <Eye className="h-4 w-4 mr-2" />
-                          View
-                        </>
-                      )}
-                    </Button>
-                    
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1 h-11"
-                      onClick={() => handleDownload(payslip.id, payslip.payPeriodStart)}
-                      disabled={loadingId === payslip.id + '-download'}
-                    >
-                      {loadingId === payslip.id + '-download' ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <>
-                          <Download className="h-4 w-4 mr-2" />
-                          Download
-                        </>
-                      )}
-                    </Button>
-                  </div>
+                  <Button
+                    size="sm"
+                    className="w-full h-11"
+                    onClick={() => handleDownload(payslip.id, payslip.payPeriodStart)}
+                    disabled={loadingId === payslip.id + '-download'}
+                  >
+                    {loadingId === payslip.id + '-download' ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Download className="h-4 w-4 mr-2" />
+                        Download
+                      </>
+                    )}
+                  </Button>
                 </div>
               ))}
             </div>
