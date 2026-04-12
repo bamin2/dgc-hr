@@ -61,7 +61,7 @@ export function MobileRequestsHub() {
       </div>
 
       {/* Request List */}
-      <div className="flex-1 overflow-y-auto px-4 pb-24">
+      <div className="flex-1 overflow-y-auto px-4 pb-28">
         {isLoading && !requests ? (
           // Only show skeleton on initial load, not refetches
           <div className="space-y-3">

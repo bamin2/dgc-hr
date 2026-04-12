@@ -307,7 +307,7 @@ const Notifications = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full h-auto p-1 flex flex-wrap justify-start gap-1 bg-muted/50">
+          <TabsList className="w-full h-auto p-1 flex flex-nowrap justify-start gap-1 bg-muted/50 overflow-x-auto scrollbar-none">
             {TABS.map(tab => (
               <TabsTrigger 
                 key={tab.id} 
