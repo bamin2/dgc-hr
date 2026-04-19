@@ -1,65 +1,55 @@
 
 
-The user provided the column headers from the Excel file. Now I have what I need to plan the import. Let me also note: only rows with Status = "Added by HR" or "Approved" should be imported.
+The user wants to:
+1. Replace the sidebar logo with the new "DGC People" logo
+2. Update PWA icons (192px, 512px) for install on mobile/desktop
+3. Rename "DGC Core" → "DGC People" everywhere it appears
 
-## Column mapping
-- **Emp. No.** → match to `employees.employee_code`
-- **Transaction Type** → match to `leave_types.name`
-- **From Date** → `start_date`
-- **To Date** → `end_date`
-- **No. of Days** → `days_count`
-- **Status** → filter only "Added by HR" or "Approved" → all imported as `approved`
-- **Received On** → `created_at` (submission date)
-- Ignored: Emp. Name, Employee Full Name, Position, Work Location, Department, Resumption Date
+Let me check where "DGC Core" / "DGC CORE" appears and where the sidebar logo lives.
 
-## Remaining clarifications I'll make sensible defaults for
-- **Employee match**: by Emp. No. (Employee Code). Rows with unknown codes → skipped & reported.
-- **Unknown leave types**: skipped & reported (safer than auto-creating).
-- **Balance impact**: leave balances will NOT be auto-updated (historical import only). I'll note this clearly in the UI so the user can manually adjust balances if needed.
-- **Reason**: empty (not in file).
-- **Reviewed by / reviewed at**: set `reviewed_by = current user`, `reviewed_at = Received On` (or now if missing).
+Key locations from context:
+- `public/manifest.json` — name, short_name, description
+- `index.html` — title, og:title, twitter:title, apple-mobile-web-app-title, description
+- `src/components/auth/AuthLeftPanel.tsx` — "DGC Core" label + logo
+- `src/components/dashboard/Sidebar.tsx` — uses logo from `useCompanySettings` (likely user-managed) but also has a fallback
+- `src/components/dashboard/MobileNav.tsx` — also renders logo
+- `public/icons/icon-192x192.png`, `public/icons/icon-512x512.png`, `public/icons/apple-touch-icon.png`
+- `public/dgc-logo-pwa.svg`
 
-# Plan: Import Leave History from Excel
+I need to verify a few things before finalizing:
 
-## New feature
-Add a "Import Leave History" action on the **Time Management → Leaves → Leave Requests** tab (visible to HR/Admin only), opening a dialog modeled after `EmployeeImportDialog`.
+# Plan: Rebrand to "DGC People" + new logo & PWA icons
 
-## Files to create
-| File | Purpose |
-|------|---------|
-| `src/utils/leaveHistoryImport.ts` | Parse XLSX (using `xlsx` lib), map rows → `ParsedLeaveRow`, validate against employees + leave types, build DB insert records |
-| `src/hooks/useBulkCreateLeaveRequests.ts` | Bulk insert `leave_requests` rows with status `approved`, plus optional `leave_imports` audit record |
-| `src/components/timemanagement/LeaveHistoryImportDialog.tsx` | Drag/drop XLSX upload, preview table with valid/invalid badges, pagination, import button |
+## Assets to add
+Copy the uploaded files into the project:
+- `user-uploads://Portal_Logos_DGC_people_-_512px_x_512px.png` → `public/icons/icon-512x512.png` (replaces existing)
+- `user-uploads://Portal_Logos_DGC_people_-_192px_x_192px.png` → `public/icons/icon-192x192.png` (replaces existing)
+- 192px PNG also → `public/icons/apple-touch-icon.png` (180px slot — close enough; iOS will scale)
+- `user-uploads://Portal_Logos_DGC_people_-_512px_x_512px.svg` → `src/assets/dgc-people-logo.svg` (used in sidebar / auth panel)
+- Same SVG → `public/dgc-logo-pwa.svg` (replace) for any direct references
 
-## Files to modify
+## Text rename: "DGC Core" / "DGC CORE" → "DGC People"
 | File | Change |
 |------|--------|
-| `src/components/timemanagement/LeavesTab.tsx` | Add "Import Leave History" button next to "Add Leave Request" (HR/Admin only); wire to new dialog |
-| `package.json` | Add `xlsx` dependency for parsing .xlsx |
+| `public/manifest.json` | `name`, `short_name` → "DGC People"; update `description` |
+| `index.html` | `<title>`, `apple-mobile-web-app-title`, og/twitter titles, descriptions |
+| `src/components/auth/AuthLeftPanel.tsx` | "DGC Core" subtitle text → "DGC People" |
+| `src/components/pwa/InstallPrompt.tsx` | "Install DGC CORE" → "Install DGC People" |
 
-## Import logic
-1. Parse all rows from sheet 1.
-2. **Filter**: keep only rows where `Status` is `"Added by HR"` or `"Approved"` (case-insensitive, trimmed). All others silently dropped from preview with a counter ("X rows ignored due to status").
-3. For each kept row, validate:
-   - `Emp. No.` exists in `employees.employee_code` → else error "Unknown employee code"
-   - `Transaction Type` matches active `leave_types.name` (case-insensitive) → else error "Unknown leave type"
-   - `From Date` & `To Date` parse as valid dates and start ≤ end → else error
-   - `No. of Days` is a positive number → else compute from date diff as fallback
-4. Build `leave_requests` insert payload:
-   - `status: 'approved'`
-   - `reviewed_by: current user id`
-   - `reviewed_at: parsed Received On || now`
-   - `created_at: parsed Received On || now`
-   - `is_half_day: false`
-   - `reason: null`
-5. Bulk insert in chunks of 100.
+I'll also `code--search_files` for any other occurrences of "DGC Core"/"DGC CORE" to catch stragglers (e.g., page titles, email templates, settings defaults) and update them in the same pass.
 
-## Preview UI
-- Summary badges: `N valid`, `N errors`, `N ignored (status filter)`
-- Table columns: Status icon · Emp. No. · Leave Type · From · To · Days · Issues
-- Pagination (20/page) like `EmployeeImportDialog`
-- Import button disabled until at least 1 valid row
+## Logo swap in UI
+The sidebar logo is driven by `useCompanySettings()` (user-uploaded brand logo). I will **not** override the user's uploaded company logo in the database. Instead:
+- Update the **fallback/default logo** asset used in `Sidebar.tsx`, `MobileNav.tsx`, and `AuthLeftPanel.tsx` to the new DGC People SVG. I'll inspect those files to confirm the import paths and swap `dgc-logo-light.svg` / `dgc-logo-dark.svg` references where appropriate.
 
-## Notes shown to user in dialog
-- "Imported leaves are marked **Approved** and do **not** automatically update employee leave balances. Adjust balances manually via Employee Balances if needed."
+If the sidebar is currently showing the old logo because it's stored in company settings (DB), I'll mention the user needs to re-upload via Settings → Branding. Otherwise the new asset will appear immediately.
+
+## PWA install icon
+Replacing `public/icons/icon-192x192.png` and `icon-512x512.png` is sufficient — `manifest.json` already references those paths. Users who already installed will need to reinstall to see the new icon.
+
+## Files to modify/create
+- Replace: `public/icons/icon-192x192.png`, `public/icons/icon-512x512.png`, `public/icons/apple-touch-icon.png`, `public/dgc-logo-pwa.svg`
+- Create: `src/assets/dgc-people-logo.svg`
+- Edit: `public/manifest.json`, `index.html`, `src/components/auth/AuthLeftPanel.tsx`, `src/components/pwa/InstallPrompt.tsx`, `src/components/dashboard/Sidebar.tsx`, `src/components/dashboard/MobileNav.tsx` (logo asset import)
+- Sweep: any other "DGC Core"/"DGC CORE" string occurrences
 
