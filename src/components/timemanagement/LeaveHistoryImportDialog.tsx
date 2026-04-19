@@ -468,7 +468,7 @@ export function LeaveHistoryImportDialog({ open, onOpenChange }: Props) {
               <div className="border rounded-md divide-y">
                 {unknownTypes.map(({ value, count }) => {
                   const current = typeResolutions.get(value);
-                  const selectValue = !current ? undefined : current;
+                  const selectValue = current === 'skip' ? SKIP_VALUE : (current || undefined);
                   return (
                     <div key={value} className="flex items-center gap-3 px-3 py-2">
                       <div className="flex-1 min-w-0">
