@@ -476,6 +476,12 @@ export function LeaveHistoryImportDialog({ open, onOpenChange }: Props) {
                   {ignoredCount} ignored (status filter)
                 </Badge>
               )}
+              {skippedCount > 0 && (
+                <Badge variant="outline" className="gap-1">
+                  <AlertTriangle className="h-3 w-3" />
+                  {skippedCount} skipped (unknown type)
+                </Badge>
+              )}
               <span className="text-muted-foreground">
                 Total rows in file: {totalCount}
               </span>
@@ -489,6 +495,7 @@ export function LeaveHistoryImportDialog({ open, onOpenChange }: Props) {
                     <TableRow>
                       <TableHead className="w-[60px]">Status</TableHead>
                       <TableHead>Emp. No.</TableHead>
+                      <TableHead>Employee</TableHead>
                       <TableHead>Leave Type</TableHead>
                       <TableHead>From</TableHead>
                       <TableHead>To</TableHead>
@@ -497,7 +504,15 @@ export function LeaveHistoryImportDialog({ open, onOpenChange }: Props) {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {paginatedData.map((row, index) => (
+                    {paginatedData.map((row, index) => {
+                      const matched = row.parsed.empNo
+                        ? employeeByCode.get(row.parsed.empNo.toLowerCase())
+                        : undefined;
+                      const fullName = matched
+                        ? `${matched.first_name ?? ''} ${matched.last_name ?? ''}`.trim()
+                        : '';
+                      const displayName = row.parsed.empName || fullName || '—';
+                      return (
                       <TableRow
                         key={(currentPage - 1) * ROWS_PER_PAGE + index}
                         className={!row.validation.valid ? 'bg-destructive/5' : ''}
@@ -510,6 +525,7 @@ export function LeaveHistoryImportDialog({ open, onOpenChange }: Props) {
                           )}
                         </TableCell>
                         <TableCell className="font-medium">{row.parsed.empNo || '-'}</TableCell>
+                        <TableCell className="text-sm">{displayName}</TableCell>
                         <TableCell>{row.parsed.transactionType || '-'}</TableCell>
                         <TableCell>{row.parsed.fromDate || '-'}</TableCell>
                         <TableCell>{row.parsed.toDate || '-'}</TableCell>
