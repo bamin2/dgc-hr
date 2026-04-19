@@ -121,16 +121,11 @@ export function MobileNav() {
       >
         {/* Logo Section - DGC Branding */}
         <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
-          <div className="flex flex-col">
-            <img 
-              src={dgcLogoLight} 
-              alt="DGC Logo" 
-              className="h-8 w-auto"
-            />
-            <span className="text-xs font-semibold tracking-widest text-sidebar-muted mt-1">
-              PEOPLE
-            </span>
-          </div>
+          <img 
+            src={dgcLogoLight} 
+            alt="DGC Logo" 
+            className="h-12 w-auto"
+          />
           <Button
             variant="ghost"
             size="icon"
