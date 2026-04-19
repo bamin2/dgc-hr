@@ -1,66 +1,66 @@
 
 
-User wants column mapping UI instead of auto-detection by header names. Currently `parseLeaveHistoryXLSX` uses a hardcoded `HEADER_MAP` and silently filters by Status. The "218 ignored" is the status filter — but the root cause is likely that the Status column isn't being detected (so every row's status reads as empty → all ignored), OR the values differ from "Added by HR"/"Approved".
+User wants two improvements to the leave history importer:
+1. For unknown `transactionType` values, let user pick which existing leave type to map them to (instead of marking row as error)
+2. Show employee name in the preview step
 
-Let me check the dialog to confirm current flow, then plan a mapping step.
+Let me check the current preview UI quickly.
+<lov-tool-use id="toolu_vrtx_01Mt7T5fQeTZUc7UnrvTnW1Y" name="code--search_files" integration-id="code" data="{\"query\": \"empName|Employee\", \"include_patterns\": \"src/components/timemanagement/LeaveHistoryImportDialog.tsx\"}">
+</lov-tool-use>
 
-# Plan: Add column mapping step to Leave History Import
+<lov-tool-use id="toolu_vrtx_01LWUiDyv4gyYSvPyQJ6xW2o" name="code--view" integration-id="code" data="{\"file_path\": \"src/components/timemanagement/LeaveHistoryImportDialog.tsx\"}">
+</lov-tool-use>
 
-## Problem
-The current importer auto-maps Excel headers via a fixed dictionary. If the user's file has slightly different headers (e.g. "Status " with trailing space, or different casing/punctuation we didn't anticipate, or a localized header), the field isn't detected — and every row gets filtered out as "ignored" because Status reads as empty. The user wants explicit control.
+<lov-tool-use id="toolu_vrtx_01U55SEUoCMPu2WQqYHEzxTD" name="code--view" integration-id="code" data="{\"file_path\": \"src/components/timemanagement/LeaveHistoryImportDialog.tsx\", \"lines\": \"430-495\"}">
+</lov-tool-use>
+<lov-plan>
 
-## Solution: Two-step dialog (Upload → Map → Preview → Import)
+# Plan: Resolve unknown leave types + show employee names in preview
 
-### New mapping step
-After the file is parsed, show a mapping screen where the user picks which Excel column corresponds to each required/optional field.
+## 1. Leave-type resolution step (between Map and Preview)
 
-**Required mappings:**
-- Employee Code (Emp. No.)
-- Transaction Type (Leave Type)
-- From Date
-- To Date
-- Status
+After preview is generated, collect every unique `transactionType` value that doesn't match any existing `leave_types.name` (case-insensitive). If any unknowns exist, insert a new sub-step **"Resolve leave types"** before showing the preview table.
 
-**Optional mappings:**
-- No. of Days (auto-computed from dates if not mapped)
-- Received On (defaults to now if not mapped)
+UI:
+```
+The following leave types from your file don't exist in the system.
+Pick what to assign each one (or skip to ignore those rows).
 
-**Status value mapping:** After Status column is selected, show the unique values found in that column with checkboxes so the user explicitly picks which statuses to import (defaults: "Added by HR" and "Approved" pre-checked if found). This eliminates the silent ignore.
+  "EL"            → [ Annual Leave           ▼ ]   (143 rows)
+  "Casual"        → [ Select leave type...   ▼ ]   (62 rows)
+  "Maternity-EX"  → [ — Skip these rows —    ▼ ]   (5 rows)
 
-### Smart defaults
-On entering the mapping step, pre-select dropdowns using the existing `HEADER_MAP` heuristic so users with standard files just click "Next".
-
-### Files to modify
-| File | Change |
-|------|--------|
-| `src/utils/leaveHistoryImport.ts` | Split parsing into two phases: (1) `readSheetRaw(buffer)` → `{ headers: string[], rows: Record<string, any>[] }`, (2) `parseRowsWithMapping(rows, mapping, allowedStatuses)` → `ParsedLeaveRow[]`. Export `suggestMapping(headers)` that returns auto-detected mapping using existing `HEADER_MAP`. |
-| `src/components/timemanagement/LeaveHistoryImportDialog.tsx` | Add `step` state: `'upload' \| 'map' \| 'preview'`. Insert mapping UI between upload and preview using `Select` per field + checkbox list for status values. Show counts: total rows, rows after status filter, valid, errors. |
-
-### Mapping UI sketch
-```text
-Map your columns
-─────────────────────────────────────
-Employee Code *      [ Emp. No.        ▼ ]
-Transaction Type *   [ Transaction Type ▼ ]
-From Date *          [ From Date       ▼ ]
-To Date *            [ To Date         ▼ ]
-Status *             [ Status          ▼ ]
-No. of Days          [ No. of Days     ▼ ]
-Received On          [ Received On     ▼ ]
-
-Statuses to import (found in column "Status"):
-  [x] Added by HR        (143 rows)
-  [x] Approved           (62 rows)
-  [ ] Pending            (180 rows)
-  [ ] Rejected           (38 rows)
-
-[ Back ]                            [ Preview → ]
+[ Back ]                              [ Continue → ]
 ```
 
-### Behavior changes
-- "X rows ignored due to status" becomes accurate — driven by the user's explicit status selection.
-- If a required mapping is missing, "Preview" button is disabled.
-- All existing validation (unknown employee, unknown leave type, etc.) runs unchanged after mapping.
+- Known types are auto-matched and not shown.
+- Each unknown value gets a `Select` of all active leave types + a "— Skip —" option.
+- "Continue" button is enabled when every unknown is either mapped or explicitly skipped.
 
-No DB schema or hook changes needed.
+## 2. Apply resolutions when validating
+
+Pass a `Map<rawValue, leaveTypeId | 'skip'>` into validation. In `validateLeaveRow`:
+- If `transactionType` matches a known type → use it (current behavior).
+- Else if resolution map has `leaveTypeId` → use that ID, mark row valid.
+- Else if resolution = `'skip'` → mark row as ignored (count under a new "skipped (unknown type)" badge, not as an error).
+- Else (no resolution) → current "Unknown leave type" error.
+
+## 3. Show employee name in preview table
+
+Add an **Employee** column between "Emp. No." and "Leave Type":
+- If `empName` was mapped from the file → display that value.
+- Else, look up the matched employee by `employee_code` and display `first_name last_name`.
+- Falls back to "—" if unknown.
+
+This requires fetching `first_name, last_name` in `useEmployeesForImport` (currently only fetches `id, employee_code`).
+
+## Files to modify
+
+| File | Change |
+|---|---|
+| `src/components/timemanagement/LeaveHistoryImportDialog.tsx` | Add `'resolve'` step between `'map'` and `'preview'`. New state `unknownTypes` + `typeResolutions`. Compute unknowns after mapping, branch to resolve step if any. Pass resolutions into validation. Add Employee column to preview table. Add "skipped (unknown type)" badge. |
+| `src/utils/leaveHistoryImport.ts` | Extend `validateLeaveRow` to accept an optional `typeResolutions: Map<string, string \| 'skip'>` and apply the lookup. Add `getUnknownLeaveTypes(rows, leaveTypes)` helper that returns unique unmatched type strings with row counts. |
+| `src/components/timemanagement/LeaveHistoryImportDialog.tsx` (employee fetch) | Update `useEmployeesForImport` query to also select `first_name, last_name`. |
+
+No DB or hook changes required.
 
