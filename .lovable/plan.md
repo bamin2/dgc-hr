@@ -1,48 +1,31 @@
 
 
-# Plan: Drop the service worker, keep PWA installable
+The user is hitting the production custom domain `hr.dgcholding.com` in a regular browser tab and still seeing the old logo + missing Import button. The PWA fix we already shipped only helps once the browser actually loads the new HTML/JS. If the production deploy hasn't been updated, or if the browser is still being handed an old cached `index.html` by the previously-installed service worker on that origin, nothing changes.
 
-## Why the previous fix didn't stick
-Bumping `CACHE_NAME` only purges the cache *after* the new service worker activates. But the existing SW serves scripts/styles **cache-first**, so on the reload that should bring the new version, the old bundle is served while the new SW installs in the background. You only see the new UI on the *next* reload — and many users (and the OS-installed PWA) never get there because the in-app refresh just re-uses the same cached assets again. Same root cause for the missing Import button: the JS bundle in cache predates that code.
+Two things to verify/fix:
 
-You said you only need installability (Add to Home Screen / install on desktop), not offline. So the cleanest fix is to **remove the service worker entirely**. The manifest alone is enough to keep the app installable, and updates will then always be live.
+## 1. Production must be republished
 
-## Changes
+Lovable backend changes auto-deploy, but **frontend changes only go live on the published URL after clicking "Publish → Update"**. The custom domain `hr.dgcholding.com` serves the published build. If it hasn't been republished since the logo swap and the Import Leave History button were added, the live site will keep showing the old version no matter how many times you reload.
 
-**1. `src/main.tsx`** — Stop registering the SW and proactively unregister any existing one (so installed PWAs self-heal on next open):
-```ts
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(regs => {
-    regs.forEach(r => r.unregister());
-  });
-  caches?.keys().then(keys => keys.forEach(k => caches.delete(k)));
-}
-```
+**Action (user):** Open the project, click **Publish → Update** in the top right. Wait for the deploy to finish, then hard-reload `hr.dgcholding.com` (Ctrl/Cmd+Shift+R).
 
-**2. `public/sw.js`** — Replace contents with a self-unregistering stub so any browser still holding the old `/sw.js` URL cleans itself up:
-```js
-self.addEventListener('install', () => self.skipWaiting());
-self.addEventListener('activate', (e) => {
-  e.waitUntil((async () => {
-    const keys = await caches.keys();
-    await Promise.all(keys.map(k => caches.delete(k)));
-    await self.registration.unregister();
-    const clients = await self.clients.matchAll();
-    clients.forEach(c => c.navigate(c.url));
-  })());
-});
-```
+## 2. The old service worker is likely still installed on hr.dgcholding.com
 
-**3. `public/manifest.json`** — No changes. Installability stays.
+Even after republishing, the previous service worker registered on that origin will keep serving the old cached `index.html` and JS bundle to that browser. The self-unregistering stub we shipped will clean it up — but only after the browser fetches the new `sw.js`. On a cache-first SW, the first reload still serves stale; cleanup happens, then the *next* reload shows the new UI.
 
-## Result after deploy
-- Installed PWA: on next open, the stub SW unregisters itself, wipes caches, and reloads the window → fresh logo + Import Leave History button appear.
-- Browser tabs: same — one reload picks up the latest build, every reload after that is always live.
-- App stays installable from the address bar / "Install app" because the manifest is intact.
+**Action (user), one-time per browser:**
+- Hard-reload twice (Ctrl/Cmd+Shift+R), OR
+- DevTools → Application → Service Workers → **Unregister**, then reload, OR
+- DevTools → Application → Storage → **Clear site data**, then reload.
 
-## Files to modify
-- `src/main.tsx` — remove SW registration, add cleanup.
-- `public/sw.js` — replace with self-unregistering stub.
+After that, the site is permanently clean (no SW will re-register).
 
-No changes to the Leave History import button — it's already gated on `hr` + `admin` correctly. It was hidden only because the cached bundle predated it; this fix unblocks it.
+## 3. Verify the role
+
+The Import Leave History button is gated by `hasRole('hr') || hasRole('admin')`. Once the new bundle loads, if the button still doesn't appear, the logged-in account doesn't have HR or Admin role on production. Check the role badge in the sidebar — if it says Manager or Employee, the role assignment in the database needs updating.
+
+## No code changes needed
+
+The source code is already correct (logo updated, Import button present, SW stub in place). This is a deploy + browser-cache cleanup, not a code issue.
 
