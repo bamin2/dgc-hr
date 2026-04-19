@@ -228,13 +228,38 @@ interface LeaveTypeLookup {
   name: string;
 }
 
+/**
+ * Returns unique unmatched leave-type strings from rows with their counts.
+ * Matching is case-insensitive against `leaveTypes[].name`.
+ */
+export function getUnknownLeaveTypes(
+  rows: ParsedLeaveRow[],
+  leaveTypes: LeaveTypeLookup[]
+): { value: string; count: number }[] {
+  const knownNames = new Set(leaveTypes.map((lt) => lt.name?.toLowerCase()).filter(Boolean));
+  const counts = new Map<string, number>();
+  for (const r of rows) {
+    const t = r.transactionType?.trim();
+    if (!t) continue;
+    if (knownNames.has(t.toLowerCase())) continue;
+    counts.set(t, (counts.get(t) || 0) + 1);
+  }
+  return Array.from(counts.entries())
+    .map(([value, count]) => ({ value, count }))
+    .sort((a, b) => b.count - a.count);
+}
+
+export type LeaveTypeResolution = string | 'skip';
+
 export function validateLeaveRow(
   row: ParsedLeaveRow,
   employees: EmployeeLookup[],
-  leaveTypes: LeaveTypeLookup[]
+  leaveTypes: LeaveTypeLookup[],
+  typeResolutions?: Map<string, LeaveTypeResolution>
 ): LeaveValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
+  let skipped = false;
 
   if (!row.empNo) {
     errors.push('Missing employee code');
@@ -255,11 +280,26 @@ export function validateLeaveRow(
     errors.push(`Unknown employee code: ${row.empNo}`);
   }
 
-  const leaveType = leaveTypes.find(
+  let leaveType = leaveTypes.find(
     (lt) => lt.name?.toLowerCase() === row.transactionType.toLowerCase()
   );
-  if (row.transactionType && !leaveType) {
-    errors.push(`Unknown leave type: ${row.transactionType}`);
+  let resolvedLeaveTypeId: string | undefined = leaveType?.id;
+
+  if (!leaveType && row.transactionType) {
+    const resolution = typeResolutions?.get(row.transactionType);
+    if (resolution === 'skip') {
+      skipped = true;
+    } else if (resolution) {
+      const matched = leaveTypes.find((lt) => lt.id === resolution);
+      if (matched) {
+        resolvedLeaveTypeId = matched.id;
+        warnings.push(`Mapped "${row.transactionType}" → ${matched.name}`);
+      } else {
+        errors.push(`Unknown leave type: ${row.transactionType}`);
+      }
+    } else {
+      errors.push(`Unknown leave type: ${row.transactionType}`);
+    }
   }
 
   if (row.noOfDays <= 0) {
@@ -267,11 +307,11 @@ export function validateLeaveRow(
   }
 
   return {
-    valid: errors.length === 0,
-    errors,
+    valid: !skipped && errors.length === 0,
+    errors: skipped ? ['Skipped (unknown leave type)'] : errors,
     warnings,
     employeeId: employee?.id,
-    leaveTypeId: leaveType?.id,
+    leaveTypeId: resolvedLeaveTypeId,
   };
 }
 

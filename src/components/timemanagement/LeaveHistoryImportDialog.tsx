@@ -27,12 +27,14 @@ import {
   suggestMapping,
   parseRowsWithMapping,
   getColumnValueCounts,
+  getUnknownLeaveTypes,
   validateLeaveRow,
   buildLeaveInsertRecord,
   type LeaveImportPreviewRow,
   type LeaveColumnMapping,
   type LeaveFieldKey,
   type RawSheetData,
+  type LeaveTypeResolution,
 } from '@/utils/leaveHistoryImport';
 import { useQuery } from '@tanstack/react-query';
 
@@ -57,21 +59,24 @@ const FIELD_LABELS: { key: LeaveFieldKey; label: string; required: boolean }[] =
 
 const DEFAULT_ALLOWED = ['added by hr', 'approved'];
 
+type ImportEmployee = { id: string; employee_code: string; first_name: string | null; last_name: string | null };
+
 function useEmployeesForImport() {
   return useQuery({
     queryKey: ['employees-for-leave-import'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('employees')
-        .select('id, employee_code')
+        .select('id, employee_code, first_name, last_name')
         .not('employee_code', 'is', null);
       if (error) throw error;
-      return (data || []) as { id: string; employee_code: string }[];
+      return (data || []) as ImportEmployee[];
     },
   });
 }
 
-type Step = 'upload' | 'map' | 'preview';
+type Step = 'upload' | 'map' | 'resolve' | 'preview';
+const SKIP_VALUE = '__skip__';
 
 export function LeaveHistoryImportDialog({ open, onOpenChange }: Props) {
   const [step, setStep] = useState<Step>('upload');
@@ -85,10 +90,26 @@ export function LeaveHistoryImportDialog({ open, onOpenChange }: Props) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [parsing, setParsing] = useState(false);
+  const [unknownTypes, setUnknownTypes] = useState<{ value: string; count: number }[]>([]);
+  const [typeResolutions, setTypeResolutions] = useState<Map<string, LeaveTypeResolution>>(new Map());
+  const [parsedRowsCache, setParsedRowsCache] = useState<ReturnType<typeof parseRowsWithMapping> | null>(null);
 
   const { data: employees = [] } = useEmployeesForImport();
   const { data: leaveTypes = [] } = useLeaveTypes();
   const bulkCreate = useBulkCreateLeaveRequests();
+
+  const employeeByCode = useMemo(() => {
+    const m = new Map<string, ImportEmployee>();
+    for (const e of employees) {
+      if (e.employee_code) m.set(e.employee_code.toLowerCase(), e);
+    }
+    return m;
+  }, [employees]);
+
+  const skippedCount = useMemo(
+    () => previewData.filter(r => r.validation.errors[0] === 'Skipped (unknown leave type)').length,
+    [previewData]
+  );
 
   const validRows = useMemo(() => previewData.filter(r => r.validation.valid), [previewData]);
   const invalidRows = useMemo(() => previewData.filter(r => !r.validation.valid), [previewData]);
@@ -152,7 +173,23 @@ export function LeaveHistoryImportDialog({ open, onOpenChange }: Props) {
     return FIELD_LABELS.filter(f => f.required).every(f => mapping[f.key]);
   }, [mapping]);
 
-  const handleGeneratePreview = useCallback(() => {
+  const buildPreview = useCallback((
+    parseResult: ReturnType<typeof parseRowsWithMapping>,
+    resolutions: Map<string, LeaveTypeResolution>
+  ) => {
+    const employeeLookup = employees.map(e => ({ id: e.id, employee_code: e.employee_code }));
+    const leaveTypeLookup = leaveTypes.map(lt => ({ id: lt.id, name: lt.name }));
+    const preview: LeaveImportPreviewRow[] = parseResult.rows.map(row => ({
+      parsed: row,
+      validation: validateLeaveRow(row, employeeLookup, leaveTypeLookup, resolutions),
+    }));
+    setPreviewData(preview);
+    setIgnoredCount(parseResult.ignoredCount);
+    setTotalCount(parseResult.totalCount);
+    setCurrentPage(1);
+  }, [employees, leaveTypes]);
+
+  const handleGoToResolveOrPreview = useCallback(() => {
     if (!raw || !mapping) return;
     if (!requiredMappingComplete) {
       toast({ title: 'Mapping incomplete', description: 'Please map all required columns.', variant: 'destructive' });
@@ -163,18 +200,51 @@ export function LeaveHistoryImportDialog({ open, onOpenChange }: Props) {
       return;
     }
     const result = parseRowsWithMapping(raw.rows, mapping, Array.from(selectedStatuses));
-    const employeeLookup = employees.map(e => ({ id: e.id, employee_code: e.employee_code }));
+    setParsedRowsCache(result);
+
     const leaveTypeLookup = leaveTypes.map(lt => ({ id: lt.id, name: lt.name }));
-    const preview: LeaveImportPreviewRow[] = result.rows.map(row => ({
-      parsed: row,
-      validation: validateLeaveRow(row, employeeLookup, leaveTypeLookup),
-    }));
-    setPreviewData(preview);
-    setIgnoredCount(result.ignoredCount);
-    setTotalCount(result.totalCount);
-    setCurrentPage(1);
+    const unknowns = getUnknownLeaveTypes(result.rows, leaveTypeLookup);
+
+    if (unknowns.length > 0) {
+      setUnknownTypes(unknowns);
+      // Drop resolutions whose key is no longer unknown
+      setTypeResolutions(prev => {
+        const next = new Map<string, LeaveTypeResolution>();
+        const unknownSet = new Set(unknowns.map(u => u.value));
+        for (const [k, v] of prev) if (unknownSet.has(k)) next.set(k, v);
+        return next;
+      });
+      setStep('resolve');
+      return;
+    }
+
+    buildPreview(result, new Map());
     setStep('preview');
-  }, [raw, mapping, requiredMappingComplete, selectedStatuses, employees, leaveTypes]);
+  }, [raw, mapping, requiredMappingComplete, selectedStatuses, leaveTypes, buildPreview]);
+
+  const allUnknownsResolved = useMemo(() => {
+    if (unknownTypes.length === 0) return true;
+    return unknownTypes.every(u => !!typeResolutions.get(u.value));
+  }, [unknownTypes, typeResolutions]);
+
+  const handleConfirmResolutions = useCallback(() => {
+    if (!parsedRowsCache) return;
+    if (!allUnknownsResolved) {
+      toast({ title: 'Resolve all leave types', description: 'Pick a leave type or skip for each unknown.', variant: 'destructive' });
+      return;
+    }
+    buildPreview(parsedRowsCache, typeResolutions);
+    setStep('preview');
+  }, [parsedRowsCache, allUnknownsResolved, typeResolutions, buildPreview]);
+
+  const setResolution = (rawValue: string, value: string) => {
+    setTypeResolutions(prev => {
+      const next = new Map(prev);
+      const stored: LeaveTypeResolution = value === SKIP_VALUE ? 'skip' : value;
+      next.set(rawValue, stored);
+      return next;
+    });
+  };
 
   const handleImport = async () => {
     if (validRows.length === 0) {
@@ -216,6 +286,9 @@ export function LeaveHistoryImportDialog({ open, onOpenChange }: Props) {
     setIgnoredCount(0);
     setTotalCount(0);
     setCurrentPage(1);
+    setUnknownTypes([]);
+    setTypeResolutions(new Map());
+    setParsedRowsCache(null);
   };
 
   const handleClose = () => {
@@ -371,10 +444,67 @@ export function LeaveHistoryImportDialog({ open, onOpenChange }: Props) {
               <div className="flex gap-2">
                 <Button variant="outline" onClick={handleClose}>Cancel</Button>
                 <Button
-                  onClick={handleGeneratePreview}
+                  onClick={handleGoToResolveOrPreview}
                   disabled={!requiredMappingComplete || selectedStatuses.size === 0}
                 >
                   Preview <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {step === 'resolve' && (
+          <div className="flex-1 flex flex-col min-h-0 space-y-4">
+            <div>
+              <h4 className="text-sm font-semibold mb-1">Resolve unknown leave types</h4>
+              <p className="text-xs text-muted-foreground">
+                These values from your file don't match any leave type in the system.
+                Pick which type to assign each one, or skip those rows.
+              </p>
+            </div>
+
+            <ScrollArea className="flex-1 pr-3">
+              <div className="border rounded-md divide-y">
+                {unknownTypes.map(({ value, count }) => {
+                  const current = typeResolutions.get(value);
+                  const selectValue = current === 'skip' ? SKIP_VALUE : (current || undefined);
+                  return (
+                    <div key={value} className="flex items-center gap-3 px-3 py-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium truncate">"{value}"</div>
+                        <div className="text-xs text-muted-foreground">{count} rows</div>
+                      </div>
+                      <div className="w-[260px]">
+                        <Select
+                          value={selectValue}
+                          onValueChange={(v) => setResolution(value, v)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select leave type..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={SKIP_VALUE}>— Skip these rows —</SelectItem>
+                            {leaveTypes.map(lt => (
+                              <SelectItem key={lt.id} value={lt.id}>{lt.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </ScrollArea>
+
+            <div className="flex justify-between items-center pt-4 border-t">
+              <Button variant="outline" onClick={() => setStep('map')}>
+                <ChevronLeft className="h-4 w-4 mr-1" /> Back to Mapping
+              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={handleClose}>Cancel</Button>
+                <Button onClick={handleConfirmResolutions} disabled={!allUnknownsResolved}>
+                  Continue <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
               </div>
             </div>
@@ -400,6 +530,12 @@ export function LeaveHistoryImportDialog({ open, onOpenChange }: Props) {
                   {ignoredCount} ignored (status filter)
                 </Badge>
               )}
+              {skippedCount > 0 && (
+                <Badge variant="outline" className="gap-1">
+                  <AlertTriangle className="h-3 w-3" />
+                  {skippedCount} skipped (unknown type)
+                </Badge>
+              )}
               <span className="text-muted-foreground">
                 Total rows in file: {totalCount}
               </span>
@@ -413,6 +549,7 @@ export function LeaveHistoryImportDialog({ open, onOpenChange }: Props) {
                     <TableRow>
                       <TableHead className="w-[60px]">Status</TableHead>
                       <TableHead>Emp. No.</TableHead>
+                      <TableHead>Employee</TableHead>
                       <TableHead>Leave Type</TableHead>
                       <TableHead>From</TableHead>
                       <TableHead>To</TableHead>
@@ -421,7 +558,15 @@ export function LeaveHistoryImportDialog({ open, onOpenChange }: Props) {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {paginatedData.map((row, index) => (
+                    {paginatedData.map((row, index) => {
+                      const matched = row.parsed.empNo
+                        ? employeeByCode.get(row.parsed.empNo.toLowerCase())
+                        : undefined;
+                      const fullName = matched
+                        ? `${matched.first_name ?? ''} ${matched.last_name ?? ''}`.trim()
+                        : '';
+                      const displayName = row.parsed.empName || fullName || '—';
+                      return (
                       <TableRow
                         key={(currentPage - 1) * ROWS_PER_PAGE + index}
                         className={!row.validation.valid ? 'bg-destructive/5' : ''}
@@ -434,6 +579,7 @@ export function LeaveHistoryImportDialog({ open, onOpenChange }: Props) {
                           )}
                         </TableCell>
                         <TableCell className="font-medium">{row.parsed.empNo || '-'}</TableCell>
+                        <TableCell className="text-sm">{displayName}</TableCell>
                         <TableCell>{row.parsed.transactionType || '-'}</TableCell>
                         <TableCell>{row.parsed.fromDate || '-'}</TableCell>
                         <TableCell>{row.parsed.toDate || '-'}</TableCell>
@@ -451,7 +597,8 @@ export function LeaveHistoryImportDialog({ open, onOpenChange }: Props) {
                           )}
                         </TableCell>
                       </TableRow>
-                    ))}
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>
