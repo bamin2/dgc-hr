@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dgc-core-pwa-v2';
+const CACHE_NAME = 'dgc-people-pwa-v3';
 const STATIC_ASSETS = [
   '/index.html',
   '/offline.html',
