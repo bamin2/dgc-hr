@@ -1,29 +1,48 @@
 
 
-# Plan: Fix stale PWA cache (logo + missing Import button)
+# Plan: Drop the service worker, keep PWA installable
 
-## Root cause
-Installed PWA is serving from the old service-worker cache `dgc-core-pwa-v2`. The cached `index.html` and JS bundle predate both the logo swap and the Import Leave History button. Source code is already correct — this is purely a cache-bust problem.
+## Why the previous fix didn't stick
+Bumping `CACHE_NAME` only purges the cache *after* the new service worker activates. But the existing SW serves scripts/styles **cache-first**, so on the reload that should bring the new version, the old bundle is served while the new SW installs in the background. You only see the new UI on the *next* reload — and many users (and the OS-installed PWA) never get there because the in-app refresh just re-uses the same cached assets again. Same root cause for the missing Import button: the JS bundle in cache predates that code.
 
-## Fix
+You said you only need installability (Add to Home Screen / install on desktop), not offline. So the cleanest fix is to **remove the service worker entirely**. The manifest alone is enough to keep the app installable, and updates will then always be live.
 
-**1. Bump service worker cache version** (`public/sw.js`)
-- Change `CACHE_NAME = 'dgc-core-pwa-v2'` → `'dgc-people-pwa-v3'`.
-- The existing `activate` handler already deletes any cache whose name doesn't match `CACHE_NAME`, so old caches (including `dgc-core-pwa-v2`) will be purged automatically on next load.
-- `skipWaiting()` + `clients.claim()` are already in place, so the new SW activates immediately.
+## Changes
 
-**2. Add a network-first strategy for `index.html`** (`public/sw.js`)
-- Currently navigation requests are network-first but fall back to a cached `index.html`. That's fine — the cache bump above forces a fresh fetch. No additional change needed beyond version bump.
+**1. `src/main.tsx`** — Stop registering the SW and proactively unregister any existing one (so installed PWAs self-heal on next open):
+```ts
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    regs.forEach(r => r.unregister());
+  });
+  caches?.keys().then(keys => keys.forEach(k => caches.delete(k)));
+}
+```
 
-## What the user needs to do
-After we deploy:
-1. Reload the installed PWA window once (Ctrl/Cmd+R inside the PWA, or close and reopen).
-2. The new SW takes over, deletes the old cache, fetches the new bundle → updated logo and Import Leave History button appear.
+**2. `public/sw.js`** — Replace contents with a self-unregistering stub so any browser still holding the old `/sw.js` URL cleans itself up:
+```js
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', (e) => {
+  e.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.map(k => caches.delete(k)));
+    await self.registration.unregister();
+    const clients = await self.clients.matchAll();
+    clients.forEach(c => c.navigate(c.url));
+  })());
+});
+```
 
-If it still shows stale content, right-click the PWA → DevTools → Application → Service Workers → Unregister, then reload.
+**3. `public/manifest.json`** — No changes. Installability stays.
+
+## Result after deploy
+- Installed PWA: on next open, the stub SW unregisters itself, wipes caches, and reloads the window → fresh logo + Import Leave History button appear.
+- Browser tabs: same — one reload picks up the latest build, every reload after that is always live.
+- App stays installable from the address bar / "Install app" because the manifest is intact.
 
 ## Files to modify
-- `public/sw.js` — bump `CACHE_NAME` to `dgc-people-pwa-v3`.
+- `src/main.tsx` — remove SW registration, add cleanup.
+- `public/sw.js` — replace with self-unregistering stub.
 
-No other code changes — the React source is already correct.
+No changes to the Leave History import button — it's already gated on `hr` + `admin` correctly. It was hidden only because the cached bundle predated it; this fix unblocks it.
 
