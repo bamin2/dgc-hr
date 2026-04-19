@@ -95,7 +95,7 @@ export function LeaveHistoryImportDialog({ open, onOpenChange }: Props) {
   const [parsedRowsCache, setParsedRowsCache] = useState<ReturnType<typeof parseRowsWithMapping> | null>(null);
 
   const { data: employees = [] } = useEmployeesForImport();
-  const { data: leaveTypes = [] } = useLeaveTypes();
+  const { data: leaveTypes = [] } = useActiveLeaveTypes();
   const bulkCreate = useBulkCreateLeaveRequests();
 
   const employeeByCode = useMemo(() => {
