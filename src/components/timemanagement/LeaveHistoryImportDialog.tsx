@@ -207,12 +207,11 @@ export function LeaveHistoryImportDialog({ open, onOpenChange }: Props) {
 
     if (unknowns.length > 0) {
       setUnknownTypes(unknowns);
-      // Initialize any new unknowns to undefined; preserve existing resolutions
+      // Drop resolutions whose key is no longer unknown
       setTypeResolutions(prev => {
-        const next = new Map(prev);
-        for (const u of unknowns) {
-          if (!next.has(u.value)) next.set(u.value, '' as any); // unset
-        }
+        const next = new Map<string, LeaveTypeResolution>();
+        const unknownSet = new Set(unknowns.map(u => u.value));
+        for (const [k, v] of prev) if (unknownSet.has(k)) next.set(k, v);
         return next;
       });
       setStep('resolve');
@@ -225,10 +224,7 @@ export function LeaveHistoryImportDialog({ open, onOpenChange }: Props) {
 
   const allUnknownsResolved = useMemo(() => {
     if (unknownTypes.length === 0) return true;
-    return unknownTypes.every(u => {
-      const v = typeResolutions.get(u.value);
-      return v && v !== ('' as any);
-    });
+    return unknownTypes.every(u => !!typeResolutions.get(u.value));
   }, [unknownTypes, typeResolutions]);
 
   const handleConfirmResolutions = useCallback(() => {
@@ -244,7 +240,8 @@ export function LeaveHistoryImportDialog({ open, onOpenChange }: Props) {
   const setResolution = (rawValue: string, value: string) => {
     setTypeResolutions(prev => {
       const next = new Map(prev);
-      next.set(rawValue, value as LeaveTypeResolution);
+      const stored: LeaveTypeResolution = value === SKIP_VALUE ? 'skip' : value;
+      next.set(rawValue, stored);
       return next;
     });
   };
