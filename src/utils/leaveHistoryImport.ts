@@ -25,13 +25,31 @@ export interface LeaveImportPreviewRow {
   validation: LeaveValidationResult;
 }
 
-export interface LeaveImportParseResult {
-  rows: ParsedLeaveRow[];
-  ignoredCount: number;
-  totalCount: number;
+export type LeaveFieldKey =
+  | 'empNo'
+  | 'empName'
+  | 'transactionType'
+  | 'fromDate'
+  | 'toDate'
+  | 'receivedOn'
+  | 'noOfDays'
+  | 'status';
+
+export interface LeaveColumnMapping {
+  empNo: string | null;
+  empName: string | null;
+  transactionType: string | null;
+  fromDate: string | null;
+  toDate: string | null;
+  receivedOn: string | null;
+  noOfDays: string | null;
+  status: string | null;
 }
 
-const ALLOWED_STATUSES = ['added by hr', 'approved'];
+export interface RawSheetData {
+  headers: string[];
+  rows: Record<string, any>[];
+}
 
 // Normalize header: remove dots, lowercase, trim, collapse spaces
 function normalizeHeader(h: string): string {
@@ -42,7 +60,7 @@ function normalizeHeader(h: string): string {
     .toLowerCase();
 }
 
-const HEADER_MAP: Record<string, keyof ParsedLeaveRow> = {
+const HEADER_MAP: Record<string, LeaveFieldKey> = {
   'emp no': 'empNo',
   'employee no': 'empNo',
   'employee code': 'empNo',
@@ -67,7 +85,6 @@ function excelDateToISO(value: any): string | null {
     return value.toISOString().slice(0, 10);
   }
   if (typeof value === 'number') {
-    // Excel serial date
     const d = XLSX.SSF.parse_date_code(value);
     if (!d) return null;
     const iso = `${String(d.y).padStart(4, '0')}-${String(d.m).padStart(2, '0')}-${String(d.d).padStart(2, '0')}`;
@@ -75,10 +92,8 @@ function excelDateToISO(value: any): string | null {
   }
   const s = String(value).trim();
   if (!s) return null;
-  // Try ISO first
   const iso = new Date(s);
   if (!isNaN(iso.getTime())) return iso.toISOString().slice(0, 10);
-  // Try DD/MM/YYYY or DD-MM-YYYY
   const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
   if (m) {
     let [, d, mo, y] = m;
@@ -103,50 +118,104 @@ function excelDateTimeToISO(value: any): string | null {
   return dateOnly ? new Date(dateOnly + 'T00:00:00Z').toISOString() : null;
 }
 
-export function parseLeaveHistoryXLSX(buffer: ArrayBuffer): LeaveImportParseResult {
+/**
+ * Read raw sheet contents: headers (in order) + rows keyed by original header.
+ */
+export function readSheetRaw(buffer: ArrayBuffer): RawSheetData {
   const wb = XLSX.read(buffer, { type: 'array', cellDates: true });
   const sheet = wb.Sheets[wb.SheetNames[0]];
   const json: any[] = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: true });
+  const headerRows: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+  const headerRow = (headerRows[0] || []) as any[];
+  const headers = headerRow.map((h) => String(h ?? '').trim()).filter((h) => h.length > 0);
+  return { headers, rows: json };
+}
 
-  const totalCount = json.length;
-  const rows: ParsedLeaveRow[] = [];
+/**
+ * Suggest a column mapping from the available headers using normalized matches.
+ */
+export function suggestMapping(headers: string[]): LeaveColumnMapping {
+  const mapping: LeaveColumnMapping = {
+    empNo: null,
+    empName: null,
+    transactionType: null,
+    fromDate: null,
+    toDate: null,
+    receivedOn: null,
+    noOfDays: null,
+    status: null,
+  };
+  for (const h of headers) {
+    const field = HEADER_MAP[normalizeHeader(h)];
+    if (field && !mapping[field]) {
+      mapping[field] = h;
+    }
+  }
+  return mapping;
+}
+
+/**
+ * Get unique non-empty values for a given column across all rows, with row counts.
+ */
+export function getColumnValueCounts(rows: Record<string, any>[], column: string | null): Map<string, number> {
+  const counts = new Map<string, number>();
+  if (!column) return counts;
+  for (const r of rows) {
+    const raw = r[column];
+    const s = String(raw ?? '').trim();
+    if (!s) continue;
+    counts.set(s, (counts.get(s) || 0) + 1);
+  }
+  return counts;
+}
+
+/**
+ * Apply a mapping + status filter to raw rows and produce ParsedLeaveRow[].
+ * `allowedStatuses` are matched case-insensitively against the mapped Status column value.
+ */
+export function parseRowsWithMapping(
+  rows: Record<string, any>[],
+  mapping: LeaveColumnMapping,
+  allowedStatuses: string[]
+): { rows: ParsedLeaveRow[]; ignoredCount: number; totalCount: number } {
+  const allowed = new Set(allowedStatuses.map((s) => s.trim().toLowerCase()));
+  const out: ParsedLeaveRow[] = [];
   let ignoredCount = 0;
 
-  json.forEach((rec, idx) => {
-    // Map normalized headers
-    const norm: Record<string, any> = {};
-    for (const k of Object.keys(rec)) {
-      const nk = normalizeHeader(k);
-      const mapped = HEADER_MAP[nk];
-      if (mapped) norm[mapped] = rec[k];
-    }
+  rows.forEach((rec, idx) => {
+    const get = (field: LeaveFieldKey) => {
+      const col = mapping[field];
+      return col ? rec[col] : undefined;
+    };
 
-    const status = String(norm.status ?? '').trim().toLowerCase();
-    if (!ALLOWED_STATUSES.includes(status)) {
+    const status = String(get('status') ?? '').trim();
+    if (allowed.size > 0 && !allowed.has(status.toLowerCase())) {
       ignoredCount++;
       return;
     }
 
-    const fromDate = excelDateToISO(norm.fromDate) || '';
-    const toDate = excelDateToISO(norm.toDate) || '';
-    const receivedOn = excelDateTimeToISO(norm.receivedOn);
-    const daysRaw = norm.noOfDays;
-    const noOfDays = typeof daysRaw === 'number' ? daysRaw : parseFloat(String(daysRaw || '0').replace(',', '.'));
+    const fromDate = excelDateToISO(get('fromDate')) || '';
+    const toDate = excelDateToISO(get('toDate')) || '';
+    const receivedOn = excelDateTimeToISO(get('receivedOn'));
+    const daysRaw = get('noOfDays');
+    const noOfDays = typeof daysRaw === 'number'
+      ? daysRaw
+      : parseFloat(String(daysRaw ?? '0').replace(',', '.'));
 
-    rows.push({
-      rowNumber: idx + 2, // +1 for 0-index, +1 for header row
-      empNo: String(norm.empNo ?? '').trim(),
-      empName: String(norm.empName ?? '').trim(),
-      transactionType: String(norm.transactionType ?? '').trim(),
+    out.push({
+      rowNumber: idx + 2,
+      empNo: String(get('empNo') ?? '').trim(),
+      empName: String(get('empName') ?? '').trim(),
+      transactionType: String(get('transactionType') ?? '').trim(),
       fromDate,
       toDate,
       receivedOn,
       noOfDays: isNaN(noOfDays) ? 0 : noOfDays,
-      status,
+      status: status.toLowerCase(),
     });
   });
 
-  return { rows, ignoredCount, totalCount };
+  return { rows: out, ignoredCount, totalCount: rows.length };
 }
 
 interface EmployeeLookup {
