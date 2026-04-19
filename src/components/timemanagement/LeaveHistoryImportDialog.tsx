@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { useLeaveTypes } from '@/hooks/useLeaveTypes';
+import { useActiveLeaveTypes } from '@/hooks/useLeaveTypes';
 import { useBulkCreateLeaveRequests } from '@/hooks/useBulkCreateLeaveRequests';
 import {
   readSheetRaw,
