@@ -94,6 +94,10 @@ export function LeaveHistoryImportDialog({ open, onOpenChange }: Props) {
   const [typeResolutions, setTypeResolutions] = useState<Map<string, LeaveTypeResolution>>(new Map());
   const [parsedRowsCache, setParsedRowsCache] = useState<ReturnType<typeof parseRowsWithMapping> | null>(null);
 
+  const { data: employees = [] } = useEmployeesForImport();
+  const { data: leaveTypes = [] } = useLeaveTypes();
+  const bulkCreate = useBulkCreateLeaveRequests();
+
   const employeeByCode = useMemo(() => {
     const m = new Map<string, ImportEmployee>();
     for (const e of employees) {
@@ -106,10 +110,6 @@ export function LeaveHistoryImportDialog({ open, onOpenChange }: Props) {
     () => previewData.filter(r => r.validation.errors[0] === 'Skipped (unknown leave type)').length,
     [previewData]
   );
-
-  const { data: employees = [] } = useEmployeesForImport();
-  const { data: leaveTypes = [] } = useLeaveTypes();
-  const bulkCreate = useBulkCreateLeaveRequests();
 
   const validRows = useMemo(() => previewData.filter(r => r.validation.valid), [previewData]);
   const invalidRows = useMemo(() => previewData.filter(r => !r.validation.valid), [previewData]);
@@ -447,7 +447,7 @@ export function LeaveHistoryImportDialog({ open, onOpenChange }: Props) {
               <div className="flex gap-2">
                 <Button variant="outline" onClick={handleClose}>Cancel</Button>
                 <Button
-                  onClick={handleGeneratePreview}
+                  onClick={handleGoToResolveOrPreview}
                   disabled={!requiredMappingComplete || selectedStatuses.size === 0}
                 >
                   Preview <ChevronRight className="h-4 w-4 ml-1" />
