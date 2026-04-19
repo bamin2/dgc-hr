@@ -457,6 +457,63 @@ export function LeaveHistoryImportDialog({ open, onOpenChange }: Props) {
           </div>
         )}
 
+        {step === 'resolve' && (
+          <div className="flex-1 flex flex-col min-h-0 space-y-4">
+            <div>
+              <h4 className="text-sm font-semibold mb-1">Resolve unknown leave types</h4>
+              <p className="text-xs text-muted-foreground">
+                These values from your file don't match any leave type in the system.
+                Pick which type to assign each one, or skip those rows.
+              </p>
+            </div>
+
+            <ScrollArea className="flex-1 pr-3">
+              <div className="border rounded-md divide-y">
+                {unknownTypes.map(({ value, count }) => {
+                  const current = typeResolutions.get(value);
+                  const selectValue = !current ? undefined : current;
+                  return (
+                    <div key={value} className="flex items-center gap-3 px-3 py-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium truncate">"{value}"</div>
+                        <div className="text-xs text-muted-foreground">{count} rows</div>
+                      </div>
+                      <div className="w-[260px]">
+                        <Select
+                          value={selectValue}
+                          onValueChange={(v) => setResolution(value, v)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select leave type..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={SKIP_VALUE}>— Skip these rows —</SelectItem>
+                            {leaveTypes.map(lt => (
+                              <SelectItem key={lt.id} value={lt.id}>{lt.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </ScrollArea>
+
+            <div className="flex justify-between items-center pt-4 border-t">
+              <Button variant="outline" onClick={() => setStep('map')}>
+                <ChevronLeft className="h-4 w-4 mr-1" /> Back to Mapping
+              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={handleClose}>Cancel</Button>
+                <Button onClick={handleConfirmResolutions} disabled={!allUnknownsResolved}>
+                  Continue <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {step === 'preview' && (
           <div className="flex-1 flex flex-col min-h-0 space-y-4">
             <div className="flex flex-wrap items-center gap-2 text-sm">
@@ -543,7 +600,8 @@ export function LeaveHistoryImportDialog({ open, onOpenChange }: Props) {
                           )}
                         </TableCell>
                       </TableRow>
-                    ))}
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>
