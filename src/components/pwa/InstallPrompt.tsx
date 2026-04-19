@@ -82,7 +82,7 @@ export function InstallPrompt() {
 
           {/* Content */}
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-foreground">Install DGC CORE</h3>
+            <h3 className="font-semibold text-foreground">Install DGC People</h3>
             <p className="mt-1 text-sm text-muted-foreground">
               {isIOS
                 ? "Tap the share button, then 'Add to Home Screen'"
