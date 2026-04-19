@@ -106,16 +106,11 @@ export function Sidebar() {
               <span className="text-sidebar-primary-foreground font-bold text-lg">D</span>
             </div>
           ) : (
-            <div className="flex flex-col">
-              <img 
-                src={dgcLogoLight} 
-                alt="DGC Logo" 
-                className="h-8 w-auto"
-              />
-              <span className="text-xs font-semibold tracking-widest text-sidebar-muted mt-1">
-                PEOPLE
-              </span>
-            </div>
+            <img 
+              src={dgcLogoLight} 
+              alt="DGC Logo" 
+              className="h-14 w-auto"
+            />
           )}
         </div>
       </div>
