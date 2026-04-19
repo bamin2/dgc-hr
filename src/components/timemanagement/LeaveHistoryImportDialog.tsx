@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   Upload, FileSpreadsheet, CheckCircle2, XCircle, AlertTriangle,
   Loader2, ChevronLeft, ChevronRight, Info,
@@ -13,15 +13,26 @@ import {
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useLeaveTypes } from '@/hooks/useLeaveTypes';
 import { useBulkCreateLeaveRequests } from '@/hooks/useBulkCreateLeaveRequests';
 import {
-  parseLeaveHistoryXLSX,
+  readSheetRaw,
+  suggestMapping,
+  parseRowsWithMapping,
+  getColumnValueCounts,
   validateLeaveRow,
   buildLeaveInsertRecord,
   type LeaveImportPreviewRow,
+  type LeaveColumnMapping,
+  type LeaveFieldKey,
+  type RawSheetData,
 } from '@/utils/leaveHistoryImport';
 import { useQuery } from '@tanstack/react-query';
 
@@ -31,6 +42,20 @@ interface Props {
 }
 
 const ROWS_PER_PAGE = 20;
+const NONE_VALUE = '__none__';
+
+const FIELD_LABELS: { key: LeaveFieldKey; label: string; required: boolean }[] = [
+  { key: 'empNo', label: 'Employee Code', required: true },
+  { key: 'transactionType', label: 'Transaction Type', required: true },
+  { key: 'fromDate', label: 'From Date', required: true },
+  { key: 'toDate', label: 'To Date', required: true },
+  { key: 'status', label: 'Status', required: true },
+  { key: 'noOfDays', label: 'No. of Days (optional)', required: false },
+  { key: 'receivedOn', label: 'Received On (optional)', required: false },
+  { key: 'empName', label: 'Employee Name (optional)', required: false },
+];
+
+const DEFAULT_ALLOWED = ['added by hr', 'approved'];
 
 function useEmployeesForImport() {
   return useQuery({
@@ -46,8 +71,14 @@ function useEmployeesForImport() {
   });
 }
 
+type Step = 'upload' | 'map' | 'preview';
+
 export function LeaveHistoryImportDialog({ open, onOpenChange }: Props) {
+  const [step, setStep] = useState<Step>('upload');
   const [file, setFile] = useState<File | null>(null);
+  const [raw, setRaw] = useState<RawSheetData | null>(null);
+  const [mapping, setMapping] = useState<LeaveColumnMapping | null>(null);
+  const [selectedStatuses, setSelectedStatuses] = useState<Set<string>>(new Set());
   const [previewData, setPreviewData] = useState<LeaveImportPreviewRow[]>([]);
   const [ignoredCount, setIgnoredCount] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
@@ -68,6 +99,21 @@ export function LeaveHistoryImportDialog({ open, onOpenChange }: Props) {
     currentPage * ROWS_PER_PAGE
   );
 
+  const statusValueCounts = useMemo(() => {
+    if (!raw || !mapping?.status) return new Map<string, number>();
+    return getColumnValueCounts(raw.rows, mapping.status);
+  }, [raw, mapping?.status]);
+
+  // Pre-select default statuses when status column changes
+  useEffect(() => {
+    if (statusValueCounts.size === 0) return;
+    const next = new Set<string>();
+    for (const [val] of statusValueCounts) {
+      if (DEFAULT_ALLOWED.includes(val.trim().toLowerCase())) next.add(val);
+    }
+    setSelectedStatuses(next);
+  }, [statusValueCounts]);
+
   const handleFileSelect = useCallback(async (selectedFile: File) => {
     const lower = selectedFile.name.toLowerCase();
     if (!lower.endsWith('.xlsx') && !lower.endsWith('.xls')) {
@@ -79,26 +125,20 @@ export function LeaveHistoryImportDialog({ open, onOpenChange }: Props) {
     setParsing(true);
     try {
       const buffer = await selectedFile.arrayBuffer();
-      const result = parseLeaveHistoryXLSX(buffer);
-      const employeeLookup = employees.map(e => ({ id: e.id, employee_code: e.employee_code }));
-      const leaveTypeLookup = leaveTypes.map(lt => ({ id: lt.id, name: lt.name }));
-
-      const preview: LeaveImportPreviewRow[] = result.rows.map(row => ({
-        parsed: row,
-        validation: validateLeaveRow(row, employeeLookup, leaveTypeLookup),
-      }));
-
-      setPreviewData(preview);
-      setIgnoredCount(result.ignoredCount);
-      setTotalCount(result.totalCount);
-      setCurrentPage(1);
+      const sheetRaw = readSheetRaw(buffer);
+      if (sheetRaw.headers.length === 0) {
+        throw new Error('No columns detected in the first sheet');
+      }
+      setRaw(sheetRaw);
+      setMapping(suggestMapping(sheetRaw.headers));
+      setStep('map');
     } catch (err: any) {
       toast({ title: 'Failed to parse file', description: err.message || String(err), variant: 'destructive' });
       setFile(null);
     } finally {
       setParsing(false);
     }
-  }, [employees, leaveTypes]);
+  }, []);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -107,6 +147,35 @@ export function LeaveHistoryImportDialog({ open, onOpenChange }: Props) {
     if (droppedFile) handleFileSelect(droppedFile);
   }, [handleFileSelect]);
 
+  const requiredMappingComplete = useMemo(() => {
+    if (!mapping) return false;
+    return FIELD_LABELS.filter(f => f.required).every(f => mapping[f.key]);
+  }, [mapping]);
+
+  const handleGeneratePreview = useCallback(() => {
+    if (!raw || !mapping) return;
+    if (!requiredMappingComplete) {
+      toast({ title: 'Mapping incomplete', description: 'Please map all required columns.', variant: 'destructive' });
+      return;
+    }
+    if (selectedStatuses.size === 0) {
+      toast({ title: 'No statuses selected', description: 'Pick at least one status to import.', variant: 'destructive' });
+      return;
+    }
+    const result = parseRowsWithMapping(raw.rows, mapping, Array.from(selectedStatuses));
+    const employeeLookup = employees.map(e => ({ id: e.id, employee_code: e.employee_code }));
+    const leaveTypeLookup = leaveTypes.map(lt => ({ id: lt.id, name: lt.name }));
+    const preview: LeaveImportPreviewRow[] = result.rows.map(row => ({
+      parsed: row,
+      validation: validateLeaveRow(row, employeeLookup, leaveTypeLookup),
+    }));
+    setPreviewData(preview);
+    setIgnoredCount(result.ignoredCount);
+    setTotalCount(result.totalCount);
+    setCurrentPage(1);
+    setStep('preview');
+  }, [raw, mapping, requiredMappingComplete, selectedStatuses, employees, leaveTypes]);
+
   const handleImport = async () => {
     if (validRows.length === 0) {
       toast({ title: 'No valid rows', description: 'Fix errors before importing', variant: 'destructive' });
@@ -114,7 +183,6 @@ export function LeaveHistoryImportDialog({ open, onOpenChange }: Props) {
     }
     const { data: { user } } = await supabase.auth.getUser();
     const reviewerUserId = user?.id || null;
-    // reviewed_by expects an employee id in this schema – fetch current user's employee id
     let reviewerEmployeeId: string | null = null;
     if (reviewerUserId) {
       const { data: emp } = await supabase
@@ -138,13 +206,33 @@ export function LeaveHistoryImportDialog({ open, onOpenChange }: Props) {
     }
   };
 
-  const handleClose = () => {
+  const resetAll = () => {
+    setStep('upload');
     setFile(null);
+    setRaw(null);
+    setMapping(null);
+    setSelectedStatuses(new Set());
     setPreviewData([]);
     setIgnoredCount(0);
     setTotalCount(0);
     setCurrentPage(1);
+  };
+
+  const handleClose = () => {
+    resetAll();
     onOpenChange(false);
+  };
+
+  const updateMapping = (field: LeaveFieldKey, value: string) => {
+    setMapping(prev => prev ? { ...prev, [field]: value === NONE_VALUE ? null : value } : prev);
+  };
+
+  const toggleStatus = (val: string, checked: boolean) => {
+    setSelectedStatuses(prev => {
+      const next = new Set(prev);
+      if (checked) next.add(val); else next.delete(val);
+      return next;
+    });
   };
 
   return (
@@ -153,11 +241,11 @@ export function LeaveHistoryImportDialog({ open, onOpenChange }: Props) {
         <DialogHeader>
           <DialogTitle>Import Leave History</DialogTitle>
           <DialogDescription>
-            Upload an Excel file to bulk import historical leave records.
+            Upload an Excel file, map columns, then preview before importing.
           </DialogDescription>
         </DialogHeader>
 
-        {!file ? (
+        {step === 'upload' && (
           <div className="space-y-4">
             <div
               onDrop={handleDrop}
@@ -179,7 +267,7 @@ export function LeaveHistoryImportDialog({ open, onOpenChange }: Props) {
                 <p className="text-lg font-medium mb-1">Drag and drop your Excel file here</p>
                 <p className="text-sm text-muted-foreground mb-4">or click to browse (.xlsx, .xls)</p>
                 <Button variant="outline" type="button" onClick={(e) => e.stopPropagation()}>
-                  <Upload className="h-4 w-4 mr-2" />
+                  {parsing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
                   Select File
                 </Button>
               </label>
@@ -188,17 +276,112 @@ export function LeaveHistoryImportDialog({ open, onOpenChange }: Props) {
             <Alert>
               <Info className="h-4 w-4" />
               <AlertDescription>
-                Only rows with status <strong>Approved</strong> or <strong>Added by HR</strong> will be imported.
+                After upload you'll map each column and choose which statuses to import.
                 Imported leaves are marked <strong>Approved</strong> and do <strong>not</strong> automatically
-                update employee leave balances. Adjust balances manually via Employee Balances if needed.
+                update employee leave balances.
               </AlertDescription>
             </Alert>
+          </div>
+        )}
 
-            <div className="text-xs text-muted-foreground">
-              Expected columns: <em>Emp. No., Transaction Type, From Date, To Date, Received On, No. of Days, Status</em>
+        {step === 'map' && raw && mapping && (
+          <div className="flex-1 flex flex-col min-h-0 space-y-4">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">{file?.name}</span>
+              <span className="text-muted-foreground">{raw.rows.length} rows · {raw.headers.length} columns</span>
+            </div>
+
+            <ScrollArea className="flex-1 pr-3">
+              <div className="space-y-5">
+                <div>
+                  <h4 className="text-sm font-semibold mb-3">Map your columns</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {FIELD_LABELS.map(({ key, label, required }) => (
+                      <div key={key} className="space-y-1.5">
+                        <Label className="text-xs">
+                          {label} {required && <span className="text-destructive">*</span>}
+                        </Label>
+                        <Select
+                          value={mapping[key] ?? NONE_VALUE}
+                          onValueChange={(v) => updateMapping(key, v)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select column..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={NONE_VALUE}>— None —</SelectItem>
+                            {raw.headers.map(h => (
+                              <SelectItem key={h} value={h}>{h}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {mapping.status && (
+                  <div>
+                    <h4 className="text-sm font-semibold mb-1">Statuses to import</h4>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Found in column "<strong>{mapping.status}</strong>" — select which statuses to include.
+                    </p>
+                    {statusValueCounts.size === 0 ? (
+                      <Alert>
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertDescription>
+                          No values found in this column. Pick a different Status column above.
+                        </AlertDescription>
+                      </Alert>
+                    ) : (
+                      <div className="border rounded-md divide-y">
+                        {Array.from(statusValueCounts.entries())
+                          .sort((a, b) => b[1] - a[1])
+                          .map(([val, count]) => {
+                            const id = `status-${val}`;
+                            return (
+                              <label
+                                key={val}
+                                htmlFor={id}
+                                className="flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-muted/40"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <Checkbox
+                                    id={id}
+                                    checked={selectedStatuses.has(val)}
+                                    onCheckedChange={(c) => toggleStatus(val, !!c)}
+                                  />
+                                  <span className="text-sm">{val}</span>
+                                </div>
+                                <Badge variant="outline">{count} rows</Badge>
+                              </label>
+                            );
+                          })}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+
+            <div className="flex justify-between items-center pt-4 border-t">
+              <Button variant="outline" onClick={resetAll}>
+                Choose Different File
+              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={handleClose}>Cancel</Button>
+                <Button
+                  onClick={handleGeneratePreview}
+                  disabled={!requiredMappingComplete || selectedStatuses.size === 0}
+                >
+                  Preview <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </div>
             </div>
           </div>
-        ) : (
+        )}
+
+        {step === 'preview' && (
           <div className="flex-1 flex flex-col min-h-0 space-y-4">
             <div className="flex flex-wrap items-center gap-2 text-sm">
               <Badge variant="secondary" className="gap-1">
@@ -220,66 +403,60 @@ export function LeaveHistoryImportDialog({ open, onOpenChange }: Props) {
               <span className="text-muted-foreground">
                 Total rows in file: {totalCount}
               </span>
-              <span className="text-muted-foreground ml-auto">{file.name}</span>
+              <span className="text-muted-foreground ml-auto">{file?.name}</span>
             </div>
 
-            {parsing ? (
-              <div className="flex items-center justify-center h-[400px]">
-                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-              </div>
-            ) : (
-              <ScrollArea className="h-[400px] border rounded-md">
-                <div className="min-w-[900px]">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[60px]">Status</TableHead>
-                        <TableHead>Emp. No.</TableHead>
-                        <TableHead>Leave Type</TableHead>
-                        <TableHead>From</TableHead>
-                        <TableHead>To</TableHead>
-                        <TableHead>Days</TableHead>
-                        <TableHead>Issues</TableHead>
+            <ScrollArea className="h-[400px] border rounded-md">
+              <div className="min-w-[900px]">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[60px]">Status</TableHead>
+                      <TableHead>Emp. No.</TableHead>
+                      <TableHead>Leave Type</TableHead>
+                      <TableHead>From</TableHead>
+                      <TableHead>To</TableHead>
+                      <TableHead>Days</TableHead>
+                      <TableHead>Issues</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedData.map((row, index) => (
+                      <TableRow
+                        key={(currentPage - 1) * ROWS_PER_PAGE + index}
+                        className={!row.validation.valid ? 'bg-destructive/5' : ''}
+                      >
+                        <TableCell>
+                          {row.validation.valid ? (
+                            <CheckCircle2 className="h-4 w-4 text-success" />
+                          ) : (
+                            <XCircle className="h-4 w-4 text-destructive" />
+                          )}
+                        </TableCell>
+                        <TableCell className="font-medium">{row.parsed.empNo || '-'}</TableCell>
+                        <TableCell>{row.parsed.transactionType || '-'}</TableCell>
+                        <TableCell>{row.parsed.fromDate || '-'}</TableCell>
+                        <TableCell>{row.parsed.toDate || '-'}</TableCell>
+                        <TableCell>{row.parsed.noOfDays}</TableCell>
+                        <TableCell>
+                          {row.validation.errors.length > 0 && (
+                            <span className="text-destructive text-xs">
+                              {row.validation.errors.join(', ')}
+                            </span>
+                          )}
+                          {row.validation.errors.length === 0 && row.validation.warnings.length > 0 && (
+                            <span className="text-warning text-xs">
+                              {row.validation.warnings.join(', ')}
+                            </span>
+                          )}
+                        </TableCell>
                       </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {paginatedData.map((row, index) => (
-                        <TableRow
-                          key={(currentPage - 1) * ROWS_PER_PAGE + index}
-                          className={!row.validation.valid ? 'bg-destructive/5' : ''}
-                        >
-                          <TableCell>
-                            {row.validation.valid ? (
-                              <CheckCircle2 className="h-4 w-4 text-success" />
-                            ) : (
-                              <XCircle className="h-4 w-4 text-destructive" />
-                            )}
-                          </TableCell>
-                          <TableCell className="font-medium">{row.parsed.empNo || '-'}</TableCell>
-                          <TableCell>{row.parsed.transactionType || '-'}</TableCell>
-                          <TableCell>{row.parsed.fromDate || '-'}</TableCell>
-                          <TableCell>{row.parsed.toDate || '-'}</TableCell>
-                          <TableCell>{row.parsed.noOfDays}</TableCell>
-                          <TableCell>
-                            {row.validation.errors.length > 0 && (
-                              <span className="text-destructive text-xs">
-                                {row.validation.errors.join(', ')}
-                              </span>
-                            )}
-                            {row.validation.errors.length === 0 && row.validation.warnings.length > 0 && (
-                              <span className="text-warning text-xs">
-                                {row.validation.warnings.join(', ')}
-                              </span>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-                <ScrollBar orientation="horizontal" />
-              </ScrollArea>
-            )}
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
 
             {totalPages > 1 && (
               <div className="flex items-center justify-between text-sm">
@@ -299,11 +476,8 @@ export function LeaveHistoryImportDialog({ open, onOpenChange }: Props) {
             )}
 
             <div className="flex justify-between items-center pt-4 border-t">
-              <Button
-                variant="outline"
-                onClick={() => { setFile(null); setPreviewData([]); setIgnoredCount(0); setTotalCount(0); }}
-              >
-                Choose Different File
+              <Button variant="outline" onClick={() => setStep('map')}>
+                <ChevronLeft className="h-4 w-4 mr-1" /> Back to Mapping
               </Button>
               <div className="flex gap-2">
                 <Button variant="outline" onClick={handleClose}>Cancel</Button>
