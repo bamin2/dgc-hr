@@ -20,7 +20,7 @@ export default function HelpCenter() {
           </div>
           <h1 className="text-3xl font-semibold tracking-tight">Help Center</h1>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Find answers to common questions about using DGC CORE. Browse by topic or search for specific help.
+            Find answers to common questions about using DGC People. Browse by topic or search for specific help.
           </p>
         </div>
 
