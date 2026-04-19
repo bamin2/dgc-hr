@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { LayoutDashboard, FileText, Users, History, Calendar, ClipboardList, Plus } from 'lucide-react';
+import { LayoutDashboard, FileText, Users, History, Calendar, ClipboardList, Plus, Upload } from 'lucide-react';
 import {
   LeaveTypePoliciesTab,
   EmployeeBalancesTab,
@@ -25,11 +25,13 @@ import {
 import { useLeaveRequests, usePendingLeaveRequests, LeaveRequestStatus } from '@/hooks/useLeaveRequests';
 import { useRole } from '@/contexts/RoleContext';
 import { AdminAddLeaveRequestDialog } from './AdminAddLeaveRequestDialog';
+import { LeaveHistoryImportDialog } from './LeaveHistoryImportDialog';
 
 export function LeavesTab() {
   const [activeTab, setActiveTab] = useState('overview');
   const [leaveStatusFilter, setLeaveStatusFilter] = useState<LeaveRequestStatus | 'all'>('all');
   const [isAddLeaveOpen, setIsAddLeaveOpen] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false);
   const { hasRole } = useRole();
   const canAddLeave = hasRole('hr') || hasRole('admin');
 
@@ -129,10 +131,16 @@ export function LeavesTab() {
             </SelectContent>
           </Select>
           {canAddLeave && (
-            <Button onClick={() => setIsAddLeaveOpen(true)} size="sm">
-              <Plus className="h-4 w-4 mr-1" />
-              Add Leave Request
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setIsImportOpen(true)} size="sm">
+                <Upload className="h-4 w-4 mr-1" />
+                Import Leave History
+              </Button>
+              <Button onClick={() => setIsAddLeaveOpen(true)} size="sm">
+                <Plus className="h-4 w-4 mr-1" />
+                Add Leave Request
+              </Button>
+            </div>
           )}
         </div>
         {requestsLoading ? (
@@ -163,6 +171,7 @@ export function LeavesTab() {
       </TabsContent>
 
       <AdminAddLeaveRequestDialog open={isAddLeaveOpen} onOpenChange={setIsAddLeaveOpen} />
+      <LeaveHistoryImportDialog open={isImportOpen} onOpenChange={setIsImportOpen} />
     </Tabs>
   );
 }
