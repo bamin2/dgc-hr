@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { useLeaveTypes } from '@/hooks/useLeaveTypes';
+import { useActiveLeaveTypes } from '@/hooks/useLeaveTypes';
 import { useBulkCreateLeaveRequests } from '@/hooks/useBulkCreateLeaveRequests';
 import {
   readSheetRaw,
@@ -95,7 +95,7 @@ export function LeaveHistoryImportDialog({ open, onOpenChange }: Props) {
   const [parsedRowsCache, setParsedRowsCache] = useState<ReturnType<typeof parseRowsWithMapping> | null>(null);
 
   const { data: employees = [] } = useEmployeesForImport();
-  const { data: leaveTypes = [] } = useLeaveTypes();
+  const { data: leaveTypes = [] } = useActiveLeaveTypes();
   const bulkCreate = useBulkCreateLeaveRequests();
 
   const employeeByCode = useMemo(() => {
