@@ -106,7 +106,7 @@ export function SignInForm() {
               className="text-xs font-medium tracking-[0.15em] uppercase"
               style={{ color: '#6B7280' }}
             >
-              DGC Core
+              DGC People
             </span>
           </div>
 

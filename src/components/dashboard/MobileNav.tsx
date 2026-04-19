@@ -21,7 +21,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useRole } from "@/contexts/RoleContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { RoleBadge } from "@/components/employees/RoleBadge";
-import dgcLogoLight from "@/assets/dgc-logo-light.svg";
+import dgcLogoLight from "@/assets/dgc-people-logo.svg";
 
 // PRIMARY - Core employee actions (always visible, larger touch targets)
 const primaryMenuItems = [
@@ -128,7 +128,7 @@ export function MobileNav() {
               className="h-8 w-auto"
             />
             <span className="text-xs font-semibold tracking-widest text-sidebar-muted mt-1">
-              CORE
+              PEOPLE
             </span>
           </div>
           <Button

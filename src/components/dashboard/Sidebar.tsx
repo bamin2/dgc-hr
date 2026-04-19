@@ -31,7 +31,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { useCompanySettings } from "@/contexts/CompanySettingsContext";
 import { RoleBadge } from "@/components/employees/RoleBadge";
 import { usePendingApprovalsCount } from "@/hooks/usePendingApprovalsCount";
-import dgcLogoLight from "@/assets/dgc-logo-light.svg";
+import dgcLogoLight from "@/assets/dgc-people-logo.svg";
 
 // MANAGEMENT - HR & Manager roles only
 const managementMenuItems = [
@@ -113,7 +113,7 @@ export function Sidebar() {
                 className="h-8 w-auto"
               />
               <span className="text-xs font-semibold tracking-widest text-sidebar-muted mt-1">
-                CORE
+                PEOPLE
               </span>
             </div>
           )}

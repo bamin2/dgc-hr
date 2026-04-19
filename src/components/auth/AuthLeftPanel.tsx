@@ -1,4 +1,4 @@
-import dgcLogoLight from "@/assets/dgc-logo-light.svg";
+import dgcLogoLight from "@/assets/dgc-people-logo.svg";
 
 export function AuthLeftPanel() {
   return (
@@ -15,7 +15,7 @@ export function AuthLeftPanel() {
             className="text-sm font-medium tracking-[0.15em] uppercase"
             style={{ color: '#e7e2da' }}
           >
-            DGC Core
+            DGC People
           </span>
         </div>
 
