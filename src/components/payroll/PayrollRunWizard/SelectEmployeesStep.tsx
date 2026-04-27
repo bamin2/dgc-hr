@@ -1,34 +1,82 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useEmployeesWithCompensation } from "@/hooks/useEmployeesWithCompensation";
+import { useEmployeesAlreadyPaidInPeriod } from "@/hooks/useEmployeesAlreadyPaidInPeriod";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { Info } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface SelectEmployeesStepProps {
   locationId: string;
   selectedIds: string[];
   onSelectionChange: (ids: string[]) => void;
+  payPeriodStart: string;
+  payPeriodEnd: string;
+  excludeRunId?: string | null;
 }
 
 export function SelectEmployeesStep({
   locationId,
   selectedIds,
   onSelectionChange,
+  payPeriodStart,
+  payPeriodEnd,
+  excludeRunId,
 }: SelectEmployeesStepProps) {
   const { data: allEmployees = [], isLoading } = useEmployeesWithCompensation(locationId);
+  const { data: alreadyPaid } = useEmployeesAlreadyPaidInPeriod({
+    locationId,
+    payPeriodStart,
+    payPeriodEnd,
+    excludeRunId,
+  });
 
-  // Filter employees by location (already filtered in hook, but double-check)
-  const employees = allEmployees.filter(
-    (emp) => emp.workLocationId === locationId && emp.status === 'active'
+  const alreadyPaidIds = alreadyPaid?.ids ?? new Set<string>();
+
+  // Active employees at this location, excluding ones already paid in an
+  // overlapping finalized run.
+  const employees = useMemo(
+    () =>
+      allEmployees.filter(
+        (emp) =>
+          emp.workLocationId === locationId &&
+          emp.status === "active" &&
+          !alreadyPaidIds.has(emp.id)
+      ),
+    [allEmployees, locationId, alreadyPaidIds]
   );
 
-  // Auto-select all employees on mount if none selected
+  const hiddenEmployees = useMemo(
+    () =>
+      allEmployees.filter(
+        (emp) =>
+          emp.workLocationId === locationId &&
+          emp.status === "active" &&
+          alreadyPaidIds.has(emp.id)
+      ),
+    [allEmployees, locationId, alreadyPaidIds]
+  );
+
+  // Auto-select all eligible employees on mount if none selected.
   useEffect(() => {
     if (employees.length > 0 && selectedIds.length === 0) {
       onSelectionChange(employees.map((e) => e.id));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [employees.length]);
+
+  // If any currently selected ID is now hidden (e.g. another run was finalized
+  // in another tab), drop it from the selection so it can't be paid twice.
+  useEffect(() => {
+    if (alreadyPaidIds.size === 0 || selectedIds.length === 0) return;
+    const filtered = selectedIds.filter((id) => !alreadyPaidIds.has(id));
+    if (filtered.length !== selectedIds.length) {
+      onSelectionChange(filtered);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [alreadyPaidIds]);
 
   const handleToggle = (employeeId: string) => {
     if (selectedIds.includes(employeeId)) {
@@ -76,16 +124,45 @@ export function SelectEmployeesStep({
         </div>
       </div>
 
+      {hiddenEmployees.length > 0 && (
+        <div className="mb-3 flex items-center gap-2 rounded-md border border-border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
+          <Info className="h-4 w-4 shrink-0" />
+          <span>
+            {hiddenEmployees.length} employee{hiddenEmployees.length === 1 ? "" : "s"} hidden — already paid for this period.
+          </span>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button type="button" className="underline underline-offset-2 hover:text-foreground">
+                  View
+                </button>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <ul className="space-y-1 text-xs">
+                  {hiddenEmployees.map((emp) => (
+                    <li key={emp.id}>
+                      {emp.firstName} {emp.lastName}
+                    </li>
+                  ))}
+                </ul>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      )}
+
       {employees.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
-          No active employees found for this location.
+          {hiddenEmployees.length > 0
+            ? "All active employees for this location have already been paid for this period."
+            : "No active employees found for this location."}
         </div>
       ) : (
         <div className="border rounded-lg divide-y max-h-[400px] overflow-y-auto">
           {employees.map((employee) => {
             const isSelected = selectedIds.includes(employee.id);
             const initials = `${employee.firstName?.[0] || ''}${employee.lastName?.[0] || ''}`;
-            
+
             return (
               <div
                 key={employee.id}
