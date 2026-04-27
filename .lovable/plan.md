@@ -1,52 +1,34 @@
-# Fix: Duplicate leave history entries
+# Sync 2026 "Days Taken" from imported leave history
 
 ## What I found
 
-I queried `leave_requests` and confirmed your suspicion:
+- Employee profile → Time Off tab reads "Days Taken" from `leave_balances.used_days` for the current year (2026).
+- The leave history import inserts approved rows into `leave_requests` but **does not touch `leave_balances`** (the import dialog even says "do not automatically update employee leave balances").
+- For 2026 there are approved leaves totaling many days per employee (e.g., 18 Annual Leave days, 7 Sick Leave days), but `leave_balances.used_days` for year=2026 is still 0 for most of them.
+- 52 balance rows already exist for 2026 across 27 employees; some (employee, leave_type) combinations from the imports have no 2026 balance row at all.
 
-- **400 approved leave rows** total, of which **199 are exact duplicate pairs** and only 2 are singletons.
-- Every duplicate group has exactly 2 rows. The two rows are byte-for-byte identical: same `employee_id`, `leave_type_id`, `start_date`, `end_date`, `days_count`, `created_at`, `reviewed_at`, `reviewed_by` — everything matches.
-- This pattern (everything duplicated exactly twice, nothing triplicated) means the import file was processed twice. Most likely the Import dialog's "Confirm Import" was clicked twice, or the dialog was reopened and the same file imported again before the first batch finished.
-- The current importer has no duplicate guard — `useBulkCreateLeaveRequests` just calls `.insert(...)`, so re-running the same file always doubles every row.
+## Goal
 
-## Plan
+Reflect imported 2026 leaves in "Days Taken" without changing the displayed "Remaining". Since `remaining = total_days − used_days − pending_days`, the only way to keep remaining unchanged while bumping `used_days` is to bump `total_days` by the same amount. That preserves the allowance the user already sees on screen.
 
-### 1. Clean up the existing duplicates (one-time SQL)
+## One-time SQL migration
 
-Delete one row from each duplicate pair, keeping the row with the smaller `id`. Targets only exact duplicates of `(employee_id, leave_type_id, start_date, end_date, days_count, status)` so nothing legitimate gets touched.
+For every (employee, leave_type) with approved leaves in 2026:
 
-```sql
-DELETE FROM leave_requests
-WHERE id IN (
-  SELECT id FROM (
-    SELECT id,
-      ROW_NUMBER() OVER (
-        PARTITION BY employee_id, leave_type_id, start_date, end_date, days_count, status
-        ORDER BY id
-      ) AS rn
-    FROM leave_requests
-  ) t
-  WHERE rn > 1
-);
-```
+1. Compute `taken_2026 = SUM(days_count)` from `leave_requests` where `status='approved'` and `start_date BETWEEN '2026-01-01' AND '2026-12-31'`.
+2. Compute `delta = taken_2026 − current used_days` for that (employee, leave_type, year=2026) row (or `taken_2026` if no row exists).
+3. **Upsert** the `leave_balances` row for `year=2026`:
+   - If row exists: `used_days := used_days + delta`, `total_days := total_days + delta`. Result: remaining unchanged, taken now matches reality.
+   - If row missing: insert `used_days = taken_2026`, `total_days = taken_2026`, `pending_days = 0`. Remaining = 0 (no allowance was ever set; this is correct — we're just recording history).
 
-Expected: 199 rows deleted, 201 remaining. I'll verify the count before and after.
+Public Holiday entries are excluded so company holidays don't inflate personal balances.
 
-### 2. Prevent it from happening again — guard in the importer
+## Files
 
-Two layers of protection in `src/components/timemanagement/LeaveHistoryImportDialog.tsx` and `src/hooks/useBulkCreateLeaveRequests.ts`:
+- One database migration. No code changes — the UI already displays whatever is in `leave_balances`.
 
-- **Pre-insert check**: Before inserting, query existing `leave_requests` for the same `employee_id` + `start_date` + `end_date` + `leave_type_id` set, and skip any record that already exists. Show a summary in the success toast: "X imported, Y skipped as duplicates."
-- **Disable the Confirm button** while the mutation is in flight (it's currently re-clickable) and reset it after success — this stops the double-click case at the UI layer.
+## What changes for the user
 
-No DB schema changes (no unique index added) so legitimate edge cases like one employee taking the same leave type on the same day across years remain possible — the duplicate detection is scoped to exact `(employee, type, start, end)` matches which already shouldn't happen twice.
-
-## Files to modify
-
-- `src/components/timemanagement/LeaveHistoryImportDialog.tsx` — disable button while importing, show skipped count in toast.
-- `src/hooks/useBulkCreateLeaveRequests.ts` — pre-fetch existing requests for the affected employees and filter out matching records before insert; return `{ inserted, skipped }`.
-
-## What to expect after
-
-- Employee profiles will show each leave once (~199 fewer rows).
-- Re-running the same import file will report "0 imported, N skipped as duplicates" instead of doubling everything.
+- "Days Taken (this year)" on each employee's Time Off tab will now include the imported 2026 leaves.
+- "Annual Leave Remaining" stays the same number it shows today.
+- Underlying `leave_requests` records are not modified.
