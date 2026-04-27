@@ -10,6 +10,7 @@ import {
   useCreateEmployeeMutation,
   useUpdateEmployeeMutation,
   useDeleteEmployeeMutation,
+  useArchiveEmployeeMutation,
 } from "./employee";
 
 // Re-export types for backwards compatibility
@@ -90,3 +91,4 @@ export function usePositions() {
 export { useCreateEmployeeMutation as useCreateEmployee };
 export { useUpdateEmployeeMutation as useUpdateEmployee };
 export { useDeleteEmployeeMutation as useDeleteEmployee };
+export { useArchiveEmployeeMutation as useArchiveEmployee };

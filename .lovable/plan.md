@@ -1,35 +1,56 @@
-## Goal
+## Root cause
 
-In the Payroll Run wizard, the **Select Employees** step should hide any employee who already has a finalized payslip in another payroll run that overlaps the same period and location. This prevents accidentally paying the same person twice for the same month.
+The Postgres delete is being rejected (HTTP 409, error `23503`) because the employee "Testing Testing" is still referenced by **`salary_update_batch_employees`** through a foreign key with `ON DELETE NO ACTION`. The UI just reports the generic message; the real reason is in the network response:
 
-## Behavior
+> `update or delete on table "employees" violates foreign key constraint "salary_update_batch_employees_employee_id_fkey"`
 
-- An employee is hidden when there exists **another** payroll run such that:
-  - same `location_id` as the current run, and
-  - status is `finalized` or `payslips_issued` (i.e. not `draft`), and
-  - its `pay_period_start..pay_period_end` overlaps the wizard's selected period, and
-  - the employee already appears in `payroll_run_employees` for that run.
-- The current draft run being edited is excluded from the check (so resuming a draft never hides its own employees).
-- Hidden employees are also removed from the auto-selected list when entering the step, so they cannot be silently included.
-- A small note appears under the header: "X employee(s) hidden — already paid for this period." with a tooltip listing names, so HR understands why the count differs from total active employees.
+For this specific employee there is also 1 row in `salary_history` and 1 row in `audit_logs`, but those FKs already cascade so they are not the blocker.
 
-## Implementation
+The fix needs to handle two separate problems:
 
-**New hook** — `src/hooks/useEmployeesAlreadyPaidInPeriod.ts`
-- Inputs: `locationId`, `payPeriodStart`, `payPeriodEnd`, `excludeRunId`.
-- Queries `payroll_runs` for overlapping non-draft runs at the same location, then `payroll_run_employees` for those run IDs.
-- Returns a `Set<string>` of employee IDs and an array of `{ employeeId, runPeriod }` for the tooltip.
+1. **The data problem** — there are operational/historical tables that legitimately reference an employee but are not allowed to silently follow a delete. The clean answer is to refuse to delete the employee and instead offer to **archive (soft-delete)** them — same effect for the user (they disappear from active lists, payroll, selectors), but historical records remain intact and accurate.
+2. **The UX problem** — when a delete fails for FK reasons we currently show a useless generic toast. Even after the change above, admins still need a clear message when something blocks the action.
 
-**`src/components/payroll/PayrollRunWizard/SelectEmployeesStep.tsx`**
-- Accept new props: `payPeriodStart`, `payPeriodEnd`, `excludeRunId`.
-- Call the new hook; filter `employees` to drop already-paid IDs.
-- Update auto-select effect to only auto-select the visible (eligible) employees.
-- If any are hidden, show an info line above the list with the count.
+## Proposed solution
 
-**`src/components/payroll/PayrollRunWizard/index.tsx`**
-- Pass `state.payPeriodStart`, `state.payPeriodEnd`, and `state.runId` into `SelectEmployeesStep`.
+### 1. Prefer archive over hard delete (recommended primary fix)
 
-## Out of scope
+The `employees` table already has a `status` column (values include `active`, `resigned`, `terminated`). Many references to an employee are by design permanent (payroll runs, salary history, audit logs) — hard-deleting them would corrupt history. The standard pattern is:
 
-- No changes to the database schema, RLS, edit-run flow, or the finalize step.
-- No retroactive cleanup of existing draft runs that may already include duplicates — only new selections are filtered. (If you want, I can also strip already-paid employees from an existing draft on entry; tell me and I'll add it.)
+- Change the employee row's "Delete" action to call an **Archive** flow that sets `status = 'terminated'` (or a new `'archived'` value if you prefer) and clears the active flag. The employee then no longer appears in active employee lists, payroll selection, approver pickers, etc.
+- Keep a separate **Permanently delete** option, visible only when the employee has zero "blocking" references (no payroll runs, no salary batches, no loans, no historical records). When references exist, the option is disabled with a tooltip explaining why and listing the categories ("Has 1 payroll run, 2 loans, …").
+- For "Testing Testing" specifically, the user can either archive immediately, or — since this is clearly test data — also remove the single salary-batch row first and then permanently delete. We will offer both options in the UI.
+
+### 2. Show the real reason when a delete is blocked
+
+Update `useDeleteEmployee` (or wherever the mutation lives) to:
+
+- Detect Postgres error code `23503` and parse `error.details` for the referencing table name.
+- Translate the table name into a friendly label (map `salary_update_batch_employees` → "Salary update batch", `payroll_run_employees` → "Payroll run", `loans` → "Loan", etc.).
+- Surface a toast like: *"Cannot delete Testing Testing — they are referenced by Salary update batch. Archive instead?"* with an Archive button.
+
+### 3. One-click cleanup for this specific employee (optional)
+
+Because "Testing Testing" looks like leftover test data, also expose a "Force delete (remove all related data)" admin action, gated to Super Admin, that:
+
+- Deletes the rows from `salary_update_batch_employees`, `payroll_run_adjustments`, `payroll_run_employees`, `attendance_corrections` (where this employee is hr_reviewer/manager), and any other tables with `NO ACTION` FKs.
+- Then deletes the employee row.
+- Wraps everything in a single Postgres function (`force_delete_employee(uuid)`) called via RPC so it's atomic.
+
+This is destructive, so it should only be exposed to Super Admins and require a typed confirmation of the employee's name.
+
+## Scope of code changes
+
+- **Hook: `src/hooks/useEmployees.ts`** (or wherever the delete mutation is) — improve error handling, parse FK errors, expose `archiveEmployee` and (admin-only) `forceDeleteEmployee` mutations.
+- **Edge function or DB function:** add `force_delete_employee(uuid)` SECURITY DEFINER, callable only by `admin` role.
+- **UI: employee row actions menu** — replace the single "Delete" with: "Archive employee" (default) and, when allowed, "Permanently delete". Keep the existing confirmation dialog, but enrich it with the references summary.
+- **UI: error toast** — show the translated reason on FK failures, with an Archive shortcut.
+
+## What I will NOT do without your sign-off
+
+- I will not silently change any `ON DELETE` rules to `CASCADE` on tables like `payroll_run_employees`, `salary_history`, or `loans` — that would let a delete wipe finalized payroll/financial history, which is almost never what you want.
+- I will not auto-delete "Testing Testing" — once the new flow is in place you can choose Archive or Force-delete from the UI.
+
+## Quick alternative if you want the immediate unblock only
+
+If you just want "Testing Testing" gone right now and don't want the broader UX work, I can run a one-off migration that deletes the single `salary_update_batch_employees` row pointing at this employee and then deletes the employee. Tell me which you'd like and I'll proceed accordingly.

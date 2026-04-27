@@ -28,4 +28,5 @@ export {
   useCreateEmployeeMutation,
   useUpdateEmployeeMutation,
   useDeleteEmployeeMutation,
+  useArchiveEmployeeMutation,
 } from './mutations';
