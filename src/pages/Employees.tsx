@@ -9,6 +9,7 @@ import {
   OrgChart,
   FormerEmployeesTable,
 } from "@/components/employees";
+import { DeleteEmployeeConfirmDialog } from "@/components/employees/DeleteEmployeeConfirmDialog";
 import type { EmployeesTabType } from "@/components/employees/EmployeesTabs";
 import { useEmployees, Employee } from "@/hooks/useEmployees";
 import { useUserPreferences } from "@/hooks/useUserPreferences";

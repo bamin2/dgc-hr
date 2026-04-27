@@ -223,6 +223,6 @@ export function useEmployeeActions(
     handleReassign,
     handleBulkReassign,
     isUpdating: updateEmployee.isPending,
-    isDeleting: deleteEmployee.isPending,
+    isDeleting: deleteEmployee.isPending || archiveEmployee.isPending,
   };
 }
