@@ -303,15 +303,31 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-6 py-4">
-            {/* Avatar Upload */}
-            <div className="flex items-center gap-4">
-              <Avatar className="h-20 w-20 ring-2 ring-muted">
+            {/* Avatar Upload (with drag-and-drop) */}
+            <div
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onDragEnter={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onClick={() => !isUploading && fileInputRef.current?.click()}
+              role="button"
+              tabIndex={0}
+              aria-label="Upload profile photo by clicking or dragging an image"
+              className={cn(
+                "flex items-center gap-4 rounded-lg border-2 border-dashed p-4 cursor-pointer transition-colors",
+                isDragging
+                  ? "border-primary bg-primary/5"
+                  : "border-border hover:border-primary/40 hover:bg-muted/40",
+                isUploading && "cursor-wait opacity-80"
+              )}
+            >
+              <Avatar className="h-20 w-20 ring-2 ring-muted pointer-events-none">
                 <AvatarImage src={formData.avatar} />
                 <AvatarFallback className="bg-primary/10 text-primary text-lg font-semibold">
                   {initials}
                 </AvatarFallback>
               </Avatar>
-              <div>
+              <div className="flex-1">
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -329,12 +345,12 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
                     cropShape="round"
                   />
                 )}
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
                   className="gap-2"
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
                   disabled={isUploading}
                 >
                   {isUploading ? (
@@ -350,7 +366,9 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
                   )}
                 </Button>
                 <p className="text-xs text-muted-foreground mt-1">
-                  JPG, PNG or GIF. Max 2MB
+                  {isDragging
+                    ? "Drop image to upload"
+                    : "Drag & drop an image here, or click to browse. JPG, PNG or GIF. Max 5MB."}
                 </p>
               </div>
             </div>
