@@ -1,40 +1,23 @@
-# Add Delete/Archive Confirmation Dialog for Employees
+# Sort employees alphabetically and separate zero-salary employees in payroll wizard
 
-## Problem
-Clicking "Delete Employee" in the directory triggers deletion immediately. Because most employees have historical records (payroll, salary, etc.), the action silently falls back to archiving — without warning the user first. We need an explicit confirmation that explains exactly what will happen before any change is made.
+## Changes
+Update `src/components/payroll/PayrollRunWizard/SelectEmployeesStep.tsx`:
 
-## Solution
-Introduce a single reusable confirmation dialog (`DeleteEmployeeConfirmDialog`) shown when the user clicks "Delete Employee". It clearly explains the two possible outcomes, then proceeds only on confirmation.
+1. **Alphabetical sort** — Sort all eligible employees by `firstName lastName` (case-insensitive, `localeCompare`).
 
-### Dialog content
-- **Title:** `Delete {First Last}?`
-- **Body (two short sections):**
-  1. **What will happen** — "This will permanently remove the employee and their personal record. This action cannot be undone."
-  2. **If they have historical data** — "If this employee is referenced by payroll runs, salary history, loans, leave requests, or other records, they will instead be **archived** (status set to *Terminated*) and removed from active lists. All historical data will be preserved."
-- **Buttons:**
-  - Cancel (secondary)
-  - **Delete employee** (destructive variant)
-- While the mutation runs, the confirm button shows a spinner and is disabled.
+2. **Split into two sections** — Partition eligible employees into:
+   - **Payable** (top section): `netSalary > 0` (or `baseSalary > 0` as fallback). Rendered as today, auto-selected by default.
+   - **Not in payroll** (bottom section): salary is 0/missing. Rendered in a visually distinct sub-section with:
+     - Header: "Not included in this payroll run"
+     - Helper text: *"These employees are excluded because their salary has not been entered in the system. Update their compensation to include them."*
+     - Each row is **disabled and unchecked** (no checkbox interaction). Net salary shows as `0` in muted color.
+     - Provide a small "Edit salary" hint via link to `/employees/{id}` (uses existing route).
 
-### Files to change
+3. **Selection safety** — Update the existing dedupe effect so any zero-salary id that ends up in `selectedIds` (e.g. from a previously saved draft) is automatically removed from the selection. The auto-select-all-on-mount effect only selects payable employees.
 
-1. **New** `src/components/employees/DeleteEmployeeConfirmDialog.tsx`
-   - Built on the existing shadcn `AlertDialog` primitives.
-   - Props: `open`, `onOpenChange`, `employee`, `onConfirm`, `isLoading`.
+4. **Counter** — Header counter "(X of Y selected)" reflects only the payable list, matching what will actually be paid.
 
-2. **`src/pages/Employees.tsx`**
-   - Add `deleteTarget: Employee | null` state.
-   - Replace direct `onDelete={handleDelete}` with `onDelete={(emp) => setDeleteTarget(emp)}`.
-   - Render `<DeleteEmployeeConfirmDialog>` wired to call `handleDelete(deleteTarget)` on confirm and close on success.
-   - Pass `isDeleting` from `useEmployeeActions` to drive the loading state.
-
-3. **`src/hooks/useEmployeeActions.ts`** (small)
-   - Expose a combined `isDeleting` that is true while either the delete or archive mutation is pending so the dialog button shows the correct state.
-
-### Behavior after confirm
-`handleDelete` is unchanged: it tries hard delete, and if blocked by FK references, automatically archives and shows the existing toast explaining the fallback. The confirmation dialog only gates the action; it does not duplicate the post-action toast.
-
-### Notes
-- No database changes.
-- No new dependencies.
-- Uses existing destructive button styling and `AlertDialog` from the design system.
+## Notes
+- No DB or hook changes required. `useEmployeesWithCompensation` already returns `netSalary`.
+- The "already paid" hidden banner remains unchanged.
+- Sort is also applied to the hidden-employees tooltip list for consistency.

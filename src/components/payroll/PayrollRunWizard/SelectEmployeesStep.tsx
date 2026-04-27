@@ -35,31 +35,53 @@ export function SelectEmployeesStep({
 
   const alreadyPaidIds = alreadyPaid?.ids ?? new Set<string>();
 
+  const sortByName = <T extends { firstName?: string | null; lastName?: string | null }>(list: T[]) =>
+    [...list].sort((a, b) => {
+      const an = `${a.firstName ?? ""} ${a.lastName ?? ""}`.trim().toLowerCase();
+      const bn = `${b.firstName ?? ""} ${b.lastName ?? ""}`.trim().toLowerCase();
+      return an.localeCompare(bn);
+    });
+
+  const hasSalary = (emp: { netSalary?: number | null; baseSalary?: number | null }) => {
+    const net = Number(emp.netSalary ?? 0);
+    const base = Number((emp as { baseSalary?: number | null }).baseSalary ?? 0);
+    return net > 0 || base > 0;
+  };
+
   // Active employees at this location, excluding ones already paid in an
-  // overlapping finalized run.
-  const employees = useMemo(
-    () =>
-      allEmployees.filter(
-        (emp) =>
-          emp.workLocationId === locationId &&
-          emp.status === "active" &&
-          !alreadyPaidIds.has(emp.id)
-      ),
-    [allEmployees, locationId, alreadyPaidIds]
-  );
+  // overlapping finalized run. Split into payable (has salary) and zero-salary.
+  const { employees, zeroSalaryEmployees } = useMemo(() => {
+    const eligible = allEmployees.filter(
+      (emp) =>
+        emp.workLocationId === locationId &&
+        emp.status === "active" &&
+        !alreadyPaidIds.has(emp.id)
+    );
+    return {
+      employees: sortByName(eligible.filter(hasSalary)),
+      zeroSalaryEmployees: sortByName(eligible.filter((e) => !hasSalary(e))),
+    };
+  }, [allEmployees, locationId, alreadyPaidIds]);
 
   const hiddenEmployees = useMemo(
     () =>
-      allEmployees.filter(
-        (emp) =>
-          emp.workLocationId === locationId &&
-          emp.status === "active" &&
-          alreadyPaidIds.has(emp.id)
+      sortByName(
+        allEmployees.filter(
+          (emp) =>
+            emp.workLocationId === locationId &&
+            emp.status === "active" &&
+            alreadyPaidIds.has(emp.id)
+        )
       ),
     [allEmployees, locationId, alreadyPaidIds]
   );
 
-  // Auto-select all eligible employees on mount if none selected.
+  const zeroSalaryIds = useMemo(
+    () => new Set(zeroSalaryEmployees.map((e) => e.id)),
+    [zeroSalaryEmployees]
+  );
+
+  // Auto-select all eligible (payable) employees on mount if none selected.
   useEffect(() => {
     if (employees.length > 0 && selectedIds.length === 0) {
       onSelectionChange(employees.map((e) => e.id));
@@ -67,16 +89,17 @@ export function SelectEmployeesStep({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [employees.length]);
 
-  // If any currently selected ID is now hidden (e.g. another run was finalized
-  // in another tab), drop it from the selection so it can't be paid twice.
+  // Drop any selected ID that became hidden (already paid) or has zero salary.
   useEffect(() => {
-    if (alreadyPaidIds.size === 0 || selectedIds.length === 0) return;
-    const filtered = selectedIds.filter((id) => !alreadyPaidIds.has(id));
+    if (selectedIds.length === 0) return;
+    const filtered = selectedIds.filter(
+      (id) => !alreadyPaidIds.has(id) && !zeroSalaryIds.has(id)
+    );
     if (filtered.length !== selectedIds.length) {
       onSelectionChange(filtered);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [alreadyPaidIds]);
+  }, [alreadyPaidIds, zeroSalaryIds]);
 
   const handleToggle = (employeeId: string) => {
     if (selectedIds.includes(employeeId)) {
