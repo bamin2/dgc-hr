@@ -9,6 +9,7 @@ import {
   OrgChart,
   FormerEmployeesTable,
 } from "@/components/employees";
+import { DeleteEmployeeConfirmDialog } from "@/components/employees/DeleteEmployeeConfirmDialog";
 import type { EmployeesTabType } from "@/components/employees/EmployeesTabs";
 import { useEmployees, Employee } from "@/hooks/useEmployees";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
@@ -46,6 +47,7 @@ export default function Employees() {
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [offboardingOpen, setOffboardingOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Employee | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Employee | null>(null);
 
   // Custom hooks for filters and pagination
   const {
@@ -105,6 +107,7 @@ export default function Employees() {
     handleSave,
     handleReassign,
     handleBulkReassign,
+    isDeleting,
   } = useEmployeeActions((deletedId) => {
     setSelectedEmployees((prev) => prev.filter((id) => id !== deletedId));
   });
@@ -207,7 +210,7 @@ export default function Employees() {
               onEntriesPerPageChange={pagination.setEntriesPerPage}
               onView={handleView}
               onEdit={handleEdit}
-              onDelete={handleDelete}
+              onDelete={(employee) => setDeleteTarget(employee)}
               onStartOnboarding={(employee) => {
                 setSelectedMember(employee);
                 setOnboardingOpen(true);
@@ -266,6 +269,20 @@ export default function Employees() {
         onOffboardingOpenChange={setOffboardingOpen}
         offboardingMember={selectedMember ? convertToTeamMember(selectedMember) : null}
         onOffboardingComplete={() => setOffboardingOpen(false)}
+      />
+
+      <DeleteEmployeeConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
+        employee={deleteTarget}
+        isLoading={isDeleting}
+        onConfirm={async () => {
+          if (!deleteTarget) return;
+          await handleDelete(deleteTarget);
+          setDeleteTarget(null);
+        }}
       />
     </DashboardLayout>
   );
