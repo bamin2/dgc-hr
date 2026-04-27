@@ -1,30 +1,52 @@
+# Fix: Duplicate leave history entries
 
+## What I found
 
-# Plan: Fix stale taskbar icon for installed PWA
+I queried `leave_requests` and confirmed your suspicion:
 
-## Root cause
-Two issues compound here:
+- **400 approved leave rows** total, of which **199 are exact duplicate pairs** and only 2 are singletons.
+- Every duplicate group has exactly 2 rows. The two rows are byte-for-byte identical: same `employee_id`, `leave_type_id`, `start_date`, `end_date`, `days_count`, `created_at`, `reviewed_at`, `reviewed_by` — everything matches.
+- This pattern (everything duplicated exactly twice, nothing triplicated) means the import file was processed twice. Most likely the Import dialog's "Confirm Import" was clicked twice, or the dialog was reopened and the same file imported again before the first batch finished.
+- The current importer has no duplicate guard — `useBulkCreateLeaveRequests` just calls `.insert(...)`, so re-running the same file always doubles every row.
 
-1. **Windows caches the installed PWA icon by app identity** (start_url + name). Even if `/icons/icon-512x512.png` is updated on the server, the *already-installed* app keeps the old icon in the Windows icon cache and the Chromium WebAppShortcut store. Reinstalling without changing the manifest identity won't help — Chromium reuses the cached icon file it copied on first install.
+## Plan
 
-2. **`manifest.json` icons use `purpose: "any maskable"`** on both entries. Windows treats maskable icons as silhouettes inside a safe zone and crops aggressively, which can also make the new logo look "wrong" or mistaken for the old one. Maskable should be a *separate* entry, not combined with `any`.
+### 1. Clean up the existing duplicates (one-time SQL)
 
-## Changes
+Delete one row from each duplicate pair, keeping the row with the smaller `id`. Targets only exact duplicates of `(employee_id, leave_type_id, start_date, end_date, days_count, status)` so nothing legitimate gets touched.
 
-**1. `public/manifest.json`** — Split icon purposes and bump identity so Windows treats it as a fresh install on next install:
-- Add a `id` field (e.g. `"id": "/?v=2"`) — changing this forces Chromium to refresh icon cache on reinstall.
-- Split icons: one set with `purpose: "any"`, one with `purpose: "maskable"` (can reuse same files for now since current PNGs are designed as full-bleed logos, not maskable-safe — better to mark them `any` only and drop maskable until proper safe-zone versions are made).
-- Add cache-busting query to icon `src` (`/icons/icon-512x512.png?v=2`) so the browser fetches fresh bytes.
+```sql
+DELETE FROM leave_requests
+WHERE id IN (
+  SELECT id FROM (
+    SELECT id,
+      ROW_NUMBER() OVER (
+        PARTITION BY employee_id, leave_type_id, start_date, end_date, days_count, status
+        ORDER BY id
+      ) AS rn
+    FROM leave_requests
+  ) t
+  WHERE rn > 1
+);
+```
 
-**2. User actions (required, one-time per machine)** — code alone can't evict the Windows icon cache for an already-installed app:
-- Right-click the installed DGC People app in Start menu → **Uninstall**.
-- In Chrome/Edge: `chrome://apps` → right-click DGC People → **Remove from Chrome**.
-- Clear site data: DevTools on `hr.dgcholding.com` → Application → Storage → **Clear site data**.
-- Reload `hr.dgcholding.com`, then reinstall via the address bar install icon.
-- New taskbar icon will be the updated DGC People logo.
+Expected: 199 rows deleted, 201 remaining. I'll verify the count before and after.
+
+### 2. Prevent it from happening again — guard in the importer
+
+Two layers of protection in `src/components/timemanagement/LeaveHistoryImportDialog.tsx` and `src/hooks/useBulkCreateLeaveRequests.ts`:
+
+- **Pre-insert check**: Before inserting, query existing `leave_requests` for the same `employee_id` + `start_date` + `end_date` + `leave_type_id` set, and skip any record that already exists. Show a summary in the success toast: "X imported, Y skipped as duplicates."
+- **Disable the Confirm button** while the mutation is in flight (it's currently re-clickable) and reset it after success — this stops the double-click case at the UI layer.
+
+No DB schema changes (no unique index added) so legitimate edge cases like one employee taking the same leave type on the same day across years remain possible — the duplicate detection is scoped to exact `(employee, type, start, end)` matches which already shouldn't happen twice.
 
 ## Files to modify
-- `public/manifest.json` — split icon purposes, add `id`, version icon URLs.
 
-No other code changes. The PNG icons in `public/icons/` are already the new logo (regenerated Apr 19) — the issue is purely Windows/Chromium icon caching for the previously installed app.
+- `src/components/timemanagement/LeaveHistoryImportDialog.tsx` — disable button while importing, show skipped count in toast.
+- `src/hooks/useBulkCreateLeaveRequests.ts` — pre-fetch existing requests for the affected employees and filter out matching records before insert; return `{ inserted, skipped }`.
 
+## What to expect after
+
+- Employee profiles will show each leave once (~199 fewer rows).
+- Re-running the same import file will report "0 imported, N skipped as duplicates" instead of doubling everything.
