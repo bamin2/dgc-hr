@@ -149,6 +149,7 @@ export function LoansTable({
         <TableHeader>
           <TableRow>
             {showEmployeeColumn && <TableHead>Employee</TableHead>}
+            <TableHead>Type</TableHead>
             <TableHead>Principal</TableHead>
             <TableHead>Installment</TableHead>
             <TableHead>Duration</TableHead>
@@ -174,6 +175,16 @@ export function LoansTable({
                   </div>
                 </TableCell>
               )}
+              <TableCell>
+                {loan.category === "other_deduction" ? (
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium">{loan.deduction_name || "Other Deduction"}</span>
+                    <span className="text-xs text-muted-foreground">Other Deduction</span>
+                  </div>
+                ) : (
+                  <span className="text-xs text-muted-foreground">Staff Loan</span>
+                )}
+              </TableCell>
               <TableCell className="font-medium">
                 {formatCurrency(loan.principal_amount)}
               </TableCell>
