@@ -1,47 +1,34 @@
-## Goal
-Port the **DGC Pulse (Task Tracker)** visual design system into DGC People without changing any business logic, data flows, routes, or component behavior. Purely a tokens + typography + surface refresh.
+## Problem
 
-## What "design system" means here
-The Task Tracker's look is defined entirely by three files:
-1. `src/index.css` — CSS variables (colors, radius, shadows), base typography, utility classes (`container-page`, `eyebrow`, `surface-glass`, `surface-elevated`, `metric`, animations).
-2. `tailwind.config.ts` — extended typography scale (`h1`/`h2`/`h3`/`h4`/`display`/`metric`/`eyebrow`/`body`/`caption`), color tokens (incl. `surface`, `accent-soft`, `success-bg`, `border-strong`, `primary-hover`, `chart-*`), `boxShadow` tokens, `borderRadius` (6px base), font families (Instrument Sans + Playfair + JetBrains Mono).
-3. `index.html` — Google Fonts preload for **Instrument Sans**, Playfair Display, JetBrains Mono.
+In My Profile, several tab sections render as a card that sits alone on its row, but they are declared with `colSpan={6}` on the 8-column Bento grid — which only fills 6/8 ≈ 75% of the available width. That's why the **Time Off** "Leave Balances (2026)" and "Leave History" cards (and similar cards on other tabs) look narrower than the **Compensation** tab cards (which correctly use `colSpan={12}` → mapped to full 8/8 width).
 
-No component code from Task Tracker is copied. shadcn primitives in DGC People stay as-is — they re-skin automatically because they reference the same token names (`--primary`, `--background`, `--card`, `--border`, `--ring`, `--sidebar-*`, etc.).
+Compensation looks right because every standalone section uses `colSpan={12}` (the legacy full-width value).
 
-## Visual changes the user will see
-- **Typeface**: Inter → **Instrument Sans** across the whole app, with tighter letter-spacing on headings.
-- **Color system**:
-  - Primary brand color shifts from **DGC Gold (#C6A45E)** → **Deep DGC Green (#0F2A24)** on light backgrounds (buttons, links, focus rings on neutrals).
-  - Accent / signal color shifts from **gold** → **DGC Burnt Orange (#F04E23)**, used for CTAs, active nav, focus rings, and chart highlights.
-  - Background shifts from warm off-white → slightly cooler off-white (#F7F6F2-equivalent).
-  - Sidebar stays deep green (already similar) but the active/hover state becomes burnt-orange instead of gold.
-- **Radius**: cards/inputs become **less rounded** (6px base instead of 20px). This is the biggest visual shift — UI looks crisper and more "corporate".
-- **Shadows**: switch to subtler hairline shadows (`--shadow-xs/sm/md/lg`).
-- **Status colors**: success/warning/destructive/info gain matching `-bg` soft variants for tinted badges.
-- **Dark mode**: re-tuned to charcoal foundation with the same accent.
+## Fix
 
-## What is NOT touched
-- No component files (`src/components/**`) are edited.
-- No route, hook, query, or Supabase code.
-- No layout structure changes (sidebar/header/page grids stay identical in markup).
-- No Tailwind class names in components are renamed.
-- Existing custom utilities currently in DGC People that components depend on (`surface-glass`, `surface-glass-elevated`, `text-heading-1/2/3`, `text-body`, `text-body-sm`, `text-caption`, `grid-layout`, `layout-*`, `responsive-container`, `glass`, `glass-subtle`, `safe-area-inset-bottom`, `pb-safe`, `scrollbar-thin`, `body.compact` rules) are **preserved** — added back into the new `index.css` so nothing visually breaks.
+Change every `BentoCard` that is the only card on its row from `colSpan={6}` to `colSpan={12}` (full width). Cards that are paired side-by-side on the same row (e.g. Personal tab's Contact Info 8 + Personal Info 4) stay as-is.
 
-## Files to modify (3)
-1. **`src/index.css`** — replace token block (`:root`, `.dark`) with Pulse tokens; replace base typography rules; add Pulse utilities (`container-page`, `container-content`, `eyebrow`, `hairline`, `metric`, `page-enter`, `animate-fade-up`, `animate-sla-pulse`); **keep all DGC People-specific utilities** (`surface-glass`, `surface-glass-elevated`, `glass`, `text-heading-*`, `text-body*`, `text-caption`, `grid-layout`, `layout-*`, `responsive-container`, `scrollbar-thin`, `safe-area-*`, mobile/compact blocks).
-2. **`tailwind.config.ts`** — adopt Pulse `colors` (adds `surface`, `accent-soft`, `*-bg` variants, `border-strong`, `primary-hover`, `chart-accent`, `sidebar-muted`), `fontFamily` (Instrument Sans + serif + mono), `boxShadow` tokens, `borderRadius` scale, `transitionTimingFunction.refined`, `maxWidth.{content,page,prose}`, and Pulse keyframes/animations. **Keep** existing extras DGC People uses: the standardized `fontSize` scale (`xs/sm/base/lg/xl/2xl`) is preserved alongside Pulse's named sizes (`h1/h2/h3/h4/display/metric/eyebrow/body/caption`), spacing extras (`4.5/13/15/18`), `gap.grid`, and the `8xl/9xl/content` max-widths.
-3. **`index.html`** — add the Google Fonts preload block for Instrument Sans, Playfair Display, JetBrains Mono. Update `theme-color` from `#0F2A28` → `#0F2A24` (subtle, matches new green). Title/description/manifest/icons untouched.
+### Files to edit
 
-## Risk & mitigation
-- **Risk**: Components hardcoded with `rounded-2xl` (≈100 places) will look less rounded after radius token change. This is *intended* — it's the Pulse aesthetic. No code change needed.
-- **Risk**: Components using `text-2xl`/`text-xl`/`text-lg` continue to work because the Tailwind size keys are kept (mapped to the standardized scale). Pulse's named sizes (`text-h1`, `text-display`, etc.) are *added* — opt-in only.
-- **Risk**: Anything referencing `border-strong`, `accent-soft`, `success-bg`, etc. didn't exist before — only added. No existing class breaks.
-- **Risk**: Switching `--accent` from gold → orange will recolor focus rings, active sidebar item, and any `bg-accent`/`text-accent` usage. Verified this is the desired Pulse signal-color behavior.
-- **Mitigation**: After the change, a quick visual smoke pass on Dashboard, Employee Profile (Time Off tab), Sidebar, Login screen, and one dialog (e.g. Add Leave Request) — no functional retesting needed.
+**`src/components/myprofile/MyProfileTimeOffTab.tsx`**
+- Leave Balances card: `colSpan={6}` → `colSpan={12}`
+- Leave History card: `colSpan={6}` → `colSpan={12}`
+- Loading skeleton equivalents: same change
+
+**`src/components/myprofile/MyProfileLoansTab.tsx`**
+- Active loans section card: `colSpan={6}` → `colSpan={12}`
+- Closed loans card: `colSpan={6}` → `colSpan={12}` when shown alone (the `pendingLoans.length > 0 ? 6 : 12` ternary already handles solo case correctly; only the always-`6` ones get widened)
+
+**`src/components/myprofile/MyProfileBenefitsTab.tsx`**
+- Same treatment: any solo-row `colSpan={6}` becomes `colSpan={12}`. Paired cards (loading skeletons that render in a row of two) stay `colSpan={6}`.
+
+**`src/components/myprofile/MyProfileDocumentsTab.tsx`**
+- HR Letters and Payslips render as a side-by-side pair (`6` + `6`). When both are present they should still pair up, but together they only fill 12/8 (full). No change needed unless one is empty — leave as-is.
+
+**No changes** to: Compensation tab (already correct), Overview tab (intentional 2×2 grid of paired cards), Personal tab (already uses `8+4` pairs and `12` for solo Emergency Contact).
 
 ## Out of scope
-- No copying of Task Tracker components, pages, or layouts.
-- No re-skinning of individual feature screens beyond what tokens automatically achieve.
-- No PWA icon, manifest, or branding asset changes.
-- No font self-hosting (loaded from Google Fonts, same as Task Tracker).
+
+- No logic, data, or flow changes
+- No visual restyle beyond width
+- BentoCard / BentoGrid component internals stay untouched
