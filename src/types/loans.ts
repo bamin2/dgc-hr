@@ -6,6 +6,7 @@
 export type LoanStatus = 'requested' | 'approved' | 'rejected' | 'active' | 'closed' | 'cancelled';
 export type InstallmentStatus = 'due' | 'paid' | 'skipped';
 export type PaymentMethod = 'payroll' | 'manual';
+export type LoanCategory = 'staff_loan' | 'other_deduction';
 
 export interface Loan {
   id: string;
@@ -23,6 +24,8 @@ export interface Loan {
   approved_at: string | null;
   disbursed_at: string | null;
   notes: string | null;
+  category: LoanCategory;
+  deduction_name: string | null;
   created_at: string;
   updated_at: string;
   employee?: {
@@ -86,6 +89,8 @@ export interface CreateLoanParams {
   deduct_from_payroll: boolean;
   notes?: string;
   auto_disburse?: boolean;
+  category?: LoanCategory;
+  deduction_name?: string;
 }
 
 export interface ApproveLoanParams {
