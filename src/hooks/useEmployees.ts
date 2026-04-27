@@ -10,6 +10,7 @@ import {
   useCreateEmployeeMutation,
   useUpdateEmployeeMutation,
   useDeleteEmployeeMutation,
+  useArchiveEmployeeMutation,
 } from "./employee";
 
 // Re-export types for backwards compatibility
