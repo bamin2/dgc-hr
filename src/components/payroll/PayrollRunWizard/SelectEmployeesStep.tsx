@@ -174,49 +174,106 @@ export function SelectEmployeesStep({
         </div>
       )}
 
-      {employees.length === 0 ? (
+      {employees.length === 0 && zeroSalaryEmployees.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
           {hiddenEmployees.length > 0
             ? "All active employees for this location have already been paid for this period."
             : "No active employees found for this location."}
         </div>
       ) : (
-        <div className="border rounded-lg divide-y max-h-[400px] overflow-y-auto">
-          {employees.map((employee) => {
-            const isSelected = selectedIds.includes(employee.id);
-            const initials = `${employee.firstName?.[0] || ''}${employee.lastName?.[0] || ''}`;
+        <div className="space-y-6">
+          {employees.length > 0 && (
+            <div className="border rounded-lg divide-y max-h-[400px] overflow-y-auto">
+              {employees.map((employee) => {
+                const isSelected = selectedIds.includes(employee.id);
+                const initials = `${employee.firstName?.[0] || ''}${employee.lastName?.[0] || ''}`;
 
-            return (
-              <div
-                key={employee.id}
-                className="flex items-center gap-4 p-3 hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm cursor-pointer transition-all duration-200"
-                onClick={() => handleToggle(employee.id)}
-              >
-                <Checkbox
-                  checked={isSelected}
-                  onCheckedChange={() => handleToggle(employee.id)}
-                />
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src={employee.avatar || undefined} />
-                  <AvatarFallback>{initials}</AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-foreground">
-                    {employee.firstName} {employee.lastName}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {employee.position || 'No position'} • {employee.department || 'No department'}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium text-foreground">
-                    {employee.netSalary?.toLocaleString() || 0}
-                  </p>
-                  <p className="text-xs text-muted-foreground">Net Salary</p>
-                </div>
+                return (
+                  <div
+                    key={employee.id}
+                    className="flex items-center gap-4 p-3 hover:bg-white/60 dark:hover:bg-white/10 hover:shadow-sm cursor-pointer transition-all duration-200"
+                    onClick={() => handleToggle(employee.id)}
+                  >
+                    <Checkbox
+                      checked={isSelected}
+                      onCheckedChange={() => handleToggle(employee.id)}
+                    />
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={employee.avatar || undefined} />
+                      <AvatarFallback>{initials}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-foreground">
+                        {employee.firstName} {employee.lastName}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {employee.position || 'No position'} • {employee.department || 'No department'}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium text-foreground">
+                        {employee.netSalary?.toLocaleString() || 0}
+                      </p>
+                      <p className="text-xs text-muted-foreground">Net Salary</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {zeroSalaryEmployees.length > 0 && (
+            <div>
+              <div className="mb-2">
+                <h3 className="text-sm font-semibold text-foreground">
+                  Not included in this payroll run ({zeroSalaryEmployees.length})
+                </h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  These employees are excluded because their salary has not been entered in the system. Update their compensation to include them.
+                </p>
               </div>
-            );
-          })}
+              <div className="border border-dashed rounded-lg divide-y bg-muted/20 max-h-[300px] overflow-y-auto">
+                {zeroSalaryEmployees.map((employee) => {
+                  const initials = `${employee.firstName?.[0] || ''}${employee.lastName?.[0] || ''}`;
+                  return (
+                    <div
+                      key={employee.id}
+                      className="flex items-center gap-4 p-3 opacity-70"
+                    >
+                      <Checkbox checked={false} disabled />
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={employee.avatar || undefined} />
+                        <AvatarFallback>{initials}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-foreground">
+                          {employee.firstName} {employee.lastName}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {employee.position || 'No position'} • {employee.department || 'No department'}
+                        </p>
+                      </div>
+                      <div className="text-right flex items-center gap-3">
+                        <div>
+                          <p className="font-medium text-muted-foreground">0</p>
+                          <p className="text-xs text-muted-foreground">No salary set</p>
+                        </div>
+                        <a
+                          href={`/employees/${employee.id}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-xs text-primary underline underline-offset-2 hover:text-primary/80"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          Edit salary
+                        </a>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
