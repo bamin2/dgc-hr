@@ -60,9 +60,12 @@ function LoanCard({ loan, formatCurrency }: { loan: LoanWithInstallmentsData; fo
           <div className="flex items-start justify-between">
             <div>
               <p className="font-medium">
-                Loan #{loan.id.slice(0, 8).toUpperCase()}
+                {loan.category === 'other_deduction'
+                  ? loan.deduction_name || 'Other Deduction'
+                  : `Loan #${loan.id.slice(0, 8).toUpperCase()}`}
               </p>
               <p className="text-xs text-muted-foreground">
+                {loan.category === 'other_deduction' ? 'Other Deduction • ' : ''}
                 Started {format(new Date(loan.start_date), 'MMM d, yyyy')}
               </p>
             </div>

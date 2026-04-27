@@ -3620,9 +3620,11 @@ export type Database = {
         Row: {
           approved_at: string | null
           approved_by: string | null
+          category: string
           created_at: string | null
           created_by: string | null
           deduct_from_payroll: boolean
+          deduction_name: string | null
           disbursed_at: string | null
           duration_months: number | null
           employee_id: string
@@ -3639,9 +3641,11 @@ export type Database = {
         Insert: {
           approved_at?: string | null
           approved_by?: string | null
+          category?: string
           created_at?: string | null
           created_by?: string | null
           deduct_from_payroll?: boolean
+          deduction_name?: string | null
           disbursed_at?: string | null
           duration_months?: number | null
           employee_id: string
@@ -3658,9 +3662,11 @@ export type Database = {
         Update: {
           approved_at?: string | null
           approved_by?: string | null
+          category?: string
           created_at?: string | null
           created_by?: string | null
           deduct_from_payroll?: boolean
+          deduction_name?: string | null
           disbursed_at?: string | null
           duration_months?: number | null
           employee_id?: string

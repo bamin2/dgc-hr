@@ -101,8 +101,22 @@ export function LoansTable({
         {loans.map((loan) => (
           <DataCard
             key={loan.id}
-            title={showEmployeeColumn ? getEmployeeName(loan) : formatCurrency(loan.principal_amount)}
-            subtitle={showEmployeeColumn ? formatCurrency(loan.principal_amount) : undefined}
+            title={
+              loan.category === "other_deduction"
+                ? loan.deduction_name || "Other Deduction"
+                : showEmployeeColumn
+                ? getEmployeeName(loan)
+                : formatCurrency(loan.principal_amount)
+            }
+            subtitle={
+              loan.category === "other_deduction"
+                ? showEmployeeColumn
+                  ? `${getEmployeeName(loan)} • ${formatCurrency(loan.principal_amount)}`
+                  : formatCurrency(loan.principal_amount)
+                : showEmployeeColumn
+                ? formatCurrency(loan.principal_amount)
+                : undefined
+            }
             avatar={showEmployeeColumn ? (
               <Avatar className="h-10 w-10">
                 <AvatarImage src={loan.employee?.avatar_url || undefined} />
@@ -112,20 +126,24 @@ export function LoansTable({
               </Avatar>
             ) : undefined}
             fields={[
-              { 
-                label: "Installment", 
-                value: loan.installment_amount ? formatCurrency(loan.installment_amount) : "-" 
+              {
+                label: "Type",
+                value: loan.category === "other_deduction" ? "Other Deduction" : "Staff Loan",
               },
-              { 
-                label: "Duration", 
-                value: loan.duration_months ? `${loan.duration_months} months` : "-" 
+              {
+                label: "Installment",
+                value: loan.installment_amount ? formatCurrency(loan.installment_amount) : "-"
               },
-              { 
-                label: "Start Date", 
-                value: format(new Date(loan.start_date), "MMM d, yyyy") 
+              {
+                label: "Duration",
+                value: loan.duration_months ? `${loan.duration_months} months` : "-"
               },
-              { 
-                label: "Payroll", 
+              {
+                label: "Start Date",
+                value: format(new Date(loan.start_date), "MMM d, yyyy")
+              },
+              {
+                label: "Payroll",
                 value: loan.deduct_from_payroll ? (
                   <span className="text-emerald-600">Yes</span>
                 ) : (
@@ -149,6 +167,7 @@ export function LoansTable({
         <TableHeader>
           <TableRow>
             {showEmployeeColumn && <TableHead>Employee</TableHead>}
+            <TableHead>Type</TableHead>
             <TableHead>Principal</TableHead>
             <TableHead>Installment</TableHead>
             <TableHead>Duration</TableHead>
@@ -174,6 +193,16 @@ export function LoansTable({
                   </div>
                 </TableCell>
               )}
+              <TableCell>
+                {loan.category === "other_deduction" ? (
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium">{loan.deduction_name || "Other Deduction"}</span>
+                    <span className="text-xs text-muted-foreground">Other Deduction</span>
+                  </div>
+                ) : (
+                  <span className="text-xs text-muted-foreground">Staff Loan</span>
+                )}
+              </TableCell>
               <TableCell className="font-medium">
                 {formatCurrency(loan.principal_amount)}
               </TableCell>
