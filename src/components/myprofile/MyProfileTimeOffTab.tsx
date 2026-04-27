@@ -71,7 +71,7 @@ export function MyProfileTimeOffTab({ employeeId }: MyProfileTimeOffTabProps) {
       </BentoCard>
 
       {/* Leave Balances */}
-      <BentoCard colSpan={6}>
+      <BentoCard colSpan={12}>
         <CardTitle className="text-base font-medium flex items-center gap-2 mb-4">
           <Calendar className="h-4 w-4 text-primary" />
           Leave Balances ({currentYear})
@@ -141,7 +141,7 @@ export function MyProfileTimeOffTab({ employeeId }: MyProfileTimeOffTabProps) {
       </BentoCard>
 
       {/* Leave History */}
-      <BentoCard colSpan={6}>
+      <BentoCard colSpan={12}>
         <CardTitle className="text-base font-medium flex items-center gap-2 mb-4">
           <Clock className="h-4 w-4 text-primary" />
           Leave History
