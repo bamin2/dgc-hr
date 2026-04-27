@@ -88,3 +88,26 @@ export function useDeleteEmployeeMutation() {
     },
   });
 }
+
+/**
+ * Archive (soft-delete) an employee by setting status to 'terminated'.
+ * Use this when a hard delete is blocked by historical references
+ * (payroll runs, salary history, audit logs, etc.).
+ */
+export function useArchiveEmployeeMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("employees")
+        .update({ status: "terminated" })
+        .eq("id", id);
+
+      if (error) throw error;
+    },
+    onSuccess: (_, id) => {
+      invalidateEmployeeQueries(queryClient, id);
+    },
+  });
+}
