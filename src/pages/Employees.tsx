@@ -270,6 +270,20 @@ export default function Employees() {
         offboardingMember={selectedMember ? convertToTeamMember(selectedMember) : null}
         onOffboardingComplete={() => setOffboardingOpen(false)}
       />
+
+      <DeleteEmployeeConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
+        employee={deleteTarget}
+        isLoading={isDeleting}
+        onConfirm={async () => {
+          if (!deleteTarget) return;
+          await handleDelete(deleteTarget);
+          setDeleteTarget(null);
+        }}
+      />
     </DashboardLayout>
   );
 }
