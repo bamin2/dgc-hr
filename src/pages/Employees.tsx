@@ -47,6 +47,7 @@ export default function Employees() {
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [offboardingOpen, setOffboardingOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Employee | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Employee | null>(null);
 
   // Custom hooks for filters and pagination
   const {
@@ -106,6 +107,7 @@ export default function Employees() {
     handleSave,
     handleReassign,
     handleBulkReassign,
+    isDeleting,
   } = useEmployeeActions((deletedId) => {
     setSelectedEmployees((prev) => prev.filter((id) => id !== deletedId));
   });
