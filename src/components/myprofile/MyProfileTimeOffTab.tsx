@@ -45,10 +45,10 @@ export function MyProfileTimeOffTab({ employeeId }: MyProfileTimeOffTabProps) {
         <BentoCard colSpan={12}>
           <Skeleton className="h-10 w-40 ml-auto" />
         </BentoCard>
-        <BentoCard colSpan={6}>
+        <BentoCard colSpan={12}>
           <Skeleton className="h-32 w-full" />
         </BentoCard>
-        <BentoCard colSpan={6}>
+        <BentoCard colSpan={12}>
           <Skeleton className="h-32 w-full" />
         </BentoCard>
       </BentoGrid>
