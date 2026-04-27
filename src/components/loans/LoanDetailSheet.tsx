@@ -163,7 +163,16 @@ export function LoanDetailSheet({ loanId, open, onOpenChange }: LoanDetailSheetP
             {/* Loan Summary */}
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-base">Loan Summary</CardTitle>
+                <div className="flex items-start justify-between gap-2">
+                  <CardTitle className="text-base">
+                    {loan.category === "other_deduction"
+                      ? loan.deduction_name || "Other Deduction"
+                      : "Loan Summary"}
+                  </CardTitle>
+                  <span className="text-xs px-2 py-0.5 rounded-md bg-muted text-muted-foreground">
+                    {loan.category === "other_deduction" ? "Other Deduction" : "Staff Loan"}
+                  </span>
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
