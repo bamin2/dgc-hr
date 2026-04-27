@@ -335,16 +335,6 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
                   onChange={handlePhotoSelect}
                   className="hidden"
                 />
-                {selectedImage && (
-                  <ImageCropper
-                    open={cropperOpen}
-                    onOpenChange={setCropperOpen}
-                    imageSrc={selectedImage}
-                    onCropComplete={handleCroppedImage}
-                    aspectRatio={1}
-                    cropShape="round"
-                  />
-                )}
                 <Button
                   type="button"
                   variant="outline"
@@ -372,6 +362,17 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
                 </p>
               </div>
             </div>
+
+            {selectedImage && (
+              <ImageCropper
+                open={cropperOpen}
+                onOpenChange={setCropperOpen}
+                imageSrc={selectedImage}
+                onCropComplete={handleCroppedImage}
+                aspectRatio={1}
+                cropShape="round"
+              />
+            )}
 
             {/* Personal Information */}
             <div className="space-y-4">
