@@ -91,3 +91,4 @@ export function usePositions() {
 export { useCreateEmployeeMutation as useCreateEmployee };
 export { useUpdateEmployeeMutation as useUpdateEmployee };
 export { useDeleteEmployeeMutation as useDeleteEmployee };
+export { useArchiveEmployeeMutation as useArchiveEmployee };
