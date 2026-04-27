@@ -68,6 +68,9 @@ export function PayrollRunWizard({
               locationId={location.id}
               selectedIds={state.selectedEmployeeIds}
               onSelectionChange={actions.setSelectedEmployeeIds}
+              payPeriodStart={state.payPeriodStart}
+              payPeriodEnd={state.payPeriodEnd}
+              excludeRunId={state.runId}
             />
           )}
 
