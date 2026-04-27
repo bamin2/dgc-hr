@@ -11,6 +11,8 @@ export interface LoanWithInstallmentsData {
   start_date: string;
   status: "requested" | "approved" | "rejected" | "active" | "closed" | "cancelled";
   notes: string | null;
+  category: 'staff_loan' | 'other_deduction';
+  deduction_name: string | null;
   created_at: string;
   loan_installments: LoanInstallment[];
 }
