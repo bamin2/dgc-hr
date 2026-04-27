@@ -19,6 +19,8 @@ export interface Loan {
   approved_at: string | null;
   disbursed_at: string | null;
   notes: string | null;
+  category: 'staff_loan' | 'other_deduction';
+  deduction_name: string | null;
   created_at: string;
   updated_at: string;
   employee?: {
@@ -217,6 +219,8 @@ interface CreateLoanParams {
   deduct_from_payroll: boolean;
   notes?: string;
   auto_disburse?: boolean;
+  category?: 'staff_loan' | 'other_deduction';
+  deduction_name?: string;
 }
 
 export function useCreateLoan() {
@@ -240,6 +244,8 @@ export function useCreateLoan() {
           approved_by: user?.id,
           approved_at: new Date().toISOString(),
           disbursed_at: params.auto_disburse ? new Date().toISOString() : null,
+          category: params.category ?? "staff_loan",
+          deduction_name: params.deduction_name ?? null,
         })
         .select()
         .single();
