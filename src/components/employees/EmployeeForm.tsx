@@ -27,6 +27,7 @@ import { CountrySelect } from "@/components/ui/country-select";
 import { ImageCropper } from "@/components/ui/image-cropper";
 import { Employee, useDepartments, usePositions, useEmployees } from "@/hooks/useEmployees";
 import { useAvatarUpload } from "@/hooks/useAvatarUpload";
+import { useUpdateEmployeeMutation } from "@/hooks/employee/mutations";
 import { toast } from "@/hooks/use-toast";
 import { wouldCreateCircularReference, isInactiveEmployee } from "@/utils/orgHierarchy";
 
