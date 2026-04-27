@@ -268,8 +268,12 @@ export function LeaveHistoryImportDialog({ open, onOpenChange }: Props) {
       .filter((r): r is NonNullable<typeof r> => r !== null);
 
     try {
-      const { inserted } = await bulkCreate.mutateAsync(records);
-      toast({ title: 'Import successful', description: `${inserted} leave requests imported` });
+      const { inserted, skipped } = await bulkCreate.mutateAsync(records);
+      const skipMsg = skipped > 0 ? ` · ${skipped} skipped as duplicates` : '';
+      toast({
+        title: 'Import successful',
+        description: `${inserted} leave request${inserted === 1 ? '' : 's'} imported${skipMsg}`,
+      });
       handleClose();
     } catch (err: any) {
       toast({ title: 'Import failed', description: err.message || 'Could not insert records', variant: 'destructive' });
