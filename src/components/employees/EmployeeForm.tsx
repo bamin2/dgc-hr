@@ -199,11 +199,9 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
   };
 
 
-  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const processFile = (file: File | undefined | null) => {
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       toast({
         title: "Invalid file type",
@@ -213,7 +211,6 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
       return;
     }
 
-    // Validate file size (5MB max for original before cropping)
     if (file.size > 5 * 1024 * 1024) {
       toast({
         title: "File too large",
@@ -223,29 +220,59 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
       return;
     }
 
-    // Create object URL and open cropper
     const imageUrl = URL.createObjectURL(file);
     setSelectedImage(imageUrl);
     setCropperOpen(true);
-    
-    // Reset file input so same file can be selected again
+  };
+
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    processFile(e.target.files?.[0]);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
 
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    processFile(e.dataTransfer.files?.[0]);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isDragging) setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
   const handleCroppedImage = async (croppedBlob: Blob) => {
     try {
-      // Convert blob to File for upload
       const file = new File([croppedBlob], 'avatar.jpg', { type: 'image/jpeg' });
       const employeeId = employee?.id || `temp-${Date.now()}`;
       
       const avatarUrl = await uploadAvatar(file, employeeId);
       setFormData(prev => ({ ...prev, avatar: avatarUrl }));
+
+      // Persist immediately for existing employees so the photo isn't lost
+      // if the user closes the dialog before saving the rest of the form.
+      if (employee?.id) {
+        await updateEmployee.mutateAsync({
+          id: employee.id,
+          avatar_url: avatarUrl,
+        });
+      }
       
       toast({
         title: "Photo uploaded",
-        description: "Profile photo has been updated.",
+        description: employee?.id
+          ? "Profile photo has been updated."
+          : "Photo will be saved when you create the employee.",
       });
     } catch (error) {
       toast({
@@ -254,7 +281,6 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
         variant: "destructive",
       });
     } finally {
-      // Cleanup object URL
       if (selectedImage) {
         URL.revokeObjectURL(selectedImage);
         setSelectedImage(null);
