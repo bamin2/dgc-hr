@@ -71,9 +71,11 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
   const { data: positions = [] } = usePositions();
   const { data: allEmployees = [] } = useEmployees();
   const { uploadAvatar, isUploading } = useAvatarUpload();
+  const updateEmployee = useUpdateEmployeeMutation();
   
   const [cropperOpen, setCropperOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   
   const [formData, setFormData] = useState<FormData>({
     firstName: '',
