@@ -210,7 +210,7 @@ export default function Employees() {
               onEntriesPerPageChange={pagination.setEntriesPerPage}
               onView={handleView}
               onEdit={handleEdit}
-              onDelete={handleDelete}
+              onDelete={(employee) => setDeleteTarget(employee)}
               onStartOnboarding={(employee) => {
                 setSelectedMember(employee);
                 setOnboardingOpen(true);
