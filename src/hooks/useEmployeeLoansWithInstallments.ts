@@ -33,6 +33,8 @@ export function useEmployeeLoansWithInstallments(employeeId: string | undefined)
           start_date,
           status,
           notes,
+          category,
+          deduction_name,
           created_at,
           loan_installments (
             id,
