@@ -36,6 +36,7 @@ export function usePayrollRunAdjustments(runId: string | null) {
       }));
     },
     enabled: !!runId,
+    ...queryPresets.userData,
   });
 
   const addMutation = useMutation({
