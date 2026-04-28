@@ -18,6 +18,7 @@ interface DbUserPreferences {
   time_format: string;
   first_day_of_week: string;
   employee_table_columns: Json;
+  sidebar_collapsed: boolean;
 }
 
 interface DbProfile {
@@ -45,6 +46,7 @@ const defaultPreferences: Omit<UserPreferences, 'userId'> = {
     defaultPage: 'dashboard',
     itemsPerPage: 25,
     compactMode: true,
+    sidebarCollapsed: false,
     employeeTableColumns: defaultEmployeeTableColumns,
   },
   regional: {
@@ -90,6 +92,7 @@ function transformFromDb(
       defaultPage: prefs?.default_page || 'dashboard',
       itemsPerPage: prefs?.items_per_page || 25,
       compactMode: prefs?.compact_mode ?? true,
+      sidebarCollapsed: (prefs as { sidebar_collapsed?: boolean } | null)?.sidebar_collapsed ?? false,
       employeeTableColumns: parseEmployeeTableColumns(prefs?.employee_table_columns),
     },
     regional: {
@@ -211,6 +214,7 @@ export function useUserPreferences() {
           default_page: preferences.display?.defaultPage,
           items_per_page: preferences.display?.itemsPerPage,
           compact_mode: preferences.display?.compactMode,
+          sidebar_collapsed: preferences.display?.sidebarCollapsed,
           employee_table_columns: preferences.display?.employeeTableColumns,
           timezone: preferences.regional?.timezone,
           date_format: preferences.regional?.dateFormat,
