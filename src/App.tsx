@@ -65,8 +65,8 @@ const queryClient = new QueryClient({
     queries: {
       refetchOnWindowFocus: false,
       retry: 1,
-      staleTime: 1000 * 30,
-      gcTime: 1000 * 60 * 5,
+      staleTime: 1000 * 60,        // 60s global floor (HR data is not real-time)
+      gcTime: 1000 * 60 * 10,      // Keep cache 10 min for snappy navigation
     },
   },
 });
