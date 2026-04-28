@@ -94,6 +94,7 @@ export interface UserPreferences {
     defaultPage: string;
     itemsPerPage: number;
     compactMode: boolean;
+    sidebarCollapsed: boolean;
     employeeTableColumns: EmployeeTableColumnId[];
   };
   regional: {

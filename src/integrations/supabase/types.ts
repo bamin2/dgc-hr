@@ -6043,6 +6043,7 @@ export type Database = {
           id: string
           items_per_page: number | null
           language: string | null
+          sidebar_collapsed: boolean
           theme: string | null
           time_format: string | null
           timezone: string | null
@@ -6059,6 +6060,7 @@ export type Database = {
           id?: string
           items_per_page?: number | null
           language?: string | null
+          sidebar_collapsed?: boolean
           theme?: string | null
           time_format?: string | null
           timezone?: string | null
@@ -6075,6 +6077,7 @@ export type Database = {
           id?: string
           items_per_page?: number | null
           language?: string | null
+          sidebar_collapsed?: boolean
           theme?: string | null
           time_format?: string | null
           timezone?: string | null
