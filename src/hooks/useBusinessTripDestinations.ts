@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { queryPresets } from '@/lib/queryOptions';
 import { supabase } from '@/integrations/supabase/client';
 import { queryKeys } from '@/lib/queryKeys';
 import { toast } from '@/hooks/use-toast';
@@ -22,6 +23,7 @@ export function useBusinessTripDestinations() {
       if (error) throw error;
       return data as BusinessTripDestination[];
     },
+    ...queryPresets.referenceData,
   });
 }
 
@@ -38,6 +40,7 @@ export function useAllBusinessTripDestinations() {
       if (error) throw error;
       return data as BusinessTripDestination[];
     },
+    ...queryPresets.referenceData,
   });
 }
 

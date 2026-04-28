@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { queryPresets } from '@/lib/queryOptions';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { UserPreferences, EmployeeTableColumnId, defaultEmployeeTableColumns } from '@/data/settings';
@@ -152,6 +153,7 @@ export function useUserPreferences() {
       );
     },
     enabled: !!user?.id,
+    ...queryPresets.configData,
   });
 
   const mutation = useMutation({

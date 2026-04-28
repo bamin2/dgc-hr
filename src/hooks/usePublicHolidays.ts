@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { queryPresets } from '@/lib/queryOptions';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { addDays, differenceInDays, format, getDay, parseISO } from 'date-fns';
@@ -272,6 +273,7 @@ export function usePublicHolidays(year?: number) {
       if (error) throw error;
       return data as PublicHoliday[];
     },
+    ...queryPresets.referenceData,
   });
 }
 

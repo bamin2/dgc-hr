@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { queryPresets } from "@/lib/queryOptions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -140,6 +141,7 @@ export function useOffers(filters?: OfferFilters) {
       if (error) throw error;
       return data as Offer[];
     },
+    ...queryPresets.userData,
   });
 }
 

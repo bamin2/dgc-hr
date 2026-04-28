@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { queryPresets } from '@/lib/queryOptions';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { NotificationSettings } from '@/data/settings';
@@ -119,6 +120,7 @@ export function useNotificationPreferences() {
       return transformFromDb(data as DbNotificationPreferences | null);
     },
     enabled: !!user?.id,
+    ...queryPresets.referenceData,
   });
 
   const mutation = useMutation({

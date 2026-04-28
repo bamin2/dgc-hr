@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { queryKeys } from "@/lib/queryKeys";
+import { queryPresets } from "@/lib/queryOptions";
 export interface PayrollRunAdjustment {
   id: string;
   employeeId: string;
@@ -35,6 +36,7 @@ export function usePayrollRunAdjustments(runId: string | null) {
       }));
     },
     enabled: !!runId,
+    ...queryPresets.userData,
   });
 
   const addMutation = useMutation({

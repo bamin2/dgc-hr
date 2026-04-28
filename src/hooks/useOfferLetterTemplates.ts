@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { queryPresets } from "@/lib/queryOptions";
 
 export interface OfferLetterTemplate {
   id: string;
@@ -46,6 +47,7 @@ export function useOfferLetterTemplates(activeOnly: boolean = false) {
       if (error) throw error;
       return data as OfferLetterTemplate[];
     },
+    ...queryPresets.referenceData,
   });
 }
 
@@ -65,6 +67,7 @@ export function useOfferLetterTemplate(id: string | undefined) {
       return data as OfferLetterTemplate;
     },
     enabled: !!id,
+    ...queryPresets.referenceData,
   });
 }
 

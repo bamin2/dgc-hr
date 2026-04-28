@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { queryPresets } from '@/lib/queryOptions';
 
 export interface MyDocument {
   id: string;
@@ -51,5 +52,6 @@ export function useMyDocuments(employeeId: string | undefined) {
       return data as MyDocument[];
     },
     enabled: !!employeeId,
+    ...queryPresets.userData,
   });
 }

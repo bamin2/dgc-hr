@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { queryKeys } from "@/lib/queryKeys";
+import { queryPresets } from "@/lib/queryOptions";
 
 export interface InstallmentDueForPayroll {
   id: string;
@@ -103,5 +104,6 @@ export function useLoanInstallmentsDueForPayroll({
       return { payrollDeductions, nonPayrollInstallments };
     },
     enabled: employeeIds.length > 0 && !!payPeriodStart && !!payPeriodEnd,
+    ...queryPresets.userData,
   });
 }
