@@ -104,5 +104,6 @@ export function useLoanInstallmentsDueForPayroll({
       return { payrollDeductions, nonPayrollInstallments };
     },
     enabled: employeeIds.length > 0 && !!payPeriodStart && !!payPeriodEnd,
+    ...queryPresets.userData,
   });
 }

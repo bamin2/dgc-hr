@@ -97,6 +97,7 @@ export function useEmailTemplates() {
         updated_at: row.updated_at ?? "",
       }));
     },
+    ...queryPresets.configData,
   });
 
   const updateTemplate = useMutation({

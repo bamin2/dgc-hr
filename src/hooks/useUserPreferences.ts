@@ -153,6 +153,7 @@ export function useUserPreferences() {
       );
     },
     enabled: !!user?.id,
+    ...queryPresets.configData,
   });
 
   const mutation = useMutation({
