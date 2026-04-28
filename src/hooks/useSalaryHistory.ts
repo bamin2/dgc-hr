@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Json } from "@/integrations/supabase/types";
 import { queryKeys } from "@/lib/queryKeys";
+import { queryPresets } from "@/lib/queryOptions";
 
 export type SalaryChangeType = 'initial' | 'adjustment' | 'promotion' | 'annual_review' | 'correction' | 'bulk_update' | 'allowance_change' | 'deduction_change' | 'compensation_update';
 
@@ -81,6 +82,7 @@ export function useSalaryHistory(employeeId: string | undefined) {
     queryKey: queryKeys.compensation.salaryHistory(employeeId || ''),
     queryFn: () => fetchSalaryHistory(employeeId!),
     enabled: !!employeeId,
+    ...queryPresets.userData,
   });
 }
 

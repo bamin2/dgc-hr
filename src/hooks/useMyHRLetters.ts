@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { queryPresets } from "@/lib/queryOptions";
 
 export interface MyHRLetter {
   id: string;
@@ -35,5 +36,6 @@ export function useMyHRLetters(employeeId: string | undefined) {
       return data as MyHRLetter[];
     },
     enabled: !!employeeId,
+    ...queryPresets.userData,
   });
 }

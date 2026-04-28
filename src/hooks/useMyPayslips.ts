@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { queryPresets } from '@/lib/queryOptions';
 
 export interface MyPayslip {
   id: string;
@@ -70,5 +71,6 @@ export function useMyPayslips(employeeId: string | undefined) {
       return issuedPayslips;
     },
     enabled: !!employeeId,
+    ...queryPresets.userData,
   });
 }

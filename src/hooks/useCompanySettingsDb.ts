@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { queryPresets } from '@/lib/queryOptions';
 import { supabase } from '@/integrations/supabase/client';
 import { CompanySettings, DashboardCardVisibility, defaultDashboardCardVisibility } from '@/data/settings';
 import { Json } from '@/integrations/supabase/types';
@@ -153,6 +154,7 @@ export function useCompanySettingsDb() {
       if (error) throw error;
       return transformFromDb(data as DbCompanySettings);
     },
+    ...queryPresets.referenceData,
   });
 
   const mutation = useMutation({

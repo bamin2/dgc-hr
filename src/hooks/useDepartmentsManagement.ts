@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { queryKeys } from '@/lib/queryKeys';
+import { queryPresets } from '@/lib/queryOptions';
 
 interface Department {
   id: string;
@@ -68,6 +69,7 @@ export function useDepartmentsManagement() {
   return useQuery({
     queryKey: queryKeys.organizations.departments,
     queryFn: fetchDepartmentsWithCounts,
+    ...queryPresets.configData,
   });
 }
 

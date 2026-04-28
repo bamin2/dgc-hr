@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
 import { addDays, format } from "date-fns";
 import { queryKeys } from "@/lib/queryKeys";
+import { queryPresets } from "@/lib/queryOptions";
 
 // Types
 export type OnboardingStatus = Database["public"]["Enums"]["onboarding_status"];
@@ -105,6 +106,7 @@ export function useOnboardingWorkflows() {
 
       return workflowsWithTasks as OnboardingWorkflow[];
     },
+    ...queryPresets.referenceData,
   });
 }
 
@@ -132,6 +134,7 @@ export function useOnboardingRecords() {
       if (error) throw error;
       return data as OnboardingRecord[];
     },
+    ...queryPresets.userData,
   });
 }
 

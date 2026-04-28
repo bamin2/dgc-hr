@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { queryKeys } from "@/lib/queryKeys";
+import { queryPresets } from "@/lib/queryOptions";
 
 // Type aliases from database
 type OffboardingRecord = Database["public"]["Tables"]["offboarding_records"]["Row"];
@@ -71,6 +72,7 @@ export function useOffboardingRecords() {
       if (error) throw error;
       return data as unknown as OffboardingRecordWithRelations[];
     },
+    ...queryPresets.userData,
   });
 }
 

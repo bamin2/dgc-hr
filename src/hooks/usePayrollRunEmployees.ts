@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { queryPresets } from "@/lib/queryOptions";
 import { getCountryCodeByName } from "@/data/countries";
 import type {
   PayrollRunEmployee,
@@ -43,9 +44,10 @@ export function usePayrollRunEmployees(runId: string | null) {
         grossPay: Number(row.gross_pay) || 0,
         totalDeductions: Number(row.total_deductions) || 0,
         netPay: Number(row.net_pay) || 0,
-      }));
+    }));
     },
     enabled: !!runId,
+    ...queryPresets.userData,
   });
 
   const snapshotEmployees = async (payrollRunId: string, employeeIds: string[], payPeriodEnd?: string) => {

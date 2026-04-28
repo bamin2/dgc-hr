@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
+import { queryPresets } from "@/lib/queryOptions";
 import { 
   fetchEmployeesBase, 
   fetchEmployeeBase, 
@@ -40,6 +41,7 @@ export function useTeamMembers() {
   return useQuery({
     queryKey: queryKeys.teamMembers.all,
     queryFn: fetchTeamMembers,
+    ...queryPresets.userData,
   });
 }
 
@@ -48,6 +50,7 @@ export function useTeamMember(id: string | undefined) {
     queryKey: queryKeys.teamMembers.detail(id!),
     queryFn: () => fetchTeamMember(id!),
     enabled: !!id,
+    ...queryPresets.userData,
   });
 }
 

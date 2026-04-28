@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PayrollRunStatus } from "@/components/payroll/PayrollRunStatusBadge";
 import { PayrollRunData } from "@/components/payroll/PayrollRunCard";
 import { queryKeys } from "@/lib/queryKeys";
+import { queryPresets } from "@/lib/queryOptions";
 
 // Database types
 interface DbPayrollRun {
@@ -50,6 +51,7 @@ export function usePayrollRunsByLocation(locationId: string | null) {
       return (data || []).map(transformDbRun);
     },
     enabled: !!locationId,
+    ...queryPresets.userData,
   });
 }
 
@@ -76,6 +78,7 @@ export function useDraftCountsByLocation() {
       });
       return counts;
     },
+    ...queryPresets.userData,
   });
 }
 
