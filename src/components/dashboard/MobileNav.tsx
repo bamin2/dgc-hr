@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useLocation, Link } from "react-router-dom";
+import { PrefetchNavLink } from "@/components/PrefetchNavLink";
 import {
   LayoutDashboard,
   Clock,
@@ -50,7 +51,7 @@ interface NavItemProps {
 
 function NavItem({ icon: Icon, label, path, isActive, onClick, large = false }: NavItemProps) {
   return (
-    <Link
+    <PrefetchNavLink
       to={path}
       onClick={onClick}
       className={cn(
@@ -76,7 +77,7 @@ function NavItem({ icon: Icon, label, path, isActive, onClick, large = false }: 
         "w-4 h-4 text-sidebar-foreground/30",
         isActive && "text-sidebar-primary/50"
       )} />
-    </Link>
+    </PrefetchNavLink>
   );
 }
 
@@ -138,7 +139,7 @@ export function MobileNav() {
 
         {/* User Profile - Moved to top for prominence */}
         <div className="p-4 border-b border-sidebar-border">
-          <Link 
+          <PrefetchNavLink
             to="/my-profile" 
             onClick={handleClose}
             className="flex items-center gap-3 touch-manipulation"
@@ -154,7 +155,7 @@ export function MobileNav() {
               <RoleBadge role={currentUser.role} showIcon={false} className="mt-1 text-xs h-5" />
             </div>
             <ChevronRight className="w-4 h-4 text-sidebar-foreground/30" />
-          </Link>
+          </PrefetchNavLink>
         </div>
 
         {/* Primary Navigation - Large touch targets */}
