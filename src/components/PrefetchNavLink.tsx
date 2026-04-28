@@ -1,6 +1,9 @@
 import { NavLink, NavLinkProps } from "react-router-dom";
-import { preloadRoute } from "@/lib/routePreloader";
 import { useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/contexts/AuthContext";
+import { preloadRoute } from "@/lib/routePreloader";
+import { prefetchRouteData } from "@/lib/mobileNavPreloader";
 
 interface PrefetchNavLinkProps extends NavLinkProps {
   prefetch?: boolean;
@@ -11,24 +14,41 @@ export function PrefetchNavLink({
   prefetch = true,
   onMouseEnter,
   onFocus,
+  onTouchStart,
   ...props
 }: PrefetchNavLinkProps) {
   const path = typeof to === "string" ? to : to.pathname || "";
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  const triggerPrefetch = useCallback(() => {
+    if (!prefetch) return;
+    preloadRoute(path);
+    prefetchRouteData(queryClient, path, user?.id);
+  }, [path, prefetch, queryClient, user?.id]);
 
   const handleMouseEnter = useCallback(
     (e: React.MouseEvent<HTMLAnchorElement>) => {
-      if (prefetch) preloadRoute(path);
+      triggerPrefetch();
       onMouseEnter?.(e);
     },
-    [path, prefetch, onMouseEnter]
+    [triggerPrefetch, onMouseEnter]
   );
 
   const handleFocus = useCallback(
     (e: React.FocusEvent<HTMLAnchorElement>) => {
-      if (prefetch) preloadRoute(path);
+      triggerPrefetch();
       onFocus?.(e);
     },
-    [path, prefetch, onFocus]
+    [triggerPrefetch, onFocus]
+  );
+
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent<HTMLAnchorElement>) => {
+      triggerPrefetch();
+      onTouchStart?.(e);
+    },
+    [triggerPrefetch, onTouchStart]
   );
 
   return (
@@ -36,6 +56,7 @@ export function PrefetchNavLink({
       to={to}
       onMouseEnter={handleMouseEnter}
       onFocus={handleFocus}
+      onTouchStart={handleTouchStart}
       {...props}
     />
   );

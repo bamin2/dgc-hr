@@ -1,17 +1,21 @@
 import { QueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/queryKeys";
 
 /**
- * Pre-warm React Query cache for mobile navigation destinations.
- * Called on touch/hover to reduce data loading delay on tab switch.
+ * Pre-warm React Query cache for navigation destinations.
+ * Triggered on hover/focus/touch via PrefetchNavLink and MobileActionBar.
+ *
+ * Only prefetches queries whose cache key matches what the destination page
+ * actually reads — otherwise the prefetched entry never gets consumed and we
+ * just burn a network request.
  */
-export function prefetchMobileRouteData(
+export function prefetchRouteData(
   queryClient: QueryClient,
   path: string,
   userId?: string
 ): void {
   switch (path) {
     case "/requests":
-      // Pre-warm unified requests data
       queryClient.prefetchQuery({
         queryKey: ["unified-requests", undefined],
         staleTime: 30 * 1000,
@@ -19,7 +23,6 @@ export function prefetchMobileRouteData(
       break;
 
     case "/approvals":
-      // Pre-warm pending approvals data
       if (userId) {
         queryClient.prefetchQuery({
           queryKey: ["pending-approvals", userId],
@@ -29,10 +32,27 @@ export function prefetchMobileRouteData(
       break;
 
     case "/my-profile":
-      // Pre-warm employee profile data
       if (userId) {
         queryClient.prefetchQuery({
           queryKey: ["my-employee", userId],
+          staleTime: 60 * 1000,
+        });
+      }
+      break;
+
+    case "/employees":
+    case "/directory":
+      // Both pages read the shared employees list cache
+      queryClient.prefetchQuery({
+        queryKey: queryKeys.employees.all,
+        staleTime: 2 * 60 * 1000,
+      });
+      break;
+
+    case "/notifications":
+      if (userId) {
+        queryClient.prefetchQuery({
+          queryKey: queryKeys.notifications.byUser(userId),
           staleTime: 60 * 1000,
         });
       }
@@ -43,3 +63,8 @@ export function prefetchMobileRouteData(
       break;
   }
 }
+
+/**
+ * @deprecated Use prefetchRouteData. Kept for backwards compatibility.
+ */
+export const prefetchMobileRouteData = prefetchRouteData;
