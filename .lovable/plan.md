@@ -1,58 +1,54 @@
-## Sidebar Polish — 4 Fixes
+## Goal
 
-Address the four amateur-feeling issues in `src/components/dashboard/Sidebar.tsx`.
+Make route navigation feel native on mobile by adding directional slide transitions, with a subtle fade on desktop. Use framer-motion's `AnimatePresence` keyed on the route path.
 
-### 1. Collapsed-state logo: drop the hand-rolled "D"
+## Approach
 
-Replace the `bg-sidebar-primary` square with hardcoded "D" letter with the actual brand mark from `public/dgc-logo-pwa.svg` (the official square PWA icon, already includes the "DGC" wordmark on the dark green background). Render it as an `<img>` at `w-10 h-10` with `rounded-xl overflow-hidden`. No more white-on-orange improvised letter mark.
+1. **Add `framer-motion`** as a dependency (already widely used, ~25kb gzipped, tree-shakable).
+2. **Create `<AnimatedRoutes>`** in `src/components/AnimatedRoutes.tsx`:
+   - Uses `useLocation()` + `AnimatePresence mode="wait"`.
+   - Wraps each route's element in a `<motion.div>` keyed by `location.pathname`.
+   - Tracks navigation direction via a small `useNavigationDirection` hook that listens to `history.state.idx` (React Router v6 increments this on push, decrements on back) — push → slide from right, pop → slide from left.
+   - Desktop (>= md): subtle fade + 6px Y translate (matches existing `page-in` keyframe feel).
+   - Mobile (< md): horizontal slide-in-from-right on forward, slide-out-to-right on back. Uses `useIsMobile()`.
+   - Honors `prefers-reduced-motion` → falls back to instant change (no animation).
+3. **Wire into `App.tsx`**: replace the current `<Routes>` block with `<AnimatedRoutes />`. The route table moves into `AnimatedRoutes` so `AnimatePresence` can see route changes. All existing `ProtectedRoute` / `MobileRestrictedRoute` / `DashboardLazyPage` wrappers stay intact.
+4. **Performance guards**:
+   - `mode="wait"` ensures only one route renders at a time (no layout overlap, no double data fetches).
+   - Transition duration: 220ms mobile slide, 180ms desktop fade — matches existing `cubic-bezier(0.2, 0.6, 0.2, 1)` easing already in `index.css`.
+   - `will-change: transform, opacity` only during transition.
+   - Animations disabled inside iframes / when reduced-motion is set.
+5. **Auth pages excluded**: `/auth`, `/auth/reset-password`, `/email-action-result` render outside `AnimatedRoutes` (or with fade only) — slide transitions on the login screen feel weird.
 
-### 2. Logo sizing: make expanded ↔ collapsed feel like the same logo
+## Technical details
 
-Currently expanded is `h-14` and collapsed is a totally different `w-10 h-10` orange tile. Normalize both states to the same brand mark, just sized differently:
-- Expanded: full horizontal `dgc-people-logo.svg` at `h-10` (down from h-14, which is oversized vs. the 80px collapsed rail).
-- Collapsed: square `dgc-logo-pwa.svg` at `h-10 w-10`.
+**New files:**
+- `src/components/AnimatedRoutes.tsx` — owns the route table + `AnimatePresence`.
+- `src/hooks/useNavigationDirection.ts` — reads `window.history.state?.idx` on each location change, compares to previous, returns `'forward' | 'back' | 'replace'`.
 
-Both use the same visual vocabulary (deep green + DGC), so the transition reads as "same logo, smaller" instead of two different brands.
+**Edited files:**
+- `src/App.tsx` — replace inline `<Routes>` with `<AnimatedRoutes />`. Keep the auth/public routes either inside (with fade variant) or as a separate non-animated `<Routes>` group above.
+- `package.json` — add `framer-motion`.
 
-### 3. Sign-out button: replace bare `<LogOut/>` with a dropdown matching Header
+**Variant sketch:**
 
-Replace the unconfirmed icon-only `LogOut` button (no aria-label, no tooltip, instant sign-out on misclick) with a `DropdownMenu` matching the pattern already used in `src/components/dashboard/Header.tsx` (lines 95–150):
+```ts
+const mobileVariants = {
+  initial: (dir) => ({ x: dir === 'back' ? '-30%' : '100%', opacity: 0 }),
+  animate: { x: 0, opacity: 1 },
+  exit:    (dir) => ({ x: dir === 'back' ? '100%' : '-30%', opacity: 0 }),
+};
+const desktopVariants = {
+  initial: { opacity: 0, y: 6 },
+  animate: { opacity: 1, y: 0 },
+  exit:    { opacity: 0, y: -6 },
+};
+```
 
-- Trigger: small ghost button with chevron, wrapping the avatar+name area so the whole user block becomes the trigger (collapsed state: just the avatar).
-- Menu items: "My Profile" (→ `/my-profile`), "Settings" (→ `/settings`), separator, "Sign out" (→ `useAuth().signOut()`, styled `text-destructive`).
-- Wire up `useAuth` (currently not imported in Sidebar) and `useNavigate`.
-- Add proper `aria-label="User menu"` on the trigger.
+Transition: `{ duration: isMobile ? 0.22 : 0.18, ease: [0.2, 0.6, 0.2, 1] }`.
 
-This eliminates the misclick-signs-you-out problem and keeps a single, consistent user menu pattern across header and sidebar.
+## Out of scope
 
-### 4. Persist collapsed state via `useUserPreferences`, not localStorage
-
-Move sidebar collapsed state into the existing user preferences system so it syncs across devices.
-
-**Schema change** (migration on `user_preferences` table):
-- Add column `sidebar_collapsed boolean not null default false`.
-
-**`src/data/settings.ts`**:
-- Add `sidebarCollapsed: boolean` to the `display` block of `UserPreferences`.
-
-**`src/hooks/useUserPreferences.ts`**:
-- Map `sidebar_collapsed` ↔ `sidebarCollapsed` in `transformFromDb` and the upsert payload.
-- Default to `false`.
-
-**`src/components/dashboard/Sidebar.tsx`**:
-- Replace `useState`+`localStorage` with `useUserPreferences()`:
-  - Read `preferences.display.sidebarCollapsed` for the current value.
-  - Call the existing update mutation on toggle (optimistic update so the chevron feels instant).
-- Keep a one-time localStorage→DB migration: on mount, if `localStorage.getItem('sidebar-collapsed')` exists and DB value is default, write it to DB and remove the localStorage key.
-
-### Files Modified
-
-- `src/components/dashboard/Sidebar.tsx` — logo swap, dropdown menu, preferences-backed state.
-- `src/data/settings.ts` — add `sidebarCollapsed` to display preferences.
-- `src/hooks/useUserPreferences.ts` — map new column, include in default.
-- New SQL migration — add `sidebar_collapsed` column to `user_preferences`.
-
-### Out of scope
-
-- Redesigning the sidebar layout, colors, or section structure.
-- Changing the mobile nav or header.
+- No shared-element transitions (would require per-page coordination).
+- No swipe-to-go-back gesture (separate, larger feature).
+- The existing `.page-enter` utility and per-component `animate-fade-up` stay as-is — they animate content *inside* a page, the new system animates the page boundary.
