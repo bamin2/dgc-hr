@@ -67,7 +67,7 @@ export function TimeOffSnapshotCard({ variant = "default" }: TimeOffSnapshotCard
             </div>
           </div>
           {pendingRequests > 0 && (
-            <div className="flex items-center gap-1 text-amber-600 bg-amber-500/10 px-2.5 py-1 rounded-full">
+            <div className="flex items-center gap-1 text-warning bg-warning/10 px-2.5 py-1 rounded-full">
               <Clock className="w-3.5 h-3.5" />
               <span className="text-xs font-medium">{pendingRequests} pending</span>
             </div>
@@ -110,7 +110,7 @@ export function TimeOffSnapshotCard({ variant = "default" }: TimeOffSnapshotCard
           {/* Pending Requests */}
           <div className="flex-1 bg-secondary/20 rounded-xl p-3">
             <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-amber-500" />
+              <Clock className="w-4 h-4 text-warning" />
               <span className="text-xs text-muted-foreground">Pending</span>
             </div>
             <p className="text-lg font-semibold mt-1">{pendingRequests}</p>
@@ -119,7 +119,7 @@ export function TimeOffSnapshotCard({ variant = "default" }: TimeOffSnapshotCard
           {/* Next Time Off */}
           <div className="flex-1 bg-secondary/20 rounded-xl p-3">
             <div className="flex items-center gap-2">
-              <CalendarCheck className="w-4 h-4 text-green-500" />
+              <CalendarCheck className="w-4 h-4 text-success" />
               <span className="text-xs text-muted-foreground">Next</span>
             </div>
             <p className="text-sm font-medium mt-1 truncate">
