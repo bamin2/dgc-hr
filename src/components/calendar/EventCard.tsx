@@ -30,9 +30,9 @@ const colorStyles: Record<string, { bg: string; border: string; text: string }> 
     text: "text-teal-900 dark:text-teal-100",
   },
   gold: {
-    bg: "bg-[#C6A45E]/10 dark:bg-[#C6A45E]/20",
-    border: "border-l-[#C6A45E]",
-    text: "text-[#8B7035] dark:text-[#C6A45E]",
+    bg: "bg-accent/10 dark:bg-accent/20",
+    border: "border-l-accent",
+    text: "text-accent-foreground dark:text-accent",
   },
   sage: {
     bg: "bg-[#6B8E7B]/10 dark:bg-[#6B8E7B]/20",
@@ -46,9 +46,9 @@ const colorStyles: Record<string, { bg: string; border: string; text: string }> 
     text: "text-teal-900 dark:text-teal-100",
   },
   purple: {
-    bg: "bg-[#C6A45E]/10 dark:bg-[#C6A45E]/20",
-    border: "border-l-[#C6A45E]",
-    text: "text-[#8B7035] dark:text-[#C6A45E]",
+    bg: "bg-accent/10 dark:bg-accent/20",
+    border: "border-l-accent",
+    text: "text-accent-foreground dark:text-accent",
   },
 };
 
