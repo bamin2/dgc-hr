@@ -76,7 +76,6 @@ function NavItem({ icon: Icon, label, path, isActive, onClick, large = false }: 
 
 export function MobileNav() {
   const [open, setOpen] = useState(false);
-  const [showMore, setShowMore] = useState(false);
   const location = useLocation();
   const { currentUser } = useRole();
   const { signOut } = useAuth();
@@ -89,7 +88,6 @@ export function MobileNav() {
 
   const handleClose = () => {
     setOpen(false);
-    setShowMore(false);
   };
 
   const handleSignOut = async () => {
