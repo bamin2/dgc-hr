@@ -21,14 +21,14 @@ export const NotificationCard = ({ notification, onMarkAsRead, onDelete }: Notif
   const formattedDate = format(new Date(notification.timestamp), 'MMM d, yyyy h:mm a');
 
   const priorityColors = {
-    high: 'border-l-red-500 bg-red-50/50 dark:bg-red-900/10',
-    medium: 'border-l-amber-500 bg-amber-50/50 dark:bg-amber-900/10',
+    high: 'border-l-destructive bg-destructive/10',
+    medium: 'border-l-warning bg-warning/10',
     low: 'border-l-gray-300 dark:border-l-gray-600'
   };
 
   const priorityBadgeColors = {
-    high: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-    medium: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+    high: 'bg-destructive/10 text-destructive',
+    medium: 'bg-warning/10 text-warning',
     low: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
   };
 

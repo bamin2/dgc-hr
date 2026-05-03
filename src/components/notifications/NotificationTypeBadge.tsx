@@ -27,8 +27,8 @@ const typeConfig: Record<NotificationType, {
 }> = {
   approval: {
     icon: CheckCircle,
-    bgColor: "bg-green-100 dark:bg-green-900/30",
-    iconColor: "text-green-600 dark:text-green-400"
+    bgColor: "bg-success/10",
+    iconColor: "text-success"
   },
   payroll: {
     icon: DollarSign,
@@ -37,8 +37,8 @@ const typeConfig: Record<NotificationType, {
   },
   document: {
     icon: FileText,
-    bgColor: "bg-blue-100 dark:bg-blue-900/30",
-    iconColor: "text-blue-600 dark:text-blue-400"
+    bgColor: "bg-info/10",
+    iconColor: "text-info"
   },
   reminder: {
     icon: Clock,

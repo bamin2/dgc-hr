@@ -1,74 +1,56 @@
 ## Goal
 
-Apply the same semantic-token mapping (success / destructive / warning / info) used in the previous batch to four more folders:
-- `src/components/attendance/`
-- `src/components/timeoff/`
-- `src/components/timemanagement/`
-- `src/components/business-trips/`
+Apply the same semantic-token mapping (success / destructive / warning / info) to .tsx files in:
+- `src/components/settings/`
+- `src/components/notifications/`
+- `src/components/documents/`
+- `src/components/projects/`
+- `src/components/requests/`
 
-`src/components/ui/` is excluded. No logic, layout, or text changes.
+`src/components/ui/` is excluded. No behavior changes.
 
-## Mapping
+## Mapping (same as prior batches)
 
-| Hard-coded | Replacement |
-|---|---|
-| `bg-emerald-*` / `bg-green-*` solid | `bg-success` |
-| `bg-emerald/green-50/100`, dark `*-900/30` | `bg-success/10` (drop dark pair) |
-| `text-emerald-*` / `text-green-*` (incl. dark pair) | `text-success` |
-| `border-emerald-*` / `border-green-*` | `border-success/30` |
-| `bg-red-*` solid | `bg-destructive` |
-| `bg-red-50/100`, dark `bg-red-950/*` | `bg-destructive/10` |
-| `text-red-*` | `text-destructive` |
-| `border-red-*` | `border-destructive/30` |
-| `bg-amber-*` solid | `bg-warning` |
-| `bg-amber-50/100`, dark `bg-amber-950/*` | `bg-warning/10` |
-| `text-amber-*` | `text-warning` |
-| `border-amber-*` | `border-warning/30` |
-| `bg-blue-100` / `text-blue-600` / `bg-blue-500` (status dots & metric icons) | `bg-info/10` / `text-info` / `bg-info` |
-| Paired `dark:` overrides | dropped (tokens auto-adapt) |
-
-Special cases per user instruction: `AttendanceCalendar.tsx` legend dots → `bg-success`, `bg-destructive`, `bg-info`.
+`emerald|green` → success · `red` → destructive · `amber` → warning · `blue` → info. Soft backgrounds use `*/10`, borders `*/30`. Drop all paired `dark:` overrides. Solid `*-500` for dot/icon decorations becomes the bare token (`bg-success`, `bg-info`, etc.).
 
 ## File-by-file changes
 
-### attendance/
-- **LeaveStatusBadge.tsx** L15 approved → `bg-success/10 text-success border-success/30`; L19 rejected → destructive variant. (`pending` uses `yellow-*` — out of scope per mapping, leaving untouched.)
-- **AttendanceStatusBadge.tsx** L11 success, L15 destructive, L27 warning — same `*/10 + */30` pattern.
-- **CorrectionStatusBadge.tsx** L14 amber → warning variant; L26 green → success variant. (`pending_hr` uses teal — out of scope.)
-- **LeaveRequestsTable.tsx** L126 approve button → `text-success hover:text-success hover:bg-success/10`; L133 reject → destructive equivalents.
-- **LeaveRequestDetailView.tsx** L94 amber outline badge → warning; L115 emerald button → `bg-success text-success-foreground hover:bg-success/90`.
-- **AttendanceMetrics.tsx** L19-20 green → success; L27-28 blue → info (icon bg/color tokens).
-- **LeaveMetrics.tsx** L42-43 blue→info, L50-51 amber→warning, L58-59 green→success.
-- **AttendanceCalendar.tsx** L80/L131 green dots → `bg-success`; L84/L140 red dots → `bg-destructive`; L92/L137 blue dots → `bg-info`. Legend remains visually distinct (green vs red vs gold-ish info from --info token).
+### projects/
+- **ListSection.tsx** L23 `text-green-500` → `text-success`.
+- **BoardColumn.tsx** L20 `text-blue-500` → `text-info`; L23 `text-green-500` → `text-success`.
+- **ActivityItem.tsx** L14 `bg-green-500` → `bg-success`; L15 `bg-blue-500` → `bg-info`; L16 `bg-green-500` → `bg-success`; L19 `bg-blue-500` → `bg-info`. (`bg-orange-500` and `bg-muted-foreground` untouched — outside mapping.)
 
-### timeoff/
-- **TimeOffSummaryCard.tsx** L109 `bg-amber-500/85` → `bg-warning/85`.
-- **LeavesBalancesTab.tsx** L46-48 status map → success/warning/destructive `*/10` variants.
-- **LeaveRequestDetailDialog.tsx** L20-22 same status map; L122-124 rejection-reason banner → destructive variant.
-- **RequestTimeOffDialog.tsx** L247-248 low/negative balance pill borders+bg → warning/destructive `*/10` and `*/30`; L263-264 numeric color → text-destructive / text-warning; L272 pending count → text-warning; L415-418 insufficient-balance Alert → warning tokens (border + bg + title + description all `text-warning` / `bg-warning/10` / `border-warning/50`).
+### settings/
+- **payroll/FxRatesSection.tsx** L277-280 amber callout → `bg-warning/10 border-warning/30`, icon + text → `text-warning`.
+- **payroll/AllowanceTemplatesSection.tsx** L121 `bg-emerald-500/10` → `bg-success/10`; L123, L125 `text-emerald-500` → `text-success`.
+- **LogoPreviewSection.tsx** L104 `text-green-600` → `text-success`.
+- **SessionCard.tsx** L29 emerald active badge → `bg-success/10 text-success` (drop dark pair).
+- **email-templates/EmailTemplateCard.tsx** L45 active badge `bg-green-500/10 text-green-600` → `bg-success/10 text-success`.
 
-### timemanagement/
-- **HolidaysTable.tsx** L131 amber badge → warning `*/10`.
-- **PublicHolidaysTab.tsx** L151 → text-warning.
-- **HolidayFormDialog.tsx** L174 → text-warning, L180 → text-success.
-- **PublicHolidaysSection.tsx** L360 → text-warning, L368 → text-success.
-- **LeaveEmailTemplatesTab.tsx** L118 active pill → success `*/10` set.
-- **AssignLeaveBalanceDialog.tsx** L122 amber callout → warning `*/10` + `*/30`.
+### notifications/
+- **NotificationsMetrics.tsx** L31-32 emerald → `text-success` / `bg-success/10`; L38-39 red → `text-destructive` / `bg-destructive/10`.
+- **NotificationTypeBadge.tsx** L30-31 approval green → `bg-success/10` + `text-success` (drop dark pair); L40-41 document blue → `bg-info/10` + `text-info`. (`orange`, `yellow`, etc. untouched — outside mapping.)
+- **NotificationCard.tsx** L24 `border-l-red-500 bg-red-50/50 dark:bg-red-900/10` → `border-l-destructive bg-destructive/10` (drop dark); L25 amber → `border-l-warning bg-warning/10`; L30 high badge → `bg-destructive/10 text-destructive`; L31 medium → `bg-warning/10 text-warning`. (`gray-*` low entries untouched.)
 
-### business-trips/
-- **TripApprovalsTab.tsx** L71 CheckCircle empty-state → text-success.
-- **TripExpensesSection.tsx** L44-46 expense status map → success / info / destructive `*/10`.
+### documents/
+- **HRDocumentRequestsTab.tsx** L126 amber outline → `text-warning border-warning/30 bg-warning/10`; L133 green → success variant; L140 red → destructive variant; L240 rejection callout `bg-red-50 text-red-700` → `bg-destructive/10 text-destructive`.
+- **TemplateCategoryBadge.tsx** L17 salary_certificate green → `bg-success/10 text-success`; L22 experience_certificate amber → `bg-warning/10 text-warning`. (Teal/orange entries left untouched.)
+- **SmartTagsTab.tsx** L220 active badge → `bg-success/10 text-success`.
 
-## Out of scope (untouched)
-- `LeaveStatusBadge.tsx` `pending` (yellow-* — outside the user's mapping).
-- `CorrectionStatusBadge.tsx` `pending_hr` (teal — outside scope).
-- `AuditTable.tsx` document/leave_balance/hr_document_request entries (teal/cyan/stone/purple) and any other non-listed palettes — not in user's mapping.
+### requests/
+- **detail/HRDocumentRequestDetail.tsx** L23-25 status map → warning/success/destructive `*/10` + `*/30` set; L122-129 rejection banner → `border-destructive/30 bg-destructive/10`, all text → `text-destructive` (drop dark pairs).
+
+## Out of scope
+- `bg-teal-*`, `bg-orange-*`, `bg-yellow-*`, `bg-gray-*`, `bg-purple-*`, `bg-stone-*`, `bg-cyan-*` — outside the user's mapping (no replacement specified).
+- `bg-muted-foreground` and similar token-based decorations — already semantic.
 - `src/components/ui/*`.
 
 ## Verification
-After edit, re-run ripgrep across the four folders for `(bg|text|border)-(emerald|green|red|amber|blue)-` (excluding the documented yellow/teal/stone/purple/cyan exceptions) and confirm only those exceptions remain. Visually confirm the AttendanceCalendar legend dots remain distinguishable: success (green), destructive (muted red), info (blue/charcoal per token) — three separate hues.
+
+Re-run ripgrep across the five folders for `(bg|text|border)-(emerald|green|red|amber|blue)-` and confirm zero matches. Visual spot-check: notification priority strips/badges (high red, medium amber), notification type icons (approval green, document blue), HR document request badges (3 statuses), FX rates callout, allowance templates icons, project activity timeline dots, project list status icons.
 
 ## Risk
-Very low. Pure className swap. The `bg-warning/85` on TimeOffSummaryCard will render as a slightly more amber/orange tone than before (warning token is HSL `35 70% 45%` vs Tailwind amber-500); semantically identical.
+
+Very low. Pure className swap. The notifications metrics card now blends "today" and "approval" both into success-green (previously emerald vs green — visually indistinguishable in DGC palette). Acceptable per single-success-token policy.
 
 Approve to apply.

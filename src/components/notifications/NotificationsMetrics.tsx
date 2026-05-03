@@ -28,15 +28,15 @@ export const NotificationsMetrics = ({ total, unread, today, highPriority }: Not
       label: 'Today',
       value: today,
       icon: Calendar,
-      color: 'text-emerald-600',
-      bgColor: 'bg-emerald-100 dark:bg-emerald-900/30'
+      color: 'text-success',
+      bgColor: 'bg-success/10'
     },
     {
       label: 'High Priority',
       value: highPriority,
       icon: AlertTriangle,
-      color: 'text-red-600',
-      bgColor: 'bg-red-100 dark:bg-red-900/30'
+      color: 'text-destructive',
+      bgColor: 'bg-destructive/10'
     }
   ];
 

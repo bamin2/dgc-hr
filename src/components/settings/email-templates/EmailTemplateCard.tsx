@@ -42,7 +42,7 @@ export function EmailTemplateCard({ template, onEdit, compact = false }: EmailTe
               <div className="flex items-center gap-2 mb-1">
                 <h3 className="font-medium text-sm truncate">{template.name}</h3>
                 {template.is_active ? (
-                  <Badge variant="secondary" className="bg-green-500/10 text-green-600 border-0 shrink-0">
+                  <Badge variant="secondary" className="bg-success/10 text-success border-0 shrink-0">
                     <CheckCircle className="h-3 w-3 mr-1" />
                     Active
                   </Badge>
