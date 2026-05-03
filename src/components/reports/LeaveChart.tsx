@@ -40,9 +40,9 @@ export const LeaveChart = ({ data }: LeaveChartProps) => {
                 }}
               />
               <Legend />
-              <Bar dataKey="taken" name="Taken" fill="#4A6B5D" radius={[0, 4, 4, 0]} />
-              <Bar dataKey="remaining" name="Remaining" fill="#22C55E" radius={[0, 4, 4, 0]} />
-              <Bar dataKey="pending" name="Pending" fill="#F97316" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="taken" name="Taken" fill="hsl(var(--chart-1))" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="remaining" name="Remaining" fill="hsl(var(--chart-accent))" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="pending" name="Pending" fill="hsl(var(--chart-3))" radius={[0, 4, 4, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

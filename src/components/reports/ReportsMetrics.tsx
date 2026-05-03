@@ -14,40 +14,40 @@ export const ReportsMetrics = ({ stats }: ReportsMetricsProps) => {
       value: stats.totalEmployees.toString(),
       subtitle: `${stats.activeEmployees} active`,
       icon: Users,
-      iconBg: 'bg-teal-100 dark:bg-teal-900/30',
-      iconColor: 'text-teal-600 dark:text-teal-400'
+      iconBg: 'bg-info/10',
+      iconColor: 'text-info'
     },
     {
       title: 'Attendance Rate',
       value: `${stats.attendanceRate}%`,
       subtitle: 'Last 30 days average',
       icon: UserCheck,
-      iconBg: 'bg-emerald-100 dark:bg-emerald-900/30',
-      iconColor: 'text-emerald-600 dark:text-emerald-400'
+      iconBg: 'bg-success/10',
+      iconColor: 'text-success'
     },
     {
       title: 'Average Salary',
       value: `$${stats.averageSalary.toLocaleString()}`,
       subtitle: 'Per employee',
       icon: DollarSign,
-      iconBg: 'bg-[#C6A45E]/20 dark:bg-[#C6A45E]/10',
-      iconColor: 'text-[#8B7035] dark:text-[#C6A45E]'
+      iconBg: 'bg-primary/10',
+      iconColor: 'text-primary'
     },
     {
       title: 'Pending Leaves',
       value: stats.pendingLeaves.toString(),
       subtitle: 'Awaiting approval',
       icon: Clock,
-      iconBg: 'bg-amber-100 dark:bg-amber-900/30',
-      iconColor: 'text-amber-600 dark:text-amber-400'
+      iconBg: 'bg-warning/10',
+      iconColor: 'text-warning'
     },
     {
       title: 'Monthly Payroll',
       value: `$${(stats.monthlyPayroll / 1000).toFixed(0)}K`,
       subtitle: 'Total compensation',
       icon: Wallet,
-      iconBg: 'bg-teal-100 dark:bg-teal-900/30',
-      iconColor: 'text-teal-600 dark:text-teal-400'
+      iconBg: 'bg-info/10',
+      iconColor: 'text-info'
     }
   ];
 
