@@ -77,11 +77,11 @@ export function AttendanceCalendar() {
         {/* Legend */}
         <div className="flex flex-wrap gap-4 mb-4 text-xs">
           <div className="flex items-center gap-1.5">
-            <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
+            <div className="w-2.5 h-2.5 rounded-full bg-success" />
             <span className="text-muted-foreground">Present</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
+            <div className="w-2.5 h-2.5 rounded-full bg-destructive" />
             <span className="text-muted-foreground">Absent</span>
           </div>
           <div className="flex items-center gap-1.5">
@@ -89,7 +89,7 @@ export function AttendanceCalendar() {
             <span className="text-muted-foreground">Late</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+            <div className="w-2.5 h-2.5 rounded-full bg-info" />
             <span className="text-muted-foreground">On Leave</span>
           </div>
         </div>
@@ -128,16 +128,16 @@ export function AttendanceCalendar() {
                 {summary && !weekend && (
                   <div className="flex flex-wrap gap-0.5 justify-center">
                     {summary.present > 0 && (
-                      <div className="w-1.5 h-1.5 rounded-full bg-green-500" title={`${summary.present} present`} />
+                      <div className="w-1.5 h-1.5 rounded-full bg-success" title={`${summary.present} present`} />
                     )}
                     {summary.late > 0 && (
                       <div className="w-1.5 h-1.5 rounded-full bg-orange-500" title={`${summary.late} late`} />
                     )}
                     {summary.onLeave > 0 && (
-                      <div className="w-1.5 h-1.5 rounded-full bg-blue-500" title={`${summary.onLeave} on leave`} />
+                      <div className="w-1.5 h-1.5 rounded-full bg-info" title={`${summary.onLeave} on leave`} />
                     )}
                     {summary.absent > 0 && (
-                      <div className="w-1.5 h-1.5 rounded-full bg-red-500" title={`${summary.absent} absent`} />
+                      <div className="w-1.5 h-1.5 rounded-full bg-destructive" title={`${summary.absent} absent`} />
                     )}
                   </div>
                 )}

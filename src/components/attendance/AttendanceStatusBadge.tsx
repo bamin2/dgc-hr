@@ -8,11 +8,11 @@ interface AttendanceStatusBadgeProps {
 const statusConfig = {
   present: {
     label: 'Present',
-    className: 'bg-green-100 text-green-700 border-green-200',
+    className: 'bg-success/10 text-success border-success/30',
   },
   absent: {
     label: 'Absent',
-    className: 'bg-red-100 text-red-700 border-red-200',
+    className: 'bg-destructive/10 text-destructive border-destructive/30',
   },
   late: {
     label: 'Late',
@@ -24,7 +24,7 @@ const statusConfig = {
   },
   half_day: {
     label: 'Half Day',
-    className: 'bg-amber-100 text-amber-700 border-amber-200',
+    className: 'bg-warning/10 text-warning border-warning/30',
   },
   remote: {
     label: 'Remote',

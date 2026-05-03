@@ -244,8 +244,8 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
                         isSelected 
                           ? "border-primary bg-primary/5 ring-1 ring-primary" 
                           : "hover:border-muted-foreground/50",
-                        !isSelected && isLow && "border-amber-300 bg-amber-50 dark:bg-amber-950/30",
-                        !isSelected && isNegativeOrZero && "border-red-300 bg-red-50 dark:bg-red-950/30"
+                        !isSelected && isLow && "border-warning/30 bg-warning/10",
+                        !isSelected && isNegativeOrZero && "border-destructive/30 bg-destructive/10"
                       )}
                       onClick={() => setLeaveTypeId(balance.leave_type_id)}
                     >
@@ -260,8 +260,8 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
                       </div>
                       <div className={cn(
                         "text-lg font-bold",
-                        isNegativeOrZero && "text-red-600 dark:text-red-400",
-                        isLow && "text-amber-600 dark:text-amber-400"
+                        isNegativeOrZero && "text-destructive",
+                        isLow && "text-warning"
                       )}>
                         {remaining.toFixed(remaining % 1 === 0 ? 0 : 1)}
                       </div>
@@ -269,7 +269,7 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
                         of {balance.total_days} days
                       </div>
                       {(balance.pending_days || 0) > 0 && (
-                        <div className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                        <div className="text-xs text-warning mt-1">
                           {balance.pending_days} pending
                         </div>
                       )}
@@ -412,10 +412,10 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
 
           {/* Negative Balance Warning */}
           {balanceInfo?.wouldBeNegative && (
-            <Alert className="border-amber-500 bg-amber-50 dark:bg-amber-950/30">
-              <AlertTriangle className="h-4 w-4 text-amber-600" />
-              <AlertTitle className="text-amber-800 dark:text-amber-200">Insufficient Balance</AlertTitle>
-              <AlertDescription className="text-amber-700 dark:text-amber-300">
+            <Alert className="border-warning/50 bg-warning/10">
+              <AlertTriangle className="h-4 w-4 text-warning" />
+              <AlertTitle className="text-warning">Insufficient Balance</AlertTitle>
+              <AlertDescription className="text-warning">
                 This request will result in a negative balance of {balanceInfo.resultingBalance.toFixed(1)} days 
                 for {balanceInfo.leaveTypeName}. It will require HR approval.
               </AlertDescription>
