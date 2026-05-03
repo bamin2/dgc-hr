@@ -11,10 +11,10 @@ export function MobileProfileHeader({ employee }: MobileProfileHeaderProps) {
   const fullName = employee.fullName || `${employee.firstName} ${employee.lastName}`;
   
   const statusColors: Record<string, string> = {
-    active: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
-    on_leave: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-    probation: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-    on_boarding: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+    active: 'bg-success/10 text-success',
+    on_leave: 'bg-warning/10 text-warning',
+    probation: 'bg-info/10 text-info',
+    on_boarding: 'bg-info/10 text-info',
     terminated: 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400',
   };
 
