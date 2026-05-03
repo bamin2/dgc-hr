@@ -21,7 +21,6 @@ interface QuickActionItem {
   label: string;
   icon: React.ElementType;
   onClick: () => void;
-  color: string;
 }
 
 /**
