@@ -31,6 +31,10 @@
     --primary-foreground: 48 21% 97%;
     --primary-hover: 168 48% 8%;
 
+    /* Auth brand panel — fixed DGC Green, never overridden by company branding */
+    --auth-brand-panel: 168 48% 11%;
+    --auth-brand-panel-foreground: 48 21% 97%;
+
     --secondary: 48 14% 92%;
     --secondary-foreground: 150 6% 11%;
 
