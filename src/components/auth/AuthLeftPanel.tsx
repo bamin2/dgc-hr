@@ -44,7 +44,7 @@ interface ValueWordProps {
 function ValueWord({ word, hasAccent }: ValueWordProps) {
   return (
     <div className="flex items-center gap-3">
-      {hasAccent && <div className="w-1 h-6 rounded-full bg-accent" />}
+      {hasAccent && <div className="w-1 h-6 rounded-full bg-success" />}
       <span
         className={`text-2xl lg:text-3xl font-light tracking-[0.1em] text-primary-foreground ${
           hasAccent ? "" : "ml-4"
