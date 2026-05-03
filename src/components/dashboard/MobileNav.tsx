@@ -100,11 +100,11 @@ export function MobileNav() {
       <SheetTrigger asChild>
         <Button
           variant="ghost"
-          size="icon"
-          className="lg:hidden h-11 w-11 touch-manipulation"
-          aria-label="Open navigation menu"
+          className="lg:hidden h-11 px-3 gap-2 touch-manipulation"
+          aria-label="Open more menu"
         >
           <Menu className="h-5 w-5" />
+          <span className="text-sm font-medium">More</span>
         </Button>
       </SheetTrigger>
       <SheetContent 
