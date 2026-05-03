@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ApprovalWorkflowStep, RequestType } from "@/types/approvals";
+import { ApprovalWorkflowStep, RequestType, ApprovalInitiationResult } from "@/types/approvals";
 import { toast } from "sonner";
 import { queryKeys } from "@/lib/queryKeys";
 
@@ -73,57 +73,14 @@ export function useInitiateApproval() {
 
       if (workflowError) throw workflowError;
 
-      // 2. If workflow is inactive, auto-approve
+      // 2. If workflow is inactive — block, do not auto-approve.
       if (!workflow.is_active) {
-        if (requestType === "time_off") {
-          await supabase
-            .from("leave_requests")
-            .update({ status: "approved" })
-            .eq("id", requestId);
-        } else if (requestType === "business_trip") {
-          await supabase
-            .from("business_trips")
-            .update({ status: "hr_approved" })
-            .eq("id", requestId);
-        } else if (requestType === "loan") {
-          const { data: { user } } = await supabase.auth.getUser();
-          await supabase
-            .from("loans")
-            .update({
-              status: "approved",
-              approved_by: user?.id,
-              approved_at: new Date().toISOString(),
-            })
-            .eq("id", requestId);
-        }
-        return { autoApproved: true };
+        return { autoApproved: false, blocked: true, reason: 'workflow_inactive' } satisfies ApprovalInitiationResult;
       }
 
       const steps = (workflow.steps as unknown as ApprovalWorkflowStep[]) || [];
       if (steps.length === 0) {
-        // No steps defined, auto-approve
-        if (requestType === "time_off") {
-          await supabase
-            .from("leave_requests")
-            .update({ status: "approved" })
-            .eq("id", requestId);
-        } else if (requestType === "business_trip") {
-          await supabase
-            .from("business_trips")
-            .update({ status: "hr_approved" })
-            .eq("id", requestId);
-        } else if (requestType === "loan") {
-          const { data: { user } } = await supabase.auth.getUser();
-          await supabase
-            .from("loans")
-            .update({
-              status: "approved",
-              approved_by: user?.id,
-              approved_at: new Date().toISOString(),
-            })
-            .eq("id", requestId);
-        }
-        return { autoApproved: true };
+        return { autoApproved: false, blocked: true, reason: 'no_steps' } satisfies ApprovalInitiationResult;
       }
 
       // 3. Get manager user_id if needed
@@ -179,30 +136,29 @@ export function useInitiateApproval() {
         if (insertError) throw insertError;
       }
 
-      // 5. If no steps were created (couldn't resolve any approvers), auto-approve
+      // 5. If no steps were created, try a last-resort default HR approver.
       if (!firstStepCreated) {
-        if (requestType === "time_off") {
-          await supabase
-            .from("leave_requests")
-            .update({ status: "approved" })
-            .eq("id", requestId);
-        } else if (requestType === "business_trip") {
-          await supabase
-            .from("business_trips")
-            .update({ status: "hr_approved" })
-            .eq("id", requestId);
-        } else if (requestType === "loan") {
-          const { data: { user } } = await supabase.auth.getUser();
-          await supabase
-            .from("loans")
-            .update({
-              status: "approved",
-              approved_by: user?.id,
-              approved_at: new Date().toISOString(),
-            })
-            .eq("id", requestId);
+        const fallbackHrUserId = await getDefaultHRApprover(
+          workflow.default_hr_approver_id,
+          requesterUserId,
+        );
+
+        if (fallbackHrUserId) {
+          const { error: insertError } = await supabase
+            .from("request_approval_steps")
+            .insert({
+              request_id: requestId,
+              request_type: requestType,
+              step_number: 1,
+              approver_type: "hr",
+              approver_user_id: fallbackHrUserId,
+              status: "pending",
+            });
+          if (insertError) throw insertError;
+          firstStepCreated = true;
+        } else {
+          return { autoApproved: false, blocked: true, reason: 'no_approver' } satisfies ApprovalInitiationResult;
         }
-        return { autoApproved: true };
       }
 
       // 6. Update request status to pending_approval
@@ -225,7 +181,7 @@ export function useInitiateApproval() {
       }
       // Loans stay in "requested" status until approved
 
-      return { autoApproved: false };
+      return { autoApproved: false, blocked: false } satisfies ApprovalInitiationResult;
     },
     onSuccess: (result, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.leave.requests.all });
@@ -243,8 +199,20 @@ export function useInitiateApproval() {
         queryClient.invalidateQueries({ queryKey: queryKeys.loans.all });
       }
       
-      if (result.autoApproved) {
-        toast.success("Request auto-approved (no approval workflow configured)");
+      if (result.blocked) {
+        switch (result.reason) {
+          case 'workflow_inactive':
+            toast.error("Approval workflow is inactive. Please contact HR to enable it.");
+            break;
+          case 'no_steps':
+            toast.error("Approval workflow has no steps configured. Please contact HR.");
+            break;
+          case 'no_approver':
+            toast.error("No approver could be assigned. Please contact HR.");
+            break;
+          default:
+            toast.error("Request could not be submitted for approval. Please contact HR.");
+        }
       } else {
         toast.success("Request submitted for approval");
       }
