@@ -105,8 +105,30 @@ export function useInitiateApproval() {
         return { autoApproved: false, blocked: true, reason: 'no_steps' } satisfies ApprovalInitiationResult;
       }
 
-      // 3. Get manager user_id if needed
-      const managerUserId = await getManagerUserId(employeeId);
+      // 3. Resolve manager (employee row + user_id) and detect cycles
+      const { data: requesterEmployee } = await supabase
+        .from("employees")
+        .select("manager_id")
+        .eq("id", employeeId)
+        .single();
+      const directManagerEmployeeId = (requesterEmployee?.manager_id as string | null) ?? null;
+
+      let managerEmployeeRow: { id: string; user_id: string | null } | null = null;
+      if (directManagerEmployeeId) {
+        const { data } = await supabase
+          .from("employees")
+          .select("id, user_id")
+          .eq("id", directManagerEmployeeId)
+          .single();
+        managerEmployeeRow = (data as { id: string; user_id: string | null } | null) ?? null;
+      }
+      const managerUserId = managerEmployeeRow?.user_id ?? null;
+
+      const cycleDetected = managerEmployeeRow
+        ? await isCircularManager(employeeId, managerEmployeeRow.id)
+        : false;
+
+      let circularManagerDetected = false;
 
       // 4. Create approval steps
       let firstStepCreated = false;
@@ -115,14 +137,16 @@ export function useInitiateApproval() {
         let effectiveApproverType = stepConfig.approver;
 
         if (stepConfig.approver === "manager") {
-          if (managerUserId && managerUserId !== requesterUserId) {
+          if (managerUserId && managerUserId !== requesterUserId && !cycleDetected) {
             approverUserId = managerUserId;
           } else if (stepConfig.fallback === "hr") {
             // Fallback to HR (exclude requester to prevent self-approval)
             approverUserId = await getDefaultHRApprover(workflow.default_hr_approver_id, requesterUserId);
             effectiveApproverType = "hr";
+            if (cycleDetected) circularManagerDetected = true;
           } else {
             // Skip this step if no manager and no fallback
+            if (cycleDetected) circularManagerDetected = true;
             continue;
           }
         } else if (stepConfig.approver === "hr") {
@@ -179,7 +203,11 @@ export function useInitiateApproval() {
           if (insertError) throw insertError;
           firstStepCreated = true;
         } else {
-          return { autoApproved: false, blocked: true, reason: 'no_approver' } satisfies ApprovalInitiationResult;
+          return {
+            autoApproved: false,
+            blocked: true,
+            reason: circularManagerDetected ? 'circular_manager' : 'no_approver',
+          } satisfies ApprovalInitiationResult;
         }
       }
 
