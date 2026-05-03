@@ -1,203 +1,118 @@
-# Per-Tab Dirty Tracking + Unsaved-Changes Confirm in Settings
+# Onboarding Gate for Users Without `employee_id`
 
 ## Goal
-Track unsaved-edit state per Settings tab using three booleans. Disable the Save button unless the active tab is dirty. When the user clicks a different tab while the active one is dirty, intercept and present an `AlertDialog` with three actions: Save and continue / Discard changes / Cancel.
+When a signed-in user's `profile.employee_id` is `null` after Auth has finished loading, replace every protected page with a full-page "Welcome to DGC People" onboarding state and a Sign out button. Users without an employee record cannot navigate anywhere else in the app.
 
-## Scope
-`src/pages/Settings.tsx` only. Tab routing, save calls, child forms, and existing skeleton/loading logic are unchanged. Three tabs are covered by per-tab dirtiness:
-- `companyDirty` → applies to `company`, `dashboard`, `selfservice` (all three mutate `companySettings`).
-- `prefsDirty` → applies to `preferences`.
-- `notifDirty` → applies to `notifications`.
-Other tabs (`organization`, `approvals`, `email-templates`, `payroll`, `security`) own their own save flow today; no global Save button shown for them — guarding is unnecessary and intentionally skipped.
+## Strategy
+Add the gate inside `ProtectedRoute` — it already wraps every authenticated route in `AnimatedRoutes`, so a single check there blocks all navigation without touching individual routes (`/`, `/employees`, `/settings`, …). `AuthContext` already exposes `profile` and `loading`, so no context shape changes are needed.
+
+## Files
+- `src/components/auth/ProtectedRoute.tsx` — add the gate.
+- `src/components/auth/OnboardingGate.tsx` — **new**, the full-page onboarding screen.
+
+`src/contexts/AuthContext.tsx` and `src/pages/Index.tsx` are inspected only — no changes needed since `profile.employee_id` is already populated by `fetchProfile`.
 
 ## Changes
 
-### 1. Imports
-Add to existing imports:
-```ts
-import { useMemo, useRef } from 'react'; // merge with existing useState/useEffect import
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-```
+### 1. New file: `src/components/auth/OnboardingGate.tsx`
+Mobile-first, semantic tokens, shadcn `Button`. Centered card on the off-white background, deep-green heading, gold sign-out CTA via `variant="default"` (primary token already maps to gold per project memory).
 
-### 2. State
-Right under existing `useState` blocks:
-```ts
-const [companyDirty, setCompanyDirty] = useState(false);
-const [prefsDirty, setPrefsDirty] = useState(false);
-const [notifDirty, setNotifDirty] = useState(false);
-
-const [pendingTab, setPendingTab] = useState<string | null>(null);
-```
-
-### 3. Setter wrappers — flag dirty when the *user* changes data
-The three local-state setters are passed to child forms (`onChange={setUserPreferences}` etc.) and to inline updaters. Wrap them so dirtiness flips on user edits but the data-load `useEffect`s do not.
-
-- Replace `handleCompanySettingsChange` body and add similar wrappers:
-```ts
-const handleCompanySettingsChange = (newSettings: CompanySettings) => {
-  setCompanySettings(newSettings);
-  setCompanyDirty(true);
-};
-
-const handleUserPreferencesChange = (next: UserPreferences) => {
-  setUserPreferences(next);
-  setPrefsDirty(true);
-};
-
-const handleNotificationSettingsChange = (next: NotificationSettings) => {
-  setNotificationSettings(next);
-  setNotifDirty(true);
-};
-```
-
-- Update the inline `onChange` props in `renderTabContent`:
-  - `UserPreferencesForm`: `onChange={handleUserPreferencesChange}`
-  - `NotificationSettingsForm`: `onChange={handleNotificationSettingsChange}`
-  - `DashboardSettingsTab`: replace inline `setCompanySettings(prev => ...)` with:
-    ```tsx
-    onChange={(visibility) => {
-      setCompanySettings(prev => ({ ...prev, dashboardCardVisibility: visibility }));
-      setCompanyDirty(true);
-    }}
-    ```
-  - `SelfServiceSettings`: same treatment for the field/value updater.
-
-### 4. Keep load-sync effects from flipping dirty
-The three `useEffect`s that mirror DB → local state must not set dirty. Currently they already only call `setX(...)`, which is fine; we just don't add `setXDirty(true)` there. **However** they also need to reset dirtiness when DB resyncs after save (e.g. after a successful save, `dbUserPreferences` updates → effect runs). That's exactly the desired reset path, so leave them as-is. To make the reset explicit and resilient, also reset dirty inside `handleSave` after each successful branch (see step 5).
-
-### 5. `handleSave` — reset the matching dirty flag on success
-Inside the existing switch, after each `await ...updateX(...)` call, reset the relevant flag:
-
-```ts
-case 'company':
-case 'dashboard':
-case 'selfservice':
-  if (canManageRoles && hasCompanySettingsLoaded) {
-    await updateGlobalSettings(companySettings);
-    setCompanyDirty(false);
-  } else if (canManageRoles && !hasCompanySettingsLoaded) { ... return; }
-  break;
-
-case 'preferences':
-  await updatePreferences(userPreferences);
-  setPrefsDirty(false);
-  break;
-
-case 'notifications':
-  await updateNotifications(notificationSettings);
-  setNotifDirty(false);
-  break;
-```
-
-### 6. Compute `activeTabDirty` and gate the Save button
-```ts
-const activeTabDirty = useMemo(() => {
-  if (['company', 'dashboard', 'selfservice'].includes(activeTab)) return companyDirty;
-  if (activeTab === 'preferences') return prefsDirty;
-  if (activeTab === 'notifications') return notifDirty;
-  return false;
-}, [activeTab, companyDirty, prefsDirty, notifDirty]);
-```
-
-Update Save button `disabled`:
 ```tsx
-<Button onClick={handleSave} disabled={!canSave || !activeTabDirty}>
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import { Mail, LogOut } from "lucide-react";
+
+export function OnboardingGate() {
+  const { signOut } = useAuth();
+
+  return (
+    <div className="min-h-screen w-full bg-background flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-md mx-auto text-center space-y-6 bg-card border border-border rounded-2xl p-8 shadow-sm">
+        <div className="space-y-2">
+          <h1 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight">
+            Welcome to DGC People
+          </h1>
+          <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+            We're getting your account set up. Your HR team has been notified —
+            you'll have full access shortly.
+          </p>
+        </div>
+
+        <div className="bg-muted/50 rounded-xl p-4 text-sm text-muted-foreground flex items-start gap-3 text-left">
+          <Mail className="h-4 w-4 mt-0.5 shrink-0 text-primary" aria-hidden="true" />
+          <p>
+            If this takes more than one business day, please email{" "}
+            <a
+              href="mailto:hr@dgcholding.com"
+              className="text-primary font-medium hover:underline"
+            >
+              hr@dgcholding.com
+            </a>
+            .
+          </p>
+        </div>
+
+        <Button
+          variant="outline"
+          className="w-full"
+          onClick={() => signOut()}
+        >
+          <LogOut className="h-4 w-4 mr-2" />
+          Sign out
+        </Button>
+      </div>
+    </div>
+  );
+}
 ```
-`canSave` (existing) preserves the loading-gate for company tabs and the saving spinner; we additionally require `activeTabDirty` so the button is inert with no edits.
 
-### 7. Tab-switch guard
-Create a single function used by all three call sites that switch tabs (mobile `<select>`, admin nav buttons, personal nav buttons):
+### 2. `src/components/auth/ProtectedRoute.tsx`
+Add the onboarding gate between the `loading` check and the role check:
 
-```ts
-const requestTabSwitch = (nextTab: string) => {
-  if (nextTab === activeTab) return;
-  if (activeTabDirty) {
-    setPendingTab(nextTab);
-    return;
+```tsx
+import { Navigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRole } from "@/contexts/RoleContext";
+import { AppRole } from "@/data/roles";
+import { PageLoader } from "@/components/ui/page-loader";
+import { OnboardingGate } from "./OnboardingGate";
+
+// ...
+
+export function ProtectedRoute({ children, requiredRoles }: ProtectedRouteProps) {
+  const { user, profile, loading } = useAuth();
+  const { currentUser } = useRole();
+  const location = useLocation();
+
+  if (loading) return <PageLoader />;
+  if (!user) return <Navigate to="/auth" state={{ from: location }} replace />;
+
+  // Block every protected route until an employee record is linked.
+  // `profile` is null momentarily while fetchProfile resolves; only gate
+  // once we have a profile object and confirm employee_id is missing.
+  if (profile && profile.employee_id === null) {
+    return <OnboardingGate />;
   }
-  setActiveTab(nextTab);
-};
+
+  if (requiredRoles && requiredRoles.length > 0) {
+    if (!requiredRoles.includes(currentUser.role)) {
+      return <Navigate to="/" replace />;
+    }
+  }
+
+  return <>{children}</>;
+}
 ```
 
-Replace each `onClick={() => setActiveTab(tab.value)}` and `onChange={(e) => setActiveTab(e.target.value)}` with `requestTabSwitch`.
+`PublicRoute` is unchanged — `/auth` and `/auth/reset-password` remain reachable, so a stranded user can still complete reset flows.
 
-> URL-driven `setActiveTab` calls in the two `useEffect`s (URL → state sync) are **not** routed through the guard — those reflect external navigation and should not pop a dialog mid-render. This matches "do not change tab routing".
+## Behavior
+- A signed-in user with no linked employee record sees the onboarding screen on **every** protected URL they try (direct nav, deep links, refresh).
+- They can only sign out (or hit `/auth`, which is correct).
+- Users with a valid `employee_id` see the dashboard and all protected routes exactly as before.
+- During the brief window before `fetchProfile` resolves, `profile` is `null` and the gate is **not** triggered — `ProtectedRoute` falls through to render its children (which themselves typically show their own loading skeletons via React Query). This avoids flashing the onboarding screen for everyone on first paint.
+- No new context fields, no edits to `AuthContext.tsx`, no per-route changes.
 
-### 8. The `AlertDialog`
-Render at the bottom of the page (just before `</DashboardLayout>` close):
-
-```tsx
-<AlertDialog open={pendingTab !== null} onOpenChange={(open) => { if (!open) setPendingTab(null); }}>
-  <AlertDialogContent>
-    <AlertDialogHeader>
-      <AlertDialogTitle>Unsaved changes</AlertDialogTitle>
-      <AlertDialogDescription>
-        You have unsaved changes. Save before switching tabs?
-      </AlertDialogDescription>
-    </AlertDialogHeader>
-    <AlertDialogFooter>
-      <AlertDialogCancel onClick={() => setPendingTab(null)}>
-        Cancel
-      </AlertDialogCancel>
-      <Button
-        variant="outline"
-        onClick={() => {
-          // Discard: reset matching dirty flag and switch
-          if (['company', 'dashboard', 'selfservice'].includes(activeTab)) {
-            setCompanySettings(globalSettings);
-            setCompanyDirty(false);
-          } else if (activeTab === 'preferences') {
-            setUserPreferences(dbUserPreferences);
-            setPrefsDirty(false);
-          } else if (activeTab === 'notifications') {
-            setNotificationSettings(dbNotificationSettings);
-            setNotifDirty(false);
-          }
-          const next = pendingTab!;
-          setPendingTab(null);
-          setActiveTab(next);
-        }}
-      >
-        Discard changes
-      </Button>
-      <AlertDialogAction
-        onClick={async () => {
-          const next = pendingTab!;
-          setPendingTab(null);
-          await handleSave();
-          // Only switch if no error toast (best-effort: handleSave already
-          // surfaces errors). Switch unconditionally — error tab will simply
-          // remain dirty if save failed; user can retry.
-          setActiveTab(next);
-        }}
-      >
-        Save and continue
-      </AlertDialogAction>
-    </AlertDialogFooter>
-  </AlertDialogContent>
-</AlertDialog>
-```
-
-Wrap using a fragment if needed, or place inside the existing root `<DashboardLayout>` children container.
-
-## Behavior Summary
-- Editing in a covered tab flips its dirty flag → Save button enables.
-- Successful save resets the flag → Save button disables again.
-- Clicking a different tab while dirty intercepts and asks Save / Discard / Cancel.
-- Discard reverts local state to the last loaded DB snapshot before switching.
-- Save and continue runs the normal save then switches tabs.
-- Cancel keeps the user on the current tab with edits intact.
-- URL-driven tab changes (deep links, mobile-admin redirect) bypass the guard intentionally.
-- All other tabs (`organization`, `approvals`, …) are unchanged.
-
-## Files Modified
-- `src/pages/Settings.tsx`
+## Files Modified / Added
+- `src/components/auth/ProtectedRoute.tsx` (modified)
+- `src/components/auth/OnboardingGate.tsx` (new)
