@@ -133,19 +133,31 @@ export function Sidebar() {
       {/* Logo Section - DGC Branding */}
       <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
         <div className={cn("flex items-center gap-3", collapsed && "justify-center w-full")}>
-          {collapsed ? (
+          <div
+            className={cn(
+              "relative h-10 transition-[width] duration-200 ease-out",
+              collapsed ? "w-10" : "w-[140px]"
+            )}
+          >
             <img
               src={dgcLogoMark}
               alt="DGC"
-              className="h-10 w-10 rounded-xl"
+              className={cn(
+                "absolute inset-y-0 left-0 h-10 w-10 rounded-xl transition-opacity duration-200",
+                collapsed ? "opacity-100" : "opacity-0"
+              )}
+              aria-hidden={!collapsed}
             />
-          ) : (
             <img
               src={dgcLogoLight}
               alt="DGC Logo"
-              className="h-10 w-auto"
+              className={cn(
+                "absolute inset-y-0 left-0 h-10 w-auto transition-opacity duration-200",
+                collapsed ? "opacity-0" : "opacity-100"
+              )}
+              aria-hidden={collapsed}
             />
-          )}
+          </div>
         </div>
       </div>
 
