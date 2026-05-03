@@ -1,73 +1,35 @@
 ## Goal
-Add a global, visually hidden screen-reader live region in `App.tsx` and a tiny `useScreenReaderAnnounce` hook that writes into it (with a 2s clear). Visible toaster behavior stays untouched.
+Update the sign-in headline/subtitle copy and add a centered help link below the Microsoft button. No behavior or input/button styling changes.
 
-## Findings
-- `src/App.tsx` mounts `<Toaster />` (legacy) then `<Sonner />` at lines 32–33. The new live region goes immediately under `<Sonner />`.
-- `src/components/ui/sonner.tsx` is a thin wrapper around the `sonner` library — no changes needed.
-- `src/components/ui/toaster.tsx` is the legacy toaster — no changes needed.
-- `sr-only` Tailwind utility is available globally (shadcn default).
+## Changes in `src/components/auth/SignInForm.tsx`
 
-## Changes
-
-### 1. `src/App.tsx` — insert the live region under `<Sonner />` (lines 32–35)
+### 1. Header copy (lines 113–118)
 
 ```tsx
-<Toaster />
-<Sonner />
-<div
-  id="sr-announce-region"
-  role="alert"
-  aria-live="assertive"
-  aria-atomic="true"
-  className="sr-only"
-/>
-<OfflineIndicator />
-<InstallPrompt />
+<h1 className="text-2xl sm:text-3xl font-semibold leading-tight mb-3 text-foreground">
+  Welcome to DGC People.
+</h1>
+<p className="text-muted-foreground">
+  Your work life, benefits, and requests — in one place.
+</p>
 ```
 
-Notes:
-- `aria-live="assertive"` + `role="alert"` per spec.
-- `aria-atomic="true"` ensures the full message is read on each update.
-- `sr-only` keeps it visually hidden; no layout impact.
+### 2. Add help link directly under the Microsoft button (after line 208)
 
-### 2. New file `src/hooks/useScreenReaderAnnounce.ts`
-
-```ts
-import { useEffect } from "react";
-
-export const SR_ANNOUNCE_REGION_ID = "sr-announce-region";
-
-/**
- * Writes `message` into the global screen reader live region
- * rendered in App.tsx. Clears it 2s later so repeats re-announce.
- * Pass falsy to skip.
- */
-export function useScreenReaderAnnounce(message: string | null | undefined): void {
-  useEffect(() => {
-    if (!message) return;
-
-    const region = document.getElementById(SR_ANNOUNCE_REGION_ID);
-    if (!region) return;
-
-    region.textContent = message;
-
-    const timeout = window.setTimeout(() => {
-      if (region.textContent === message) {
-        region.textContent = "";
-      }
-    }, 2000);
-
-    return () => window.clearTimeout(timeout);
-  }, [message]);
-}
+```tsx
+{/* Help link */}
+<p className="mt-4 text-center text-xs text-muted-foreground">
+  Need help signing in?{" "}
+  <a
+    href="mailto:hr@dgcholding.com"
+    className="text-accent hover:underline"
+  >
+    hr@dgcholding.com
+  </a>
+</p>
 ```
-
-Notes:
-- DOM-write (not React state) so it never re-renders any tree.
-- Conditional clear avoids wiping a newer message when a stale timeout fires.
-- Cleanup cancels pending clears on unmount/message change.
 
 ## Out of scope
-- `src/components/ui/sonner.tsx` and `src/components/ui/toaster.tsx` — untouched.
-- No existing `toast(...)` call sites are modified.
-- No new toast styling, no new providers, no DGC token changes.
+- Form submission, validation, error messaging.
+- Input, password toggle, primary button, Microsoft button styling.
+- Footer, divider, layout wrappers.
