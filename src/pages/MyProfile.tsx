@@ -21,7 +21,7 @@ import { MobileProfileHub } from '@/components/myprofile/mobile';
 
 const MyProfileSkeleton = () => (
   <DashboardLayout>
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="space-y-6">
       <Skeleton className="h-32 w-full rounded-lg" />
       <Skeleton className="h-10 w-full" />
       <Skeleton className="h-64 w-full rounded-lg" />
@@ -60,14 +60,12 @@ const MyProfilePage = () => {
   if (error || !employee) {
     return (
       <DashboardLayout>
-        <div className="max-w-5xl mx-auto">
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <User className="h-12 w-12 text-muted-foreground mb-4" />
-            <h2 className="text-xl font-semibold mb-2">Profile Not Found</h2>
-            <p className="text-muted-foreground">
-              Unable to load your profile. Please contact HR if this issue persists.
-            </p>
-          </div>
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <User className="h-12 w-12 text-muted-foreground mb-4" />
+          <h2 className="text-xl font-semibold mb-2">Profile Not Found</h2>
+          <p className="text-muted-foreground">
+            Unable to load your profile. Please contact HR if this issue persists.
+          </p>
         </div>
       </DashboardLayout>
     );
@@ -85,7 +83,7 @@ const MyProfilePage = () => {
 
   return (
     <DashboardLayout>
-      <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
         <MyProfileHeader employee={employee} />
 

@@ -1,70 +1,28 @@
 ## Goal
-The bottom `MobileActionBar` is the canonical mobile nav. Strip duplicate primary destinations from the `MobileNav` Sheet, drop the "More" expandable wrapper (everything inside the Sheet is now secondary), and re-label the Sheet trigger as "More".
+Widen the default content width from 1152px to 1200px and let `MyProfile` inherit the layout width by removing its inner `max-w-5xl` wrappers.
 
 ## Findings
-- `MobileActionBar` already covers Dashboard, My Profile, Time Off, and Notifications — confirmed; not modified.
-- Routes verified: `/directory`, `/projects`, `/calendar`, `/business-trips`, `/settings`, `/help-center` all exist.
-- `Plane` (Business Trips) and `Calendar` (Calendar) Lucide icons match the rest of the app's conventions (Sidebar uses `Plane` for Business Trips).
-- Profile block (top) and Sign Out button (bottom) stay exactly as-is.
+- `src/components/dashboard/DashboardLayout.tsx:42` — single hard-coded `max-w-[1152px]` (only when `!fullWidth`).
+- `src/index.css` — `.container-page` (1400px) and `.container-content` (1200px) utilities already align with the new target width.
+- `tailwind.config.ts` — `maxWidth.content: "1200px"`, `maxWidth.page: "1400px"` already exist; no token change required.
+- `src/pages/MyProfile.tsx` — three nested `max-w-5xl mx-auto` wrappers (lines 24, 63, 88) constrain the page below the layout width. Removing them lets the layout's max-width govern.
 
-## Changes in `src/components/dashboard/MobileNav.tsx`
+## Changes
 
-1. **Imports (lines 4–17)** — remove `LayoutDashboard`, `Clock`, `Bell`; add `Calendar`, `Plane`. Keep `Menu` (still used as fallback before relabel), or replace with text label (see step 4).
+### 1. `src/components/dashboard/DashboardLayout.tsx` (line 42)
+```diff
+-              !fullWidth && "max-w-[1152px]"
++              !fullWidth && "max-w-[1200px]"
+```
 
-   Final import set:
-   ```ts
-   import {
-     Menu, X, UserCircle, ChevronRight,
-     Settings, HelpCircle, BookUser, Briefcase, Calendar, Plane, LogOut,
-   } from "lucide-react";
-   ```
+### 2. `src/pages/MyProfile.tsx`
+Drop the inner `max-w-5xl mx-auto` wrappers (skeleton, error state, main render) so the page fills the layout's 1200px content area. Preserve all `space-y-*` spacing.
 
-2. **Menu items (lines 27–41)** — delete `primaryMenuItems` entirely. Replace the `secondaryMenuItems` array with the new ordered list:
-   ```ts
-   const secondaryMenuItems = [
-     { icon: BookUser,   label: "Directory",      path: "/directory" },
-     { icon: Briefcase,  label: "Projects",       path: "/projects" },
-     { icon: Calendar,   label: "Calendar",       path: "/calendar" },
-     { icon: Plane,      label: "Business Trips", path: "/business-trips" },
-     { icon: Settings,   label: "Settings",       path: "/settings" },
-     { icon: HelpCircle, label: "Help Center",    path: "/help-center" },
-   ];
-   ```
-
-3. **State (line 86)** — remove `showMore` state and the `setShowMore(false)` line in `handleClose`.
-
-4. **Sheet trigger (lines 109–118)** — change to a labeled "More" button. Auto-width with icon + text:
-   ```tsx
-   <SheetTrigger asChild>
-     <Button
-       variant="ghost"
-       className="lg:hidden h-11 px-3 gap-2 touch-manipulation"
-       aria-label="Open more menu"
-     >
-       <Menu className="h-5 w-5" />
-       <span className="text-sm font-medium">More</span>
-     </Button>
-   </SheetTrigger>
-   ```
-
-5. **Nav body (lines 161–209)** — replace primary loop + "More" expandable wrapper with a single rendered list of `secondaryMenuItems`. Items render with `large` for comfortable touch targets since this is the only list now. No section header needed (the Sheet trigger already says "More"):
-   ```tsx
-   <nav className="flex-1 py-4 px-3 overflow-y-auto space-y-1 min-h-0">
-     {secondaryMenuItems.map((item) => (
-       <NavItem
-         key={item.path}
-         icon={item.icon}
-         label={item.label}
-         path={item.path}
-         isActive={location.pathname === item.path}
-         onClick={handleClose}
-         large
-       />
-     ))}
-   </nav>
-   ```
+- Line 24: `<div className="max-w-5xl mx-auto space-y-6">` → `<div className="space-y-6">`
+- Lines 63–71: remove the `<div className="max-w-5xl mx-auto">` wrapper around the "Profile Not Found" block (keep inner flex column).
+- Line 88: `<div className="max-w-5xl mx-auto space-y-4 sm:space-y-6">` → `<div className="space-y-4 sm:space-y-6">`
 
 ## Out of scope
-- `MobileActionBar.tsx` — untouched.
-- Logo header, profile block (top of Sheet), Sign Out button (bottom) — untouched.
-- `NavItem` component, sidebar styling tokens, role-based gating logic.
+- No other pages' wrappers touched.
+- No changes to `index.css` utilities or `tailwind.config.ts` tokens (already at 1200/1400).
+- `fullWidth` branch of `DashboardLayout` unchanged.

@@ -39,7 +39,7 @@ export function DashboardLayout({
             {/* Inner container for grid centering - max 1152px */}
             <div className={cn(
               "w-full mx-auto",
-              !fullWidth && "max-w-[1152px]"
+              !fullWidth && "max-w-[1200px]"
             )}>
               {children}
             </div>
