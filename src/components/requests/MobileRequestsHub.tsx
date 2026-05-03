@@ -2,9 +2,10 @@ import { useState } from "react";
 import { Plus, Inbox } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useUnifiedRequests, UnifiedStatus } from "@/hooks/useUnifiedRequests";
+import { useUnifiedRequests, UnifiedRequest, UnifiedStatus } from "@/hooks/useUnifiedRequests";
 import { MobileRequestCard } from "./MobileRequestCard";
 import { MobileNewRequestSheet } from "./MobileNewRequestSheet";
+import { MobileRequestDetailSheet } from "./MobileRequestDetailSheet";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type FilterOption = "all" | UnifiedStatus;
