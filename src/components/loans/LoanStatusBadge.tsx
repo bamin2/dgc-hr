@@ -24,8 +24,8 @@ export function LoanStatusBadge({ status, className }: LoanStatusBadgeProps) {
     <Badge 
       variant={config.variant} 
       className={cn(
-        status === "active" && "bg-emerald-600 hover:bg-emerald-700",
-        status === "approved" && "bg-emerald-500 hover:bg-emerald-600",
+        status === "active" && "bg-success text-success-foreground hover:bg-success/90",
+        status === "approved" && "bg-success text-success-foreground hover:bg-success/90",
         className
       )}
     >

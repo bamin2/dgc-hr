@@ -117,7 +117,7 @@ export function AllPendingApprovalsTab() {
           <p className="text-sm text-muted-foreground">
             {pendingRequests.length} pending request{pendingRequests.length !== 1 ? "s" : ""}
           </p>
-          <Badge variant="secondary" className="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+          <Badge variant="secondary" className="bg-warning/10 text-warning">
             HR/Admin Override
           </Badge>
         </div>
@@ -221,7 +221,7 @@ function LeaveRequestCard({ request, onApprove, onReject }: LeaveRequestCardProp
               <p className="text-sm text-muted-foreground">Time Off Request</p>
             </div>
           </div>
-          <Badge variant="outline" className="shrink-0 bg-amber-50 text-amber-700 border-amber-200">
+          <Badge variant="outline" className="shrink-0 bg-warning/10 text-warning border-warning/30">
             Pending
           </Badge>
         </div>
@@ -229,9 +229,9 @@ function LeaveRequestCard({ request, onApprove, onReject }: LeaveRequestCardProp
       <CardContent className="space-y-4">
         {/* Negative Balance Warning */}
         {(request as any).results_in_negative_balance && (
-          <div className="flex items-center gap-2 px-3 py-2 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg">
-            <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
-            <span className="text-sm text-red-700 dark:text-red-300 font-medium">
+          <div className="flex items-center gap-2 px-3 py-2 bg-destructive/10 border border-destructive/30 rounded-lg">
+            <AlertTriangle className="h-4 w-4 text-destructive" />
+            <span className="text-sm text-destructive font-medium">
               This request will result in negative leave balance
             </span>
           </div>
