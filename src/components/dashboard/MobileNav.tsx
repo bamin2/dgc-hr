@@ -2,17 +2,16 @@ import { useState } from "react";
 import { useLocation } from "react-router-dom";
 import { PrefetchNavLink } from "@/components/PrefetchNavLink";
 import {
-  LayoutDashboard,
-  Clock,
   Menu,
   X,
   UserCircle,
-  Bell,
   ChevronRight,
   Settings,
   HelpCircle,
   BookUser,
   Briefcase,
+  Calendar,
+  Plane,
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
