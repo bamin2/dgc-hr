@@ -453,6 +453,46 @@ const SettingsPage = () => {
           </div>
         </div>
       </div>
+
+      <AlertDialog
+        open={pendingTab !== null}
+        onOpenChange={(open) => { if (!open) setPendingTab(null); }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Unsaved changes</AlertDialogTitle>
+            <AlertDialogDescription>
+              You have unsaved changes. Save before switching tabs?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPendingTab(null)}>
+              Cancel
+            </AlertDialogCancel>
+            <Button
+              variant="outline"
+              onClick={() => {
+                const next = pendingTab;
+                discardActiveTabChanges();
+                setPendingTab(null);
+                if (next) setActiveTab(next);
+              }}
+            >
+              Discard changes
+            </Button>
+            <AlertDialogAction
+              onClick={async () => {
+                const next = pendingTab;
+                setPendingTab(null);
+                await handleSave();
+                if (next) setActiveTab(next);
+              }}
+            >
+              Save and continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DashboardLayout>
   );
 };
