@@ -111,10 +111,10 @@ export function SignInForm() {
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-2xl sm:text-3xl font-semibold leading-tight mb-3 text-foreground">
-              The core of how we work at DGC.
+              Welcome to DGC People.
             </h1>
             <p className="text-muted-foreground">
-              Access your work life, benefits, and requests in one place.
+              Your work life, benefits, and requests — in one place.
             </p>
           </div>
 
@@ -206,6 +206,17 @@ export function SignInForm() {
             <MicrosoftLogo className="mr-2 h-5 w-5" />
             {loadingMicrosoft ? "Redirecting..." : "Sign in with Microsoft"}
           </Button>
+
+          {/* Help link */}
+          <p className="mt-4 text-center text-xs text-muted-foreground">
+            Need help signing in?{" "}
+            <a
+              href="mailto:hr@dgcholding.com"
+              className="text-accent hover:underline"
+            >
+              hr@dgcholding.com
+            </a>
+          </p>
         </div>
       </div>
 
