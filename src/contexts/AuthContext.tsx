@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
+import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+
+const ALLOWED_EMAIL_DOMAIN = 'dgcholding.com';
 
 interface Profile {
   id: string;
