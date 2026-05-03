@@ -18,7 +18,7 @@ export function AuthLeftPanel() {
 
         {/* Value Statements */}
         <div className="flex-1 flex flex-col justify-center">
-          <div className="w-12 h-px mb-12 bg-[hsl(var(--auth-brand-panel-foreground)/0.2)]" />
+          <div className="w-12 h-px mb-12 bg-accent/40" />
 
           <div className="space-y-6">
             <ValueWord word="People" hasAccent />
