@@ -34,6 +34,28 @@ async function getManagerUserId(employeeId: string): Promise<string | null> {
   return getEmployeeUserId(employee.manager_id);
 }
 
+// Walk the manager chain starting from `managerId` up to MAX_DEPTH levels.
+// Returns true if `employeeId` appears in that chain (cycle detected).
+async function isCircularManager(employeeId: string, managerId: string): Promise<boolean> {
+  const MAX_DEPTH = 5;
+  let current: string | null = managerId;
+  const visited = new Set<string>([employeeId]);
+
+  for (let depth = 0; depth < MAX_DEPTH && current; depth++) {
+    if (visited.has(current)) return true;
+    visited.add(current);
+
+    const { data } = await supabase
+      .from('employees')
+      .select('manager_id')
+      .eq('id', current)
+      .single();
+
+    current = (data?.manager_id as string | null) ?? null;
+  }
+  return false;
+}
+
 // Get a default HR approver, optionally excluding a specific user (to prevent self-approval)
 async function getDefaultHRApprover(workflowDefaultId?: string | null, excludeUserId?: string | null): Promise<string | null> {
   // First try workflow's default (only if it's not the excluded user)
