@@ -67,10 +67,6 @@ export default {
           foreground: "hsl(var(--destructive-foreground))",
           bg: "hsl(var(--destructive-bg))",
         },
-        critical: {
-          DEFAULT: "hsl(var(--critical))",
-          foreground: "hsl(var(--critical-foreground))",
-        },
         muted: {
           DEFAULT: "hsl(var(--muted))",
           foreground: "hsl(var(--muted-foreground))",

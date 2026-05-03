@@ -31,7 +31,7 @@ const buttonVariants = cva(
           "transition-all duration-200",
           "hover:brightness-110 hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(0,0,0,0.2)]",
           "active:translate-y-px active:shadow-[0_1px_4px_rgba(0,0,0,0.1)]",
-          "focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2",
+          "focus-visible:ring-2 focus-visible:ring-[#C6A45E]/40 focus-visible:ring-offset-2",
         ].join(" "),
         // LiquidGlass Secondary - translucent glass for Cancel actions
         liquidGlassSecondary: [

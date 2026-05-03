@@ -10,8 +10,7 @@
     Off White    #F7F6F2
     Slate Grey   #5C6260
     Light Grey   #D9D9D6
-    Burnt Orange #F04E23 — critical signals only (overdue / SLA / hard errors)
-    DGC Gold     #C6A45E — primary accent (CTAs, active rail, highlights)
+    Burnt Orange #F04E23
 */
 
 @layer base {
@@ -42,14 +41,10 @@
     --muted: 60 5% 92%;
     --muted-foreground: 165 4% 32%;
 
-    /* Accent — DGC Gold #C6A45E */
-    --accent: 41 47% 57%;
-    --accent-foreground: 168 48% 11%;
-    --accent-soft: 41 47% 94%;
-
-    /* Critical — burnt orange #F04E23, reserved for overdue / SLA / hard errors */
-    --critical: 12 88% 54%;
-    --critical-foreground: 0 0% 100%;
+    /* Accent — DGC burnt orange */
+    --accent: 12 88% 54%;
+    --accent-foreground: 0 0% 100%;
+    --accent-soft: 12 88% 96%;
 
     --destructive: 4 64% 45%;
     --destructive-foreground: 48 21% 97%;
@@ -69,7 +64,7 @@
     --border: 48 10% 84%;
     --border-strong: 48 8% 70%;
     --input: 48 10% 84%;
-    --ring: 41 47% 57%;
+    --ring: 12 88% 54%;
 
     /* Radius */
     --radius: 6px;
@@ -96,20 +91,20 @@
     /* Charts — DGC palette */
     --chart-1: 165 5% 12%;
     --chart-2: 165 4% 37%;
-    --chart-3: 41 47% 57%;
+    --chart-3: 12 88% 54%;
     --chart-4: 168 48% 11%;
     --chart-5: 0 41% 46%;
-    --chart-accent: 41 47% 57%;
+    --chart-accent: 12 88% 54%;
 
-    /* Sidebar — deep green w/ gold active rail */
+    /* Sidebar — deep green w/ orange ring */
     --sidebar-background: 168 48% 11%;
     --sidebar-foreground: 48 21% 95%;
-    --sidebar-primary: 41 47% 57%;
-    --sidebar-primary-foreground: 168 48% 11%;
+    --sidebar-primary: 12 88% 54%;
+    --sidebar-primary-foreground: 48 21% 97%;
     --sidebar-accent: 168 40% 16%;
     --sidebar-accent-foreground: 48 21% 97%;
     --sidebar-border: 168 35% 18%;
-    --sidebar-ring: 41 47% 57%;
+    --sidebar-ring: 12 88% 54%;
     --sidebar-muted: 156 8% 60%;
 
     /* Subtle elevation */
@@ -140,12 +135,9 @@
     --muted: 156 5% 17%;
     --muted-foreground: 156 6% 68%;
 
-    --accent: 41 50% 62%;
-    --accent-foreground: 168 48% 11%;
-    --accent-soft: 41 35% 16%;
-
-    --critical: 12 88% 56%;
-    --critical-foreground: 0 0% 100%;
+    --accent: 12 88% 56%;
+    --accent-foreground: 0 0% 100%;
+    --accent-soft: 12 60% 14%;
 
     --destructive: 4 60% 55%;
     --destructive-foreground: 48 18% 98%;
@@ -162,23 +154,23 @@
     --border: 156 5% 22%;
     --border-strong: 156 5% 32%;
     --input: 156 5% 22%;
-    --ring: 41 50% 62%;
+    --ring: 12 88% 56%;
 
     --chart-1: 0 0% 88%;
     --chart-2: 165 4% 60%;
-    --chart-3: 41 50% 62%;
+    --chart-3: 12 88% 58%;
     --chart-4: 168 35% 38%;
     --chart-5: 0 50% 60%;
-    --chart-accent: 41 50% 62%;
+    --chart-accent: 12 88% 58%;
 
     --sidebar-background: 150 7% 9%;
     --sidebar-foreground: 156 6% 78%;
-    --sidebar-primary: 41 50% 62%;
-    --sidebar-primary-foreground: 168 48% 11%;
+    --sidebar-primary: 12 88% 56%;
+    --sidebar-primary-foreground: 48 21% 97%;
     --sidebar-accent: 156 5% 17%;
     --sidebar-accent-foreground: 48 21% 97%;
     --sidebar-border: 156 5% 18%;
-    --sidebar-ring: 41 50% 62%;
+    --sidebar-ring: 12 88% 56%;
     --sidebar-muted: 156 8% 50%;
 
     --shadow-xs: 0 1px 2px 0 hsl(0 0% 0% / 0.30);

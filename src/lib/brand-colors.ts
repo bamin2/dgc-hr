@@ -1,11 +1,8 @@
 /**
  * DGC CORE Brand Colors Utility
- *
+ * 
  * Official color palette for the DGC internal HR system.
- * These constants mirror the `--accent` (DGC Gold) and other CSS tokens defined
- * in `src/index.css`. Prefer the CSS tokens (`bg-accent`, `text-accent`, etc.)
- * inside React components. Use these JS constants only for non-CSS contexts:
- * generated PDFs, email templates, and chart libraries that need raw hex.
+ * Use these constants and Tailwind classes for consistent styling.
  */
 
 // =============================================================================

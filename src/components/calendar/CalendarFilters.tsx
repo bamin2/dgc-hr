@@ -41,7 +41,7 @@ const colors = [
   { value: "orange", label: "Orange", class: "bg-orange-500" },
   { value: "coral", label: "Coral", class: "bg-rose-400" },
   { value: "mint", label: "Mint", class: "bg-teal-500" },
-  { value: "gold", label: "Gold", class: "bg-accent" },
+  { value: "gold", label: "Gold", class: "bg-[#C6A45E]" },
   { value: "sage", label: "Sage", class: "bg-[#6B8E7B]" },
 ];
 

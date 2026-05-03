@@ -30,8 +30,8 @@ export const ReportsMetrics = ({ stats }: ReportsMetricsProps) => {
       value: `$${stats.averageSalary.toLocaleString()}`,
       subtitle: 'Per employee',
       icon: DollarSign,
-      iconBg: 'bg-accent/20 dark:bg-accent/10',
-      iconColor: 'text-accent-foreground dark:text-accent'
+      iconBg: 'bg-[#C6A45E]/20 dark:bg-[#C6A45E]/10',
+      iconColor: 'text-[#8B7035] dark:text-[#C6A45E]'
     },
     {
       title: 'Pending Leaves',
