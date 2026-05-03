@@ -278,15 +278,15 @@ export function MyProfileCompensationTab({
             {/* Allowances & Deductions - Side by side on desktop */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               {/* Allowances */}
-              <div className="border border-green-200/50 dark:border-green-900/30 rounded-xl overflow-hidden">
-                <div className="flex justify-between items-center p-4 bg-green-50/50 dark:bg-green-950/20">
+              <div className="border border-success/20 rounded-xl overflow-hidden">
+                <div className="flex justify-between items-center p-4 bg-success/5">
                   <div className="flex items-center gap-2">
-                    <Plus className="h-4 w-4 text-green-600 dark:text-green-400" />
-                    <span className="font-medium text-green-700 dark:text-green-400">
+                    <Plus className="h-4 w-4 text-success" />
+                    <span className="font-medium text-success">
                       Allowances
                     </span>
                   </div>
-                  <span className="font-semibold text-green-700 dark:text-green-400 tabular-nums">
+                  <span className="font-semibold text-success tabular-nums">
                     + {currency} {totalAllowances.toLocaleString()}
                   </span>
                 </div>
@@ -306,15 +306,15 @@ export function MyProfileCompensationTab({
               </div>
 
               {/* Deductions */}
-              <div className="border border-red-200/50 dark:border-red-900/30 rounded-xl overflow-hidden">
-                <div className="flex justify-between items-center p-4 bg-red-50/50 dark:bg-red-950/20">
+              <div className="border border-destructive/20 rounded-xl overflow-hidden">
+                <div className="flex justify-between items-center p-4 bg-destructive/5">
                   <div className="flex items-center gap-2">
-                    <Minus className="h-4 w-4 text-red-600 dark:text-red-400" />
-                    <span className="font-medium text-red-700 dark:text-red-400">
+                    <Minus className="h-4 w-4 text-destructive" />
+                    <span className="font-medium text-destructive">
                       Deductions
                     </span>
                   </div>
-                  <span className="font-semibold text-red-700 dark:text-red-400 tabular-nums">
+                  <span className="font-semibold text-destructive tabular-nums">
                     - {currency} {(totalDeductions + gosiDeduction).toLocaleString()}
                   </span>
                 </div>

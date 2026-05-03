@@ -91,13 +91,13 @@ export function MobileSecuritySheet({
                     className="rounded-2xl border bg-card p-4"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="h-11 w-11 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-                        <DeviceIcon className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                      <div className="h-11 w-11 rounded-xl bg-success/10 flex items-center justify-center">
+                        <DeviceIcon className="h-5 w-5 text-success" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <p className="font-medium text-sm truncate">{session.device}</p>
-                          <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                          <Badge variant="secondary" className="bg-success/10 text-success">
                             <CheckCircle className="h-3 w-3 mr-1" />
                             Current
                           </Badge>
