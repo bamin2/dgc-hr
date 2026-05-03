@@ -31,9 +31,11 @@ interface LoanDetailSheetProps {
   loanId: string | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Hide all admin actions (Review/Restructure/Payment/Disburse/Skip/Mark Paid/Delete). */
+  readOnly?: boolean;
 }
 
-export function LoanDetailSheet({ loanId, open, onOpenChange }: LoanDetailSheetProps) {
+export function LoanDetailSheet({ loanId, open, onOpenChange, readOnly = false }: LoanDetailSheetProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [restructureDialogOpen, setRestructureDialogOpen] = useState(false);
@@ -108,47 +110,49 @@ export function LoanDetailSheet({ loanId, open, onOpenChange }: LoanDetailSheetP
             {/* Status and Actions */}
             <div className="flex items-center justify-between">
               <LoanStatusBadge status={loan.status} />
-              <div className="flex gap-2">
-                {loan.status === "requested" && (
-                  <Button 
-                    size="sm" 
-                    onClick={() => setApprovalDialogOpen(true)}
-                  >
-                    <CheckCircle className="h-4 w-4 mr-1" />
-                    Review
-                  </Button>
-                )}
-                {loan.status === "active" && (
-                  <>
-                    <Button 
+              {!readOnly && (
+                <div className="flex gap-2">
+                  {loan.status === "requested" && (
+                    <Button
                       size="sm"
-                      variant="outline"
-                      onClick={() => setRestructureDialogOpen(true)}
+                      onClick={() => setApprovalDialogOpen(true)}
                     >
-                      <RefreshCw className="h-4 w-4 mr-1" />
-                      Restructure
+                      <CheckCircle className="h-4 w-4 mr-1" />
+                      Review
                     </Button>
-                    <Button 
+                  )}
+                  {loan.status === "active" && (
+                    <>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setRestructureDialogOpen(true)}
+                      >
+                        <RefreshCw className="h-4 w-4 mr-1" />
+                        Restructure
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setPaymentDialogOpen(true)}
+                      >
+                        <CreditCard className="h-4 w-4 mr-1" />
+                        Payment
+                      </Button>
+                    </>
+                  )}
+                  {loan.status === "approved" && (
+                    <Button
                       size="sm"
-                      variant="outline"
-                      onClick={() => setPaymentDialogOpen(true)}
+                      onClick={handleDisburse}
+                      disabled={disburseLoan.isPending}
                     >
-                      <CreditCard className="h-4 w-4 mr-1" />
-                      Payment
+                      <Banknote className="h-4 w-4 mr-1" />
+                      Disburse
                     </Button>
-                  </>
-                )}
-                {loan.status === "approved" && (
-                  <Button 
-                    size="sm"
-                    onClick={handleDisburse}
-                    disabled={disburseLoan.isPending}
-                  >
-                    <Banknote className="h-4 w-4 mr-1" />
-                    Disburse
-                  </Button>
-                )}
-              </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Employee Info */}
@@ -262,10 +266,10 @@ export function LoanDetailSheet({ loanId, open, onOpenChange }: LoanDetailSheetP
                   </TabsTrigger>
                 </TabsList>
                 <TabsContent value="schedule" className="mt-4">
-                  <LoanInstallmentsTable 
+                  <LoanInstallmentsTable
                     installments={loan.installments}
-                    canMarkPaid={loan.status === "active"}
-                    canSkip={loan.status === "active"}
+                    canMarkPaid={!readOnly && loan.status === "active"}
+                    canSkip={!readOnly && loan.status === "active"}
                     onMarkPaid={handleMarkPaid}
                     onSkip={handleSkipInstallment}
                   />
@@ -277,7 +281,7 @@ export function LoanDetailSheet({ loanId, open, onOpenChange }: LoanDetailSheetP
             )}
 
             {/* Danger Zone - Delete Loan */}
-            {loan && !["closed"].includes(loan.status) && (
+            {!readOnly && loan && !["closed"].includes(loan.status) && (
               <div className="mt-6 pt-6 border-t border-destructive/20">
                 <div className="flex items-center justify-between">
                   <div>
@@ -286,7 +290,7 @@ export function LoanDetailSheet({ loanId, open, onOpenChange }: LoanDetailSheetP
                       Permanently remove this loan record
                     </p>
                   </div>
-                  <Button 
+                  <Button
                     variant="destructive"
                     size="sm"
                     onClick={() => setDeleteDialogOpen(true)}

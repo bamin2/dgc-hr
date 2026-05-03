@@ -5,6 +5,7 @@ import { HRDocumentRequestDetailSheet } from "./detail/HRDocumentRequestDetail";
 import { UnifiedRequest } from "@/hooks/useUnifiedRequests";
 import { LeaveRequest } from "@/hooks/useLeaveRequests";
 import { HRDocumentRequest } from "@/hooks/useHRDocumentRequests";
+import { useRole } from "@/contexts/RoleContext";
 
 interface MobileRequestDetailSheetProps {
   request: UnifiedRequest | null;
@@ -22,6 +23,9 @@ export function MobileRequestDetailSheet({
   open,
   onOpenChange,
 }: MobileRequestDetailSheetProps) {
+  const { hasRole } = useRole();
+  const isPrivileged = hasRole("hr") || hasRole("admin");
+
   if (!request) return null;
 
   switch (request.type) {
@@ -40,6 +44,7 @@ export function MobileRequestDetailSheet({
           loanId={request.id}
           open={open}
           onOpenChange={onOpenChange}
+          readOnly={!isPrivileged}
         />
       );
 

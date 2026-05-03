@@ -87,18 +87,30 @@ export function useLoans(filters?: { status?: string; employeeId?: string }) {
 
 export function useMyLoans() {
   const { user } = useAuth();
-  
+
   return useQuery({
     queryKey: queryKeys.loans.my(user?.id || ''),
     queryFn: async () => {
       if (!user?.id) return [];
-      
+
+      // Resolve current user's employee_id so HR/admin viewing their personal
+      // Requests tab don't see every loan in the company (RLS lets them).
+      const { data: employee, error: empError } = await supabase
+        .from("employees")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (empError) throw empError;
+      if (!employee?.id) return [];
+
       const { data, error } = await supabase
         .from("loans")
         .select(`
           *,
           employee:employees(id, first_name, last_name, full_name, avatar_url, department_id)
         `)
+        .eq("employee_id", employee.id)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
