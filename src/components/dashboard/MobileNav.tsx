@@ -2,17 +2,16 @@ import { useState } from "react";
 import { useLocation } from "react-router-dom";
 import { PrefetchNavLink } from "@/components/PrefetchNavLink";
 import {
-  LayoutDashboard,
-  Clock,
   Menu,
   X,
   UserCircle,
-  Bell,
   ChevronRight,
   Settings,
   HelpCircle,
   BookUser,
   Briefcase,
+  Calendar,
+  Plane,
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -24,18 +23,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { RoleBadge } from "@/components/employees/RoleBadge";
 import dgcLogoLight from "@/assets/dgc-people-logo.svg";
 
-// PRIMARY - Core employee actions (always visible, larger touch targets)
-const primaryMenuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/" },
-  { icon: UserCircle, label: "My Profile", path: "/my-profile" },
-  { icon: Clock, label: "Time Off", path: "/time-off" },
-  { icon: Bell, label: "Notifications", path: "/notifications" },
-];
-
-// SECONDARY - Less frequent actions (grouped in "More")
+// SECONDARY - Destinations not present in the bottom MobileActionBar
 const secondaryMenuItems = [
   { icon: BookUser, label: "Directory", path: "/directory" },
   { icon: Briefcase, label: "Projects", path: "/projects" },
+  { icon: Calendar, label: "Calendar", path: "/calendar" },
+  { icon: Plane, label: "Business Trips", path: "/business-trips" },
   { icon: Settings, label: "Settings", path: "/settings" },
   { icon: HelpCircle, label: "Help Center", path: "/help-center" },
 ];
@@ -83,7 +76,6 @@ function NavItem({ icon: Icon, label, path, isActive, onClick, large = false }: 
 
 export function MobileNav() {
   const [open, setOpen] = useState(false);
-  const [showMore, setShowMore] = useState(false);
   const location = useLocation();
   const { currentUser } = useRole();
   const { signOut } = useAuth();
@@ -96,7 +88,6 @@ export function MobileNav() {
 
   const handleClose = () => {
     setOpen(false);
-    setShowMore(false);
   };
 
   const handleSignOut = async () => {
@@ -109,11 +100,11 @@ export function MobileNav() {
       <SheetTrigger asChild>
         <Button
           variant="ghost"
-          size="icon"
-          className="lg:hidden h-11 w-11 touch-manipulation"
-          aria-label="Open navigation menu"
+          className="lg:hidden h-11 px-3 gap-2 touch-manipulation"
+          aria-label="Open more menu"
         >
           <Menu className="h-5 w-5" />
+          <span className="text-sm font-medium">More</span>
         </Button>
       </SheetTrigger>
       <SheetContent 
@@ -158,9 +149,9 @@ export function MobileNav() {
           </PrefetchNavLink>
         </div>
 
-        {/* Primary Navigation - Large touch targets */}
+        {/* Secondary Navigation - destinations not in the bottom MobileActionBar */}
         <nav className="flex-1 py-4 px-3 overflow-y-auto space-y-1 min-h-0">
-          {primaryMenuItems.map((item) => (
+          {secondaryMenuItems.map((item) => (
             <NavItem
               key={item.path}
               icon={item.icon}
@@ -171,41 +162,6 @@ export function MobileNav() {
               large
             />
           ))}
-
-          {/* More Section - Expandable */}
-          <div className="pt-4 mt-4 border-t border-sidebar-border/50">
-            <button
-              onClick={() => setShowMore(!showMore)}
-              className={cn(
-                "flex items-center gap-3 w-full px-4 py-3 rounded-xl",
-                "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 active:bg-sidebar-accent",
-                "transition-all touch-manipulation"
-              )}
-            >
-              <span className="text-xs font-semibold uppercase tracking-wider flex-1 text-left">
-                More
-              </span>
-              <ChevronRight className={cn(
-                "w-4 h-4 text-sidebar-foreground/30 transition-transform",
-                showMore && "rotate-90"
-              )} />
-            </button>
-
-            {showMore && (
-              <div className="mt-1 space-y-1 animate-in slide-in-from-top-2 duration-200">
-                {secondaryMenuItems.map((item) => (
-                  <NavItem
-                    key={item.path}
-                    icon={item.icon}
-                    label={item.label}
-                    path={item.path}
-                    isActive={location.pathname === item.path}
-                    onClick={handleClose}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
         </nav>
 
         {/* Sign Out Button */}
