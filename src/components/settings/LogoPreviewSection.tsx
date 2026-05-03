@@ -101,7 +101,7 @@ export const LogoPreviewSection = ({
                 {/* Email body */}
                 <div className="bg-white p-4 space-y-3">
                   {/* Success header */}
-                  <div className="flex items-center gap-2 text-green-600">
+                  <div className="flex items-center gap-2 text-success">
                     <CheckCircle2 className="h-5 w-5" />
                     <span className="font-semibold text-sm">Leave Request Approved</span>
                   </div>
