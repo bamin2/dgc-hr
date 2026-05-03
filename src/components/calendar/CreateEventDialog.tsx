@@ -43,7 +43,7 @@ const eventColors: { value: EventColor; label: string; class: string }[] = [
   { value: "coral", label: "Coral", class: "bg-rose-400" },
   { value: "mint", label: "Mint", class: "bg-teal-400" },
   { value: "blue", label: "Teal", class: "bg-teal-600" },
-  { value: "purple", label: "Gold", class: "bg-[#C6A45E]" },
+  { value: "purple", label: "Gold", class: "bg-accent" },
 ];
 
 export function CreateEventDialog({ open, onOpenChange }: CreateEventDialogProps) {
