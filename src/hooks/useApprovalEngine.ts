@@ -260,6 +260,9 @@ export function useInitiateApproval() {
           case 'no_approver':
             toast.error("No approver could be assigned. Please contact HR.");
             break;
+          case 'circular_manager':
+            toast.error("Manager assignment is circular. Please contact HR.");
+            break;
           default:
             toast.error("Request could not be submitted for approval. Please contact HR.");
         }
