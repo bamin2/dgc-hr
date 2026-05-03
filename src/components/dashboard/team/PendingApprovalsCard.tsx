@@ -56,7 +56,7 @@ export function PendingApprovalsCard({ pendingApprovals, isLoading }: PendingApp
             <Button 
               variant="outline" 
               className="w-full gap-2"
-              onClick={() => navigate('/leave?status=pending')}
+              onClick={() => navigate('/approvals?tab=all-requests&type=time_off')}
             >
               Review Requests
               <ArrowRight className="h-4 w-4" />

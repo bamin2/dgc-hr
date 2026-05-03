@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,6 +22,7 @@ import {
   EditAttendanceDialog,
   DeleteAttendanceDialog,
 } from '@/components/attendance';
+import { RequestTimeOffDialog } from '@/components/timeoff/RequestTimeOffDialog';
 import {
   useCurrentMonthAttendance,
   useTodayAttendance,
@@ -33,7 +33,6 @@ import { useLeaveBalanceSummary } from '@/hooks/useLeaveBalances';
 import { useRole } from '@/contexts/RoleContext';
 
 export function AttendanceTab() {
-  const navigate = useNavigate();
   const { canEditEmployees } = useRole();
   const [activeTab, setActiveTab] = useState('overview');
   const [searchQuery, setSearchQuery] = useState('');
@@ -45,6 +44,7 @@ export function AttendanceTab() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<AttendanceRecord | null>(null);
+  const [isRequestLeaveOpen, setIsRequestLeaveOpen] = useState(false);
 
   // Fetch data from database
   const { data: todayAttendance, isLoading: todayLoading } = useTodayAttendance();
@@ -107,7 +107,7 @@ export function AttendanceTab() {
         )}
         <Button
           className="bg-primary hover:bg-primary/90"
-          onClick={() => navigate('/attendance/leave/request')}
+          onClick={() => setIsRequestLeaveOpen(true)}
         >
           <Plus className="h-4 w-4 mr-2" />
           Request Leave
@@ -274,6 +274,10 @@ export function AttendanceTab() {
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         record={selectedRecord}
+      />
+      <RequestTimeOffDialog
+        open={isRequestLeaveOpen}
+        onOpenChange={setIsRequestLeaveOpen}
       />
     </>
   );

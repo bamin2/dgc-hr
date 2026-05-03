@@ -1,42 +1,43 @@
-# Mobile Requests — restrict loan detail to employee view
-
 ## Problem
-Two leaks when an employee opens a loan from the mobile Requests tab:
 
-1. **List leak (only visible to HR/Admin who also act as employees).** `useMyLoans` does not filter by `employee_id` — it just selects `*` from `loans` and relies on RLS. RLS hides other employees' rows for plain employees, but HR/Admin pass the `has_any_role` branch and see **every loan in the company** on their personal Requests tab. A regular employee is correctly scoped today, but the hook should not depend on role-aware RLS for a "my requests" query.
-2. **Detail leak (visible to all employees).** Tapping a loan opens `LoanDetailSheet`, which unconditionally renders admin actions: **Review**, **Restructure**, **Payment**, **Disburse**, per-installment **Skip / Mark Paid**, and a **Delete Loan** danger zone. An employee can click these even though the underlying mutations will be blocked by RLS — the UI invites failed actions and exposes admin affordances.
+Three dead navigation targets exist:
 
-## Goal
-On the mobile Requests tab, an employee opening a loan sees a clean, read-only detail view: status, amount, schedule, repayment progress, notes, history. No Review / Restructure / Payment / Disburse / Skip / Mark Paid / Delete buttons. HR/Admin behavior on the desktop Loans page is unchanged.
+1. **`PendingApprovalsCard`** (team manager dashboard) navigates to `/leave?status=pending` — no `/leave` route is registered in `AnimatedRoutes`. Button does nothing useful.
+2. **`pages/Attendance.tsx`** — exists in the codebase but is not wired into `AnimatedRoutes`. Its "Request Leave" button navigates to `/attendance/leave/request`, which also does not exist. Page is effectively dead code.
+3. **`components/timemanagement/AttendanceTab.tsx`** — rendered inside `/time-management`, has a "Request Leave" button that navigates to the same nonexistent `/attendance/leave/request` route.
 
-## Approach
+Project convention (memory): leave creation must use a modal dialog (`RequestTimeOffDialog`), not a `/new` route. Approvals live at `/approvals` (the admin `AllPendingApprovalsCard` already uses the correct query string).
 
-### 1. Scope `useMyLoans` to the caller's employee
-Resolve the current user's `employee_id` from `employees.user_id = auth.uid()` and add `.eq("employee_id", employee.id)` to the query. Mirrors `useMyRequests` (leave) and `useMyBusinessTrips`. Defense-in-depth — RLS still applies, but the hook no longer hands HR/Admin a company-wide list when they're using their personal Requests view.
+## Changes
 
-### 2. Add a `readOnly` mode to `LoanDetailSheet`
-Introduce an optional `readOnly?: boolean` prop on `LoanDetailSheet`. When `true`:
-- Hide the entire top action row (Review / Restructure / Payment / Disburse).
-- Pass `canMarkPaid={false}` and `canSkip={false}` to `LoanInstallmentsTable` (the table already supports this — the actions column simply collapses).
-- Hide the "Danger Zone — Delete Loan" block.
-- Keep everything else (status, summary card, progress, notes, schedule, history tab).
+### 1. `src/components/dashboard/team/PendingApprovalsCard.tsx`
+Replace `navigate('/leave?status=pending')` with the same target the admin card uses:
+`navigate('/approvals?tab=all-requests&type=time_off')`
 
-### 3. Auto-derive `readOnly` from role at the call site
-`MobileRequestDetailSheet` (the only caller introduced for the mobile Requests hub) computes `readOnly` from `useRole()`:
-```ts
-const { hasRole } = useRole();
-const isPrivileged = hasRole('hr') || hasRole('admin');
-// ...
-<LoanDetailSheet loanId={request.id} open={open} onOpenChange={onOpenChange} readOnly={!isPrivileged} />
-```
-Desktop `Loans.tsx` continues to render `LoanDetailSheet` without the prop, so HR/Admin behavior is unchanged.
+This matches `AllPendingApprovalsCard` and points to the actually-registered `/approvals` route.
 
-## Files
-- **edit** `src/hooks/useLoans.ts` — scope `useMyLoans` to the resolved `employee_id`.
-- **edit** `src/components/loans/LoanDetailSheet.tsx` — accept `readOnly` prop; gate top actions, installment actions, and delete zone behind it.
-- **edit** `src/components/requests/MobileRequestDetailSheet.tsx` — read role via `useRole()` and pass `readOnly={!hasRole('hr') && !hasRole('admin')}` when rendering `LoanDetailSheet`.
+### 2. `src/components/timemanagement/AttendanceTab.tsx`
+Remove the broken `navigate('/attendance/leave/request')` call. Wire the "Request Leave" button to open the existing `RequestTimeOffDialog` modal:
+- Add local `isRequestLeaveOpen` state.
+- Button `onClick` sets it to `true`.
+- Render `<RequestTimeOffDialog open={isRequestLeaveOpen} onOpenChange={setIsRequestLeaveOpen} />` at the bottom of the component (alongside existing dialogs).
 
-## Out of scope
-- No RLS or schema changes — current loan policies already correctly restrict employees to their own rows.
-- No changes to leave / business trip / HR document detail surfaces — those already behave correctly (their detail components don't expose admin-only actions to plain employees, and their list hooks are already scoped).
-- No change to the desktop Loans page.
+### 3. `src/pages/Attendance.tsx` (dead page)
+This page is not referenced anywhere except itself and is not in the router. Two options:
+
+**Recommended:** Delete `src/pages/Attendance.tsx`. Its functionality is fully duplicated by `components/timemanagement/AttendanceTab.tsx` (used inside `/time-management`). Keeping it around invites future drift.
+
+If preferred to keep it, apply the same `RequestTimeOffDialog` fix as in step 2, but it would still be unreachable.
+
+## Verification
+
+After changes:
+- `rg "navigate\(['\"]/(leave|attendance)" src/` should return no results other than the legitimate `/time-management/leave/:id` detail link in `LeaveRequestsTable.tsx`.
+- Team manager dashboard "Review Requests" button lands on `/approvals` filtered to time off.
+- "Request Leave" button inside `/time-management` Attendance tab opens the personal leave request modal.
+
+## Technical notes
+
+- `RequestTimeOffDialog` is already exported from `src/components/timeoff/`. It uses `useCreateLeaveRequest` and follows the existing modal pattern.
+- No router changes required; we are removing dead targets, not adding new routes.
+- No new routes are added because `/attendance` is intentionally consolidated under `/time-management` per the time-management restructure memory.
