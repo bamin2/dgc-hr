@@ -1,68 +1,73 @@
+# Auth pages: hardcoded colors → semantic tokens
+
 ## Problem
 
-`src/components/ui/tabs.tsx` uses hardcoded literal colors instead of design tokens:
+`src/components/auth/AuthLeftPanel.tsx`, `SignInForm.tsx`, and `ResetPasswordWizard.tsx` use ~30+ inline hex values (`#0F2E2B`, `#C8A14A`, `#F7F8F6`, `#1A1A1A`, `#6B7280`, `#E6E8E3`, `#FFFFFF`, `#ef4444`, `rgba(231,226,218,…)`) and inline `style={{}}` props for nearly every color, hover state, and focus border.
 
-```ts
-TabsList:    bg-white/15  border-white/20
-TabsTrigger: text-black/50  hover:bg-white/30 hover:text-black
-             data-[state=active]:bg-white/70  data-[state=active]:text-black
-```
+These literals already match values defined in `src/index.css` as semantic tokens (`--primary`, `--accent`, `--background`, `--foreground`, `--muted-foreground`, `--border`, `--card`, `--destructive`). The duplication means:
+- Dark mode renders the auth screens with light-mode literals.
+- Future brand tweaks to `index.css` silently skip the auth surface.
+- Hover/focus is wired with imperative `onMouseEnter` / `onFocus` handlers instead of Tailwind variants.
 
-Issues:
-- Violates the workspace rule "Never write custom color classes (text-white, bg-black) — use semantic tokens".
-- In **dark mode**, `text-black/50` on a translucent `white/15` track is barely visible; active state `text-black` on `white/70` becomes harsh white-on-white-ish.
-- In **light mode**, the white-on-white liquid pill ignores the soft off-white background (`#F7F7F5`) and the DGC green/gold semantic palette.
-- Single source of truth — every tabs instance in the app inherits this.
+## Token mapping
 
-## Goal
+| Current literal | Token | Tailwind class |
+|---|---|---|
+| `#0F2E2B` / `#1C1F23` (left panel bg) | `--primary` | `bg-primary` (gradient kept via `from-primary to-primary/90`) |
+| `#e7e2da` (left panel text) | `--primary-foreground` | `text-primary-foreground` |
+| `rgba(231,226,218,0.2)` (decorative dots) | same | `bg-primary-foreground/20` |
+| `#C8A14A` (gold CTA, focus ring, hover link) | `--accent` (DGC gold via accent slot) | `bg-accent` / `text-accent` / `focus:border-accent` |
+| `#F7F8F6` (form panel bg) | `--background` | `bg-background` |
+| `#FFFFFF` (input bg) | `--card` | `bg-card` |
+| `#1A1A1A` (heading/label/input text) | `--foreground` | `text-foreground` |
+| `#6B7280` (muted text, eye icon, links) | `--muted-foreground` | `text-muted-foreground` |
+| `#E6E8E3` (input/divider border) | `--border` | `border-border` |
+| `#ef4444` (error border) | `--destructive` | `border-destructive` |
+| Microsoft 4-color logo squares | — | **keep as hex** (brand requirement) |
 
-Theme-aware liquid-glass tabs that work in both modes and respect tokens, while keeping the existing pill shape, height, and spacing so no consumer needs changes.
+Note: project knowledge defines DGC Gold as the primary action color. The current `--accent` token (`12 88% 54%`, burnt orange) does not match `#C8A14A`. Two options:
+
+- **A. Use `--accent` as-is** — auth CTA becomes burnt orange, consistent with the rest of the app's accent buttons. Simplest, fully token-driven.
+- **B. Add a dedicated `--gold` token** (`38 50% 54%`) in `index.css` light + dark, plus `bg-gold` / `text-gold` utilities in `tailwind.config.ts`, and use it only on auth + any other gold surfaces.
+
+Recommended: **A**. The rest of the app already uses `--accent` for CTAs; the auth screen should match. If the user wants gold preserved exclusively for auth, switch to B.
 
 ## Changes
 
-### `src/components/ui/tabs.tsx`
+### `src/components/auth/AuthLeftPanel.tsx`
+- Remove inline gradient `style`; replace with `className="bg-gradient-to-br from-primary to-primary/90"` (or a single `bg-primary` if the gradient is not essential).
+- Replace `style={{ color: '#e7e2da' }}` → `text-primary-foreground`.
+- Decorative dot circles: `bg-primary-foreground/20`.
+- Gold CTA dot: `bg-accent` (option A) or `bg-gold` (option B).
+- Body copy: `text-primary-foreground/90`.
 
-Replace literal colors with semantic tokens. Keep all geometry (`h-10`, `rounded-full`, `gap-1`, `p-1`, `px-4 sm:px-5`, scroll classes, focus ring) identical.
+### `src/components/auth/SignInForm.tsx`
+- Container: `bg-background` instead of inline `#F7F8F6`.
+- Logo row label: `text-muted-foreground`.
+- Headings & labels: `text-foreground`.
+- Body copy: `text-muted-foreground`.
+- Inputs: drop all inline `style` + `onFocus`/`onBlur`/`onMouseEnter` handlers. Use:
+  - Base: `bg-card text-foreground border-border`.
+  - Focus: `focus:border-accent focus:ring-1 focus:ring-accent` (Tailwind handles the state).
+  - Error: conditional `border-destructive` instead of `errors.email ? '#ef4444' : '#E6E8E3'`.
+- Eye toggle button: `text-muted-foreground hover:text-foreground` (drop the imperative mouse handlers).
+- "Forgot password?" link: `text-muted-foreground hover:text-accent`.
+- Sign-in button: `bg-accent text-accent-foreground hover:bg-accent/90` (drop inline style).
+- Divider line: `border-border`; divider label: `bg-background text-muted-foreground`.
+- Microsoft button: `bg-card text-foreground border-border hover:bg-muted`. Keep the four `<rect>` fills inside the SVG as literal Microsoft brand hexes.
+- Footer border + text: `border-border`, `text-muted-foreground`.
 
-**TabsList** (translucent track adapts to mode):
-```ts
-"inline-flex h-auto items-center gap-1 p-1",
-"bg-foreground/5 border border-border/60 backdrop-blur-md rounded-full",
-"max-w-full overflow-x-auto scrollbar-none",
-```
-- `bg-foreground/5` gives a faint tinted track that inverts correctly in dark mode (tiny dark veil on light bg, tiny light veil on dark bg).
-- `border-border/60` uses the existing border token (already mode-aware).
+### `src/components/auth/ResetPasswordWizard.tsx`
+- Apply the same mapping. (File not yet read in this plan; the refactor will mirror SignInForm — replace every `style={{ color/background/border: '#…' }}` with the matching token class, and convert imperative hover handlers to Tailwind `hover:` variants.)
 
-**TabsTrigger** (inactive + hover + active all token-driven):
-```ts
-"inline-flex items-center justify-center gap-2 whitespace-nowrap",
-"h-10 px-4 sm:px-5 rounded-full",
-"text-sm font-medium transition-colors duration-200",
-// Inactive
-"text-muted-foreground hover:text-foreground hover:bg-foreground/5",
-// Active pill — surface-like contrast against the track
-"data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm",
-"data-[state=active]:border data-[state=active]:border-border/40",
-// Focus
-"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-"disabled:pointer-events-none disabled:opacity-50",
-```
+## Out of scope
 
-Why these tokens:
-- `text-muted-foreground` → readable secondary in both modes.
-- `text-foreground` on hover/active → primary text contrast in both modes.
-- `bg-card` for the active pill → naturally contrasts with the `foreground/5` track (white pill on light, raised dark surface in dark mode), preserving the liquid-glass "raised tile" look.
-- `border-border/40` adds a subtle definition consistent with the project's liquid-glass normalization rule.
-
-`TabsContent` is already token-clean (`ring-offset-background`, `ring-ring`) — leave untouched.
+- Visual redesign — geometry, spacing, sizes, copy, and SVGs are unchanged.
+- Microsoft logo brand colors — kept verbatim.
+- `index.css` token values — not modified under option A.
 
 ## Verification
 
-- `rg "text-(black|white)|bg-(black|white)" src/components/ui/tabs.tsx` → no matches.
-- Visual check: `/requests`, `/time-management`, `/my-profile`, `/settings`, `/approvals` — tabs readable in both light and dark modes; active pill clearly distinct from inactive triggers; pill shape and overflow scrolling unchanged.
-
-## Technical notes
-
-- All tokens already exist in `index.css` for both `:root` and `.dark`; no theme additions needed.
-- No API changes, no consumer changes. Drop-in replacement.
-- Aligns with existing memory: *Liquid Glass Normalization* (`backdrop-blur`, translucent borders, no solid white) and *Responsive Tabs Scrolling* (overflow handled here at the base).
+- `rg "#[0-9A-Fa-f]{3,8}" src/components/auth` should return only the four Microsoft `<rect fill="…">` lines.
+- `rg "style=\{\{" src/components/auth` should return zero matches.
+- Manual check at `/auth` and `/auth/reset-password` in light mode (must look identical to today) and dark mode (must now adapt instead of staying light).

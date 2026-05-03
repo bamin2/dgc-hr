@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 import { z } from "zod";
 import dgcLogoDark from "@/assets/dgc-logo-dark.svg";
 
@@ -14,7 +15,7 @@ const signInSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 
-// Microsoft logo SVG component
+// Microsoft logo SVG component — brand colors are required by Microsoft brand guidelines
 function MicrosoftLogo({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -58,7 +59,7 @@ export function SignInForm() {
     if (error) {
       toast({
         title: "Sign in failed",
-        description: error.message === "Invalid login credentials" 
+        description: error.message === "Invalid login credentials"
           ? "Invalid email or password. Please try again."
           : error.message,
         variant: "destructive",
@@ -76,7 +77,7 @@ export function SignInForm() {
   const handleMicrosoftSignIn = async () => {
     setLoadingMicrosoft(true);
     const { error } = await signInWithAzure();
-    
+
     if (error) {
       setLoadingMicrosoft(false);
       toast({
@@ -88,37 +89,31 @@ export function SignInForm() {
     // Note: Don't set loadingMicrosoft to false on success - the page will redirect
   };
 
+  const inputClasses =
+    "h-11 bg-card text-foreground border-border transition-all focus-visible:ring-2 focus-visible:ring-accent focus-visible:border-accent";
+
   return (
-    <div 
-      className="w-full lg:w-1/2 flex flex-col min-h-screen"
-      style={{ backgroundColor: '#F7F8F6' }}
-    >
+    <div className="w-full lg:w-1/2 flex flex-col min-h-screen bg-background">
       <div className="flex-1 flex items-center justify-center p-6 sm:p-8 lg:p-12">
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
           <div className="lg:hidden mb-8">
-            <img 
-              src={dgcLogoDark} 
-              alt="Dividend Gate Capital" 
+            <img
+              src={dgcLogoDark}
+              alt="Dividend Gate Capital"
               className="h-8 w-auto mb-2"
             />
-            <span 
-              className="text-xs font-medium tracking-[0.15em] uppercase"
-              style={{ color: '#6B7280' }}
-            >
+            <span className="text-xs font-medium tracking-[0.15em] uppercase text-muted-foreground">
               DGC People
             </span>
           </div>
 
           {/* Header */}
           <div className="mb-8">
-            <h1 
-              className="text-2xl sm:text-3xl font-semibold leading-tight mb-3"
-              style={{ color: '#1A1A1A' }}
-            >
+            <h1 className="text-2xl sm:text-3xl font-semibold leading-tight mb-3 text-foreground">
               The core of how we work at DGC.
             </h1>
-            <p style={{ color: '#6B7280' }}>
+            <p className="text-muted-foreground">
               Access your work life, benefits, and requests in one place.
             </p>
           </div>
@@ -126,11 +121,7 @@ export function SignInForm() {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <Label 
-                htmlFor="email" 
-                className="text-sm font-medium"
-                style={{ color: '#1A1A1A' }}
-              >
+              <Label htmlFor="email" className="text-sm font-medium text-foreground">
                 Email
               </Label>
               <Input
@@ -140,32 +131,15 @@ export function SignInForm() {
                 placeholder="you@dgcholding.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="h-11 transition-all focus-visible:ring-0"
-                style={{ 
-                  backgroundColor: '#FFFFFF',
-                  borderColor: errors.email ? '#ef4444' : '#E6E8E3',
-                  color: '#1A1A1A'
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = '#C8A14A';
-                  e.target.style.boxShadow = '0 0 0 3px rgba(200, 161, 74, 0.1)';
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = errors.email ? '#ef4444' : '#E6E8E3';
-                  e.target.style.boxShadow = 'none';
-                }}
+                className={cn(inputClasses, errors.email && "border-destructive")}
               />
               {errors.email && (
-                <p className="text-sm text-red-500">{errors.email}</p>
+                <p className="text-sm text-destructive">{errors.email}</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label 
-                htmlFor="password" 
-                className="text-sm font-medium"
-                style={{ color: '#1A1A1A' }}
-              >
+              <Label htmlFor="password" className="text-sm font-medium text-foreground">
                 Password
               </Label>
               <div className="relative">
@@ -176,44 +150,25 @@ export function SignInForm() {
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="h-11 pr-10 transition-all focus-visible:ring-0"
-                  style={{ 
-                    backgroundColor: '#FFFFFF',
-                    borderColor: errors.password ? '#ef4444' : '#E6E8E3',
-                    color: '#1A1A1A'
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = '#C8A14A';
-                    e.target.style.boxShadow = '0 0 0 3px rgba(200, 161, 74, 0.1)';
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = errors.password ? '#ef4444' : '#E6E8E3';
-                    e.target.style.boxShadow = 'none';
-                  }}
+                  className={cn(inputClasses, "pr-10", errors.password && "border-destructive")}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
-                  style={{ color: '#6B7280' }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = '#1A1A1A'}
-                  onMouseLeave={(e) => e.currentTarget.style.color = '#6B7280'}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
               {errors.password && (
-                <p className="text-sm text-red-500">{errors.password}</p>
+                <p className="text-sm text-destructive">{errors.password}</p>
               )}
             </div>
 
             <div className="flex justify-end">
               <Link
                 to="/auth/reset-password"
-                className="text-sm transition-colors"
-                style={{ color: '#6B7280' }}
-                onMouseEnter={(e) => e.currentTarget.style.color = '#C8A14A'}
-                onMouseLeave={(e) => e.currentTarget.style.color = '#6B7280'}
+                className="text-sm text-muted-foreground hover:text-accent transition-colors"
               >
                 Forgot password?
               </Link>
@@ -221,11 +176,7 @@ export function SignInForm() {
 
             <Button
               type="submit"
-              className="w-full h-11 text-base font-medium transition-all hover:opacity-90"
-              style={{ 
-                backgroundColor: '#C8A14A',
-                color: '#1A1A1A'
-              }}
+              className="w-full h-11 text-base font-medium bg-accent text-accent-foreground hover:bg-accent/90"
               disabled={loading || loadingMicrosoft}
             >
               {loading ? "Signing in..." : "Sign In"}
@@ -235,13 +186,10 @@ export function SignInForm() {
           {/* Divider */}
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" style={{ borderColor: '#E6E8E3' }} />
+              <span className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span 
-                className="px-2"
-                style={{ backgroundColor: '#F7F8F6', color: '#6B7280' }}
-              >
+              <span className="px-2 bg-background text-muted-foreground">
                 or
               </span>
             </div>
@@ -251,12 +199,7 @@ export function SignInForm() {
           <Button
             type="button"
             variant="outline"
-            className="w-full h-11 text-base font-medium transition-all"
-            style={{ 
-              backgroundColor: '#FFFFFF',
-              borderColor: '#E6E8E3',
-              color: '#1A1A1A'
-            }}
+            className="w-full h-11 text-base font-medium bg-card text-foreground border-border hover:bg-muted"
             onClick={handleMicrosoftSignIn}
             disabled={loading || loadingMicrosoft}
           >
@@ -267,14 +210,8 @@ export function SignInForm() {
       </div>
 
       {/* Footer */}
-      <div 
-        className="py-6 px-6 sm:px-8 lg:px-12 border-t text-center"
-        style={{ borderColor: '#E6E8E3' }}
-      >
-        <p 
-          className="text-xs"
-          style={{ color: '#6B7280' }}
-        >
+      <div className="py-6 px-6 sm:px-8 lg:px-12 border-t border-border text-center">
+        <p className="text-xs text-muted-foreground">
           © Dividend Gate Capital — Internal system for DGC employees
         </p>
       </div>
