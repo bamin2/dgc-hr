@@ -18,8 +18,8 @@ export function WorkforceSnapshotCards({ data, isLoading, onNavigate }: Workforc
           value={data.totalActive}
           subtitle="Current headcount"
           icon={Users}
-          iconBg="bg-teal-100 dark:bg-teal-900/30"
-          iconColor="text-teal-600 dark:text-teal-400"
+          iconBg="bg-info/10"
+          iconColor="text-info"
           onClick={() => onNavigate('employee-master')}
           isLoading={isLoading}
         />
@@ -29,8 +29,8 @@ export function WorkforceSnapshotCards({ data, isLoading, onNavigate }: Workforc
           value={data.newHires}
           subtitle="This month"
           icon={UserPlus}
-          iconBg="bg-green-100 dark:bg-green-900/30"
-          iconColor="text-green-600 dark:text-green-400"
+          iconBg="bg-success/10"
+          iconColor="text-success"
           onClick={() => onNavigate('employee-master')}
           badge={data.newHires > 0 ? { text: 'Recent', variant: 'default' } : undefined}
           isLoading={isLoading}
@@ -41,8 +41,8 @@ export function WorkforceSnapshotCards({ data, isLoading, onNavigate }: Workforc
           value={data.exits}
           subtitle="This month"
           icon={UserMinus}
-          iconBg="bg-red-100 dark:bg-red-900/30"
-          iconColor="text-red-600 dark:text-red-400"
+          iconBg="bg-destructive/10"
+          iconColor="text-destructive"
           onClick={() => onNavigate('employee-master')}
           isLoading={isLoading}
         />

@@ -57,9 +57,9 @@ export const PayrollChart = ({ data, currency = "USD" }: PayrollChartProps) => {
                 }}
               />
               <Legend />
-              <Bar dataKey="netPay" name="Net Pay" fill="#22C55E" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="taxes" name="Taxes" fill="#C6A45E" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="benefits" name="Benefits" fill="#6B7B6E" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="netPay" name="Net Pay" fill="hsl(var(--chart-accent))" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="taxes" name="Taxes" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="benefits" name="Benefits" fill="hsl(var(--chart-3))" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
