@@ -31,6 +31,13 @@ const App = () => (
             <TooltipProvider>
               <Toaster />
               <Sonner />
+              <div
+                id="sr-announce-region"
+                role="alert"
+                aria-live="assertive"
+                aria-atomic="true"
+                className="sr-only"
+              />
               <OfflineIndicator />
               <InstallPrompt />
               <BrowserRouter>

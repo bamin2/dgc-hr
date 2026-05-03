@@ -1,55 +1,73 @@
 ## Goal
-Replace the minimal `CardSkeleton` in `src/components/dashboard/DashboardRenderer.tsx` with a richer placeholder that resembles real bento card content (avatar + title + stacked content bars), and add a second column of bars for wide cards (`colSpan >= 6`).
+Add a global, visually hidden screen-reader live region in `App.tsx` and a tiny `useScreenReaderAnnounce` hook that writes into it (with a 2s clear). Visible toaster behavior stays untouched.
 
 ## Findings
-- `CardSkeleton` lives at `src/components/dashboard/DashboardRenderer.tsx:19` and is the only file affected.
-- It's used at colSpans 4, 5, 7, 8, 12 in the desktop loading state. The `>= 6` rule covers 7, 8, 12 (wide); 4 and 5 stay single-column.
-- `Skeleton` (`src/components/ui/skeleton.tsx`) is `bg-muted` + `animate-pulse` — already a DGC token. No changes needed there.
-- `BentoCard`/`BentoGrid` untouched.
+- `src/App.tsx` mounts `<Toaster />` (legacy) then `<Sonner />` at lines 32–33. The new live region goes immediately under `<Sonner />`.
+- `src/components/ui/sonner.tsx` is a thin wrapper around the `sonner` library — no changes needed.
+- `src/components/ui/toaster.tsx` is the legacy toaster — no changes needed.
+- `sr-only` Tailwind utility is available globally (shadcn default).
 
-## Change
+## Changes
 
-In `src/components/dashboard/DashboardRenderer.tsx` replace lines 19–28:
+### 1. `src/App.tsx` — insert the live region under `<Sonner />` (lines 32–35)
 
 ```tsx
-function CardSkeleton({ colSpan = 4 }: { colSpan?: 4 | 5 | 7 | 8 | 12 }) {
-  const isWide = colSpan >= 6;
+<Toaster />
+<Sonner />
+<div
+  id="sr-announce-region"
+  role="alert"
+  aria-live="assertive"
+  aria-atomic="true"
+  className="sr-only"
+/>
+<OfflineIndicator />
+<InstallPrompt />
+```
 
-  const BarColumn = () => (
-    <div className="space-y-3">
-      <Skeleton className="h-3 w-[60%] rounded-full" />
-      <Skeleton className="h-3 w-[45%] rounded-full" />
-      <Skeleton className="h-3 w-[35%] rounded-full" />
-    </div>
-  );
+Notes:
+- `aria-live="assertive"` + `role="alert"` per spec.
+- `aria-atomic="true"` ensures the full message is read on each update.
+- `sr-only` keeps it visually hidden; no layout impact.
 
-  return (
-    <BentoCard colSpan={colSpan}>
-      <div className="space-y-5">
-        {/* Header: 32px avatar + 120px title bar */}
-        <div className="flex items-center gap-3">
-          <Skeleton className="h-8 w-8 rounded-full" />
-          <Skeleton className="h-4 w-[120px] rounded-full" />
-        </div>
+### 2. New file `src/hooks/useScreenReaderAnnounce.ts`
 
-        {/* Content bars: single column, or two columns when wide */}
-        <div className={isWide ? "grid grid-cols-2 gap-6" : ""}>
-          <BarColumn />
-          {isWide && <BarColumn />}
-        </div>
-      </div>
-    </BentoCard>
-  );
+```ts
+import { useEffect } from "react";
+
+export const SR_ANNOUNCE_REGION_ID = "sr-announce-region";
+
+/**
+ * Writes `message` into the global screen reader live region
+ * rendered in App.tsx. Clears it 2s later so repeats re-announce.
+ * Pass falsy to skip.
+ */
+export function useScreenReaderAnnounce(message: string | null | undefined): void {
+  useEffect(() => {
+    if (!message) return;
+
+    const region = document.getElementById(SR_ANNOUNCE_REGION_ID);
+    if (!region) return;
+
+    region.textContent = message;
+
+    const timeout = window.setTimeout(() => {
+      if (region.textContent === message) {
+        region.textContent = "";
+      }
+    }, 2000);
+
+    return () => window.clearTimeout(timeout);
+  }, [message]);
 }
 ```
 
 Notes:
-- 32px avatar = `h-8 w-8`; 120px title = `w-[120px]`.
-- 12px vertical gap between bars = `space-y-3` (Tailwind 3 = 0.75rem = 12px).
-- Bars use `rounded-full` for refined polish; `h-3` for subtle weight.
-- Wide cards split into 2 columns (`grid grid-cols-2 gap-6`), each rendering an identical BarColumn.
+- DOM-write (not React state) so it never re-renders any tree.
+- Conditional clear avoids wiping a newer message when a stale timeout fires.
+- Cleanup cancels pending clears on unmount/message change.
 
 ## Out of scope
-- `BentoGrid`, `BentoCard`, all real card components.
-- `Skeleton` primitive in `src/components/ui/skeleton.tsx`.
-- Mobile dashboard loading state.
+- `src/components/ui/sonner.tsx` and `src/components/ui/toaster.tsx` — untouched.
+- No existing `toast(...)` call sites are modified.
+- No new toast styling, no new providers, no DGC token changes.
