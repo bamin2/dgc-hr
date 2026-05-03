@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/dashboard';
 import { PageHeader } from '@/components/ui/page-header';
@@ -32,6 +32,16 @@ import { useIsBelowDesktop } from '@/hooks/use-media-query';
 import { Settings, Building2, User, Bell, Shield, Save, Wallet, Loader2, Network, LayoutDashboard, GitBranch, UserCircle, Mail } from 'lucide-react';
 import { DashboardCardVisibility, defaultDashboardCardVisibility } from '@/data/settings';
 import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 // Admin tabs that are restricted on mobile
 const ADMIN_TABS = ['company', 'organization', 'dashboard', 'selfservice', 'approvals', 'email-templates', 'payroll'];
@@ -78,6 +88,12 @@ const SettingsPage = () => {
     }
     return canManageRoles ? 'company' : 'preferences';
   });
+
+  // Per-tab unsaved-edit tracking
+  const [companyDirty, setCompanyDirty] = useState(false);
+  const [prefsDirty, setPrefsDirty] = useState(false);
+  const [notifDirty, setNotifDirty] = useState(false);
+  const [pendingTab, setPendingTab] = useState<string | null>(null);
 
   // Handle mobile restrictions for admin tabs accessed via deep link
   useEffect(() => {
@@ -134,6 +150,7 @@ const SettingsPage = () => {
           // These tabs modify companySettings state
           if (canManageRoles && hasCompanySettingsLoaded) {
             await updateGlobalSettings(companySettings);
+            setCompanyDirty(false);
           } else if (canManageRoles && !hasCompanySettingsLoaded) {
             toast.error('Company settings are still loading. Please wait.');
             return;
@@ -142,10 +159,12 @@ const SettingsPage = () => {
           
         case 'preferences':
           await updatePreferences(userPreferences);
+          setPrefsDirty(false);
           break;
           
         case 'notifications':
           await updateNotifications(notificationSettings);
+          setNotifDirty(false);
           break;
           
         // These tabs have their own save mechanisms:
@@ -163,6 +182,46 @@ const SettingsPage = () => {
 
   const handleCompanySettingsChange = (newSettings: CompanySettings) => {
     setCompanySettings(newSettings);
+    setCompanyDirty(true);
+  };
+
+  const handleUserPreferencesChange = (next: UserPreferences) => {
+    setUserPreferences(next);
+    setPrefsDirty(true);
+  };
+
+  const handleNotificationSettingsChange = (next: NotificationSettings) => {
+    setNotificationSettings(next);
+    setNotifDirty(true);
+  };
+
+  const activeTabDirty = useMemo(() => {
+    if (['company', 'dashboard', 'selfservice'].includes(activeTab)) return companyDirty;
+    if (activeTab === 'preferences') return prefsDirty;
+    if (activeTab === 'notifications') return notifDirty;
+    return false;
+  }, [activeTab, companyDirty, prefsDirty, notifDirty]);
+
+  const requestTabSwitch = (nextTab: string) => {
+    if (nextTab === activeTab) return;
+    if (activeTabDirty) {
+      setPendingTab(nextTab);
+      return;
+    }
+    setActiveTab(nextTab);
+  };
+
+  const discardActiveTabChanges = () => {
+    if (['company', 'dashboard', 'selfservice'].includes(activeTab)) {
+      setCompanySettings(globalSettings);
+      setCompanyDirty(false);
+    } else if (activeTab === 'preferences') {
+      setUserPreferences(dbUserPreferences);
+      setPrefsDirty(false);
+    } else if (activeTab === 'notifications') {
+      setNotificationSettings(dbNotificationSettings);
+      setNotifDirty(false);
+    }
   };
 
 
@@ -218,7 +277,10 @@ const SettingsPage = () => {
         return canManageRoles ? (
           <DashboardSettingsTab 
             visibility={companySettings.dashboardCardVisibility ?? defaultDashboardCardVisibility}
-            onChange={(visibility) => setCompanySettings(prev => ({ ...prev, dashboardCardVisibility: visibility }))}
+            onChange={(visibility) => {
+              setCompanySettings(prev => ({ ...prev, dashboardCardVisibility: visibility }));
+              setCompanyDirty(true);
+            }}
           />
         ) : null;
       case 'selfservice':
@@ -226,7 +288,10 @@ const SettingsPage = () => {
           <SelfServiceSettings
             employeeCanViewCompensation={companySettings.employeeCanViewCompensation ?? true}
             showCompensationLineItems={companySettings.showCompensationLineItems ?? false}
-            onChange={(field, value) => setCompanySettings(prev => ({ ...prev, [field]: value }))}
+            onChange={(field, value) => {
+              setCompanySettings(prev => ({ ...prev, [field]: value }));
+              setCompanyDirty(true);
+            }}
           />
         ) : null;
       case 'approvals':
@@ -239,7 +304,7 @@ const SettingsPage = () => {
         return (
           <UserPreferencesForm 
             preferences={userPreferences} 
-            onChange={setUserPreferences}
+            onChange={handleUserPreferencesChange}
             jobTitleFromEmployee={jobTitleFromEmployee}
           />
         );
@@ -247,7 +312,7 @@ const SettingsPage = () => {
         return (
           <NotificationSettingsForm 
             settings={notificationSettings} 
-            onChange={setNotificationSettings} 
+            onChange={handleNotificationSettingsChange} 
           />
         );
       case 'security':
@@ -284,7 +349,7 @@ const SettingsPage = () => {
           subtitle="Manage your workspace and preferences"
           actions={
             showGlobalSaveButton ? (
-              <Button onClick={handleSave} disabled={!canSave}>
+              <Button onClick={handleSave} disabled={!canSave || !activeTabDirty}>
                 {isSaving ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 ) : (
@@ -305,7 +370,7 @@ const SettingsPage = () => {
               <div className="md:hidden">
                 <select
                   value={activeTab}
-                  onChange={(e) => setActiveTab(e.target.value)}
+                  onChange={(e) => requestTabSwitch(e.target.value)}
                   className="w-full px-3 py-2 bg-background border rounded-md text-sm"
                 >
                   {adminTabs.length > 0 && (
@@ -337,7 +402,7 @@ const SettingsPage = () => {
                         return (
                           <button
                             key={tab.value}
-                            onClick={() => setActiveTab(tab.value)}
+                            onClick={() => requestTabSwitch(tab.value)}
                             className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
                               isActive 
                                 ? 'bg-primary/10 text-primary font-medium' 
@@ -364,7 +429,7 @@ const SettingsPage = () => {
                       return (
                         <button
                           key={tab.value}
-                          onClick={() => setActiveTab(tab.value)}
+                          onClick={() => requestTabSwitch(tab.value)}
                           className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
                             isActive 
                               ? 'bg-primary/10 text-primary font-medium' 
@@ -388,6 +453,46 @@ const SettingsPage = () => {
           </div>
         </div>
       </div>
+
+      <AlertDialog
+        open={pendingTab !== null}
+        onOpenChange={(open) => { if (!open) setPendingTab(null); }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Unsaved changes</AlertDialogTitle>
+            <AlertDialogDescription>
+              You have unsaved changes. Save before switching tabs?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPendingTab(null)}>
+              Cancel
+            </AlertDialogCancel>
+            <Button
+              variant="outline"
+              onClick={() => {
+                const next = pendingTab;
+                discardActiveTabChanges();
+                setPendingTab(null);
+                if (next) setActiveTab(next);
+              }}
+            >
+              Discard changes
+            </Button>
+            <AlertDialogAction
+              onClick={async () => {
+                const next = pendingTab;
+                setPendingTab(null);
+                await handleSave();
+                if (next) setActiveTab(next);
+              }}
+            >
+              Save and continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DashboardLayout>
   );
 };

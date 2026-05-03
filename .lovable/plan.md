@@ -1,163 +1,203 @@
-# Detect Circular Manager Chains in Approval Engine
+# Per-Tab Dirty Tracking + Unsaved-Changes Confirm in Settings
 
 ## Goal
-When the configured workflow step's approver is `manager`, walk up the employee→manager chain (max depth 5) before assigning the manager as approver. If a cycle is detected, treat it like an unresolved manager: fall through to `fallback === 'hr'`, or, if no fallback, leave the request pending with no steps and surface a destructive toast `"Manager assignment is circular. Please contact HR."`.
+Track unsaved-edit state per Settings tab using three booleans. Disable the Save button unless the active tab is dirty. When the user clicks a different tab while the active one is dirty, intercept and present an `AlertDialog` with three actions: Save and continue / Discard changes / Cancel.
 
-## Files
-- `src/types/approvals.ts` — extend the blocked-reason union.
-- `src/hooks/useApprovalEngine.ts` — add helper, modify manager branch, surface new toast.
-
-`src/hooks/useEmployees.ts` is inspected for context only — no changes needed; the helper queries `employees` directly via supabase to keep it lightweight and avoid React-Query coupling inside a mutation.
+## Scope
+`src/pages/Settings.tsx` only. Tab routing, save calls, child forms, and existing skeleton/loading logic are unchanged. Three tabs are covered by per-tab dirtiness:
+- `companyDirty` → applies to `company`, `dashboard`, `selfservice` (all three mutate `companySettings`).
+- `prefsDirty` → applies to `preferences`.
+- `notifDirty` → applies to `notifications`.
+Other tabs (`organization`, `approvals`, `email-templates`, `payroll`, `security`) own their own save flow today; no global Save button shown for them — guarding is unnecessary and intentionally skipped.
 
 ## Changes
 
-### 1. `src/types/approvals.ts`
-Add `'circular_manager'` to `ApprovalInitiationBlockedReason`:
+### 1. Imports
+Add to existing imports:
 ```ts
-export type ApprovalInitiationBlockedReason =
-  | 'workflow_inactive'
-  | 'no_steps'
-  | 'no_approver'
-  | 'circular_manager';
+import { useMemo, useRef } from 'react'; // merge with existing useState/useEffect import
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 ```
 
-### 2. `src/hooks/useApprovalEngine.ts`
-
-**Add helper** below `getManagerUserId`:
+### 2. State
+Right under existing `useState` blocks:
 ```ts
-// Walk the manager chain starting from `managerId` up to MAX_DEPTH levels.
-// Returns true if `employeeId` appears in that chain (cycle detected).
-async function isCircularManager(employeeId: string, managerId: string): Promise<boolean> {
-  const MAX_DEPTH = 5;
-  let current: string | null = managerId;
-  const visited = new Set<string>([employeeId]);
+const [companyDirty, setCompanyDirty] = useState(false);
+const [prefsDirty, setPrefsDirty] = useState(false);
+const [notifDirty, setNotifDirty] = useState(false);
 
-  for (let depth = 0; depth < MAX_DEPTH && current; depth++) {
-    if (visited.has(current)) return true;
-    visited.add(current);
-
-    const { data } = await supabase
-      .from('employees')
-      .select('manager_id')
-      .eq('id', current)
-      .single();
-
-    current = data?.manager_id ?? null;
-  }
-  return false;
-}
+const [pendingTab, setPendingTab] = useState<string | null>(null);
 ```
 
-**Modify the manager branch** in `useInitiateApproval` (currently lines 95–105). Need to know the manager's `employee.id` to traverse. Add a small helper or fetch it inline. Replace the branch with:
+### 3. Setter wrappers — flag dirty when the *user* changes data
+The three local-state setters are passed to child forms (`onChange={setUserPreferences}` etc.) and to inline updaters. Wrap them so dirtiness flips on user edits but the data-load `useEffect`s do not.
 
+- Replace `handleCompanySettingsChange` body and add similar wrappers:
 ```ts
-if (stepConfig.approver === "manager") {
-  // Resolve manager's employee row so we can both check for cycles
-  // and reuse the user_id we already need.
-  const { data: managerEmployee } = await supabase
-    .from("employees")
-    .select("id, user_id, manager_id")
-    .eq("id", (await supabase
-      .from("employees")
-      .select("manager_id")
-      .eq("id", employeeId)
-      .single()).data?.manager_id ?? "")
-    .maybeSingle();
+const handleCompanySettingsChange = (newSettings: CompanySettings) => {
+  setCompanySettings(newSettings);
+  setCompanyDirty(true);
+};
 
-  const resolvedManagerUserId = managerEmployee?.user_id ?? null;
-  const cycle = managerEmployee
-    ? await isCircularManager(employeeId, managerEmployee.id)
-    : false;
+const handleUserPreferencesChange = (next: UserPreferences) => {
+  setUserPreferences(next);
+  setPrefsDirty(true);
+};
 
-  const managerUsable =
-    !!resolvedManagerUserId &&
-    resolvedManagerUserId !== requesterUserId &&
-    !cycle;
-
-  if (managerUsable) {
-    approverUserId = resolvedManagerUserId;
-  } else if (stepConfig.fallback === "hr") {
-    approverUserId = await getDefaultHRApprover(workflow.default_hr_approver_id, requesterUserId);
-    effectiveApproverType = "hr";
-    if (cycle) circularManagerDetected = true; // remember for toast if we still end up with no steps
-  } else {
-    if (cycle) circularManagerDetected = true;
-    continue;
-  }
-}
+const handleNotificationSettingsChange = (next: NotificationSettings) => {
+  setNotificationSettings(next);
+  setNotifDirty(true);
+};
 ```
 
-To avoid the awkward double-await inline, refactor the existing top-level fetch:
+- Update the inline `onChange` props in `renderTabContent`:
+  - `UserPreferencesForm`: `onChange={handleUserPreferencesChange}`
+  - `NotificationSettingsForm`: `onChange={handleNotificationSettingsChange}`
+  - `DashboardSettingsTab`: replace inline `setCompanySettings(prev => ...)` with:
+    ```tsx
+    onChange={(visibility) => {
+      setCompanySettings(prev => ({ ...prev, dashboardCardVisibility: visibility }));
+      setCompanyDirty(true);
+    }}
+    ```
+  - `SelfServiceSettings`: same treatment for the field/value updater.
 
-- Replace line 87 `const managerUserId = await getManagerUserId(employeeId);` with a single fetch that returns both ids:
-  ```ts
-  const { data: requesterEmployee } = await supabase
-    .from("employees")
-    .select("manager_id")
-    .eq("id", employeeId)
-    .single();
-  const directManagerEmployeeId = requesterEmployee?.manager_id ?? null;
+### 4. Keep load-sync effects from flipping dirty
+The three `useEffect`s that mirror DB → local state must not set dirty. Currently they already only call `setX(...)`, which is fine; we just don't add `setXDirty(true)` there. **However** they also need to reset dirtiness when DB resyncs after save (e.g. after a successful save, `dbUserPreferences` updates → effect runs). That's exactly the desired reset path, so leave them as-is. To make the reset explicit and resilient, also reset dirty inside `handleSave` after each successful branch (see step 5).
 
-  let managerEmployeeRow: { id: string; user_id: string | null } | null = null;
-  if (directManagerEmployeeId) {
-    const { data } = await supabase
-      .from("employees")
-      .select("id, user_id")
-      .eq("id", directManagerEmployeeId)
-      .single();
-    managerEmployeeRow = data ?? null;
-  }
-  const managerUserId = managerEmployeeRow?.user_id ?? null;
+### 5. `handleSave` — reset the matching dirty flag on success
+Inside the existing switch, after each `await ...updateX(...)` call, reset the relevant flag:
 
-  const cycleDetected = managerEmployeeRow
-    ? await isCircularManager(employeeId, managerEmployeeRow.id)
-    : false;
-
-  let circularManagerDetected = false;
-  ```
-
-- Then the manager branch becomes simpler:
-  ```ts
-  if (stepConfig.approver === "manager") {
-    if (managerUserId && managerUserId !== requesterUserId && !cycleDetected) {
-      approverUserId = managerUserId;
-    } else if (stepConfig.fallback === "hr") {
-      approverUserId = await getDefaultHRApprover(workflow.default_hr_approver_id, requesterUserId);
-      effectiveApproverType = "hr";
-      if (cycleDetected) circularManagerDetected = true;
-    } else {
-      if (cycleDetected) circularManagerDetected = true;
-      continue;
-    }
-  }
-  ```
-
-**No-steps fallthrough** (after the loop, before the existing `if (!firstStepCreated)` last-resort HR block): if `firstStepCreated` is still false **and** `circularManagerDetected` is true **and** the last-resort HR fallback also fails to produce an approver, surface `circular_manager` instead of the generic `no_approver`. Concretely, modify the existing block (lines 140–162) so the `else` branch returns:
 ```ts
-return {
-  autoApproved: false,
-  blocked: true,
-  reason: circularManagerDetected ? 'circular_manager' : 'no_approver',
-} satisfies ApprovalInitiationResult;
-```
-The success path inside the `if (fallbackHrUserId)` branch is unchanged.
+case 'company':
+case 'dashboard':
+case 'selfservice':
+  if (canManageRoles && hasCompanySettingsLoaded) {
+    await updateGlobalSettings(companySettings);
+    setCompanyDirty(false);
+  } else if (canManageRoles && !hasCompanySettingsLoaded) { ... return; }
+  break;
 
-### 3. Toast in `onSuccess`
-Add a case in the existing switch:
-```ts
-case 'circular_manager':
-  toast.error("Manager assignment is circular. Please contact HR.");
+case 'preferences':
+  await updatePreferences(userPreferences);
+  setPrefsDirty(false);
+  break;
+
+case 'notifications':
+  await updateNotifications(notificationSettings);
+  setNotifDirty(false);
   break;
 ```
 
+### 6. Compute `activeTabDirty` and gate the Save button
+```ts
+const activeTabDirty = useMemo(() => {
+  if (['company', 'dashboard', 'selfservice'].includes(activeTab)) return companyDirty;
+  if (activeTab === 'preferences') return prefsDirty;
+  if (activeTab === 'notifications') return notifDirty;
+  return false;
+}, [activeTab, companyDirty, prefsDirty, notifDirty]);
+```
+
+Update Save button `disabled`:
+```tsx
+<Button onClick={handleSave} disabled={!canSave || !activeTabDirty}>
+```
+`canSave` (existing) preserves the loading-gate for company tabs and the saving spinner; we additionally require `activeTabDirty` so the button is inert with no edits.
+
+### 7. Tab-switch guard
+Create a single function used by all three call sites that switch tabs (mobile `<select>`, admin nav buttons, personal nav buttons):
+
+```ts
+const requestTabSwitch = (nextTab: string) => {
+  if (nextTab === activeTab) return;
+  if (activeTabDirty) {
+    setPendingTab(nextTab);
+    return;
+  }
+  setActiveTab(nextTab);
+};
+```
+
+Replace each `onClick={() => setActiveTab(tab.value)}` and `onChange={(e) => setActiveTab(e.target.value)}` with `requestTabSwitch`.
+
+> URL-driven `setActiveTab` calls in the two `useEffect`s (URL → state sync) are **not** routed through the guard — those reflect external navigation and should not pop a dialog mid-render. This matches "do not change tab routing".
+
+### 8. The `AlertDialog`
+Render at the bottom of the page (just before `</DashboardLayout>` close):
+
+```tsx
+<AlertDialog open={pendingTab !== null} onOpenChange={(open) => { if (!open) setPendingTab(null); }}>
+  <AlertDialogContent>
+    <AlertDialogHeader>
+      <AlertDialogTitle>Unsaved changes</AlertDialogTitle>
+      <AlertDialogDescription>
+        You have unsaved changes. Save before switching tabs?
+      </AlertDialogDescription>
+    </AlertDialogHeader>
+    <AlertDialogFooter>
+      <AlertDialogCancel onClick={() => setPendingTab(null)}>
+        Cancel
+      </AlertDialogCancel>
+      <Button
+        variant="outline"
+        onClick={() => {
+          // Discard: reset matching dirty flag and switch
+          if (['company', 'dashboard', 'selfservice'].includes(activeTab)) {
+            setCompanySettings(globalSettings);
+            setCompanyDirty(false);
+          } else if (activeTab === 'preferences') {
+            setUserPreferences(dbUserPreferences);
+            setPrefsDirty(false);
+          } else if (activeTab === 'notifications') {
+            setNotificationSettings(dbNotificationSettings);
+            setNotifDirty(false);
+          }
+          const next = pendingTab!;
+          setPendingTab(null);
+          setActiveTab(next);
+        }}
+      >
+        Discard changes
+      </Button>
+      <AlertDialogAction
+        onClick={async () => {
+          const next = pendingTab!;
+          setPendingTab(null);
+          await handleSave();
+          // Only switch if no error toast (best-effort: handleSave already
+          // surfaces errors). Switch unconditionally — error tab will simply
+          // remain dirty if save failed; user can retry.
+          setActiveTab(next);
+        }}
+      >
+        Save and continue
+      </AlertDialogAction>
+    </AlertDialogFooter>
+  </AlertDialogContent>
+</AlertDialog>
+```
+
+Wrap using a fragment if needed, or place inside the existing root `<DashboardLayout>` children container.
+
 ## Behavior Summary
-- Manager chain is walked up to 5 levels.
-- A cycle disqualifies the manager, exactly as if `managerUserId` were null.
-- If the step has `fallback === 'hr'`, HR is assigned (no toast change for that step — the request continues normally).
-- If no fallback **and** no other approvers can be created **and** the last-resort HR also fails, the request remains pending with no steps and the destructive cyclical-manager toast fires.
-- Success path, default values, schema of `request_approval_steps`, and other branches (`hr`, `specific_user`) are untouched.
-- `getManagerUserId` is left in place for external compatibility, even though `useInitiateApproval` no longer uses it.
+- Editing in a covered tab flips its dirty flag → Save button enables.
+- Successful save resets the flag → Save button disables again.
+- Clicking a different tab while dirty intercepts and asks Save / Discard / Cancel.
+- Discard reverts local state to the last loaded DB snapshot before switching.
+- Save and continue runs the normal save then switches tabs.
+- Cancel keeps the user on the current tab with edits intact.
+- URL-driven tab changes (deep links, mobile-admin redirect) bypass the guard intentionally.
+- All other tabs (`organization`, `approvals`, …) are unchanged.
 
 ## Files Modified
-- `src/types/approvals.ts`
-- `src/hooks/useApprovalEngine.ts`
+- `src/pages/Settings.tsx`
