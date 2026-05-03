@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/dashboard';
 import { PageHeader } from '@/components/ui/page-header';
@@ -32,6 +32,16 @@ import { useIsBelowDesktop } from '@/hooks/use-media-query';
 import { Settings, Building2, User, Bell, Shield, Save, Wallet, Loader2, Network, LayoutDashboard, GitBranch, UserCircle, Mail } from 'lucide-react';
 import { DashboardCardVisibility, defaultDashboardCardVisibility } from '@/data/settings';
 import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 // Admin tabs that are restricted on mobile
 const ADMIN_TABS = ['company', 'organization', 'dashboard', 'selfservice', 'approvals', 'email-templates', 'payroll'];
@@ -78,6 +88,12 @@ const SettingsPage = () => {
     }
     return canManageRoles ? 'company' : 'preferences';
   });
+
+  // Per-tab unsaved-edit tracking
+  const [companyDirty, setCompanyDirty] = useState(false);
+  const [prefsDirty, setPrefsDirty] = useState(false);
+  const [notifDirty, setNotifDirty] = useState(false);
+  const [pendingTab, setPendingTab] = useState<string | null>(null);
 
   // Handle mobile restrictions for admin tabs accessed via deep link
   useEffect(() => {
