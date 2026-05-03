@@ -438,7 +438,7 @@ export function CreateOfferWizard({ candidate, onSuccess, onCancel }: CreateOffe
                   </div>
                 )}
                 {isSubjectToGosi && gosiCalculation.rate === 0 && candidate.nationality && (
-                  <p className="text-xs text-amber-600 mt-2">
+                  <p className="text-xs text-warning mt-2">
                     No GOSI rate configured for nationality: {candidate.nationality}
                   </p>
                 )}

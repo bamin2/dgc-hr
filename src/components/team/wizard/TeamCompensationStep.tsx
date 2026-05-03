@@ -275,10 +275,10 @@ export function TeamCompensationStep({
 
       {/* GOSI Section - shown for Bahraini employees or when manually enabled */}
       {(isBahraini || data.isSubjectToGosi) && (
-        <Card className="border-amber-200 bg-amber-50/50 dark:border-amber-900 dark:bg-amber-950/20">
+        <Card className="border-warning/30 bg-warning/10">
           <CardContent className="pt-4 space-y-4">
             <div className="flex items-start gap-3">
-              <Info className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+              <Info className="h-5 w-5 text-warning mt-0.5 shrink-0" />
               <div className="space-y-1">
                 <p className="text-sm font-medium text-foreground">GOSI (Social Insurance)</p>
                 <p className="text-xs text-muted-foreground">
@@ -350,7 +350,7 @@ export function TeamCompensationStep({
                     </span>
                   )}
                   {!a.isCustom && a.isVariable && (
-                    <span className="text-xs text-teal-600 bg-teal-50 dark:text-teal-400 dark:bg-teal-950 px-1.5 py-0.5 rounded">
+                    <span className="text-xs text-primary bg-muted px-1.5 py-0.5 rounded">
                       variable
                     </span>
                   )}
@@ -435,7 +435,7 @@ export function TeamCompensationStep({
           <div className="border rounded-lg divide-y">
             {/* GOSI Deduction - shown first if applicable */}
             {gosiDeduction > 0 && gosiCalculationDetails && (
-              <div className="flex items-center justify-between px-3 py-2 bg-amber-50/50 dark:bg-amber-950/20">
+              <div className="flex items-center justify-between px-3 py-2 bg-warning/10">
                 <div className="flex items-center gap-2">
                   <span className="text-sm">GOSI (Employee Contribution)</span>
                   <TooltipProvider>
@@ -455,7 +455,7 @@ export function TeamCompensationStep({
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
-                  <span className="text-xs text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/50 px-1.5 py-0.5 rounded">
+                  <span className="text-xs text-warning bg-warning/10 px-1.5 py-0.5 rounded">
                     statutory
                   </span>
                 </div>
@@ -508,7 +508,7 @@ export function TeamCompensationStep({
       </div>
 
       {/* Total Net Monthly Pay */}
-      <Card className="bg-green-500/10 border-green-500/20">
+      <Card className="bg-success/10 border-success/20">
         <CardContent className="py-4">
           <div className="flex items-center justify-between">
             <div>
@@ -519,7 +519,7 @@ export function TeamCompensationStep({
                 Total Gross Pay - Deductions
               </p>
             </div>
-            <p className="text-xl font-bold text-green-600 dark:text-green-400">
+            <p className="text-xl font-bold text-success">
               {formatCurrency(totalNetPay)}
             </p>
           </div>

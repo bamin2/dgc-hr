@@ -86,12 +86,12 @@ export function ConfirmApplyStep({ data, employeeCount, totalChange, onUpdateDat
             </div>
 
             <div className="flex items-start gap-3">
-              <div className={`p-2 rounded-lg ${isIncrease ? 'bg-green-500/10' : 'bg-destructive/10'}`}>
-                <CheckCircle2 className={`h-5 w-5 ${isIncrease ? 'text-green-600' : 'text-destructive'}`} />
+              <div className={`p-2 rounded-lg ${isIncrease ? 'bg-success/10' : 'bg-destructive/10'}`}>
+                <CheckCircle2 className={`h-5 w-5 ${isIncrease ? 'text-success' : 'text-destructive'}`} />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Total Impact</p>
-                <p className={`text-lg font-semibold ${isIncrease ? 'text-green-600 dark:text-green-400' : 'text-destructive'}`}>
+                <p className={`text-lg font-semibold ${isIncrease ? 'text-success' : 'text-destructive'}`}>
                   {isIncrease ? '+' : '-'}{formatCurrency(totalChange)} / month
                 </p>
               </div>
