@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -85,18 +85,24 @@ export function Sidebar() {
     });
   };
 
-  // One-time migration: localStorage → DB
+  // One-time migration: localStorage → DB (read once, run at most once)
+  const legacySidebarCollapsedRef = useRef<string | null>(
+    typeof window !== 'undefined' ? localStorage.getItem('sidebar-collapsed') : null
+  );
+
   useEffect(() => {
-    const legacy = localStorage.getItem('sidebar-collapsed');
-    if (legacy !== null && preferences.userId) {
-      const legacyValue = legacy === 'true';
-      if (legacyValue !== preferences.display.sidebarCollapsed) {
-        updatePreferences({
-          display: { ...preferences.display, sidebarCollapsed: legacyValue },
-        });
-      }
-      localStorage.removeItem('sidebar-collapsed');
+    const legacy = legacySidebarCollapsedRef.current;
+    if (legacy === null) return;
+    if (!preferences.userId) return;
+
+    const legacyValue = legacy === 'true';
+    if (legacyValue !== preferences.display.sidebarCollapsed) {
+      updatePreferences({
+        display: { ...preferences.display, sidebarCollapsed: legacyValue },
+      });
     }
+    localStorage.removeItem('sidebar-collapsed');
+    legacySidebarCollapsedRef.current = null;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [preferences.userId]);
 

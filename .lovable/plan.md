@@ -1,71 +1,48 @@
-# Enforce @dgcholding.com Domain in AuthContext
+# Make Sidebar Legacy Migration Run Exactly Once
 
 ## Goal
-Block any signed-in session whose email is not on `dgcholding.com` (case-insensitive), regardless of provider (Microsoft OAuth, password, etc.). Enforce on both initial session load and live auth state changes.
+The localStorage → DB migration in `Sidebar.tsx` currently re-reads `localStorage` whenever `preferences.userId` changes and may re-fire if `preferences.display.sidebarCollapsed` is updated externally and the legacy key still exists. Capture the legacy value once on first render and ensure the migration runs at most once.
 
 ## File
-`src/contexts/AuthContext.tsx` only. No changes to OAuth setup, password flow, or redirects.
+`src/components/dashboard/Sidebar.tsx` — lines 1 and 88–101 only.
 
 ## Changes
 
-### 1. Add constant + sonner import (top of file)
+### 1. Import `useRef` (line 1)
 ```ts
-import { toast } from 'sonner';
-
-const ALLOWED_EMAIL_DOMAIN = 'dgcholding.com';
+import { useEffect, useMemo, useRef } from "react";
 ```
 
-### 2. Add a domain enforcement helper inside `AuthProvider`
-```ts
-const enforceAllowedDomain = async (currentUser: User | null): Promise<boolean> => {
-  if (!currentUser?.email) return true;
-  const email = currentUser.email.toLowerCase();
-  if (email.endsWith(`@${ALLOWED_EMAIL_DOMAIN}`)) return true;
+### 2. Replace the migration block (lines 88–101)
+```tsx
+// One-time migration: localStorage → DB (read once, run at most once)
+const legacySidebarCollapsedRef = useRef<string | null>(
+  typeof window !== 'undefined' ? localStorage.getItem('sidebar-collapsed') : null
+);
 
-  await supabase.auth.signOut();
-  setProfile(null);
-  setUser(null);
-  setSession(null);
-  toast.error('Only @dgcholding.com accounts can sign in. Please use your DGC email.');
-  return false;
-};
-```
+useEffect(() => {
+  const legacy = legacySidebarCollapsedRef.current;
+  if (legacy === null) return;
+  if (!preferences.userId) return;
 
-### 3. Wire it into the `onAuthStateChange` callback
-After `setUser(session?.user ?? null);`, if there is a `session.user`, run the domain check before scheduling `fetchProfile`. If the check fails, skip the profile fetch entirely.
-
-```ts
-setSession(session);
-setUser(session?.user ?? null);
-
-if (session?.user) {
-  enforceAllowedDomain(session.user).then((ok) => {
-    if (!ok) return;
-    setTimeout(() => fetchProfile(session.user.id), 0);
-  });
-} else {
-  setProfile(null);
-}
-```
-
-### 4. Wire it into the initial `getSession()` resolution
-```ts
-supabase.auth.getSession().then(async ({ data: { session } }) => {
-  setSession(session);
-  setUser(session?.user ?? null);
-  if (session?.user) {
-    const ok = await enforceAllowedDomain(session.user);
-    if (ok) await fetchProfile(session.user.id);
+  const legacyValue = legacy === 'true';
+  if (legacyValue !== preferences.display.sidebarCollapsed) {
+    updatePreferences({
+      display: { ...preferences.display, sidebarCollapsed: legacyValue },
+    });
   }
-  setLoading(false);
-});
+  localStorage.removeItem('sidebar-collapsed');
+  legacySidebarCollapsedRef.current = null;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [preferences.userId]);
 ```
 
-## Behavior Notes
-- Case-insensitive check via `email.toLowerCase().endsWith('@dgcholding.com')`.
-- On rejection: `signOut()` → clear `user`, `session`, `profile` → destructive sonner toast.
-- The `SIGNED_OUT` event fired by the forced sign-out will re-enter the listener with `session = null`, which is a no-op for the domain check.
-- No changes to: `signInWithAzure` OAuth options, `signIn` password flow, `resetPassword`, `updatePassword`, redirect URLs, or context shape.
+## Behavior
+- Legacy value is read **once** on first render via `useRef` initializer.
+- The effect short-circuits when the ref is `null` (already migrated) or when `preferences.userId` is falsy.
+- `updatePreferences` is only called when (a) legacy is non-null, (b) `userId` is truthy, and (c) the legacy value differs from current `sidebarCollapsed`.
+- After running, `localStorage.removeItem` is called and the ref is set to `null`, guaranteeing the effect can never act again even if dependencies change.
+- No other Sidebar behavior is touched.
 
 ## Files Modified
-- `src/contexts/AuthContext.tsx`
+- `src/components/dashboard/Sidebar.tsx`
