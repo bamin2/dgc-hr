@@ -1,52 +1,19 @@
 ## Goal
-Cross-fade the sidebar logo between mark (collapsed) and wordmark (expanded) instead of swapping nodes. Both `<img>`s render at all times, stacked absolutely, with a 200ms opacity transition.
+Route the Header user menu's "Profile" item to `/my-profile` instead of `/employees/${currentUser.id}`.
 
 ## Findings
-- `src/components/dashboard/Sidebar.tsx` lines 135–149 hold the conditional `collapsed ? <img mark> : <img wordmark>` block.
-- Surrounding header (line 134: `flex items-center justify-between p-4 border-b border-sidebar-border`) and inner wrapper classes (line 135) stay untouched.
-- Mark renders as `h-10 w-10 rounded-xl`. Wordmark renders as `h-10 w-auto`. Sidebar expanded width is `w-60` (240px); after `p-4` (32px) padding, ~208px is available for the wordmark.
+- `src/components/dashboard/Header.tsx:117` — Profile DropdownMenuItem currently navigates to `'/employees/' + currentUser.id`.
+- `/my-profile` route is registered in `src/components/AnimatedRoutes.tsx` and renders `MyProfile` (confirmed by existing memory and route conventions).
+- Icon (`User`) and label ("Profile") stay unchanged.
 
-## Change in `src/components/dashboard/Sidebar.tsx` (lines 135–149)
+## Change in `src/components/dashboard/Header.tsx` (line 117)
 
-Replace with a relatively-positioned container that animates width and stacks both images absolutely with opacity cross-fade:
-
-```tsx
-<div className={cn("flex items-center gap-3", collapsed && "justify-center w-full")}>
-  <div
-    className={cn(
-      "relative h-10 transition-[width] duration-200 ease-out",
-      collapsed ? "w-10" : "w-[140px]"
-    )}
-  >
-    <img
-      src={dgcLogoMark}
-      alt="DGC"
-      className={cn(
-        "absolute inset-y-0 left-0 h-10 w-10 rounded-xl transition-opacity duration-200",
-        collapsed ? "opacity-100" : "opacity-0"
-      )}
-      aria-hidden={!collapsed}
-    />
-    <img
-      src={dgcLogoLight}
-      alt="DGC Logo"
-      className={cn(
-        "absolute inset-y-0 left-0 h-10 w-auto transition-opacity duration-200",
-        collapsed ? "opacity-0" : "opacity-100"
-      )}
-      aria-hidden={collapsed}
-    />
-  </div>
-</div>
+```diff
+-              <DropdownMenuItem onClick={() => navigate('/employees/' + currentUser.id)}>
++              <DropdownMenuItem onClick={() => navigate('/my-profile')}>
 ```
 
-Notes:
-- Container is `h-10` (matches both logos) and toggles between `w-10` (mark) and `w-[140px]` (sized to fit the wordmark). 140px is a safe upper bound for the wordmark height/width ratio at h-10; it sits comfortably inside the ~208px available space.
-- Both images use `absolute inset-y-0 left-0` so they overlap exactly.
-- 200ms `transition-opacity` (and `transition-[width]`) on both, with `ease-out` for refined motion.
-- `aria-hidden` flips on the inactive image so screen readers don't double-announce "DGC".
-
 ## Out of scope
-- Header padding / border (line 134 unchanged).
-- Outer flex wrapper class on line 135 unchanged (still centers when collapsed).
-- Sidebar widths (`w-20` / `w-60`) and all nav, footer, collapse logic.
+- Sidebar, route guards, AnimatedRoutes table.
+- Other DropdownMenuItems (Settings, Sign Out, etc.).
+- `currentUser` usage elsewhere in the file.
