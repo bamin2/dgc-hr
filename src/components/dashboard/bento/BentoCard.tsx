@@ -13,9 +13,8 @@ interface BentoCardProps {
 }
 
 /**
- * LiquidGlass V2 styled card for Bento Grid layout.
- * Uses glass morphism with subtle borders and backdrop blur.
- * 
+ * Bento Grid card with a solid surface and subtle border.
+ *
  * Grid System (8-col desktop, 6-col tablet, 1-col mobile):
  * - colSpan 2 = Quarter (2/8 desktop, 2/6 tablet)
  * - colSpan 3 = Third (3/8 desktop, 3/6 tablet)
@@ -47,16 +46,11 @@ export function BentoCard({
   return (
     <div
       className={cn(
-        // Base Liquid Glass styling - responsive blur/shadow
-        "rounded-2xl border border-white/40 dark:border-white/15",
-        "bg-white/80 dark:bg-white/10",
-        "backdrop-blur-sm sm:backdrop-blur-md",
-        "shadow-[0_3px_8px_rgba(0,0,0,0.03)] sm:shadow-[0_4px_12px_rgba(0,0,0,0.04)]",
-        // Hover effects - also scaled
-        "hover:bg-white/90 dark:hover:bg-white/15 hover:border-white/50 dark:hover:border-white/20",
-        "hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] sm:hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)]",
-        // Transitions
-        "transition-all duration-200",
+        // Solid surface with subtle border - no glass, no blur
+        "rounded-2xl border border-border bg-surface shadow-sm",
+        // Quiet hover - shadow only
+        "hover:shadow-md",
+        "transition-shadow duration-200",
         // Grid span - updated to 8-col system
         colSpanClasses[colSpan],
         // Padding - responsive: p-4 mobile, p-5 tablet+
