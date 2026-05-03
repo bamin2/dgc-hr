@@ -106,7 +106,7 @@ export function TimeOffSummaryCard({ year }: TimeOffSummaryCardProps) {
         />
         <SummaryItem
           icon={<Calendar className="w-4 h-4" />}
-          bgColor="bg-amber-500/85"
+          bgColor="bg-warning/85"
           days={bookedDays}
           label="days booked"
           sublabel={`${totalUsed}d used`}

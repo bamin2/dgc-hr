@@ -41,9 +41,9 @@ interface TripExpensesSectionProps {
 
 const HR_STATUS_COLORS: Record<ExpenseHRStatus, string> = {
   pending: 'bg-yellow-100 text-yellow-800',
-  approved: 'bg-green-100 text-green-800',
-  partially_approved: 'bg-blue-100 text-blue-800',
-  rejected: 'bg-red-100 text-red-800',
+  approved: 'bg-success/10 text-success',
+  partially_approved: 'bg-info/10 text-info',
+  rejected: 'bg-destructive/10 text-destructive',
 };
 
 const HR_STATUS_LABELS: Record<ExpenseHRStatus, string> = {

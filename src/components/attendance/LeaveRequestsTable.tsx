@@ -123,14 +123,14 @@ export function LeaveRequestsTable({ requests, showActions = true }: LeaveReques
                             <Button
                               variant="ghost"
                               size="icon-sm"
-                              className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                              className="text-success hover:text-success hover:bg-success/10"
                             >
                               <Check className="h-4 w-4" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="icon-sm"
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
                             >
                               <X className="h-4 w-4" />
                             </Button>

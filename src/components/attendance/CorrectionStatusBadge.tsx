@@ -11,7 +11,7 @@ const statusConfig: Record<CorrectionStatus, { label: string; variant: 'default'
     label: 'Pending Manager',
     variant: 'outline',
     icon: Clock,
-    className: 'border-amber-500/50 text-amber-600 bg-amber-50 dark:bg-amber-950/20',
+    className: 'border-warning/30 text-warning bg-warning/10',
   },
   pending_hr: {
     label: 'Pending HR',
@@ -23,7 +23,7 @@ const statusConfig: Record<CorrectionStatus, { label: string; variant: 'default'
     label: 'Approved',
     variant: 'outline',
     icon: CheckCircle,
-    className: 'border-green-500/50 text-green-600 bg-green-50 dark:bg-green-950/20',
+    className: 'border-success/30 text-success bg-success/10',
   },
   rejected: {
     label: 'Rejected',

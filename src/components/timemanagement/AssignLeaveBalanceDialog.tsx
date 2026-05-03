@@ -119,7 +119,7 @@ export function AssignLeaveBalanceDialog({
                       />
                     </FormControl>
                     {field.value < 0 && (
-                      <div className="flex items-center gap-2 p-2 bg-amber-50 border border-amber-200 rounded text-amber-700 text-sm">
+                      <div className="flex items-center gap-2 p-2 bg-warning/10 border border-warning/30 rounded text-warning text-sm">
                         <AlertTriangle className="h-4 w-4 shrink-0" />
                         Employee will start with a negative balance
                       </div>

@@ -91,7 +91,7 @@ export function LeaveRequestDetailView({ request, approvalSteps }: LeaveRequestD
             <div className="flex items-center gap-3">
               <LeaveStatusBadge status={request.status} />
               {request.results_in_negative_balance && (
-                <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+                <Badge variant="outline" className="bg-warning/10 text-warning border-warning/30">
                   <AlertTriangle className="h-3 w-3 mr-1" />
                   Negative Balance
                 </Badge>
@@ -112,7 +112,7 @@ export function LeaveRequestDetailView({ request, approvalSteps }: LeaveRequestD
                 <Button
                   onClick={handleApprove}
                   disabled={approveLeave.isPending}
-                  className="bg-emerald-600 hover:bg-emerald-700"
+                  className="bg-success text-success-foreground hover:bg-success/90"
                 >
                   <CheckCircle2 className="h-4 w-4 mr-2" />
                   Approve

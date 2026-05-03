@@ -68,7 +68,7 @@ export function TripApprovalsTab() {
   if (pendingTrips.length === 0) {
     return (
       <Card className="p-12 text-center">
-        <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
+        <CheckCircle className="h-12 w-12 text-success mx-auto mb-4" />
         <p className="text-lg font-medium">All caught up!</p>
         <p className="text-muted-foreground">No pending trip approvals at this time.</p>
       </Card>

@@ -357,7 +357,7 @@ export function PublicHolidaysSection({ className }: PublicHolidaysSectionProps)
                     if (result?.isCompensated) {
                       return (
                         <>
-                          <span className="text-amber-600 font-medium">Weekend Compensation: </span>
+                          <span className="text-warning font-medium">Weekend Compensation: </span>
                           Observed on {format(result.observedDate, 'EEEE, MMM d, yyyy')}
                           {result.reason && <span className="block text-xs mt-1">{result.reason}</span>}
                         </>
@@ -365,7 +365,7 @@ export function PublicHolidaysSection({ className }: PublicHolidaysSectionProps)
                     }
                     return (
                       <>
-                        <span className="text-green-600 font-medium">Working Day: </span>
+                        <span className="text-success font-medium">Working Day: </span>
                         No compensation needed
                       </>
                     );
