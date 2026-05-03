@@ -277,6 +277,10 @@ export function AttendanceTab() {
         onOpenChange={setDeleteDialogOpen}
         record={selectedRecord}
       />
+      <RequestTimeOffDialog
+        open={isRequestLeaveOpen}
+        onOpenChange={setIsRequestLeaveOpen}
+      />
     </>
   );
 }
