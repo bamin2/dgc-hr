@@ -273,7 +273,7 @@ export const EditEnrollmentDialog = ({
             {/* Car Park Spot Location */}
             {isCarParkPlan && (
               <div className="space-y-3">
-                <div className="flex items-center gap-2 text-indigo-700 dark:text-indigo-400">
+                <div className="flex items-center gap-2 text-primary">
                   <Car className="h-4 w-4" />
                   <Label className="font-medium">Car Park Assignment</Label>
                 </div>
@@ -333,7 +333,7 @@ export const EditEnrollmentDialog = ({
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Employer pays</span>
-                <span className="font-medium text-emerald-600">{formatPlanCurrency(employerCost)}</span>
+                <span className="font-medium text-success">{formatPlanCurrency(employerCost)}</span>
               </div>
               <div className="border-t pt-3 flex justify-between">
                 <span className="font-medium">Total Monthly Cost</span>
