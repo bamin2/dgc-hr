@@ -61,6 +61,18 @@ export function EmptyState({
     lg: "h-16 w-16",
   };
 
+  const outerCircleSizes = {
+    sm: "h-[72px] w-[72px]",
+    default: "h-24 w-24",
+    lg: "h-[120px] w-[120px]",
+  };
+
+  const innerCircleSizes = {
+    sm: "h-14 w-14",
+    default: "h-[72px] w-[72px]",
+    lg: "h-[88px] w-[88px]",
+  };
+
   const containerPadding = {
     sm: "py-6 px-4",
     default: "py-12 px-6",
@@ -75,9 +87,21 @@ export function EmptyState({
         className
       )}
     >
-      {/* Icon */}
-      <div className="rounded-full bg-muted p-3 mb-4">
-        <Icon className={cn("text-muted-foreground", iconSizes[size])} />
+      {/* Layered icon visual: gold-tinted outer ring, card inner circle, primary icon */}
+      <div
+        className={cn(
+          "rounded-full bg-accent/10 flex items-center justify-center mb-4",
+          outerCircleSizes[size]
+        )}
+      >
+        <div
+          className={cn(
+            "rounded-full bg-card border border-border flex items-center justify-center",
+            innerCircleSizes[size]
+          )}
+        >
+          <Icon className={cn("text-primary", iconSizes[size])} />
+        </div>
       </div>
 
       {/* Title */}
