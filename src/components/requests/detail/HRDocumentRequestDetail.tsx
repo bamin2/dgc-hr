@@ -20,9 +20,9 @@ interface HRDocumentRequestDetailSheetProps {
 }
 
 const statusConfig = {
-  pending: { label: "Pending", icon: Clock, className: "bg-amber-100 text-amber-700 border-amber-200" },
-  approved: { label: "Approved", icon: CheckCircle, className: "bg-emerald-100 text-emerald-700 border-emerald-200" },
-  rejected: { label: "Rejected", icon: XCircle, className: "bg-red-100 text-red-700 border-red-200" },
+  pending: { label: "Pending", icon: Clock, className: "bg-warning/10 text-warning border-warning/30" },
+  approved: { label: "Approved", icon: CheckCircle, className: "bg-success/10 text-success border-success/30" },
+  rejected: { label: "Rejected", icon: XCircle, className: "bg-destructive/10 text-destructive border-destructive/30" },
   cancelled: { label: "Cancelled", icon: XCircle, className: "bg-muted text-muted-foreground border-border" },
 } as const;
 
@@ -119,14 +119,14 @@ export function HRDocumentRequestDetailSheet({
             )}
 
             {request.status === "rejected" && request.rejection_reason && (
-              <div className="rounded-xl border border-red-200 bg-red-50 dark:bg-red-950/30 p-4">
+              <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-4">
                 <div className="flex items-center gap-2 mb-1">
-                  <AlertCircle className="h-4 w-4 text-red-700 dark:text-red-400" />
-                  <p className="text-sm font-medium text-red-700 dark:text-red-400">
+                  <AlertCircle className="h-4 w-4 text-destructive" />
+                  <p className="text-sm font-medium text-destructive">
                     Rejection Reason
                   </p>
                 </div>
-                <p className="text-sm text-red-600 dark:text-red-300">
+                <p className="text-sm text-destructive">
                   {request.rejection_reason}
                 </p>
               </div>

@@ -14,12 +14,12 @@ const categoryConfig: Record<string, { label: string; icon: React.ReactNode; cla
   salary_certificate: {
     label: "Salary Certificate",
     icon: <Award className="h-3 w-3" />,
-    className: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+    className: "bg-success/10 text-success",
   },
   experience_certificate: {
     label: "Experience Certificate",
     icon: <Briefcase className="h-3 w-3" />,
-    className: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+    className: "bg-warning/10 text-warning",
   },
   contract: {
     label: "Contract",
