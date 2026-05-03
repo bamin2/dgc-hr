@@ -45,7 +45,7 @@ export default function BusinessTripDetail() {
           subtitle={trip.destination?.name || 'Unknown Destination'}
           breadcrumbs={[
             { label: 'Business Trips', href: '/business-trips' },
-            { label: 'Trip Details' }
+            { label: trip.destination?.name || 'Trip Details' }
           ]}
         />
 

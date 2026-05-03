@@ -51,7 +51,8 @@ export default function LeaveRequestDetail() {
           subtitle={`${request.leave_type?.name || 'Leave'} - ${employeeName}`}
           breadcrumbs={[
             { label: 'Time Management', href: '/time-management' },
-            { label: 'Leave Request Details' }
+            { label: 'Leave Requests', href: '/time-management' },
+            { label: employeeName }
           ]}
         />
 
