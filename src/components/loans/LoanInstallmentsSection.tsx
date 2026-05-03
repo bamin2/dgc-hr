@@ -144,7 +144,7 @@ export function LoanInstallmentsSection({
           <Collapsible open={isPayrollExpanded} onOpenChange={setIsPayrollExpanded}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Badge variant="default" className="bg-success">
+                <Badge variant="default" className="bg-emerald-500">
                   Payroll Deductions
                 </Badge>
                 <span className="text-sm text-muted-foreground">
@@ -277,7 +277,7 @@ export function LoanInstallmentsSection({
                     <div className="text-right">
                       <p className="font-medium">{formatCurrency(inst.amount, inst.currency)}</p>
                       {isMarkedPaid && (
-                        <div className="flex items-center gap-1 text-xs text-success">
+                        <div className="flex items-center gap-1 text-xs text-emerald-600">
                           <CheckCircle className="h-3 w-3" />
                           Will mark paid
                         </div>

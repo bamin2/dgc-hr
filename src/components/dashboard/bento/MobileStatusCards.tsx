@@ -121,7 +121,7 @@ export function MobileStatusCards() {
           value={pendingCount > 0 ? `${pendingCount} request${pendingCount !== 1 ? 's' : ''}` : "None"}
           highlight={pendingCount > 0}
           onClick={() => navigate("/requests")}
-          color="bg-warning/10 text-warning"
+          color="bg-amber-500/10 text-amber-600"
         />
 
         {/* Loan Balance (conditional - full width if shown) */}
@@ -131,7 +131,7 @@ export function MobileStatusCards() {
             label="Loan Balance"
             value={formatCurrencyWithCode(totalLoanBalance, loanCurrency)}
             onClick={() => navigate("/my-profile?tab=loans")}
-            color="bg-info/10 text-info"
+            color="bg-blue-500/10 text-blue-600"
           />
         )}
       </div>

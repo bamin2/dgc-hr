@@ -171,13 +171,13 @@ export function HolidayFormDialog({
             <div className="p-3 rounded-lg bg-muted/50 text-sm">
               {preview.isCompensated ? (
                 <p className="text-muted-foreground">
-                  <span className="text-warning font-medium">Weekend Compensation: </span>
+                  <span className="text-amber-600 font-medium">Weekend Compensation: </span>
                   Observed on {format(preview.observedDate, 'EEEE, MMM d, yyyy')}
                   {preview.reason && <span className="block text-xs mt-1">{preview.reason}</span>}
                 </p>
               ) : (
                 <p className="text-muted-foreground">
-                  <span className="text-success font-medium">Working Day: </span>
+                  <span className="text-green-600 font-medium">Working Day: </span>
                   No compensation needed
                 </p>
               )}

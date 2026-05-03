@@ -144,7 +144,8 @@ export function AddAllowanceDialog({
                               {template.is_variable 
                                 ? "Variable"
                                 : template.amount_type === "fixed"
-                                  ? `${currencyInfo?.symbol || "$"}${(template.default_amount || template.amount).toLocaleString()}` : `${template.default_amount || template.amount}%`}
+                                  ? `${currencyInfo?.symbol || "$"}${(template.default_amount || template.amount).toLocaleString()}`
+                                  : `${template.default_amount || template.amount}%`}
                             </span>
                           </div>
                         </SelectItem>
@@ -179,7 +180,8 @@ export function AddAllowanceDialog({
                     {selectedTemplate.default_amount > 0 && (
                       <p className="text-xs text-muted-foreground">
                         Default: {selectedTemplate.amount_type === "fixed" 
-                          ? `${currencyInfo?.symbol || "$"}${selectedTemplate.default_amount.toLocaleString()}` : `${selectedTemplate.default_amount}%`}
+                          ? `${currencyInfo?.symbol || "$"}${selectedTemplate.default_amount.toLocaleString()}`
+                          : `${selectedTemplate.default_amount}%`}
                       </p>
                     )}
                   </div>
@@ -189,7 +191,8 @@ export function AddAllowanceDialog({
                 {selectedTemplate && !isVariableTemplate && (
                   <div className="p-2 bg-muted rounded text-sm">
                     Amount: {selectedTemplate.amount_type === "fixed"
-                      ? `${currencyInfo?.symbol || "$"}${(selectedTemplate.default_amount || selectedTemplate.amount).toLocaleString()}` : `${selectedTemplate.default_amount || selectedTemplate.amount}%`}
+                      ? `${currencyInfo?.symbol || "$"}${(selectedTemplate.default_amount || selectedTemplate.amount).toLocaleString()}`
+                      : `${selectedTemplate.default_amount || selectedTemplate.amount}%`}
                     <span className="text-muted-foreground ml-1">(fixed)</span>
                   </div>
                 )}

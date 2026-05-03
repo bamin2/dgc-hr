@@ -106,7 +106,103 @@ export function EmployeeForm({ open, onOpenChange, employee, onSave }: EmployeeF
   const potentialManagers = allEmployees.filter((emp) => {
     if (isInactiveEmployee(emp)) return false; // Exclude inactive employees
     if (!employee) return true; // If adding new employee, all active can be managers
-    if (emp.id === employee.id) return false; // Can't be own manager return !wouldCreateCircularReference(allEmployees, employee.id, emp.id); }); // Update form when employee prop changes useEffect(() => { if (employee) { setFormData({ firstName: employee.firstName || '', secondName: employee.secondName || '', lastName: employee.lastName || '', email: employee.email || '', phone: employee.phone || '', mobileCountryCode: employee.mobileCountryCode || 'BH', officePhone: employee.officePhone || '', officeCountryCode: employee.officeCountryCode || 'BH', department: employee.department || '', departmentId: employee.departmentId || '', position: employee.position || '', positionId: employee.positionId || '', status: employee.status || 'active', dateOfBirth: employee.dateOfBirth || '', gender: employee.gender || '', address: employee.address || '', nationality: employee.nationality || '', avatar: employee.avatar || '', managerId: employee.managerId || '', passportNumber: employee.passportNumber || '', cprNumber: employee.cprNumber || '', joinDate: employee.joinDate || '', }); } else { setFormData({ firstName: '', secondName: '', lastName: '', email: '', phone: '', mobileCountryCode: 'BH', officePhone: '', officeCountryCode: 'BH', department: '', departmentId: '', position: '', positionId: '', status: 'active', dateOfBirth: '', gender: '', address: '', nationality: '', avatar: '', managerId: '', passportNumber: '', cprNumber: '', joinDate: '', }); } }, [employee, open]); const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); onSave({ ...formData, } as Partial<Employee>); onOpenChange(false); }; const handleChange = (field: keyof FormData, value: string | boolean) => { setFormData(prev => { const updates: Partial<FormData> = { [field]: value }; // When department changes, update both ID and name if (field === 'departmentId' && typeof value === 'string') { const dept = departments.find(d => d.id === value); if (dept) { updates.department = dept.name; } } // When position changes, update both ID and name if (field === 'positionId' && typeof value === 'string') { const pos = positions.find(p => p.id === value); if (pos) { updates.position = pos.title; } } return { ...prev, ...updates }; }); }; const processFile = (file: File | undefined | null) => { if (!file) return; if (!file.type.startsWith('image/')) {
+    if (emp.id === employee.id) return false; // Can't be own manager
+    return !wouldCreateCircularReference(allEmployees, employee.id, emp.id);
+  });
+
+  // Update form when employee prop changes
+  useEffect(() => {
+    if (employee) {
+      setFormData({
+        firstName: employee.firstName || '',
+        secondName: employee.secondName || '',
+        lastName: employee.lastName || '',
+        email: employee.email || '',
+        phone: employee.phone || '',
+        mobileCountryCode: employee.mobileCountryCode || 'BH',
+        officePhone: employee.officePhone || '',
+        officeCountryCode: employee.officeCountryCode || 'BH',
+        department: employee.department || '',
+        departmentId: employee.departmentId || '',
+        position: employee.position || '',
+        positionId: employee.positionId || '',
+        status: employee.status || 'active',
+        dateOfBirth: employee.dateOfBirth || '',
+        gender: employee.gender || '',
+        address: employee.address || '',
+        nationality: employee.nationality || '',
+        avatar: employee.avatar || '',
+        managerId: employee.managerId || '',
+        passportNumber: employee.passportNumber || '',
+        cprNumber: employee.cprNumber || '',
+        joinDate: employee.joinDate || '',
+      });
+    } else {
+      setFormData({
+        firstName: '',
+        secondName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        mobileCountryCode: 'BH',
+        officePhone: '',
+        officeCountryCode: 'BH',
+        department: '',
+        departmentId: '',
+        position: '',
+        positionId: '',
+        status: 'active',
+        dateOfBirth: '',
+        gender: '',
+        address: '',
+        nationality: '',
+        avatar: '',
+        managerId: '',
+        passportNumber: '',
+        cprNumber: '',
+        joinDate: '',
+      });
+    }
+  }, [employee, open]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    onSave({
+      ...formData,
+    } as Partial<Employee>);
+    onOpenChange(false);
+  };
+
+  const handleChange = (field: keyof FormData, value: string | boolean) => {
+    setFormData(prev => {
+      const updates: Partial<FormData> = { [field]: value };
+      
+      // When department changes, update both ID and name
+      if (field === 'departmentId' && typeof value === 'string') {
+        const dept = departments.find(d => d.id === value);
+        if (dept) {
+          updates.department = dept.name;
+        }
+      }
+      
+      // When position changes, update both ID and name
+      if (field === 'positionId' && typeof value === 'string') {
+        const pos = positions.find(p => p.id === value);
+        if (pos) {
+          updates.position = pos.title;
+        }
+      }
+      
+      return { ...prev, ...updates };
+    });
+  };
+
+
+  const processFile = (file: File | undefined | null) => {
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
       toast({
         title: "Invalid file type",
         description: "Please upload an image file (JPG, PNG, or GIF).",

@@ -43,7 +43,7 @@ export const DepartmentTable = ({ data }: DepartmentTableProps) => {
                 </TableCell>
                 <TableCell className="text-center">{dept.leaveBalance} days</TableCell>
                 <TableCell>
-                  <span className={dept.turnoverRate > 10 ? 'text-destructive' : 'text-success'}>
+                  <span className={dept.turnoverRate > 10 ? 'text-red-600' : 'text-emerald-600'}>
                     {dept.turnoverRate}%
                   </span>
                 </TableCell>

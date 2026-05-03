@@ -135,9 +135,9 @@ export function DocumentCard({
                   }
                   className={
                     expiryStatus.variant === "success"
-                      ? "bg-success/10 text-success hover:bg-success/10"
+                      ? "bg-green-100 text-green-700 hover:bg-green-100"
                       : expiryStatus.variant === "warning"
-                      ? "bg-warning/10 text-warning hover:bg-warning/10"
+                      ? "bg-yellow-100 text-yellow-700 hover:bg-yellow-100"
                       : ""
                   }
                 >

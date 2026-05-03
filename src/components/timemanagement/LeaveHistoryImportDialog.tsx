@@ -353,7 +353,15 @@ export function LeaveHistoryImportDialog({ open, onOpenChange }: Props) {
             <Alert>
               <Info className="h-4 w-4" />
               <AlertDescription>
-                After upload you'll map each column and choose which statuses to import. Imported leaves are marked <strong>Approved</strong> and do <strong>not</strong> automatically update employee leave balances. </AlertDescription> </Alert> </div> )} {step === 'map' && raw && mapping && (
+                After upload you'll map each column and choose which statuses to import.
+                Imported leaves are marked <strong>Approved</strong> and do <strong>not</strong> automatically
+                update employee leave balances.
+              </AlertDescription>
+            </Alert>
+          </div>
+        )}
+
+        {step === 'map' && raw && mapping && (
           <div className="flex-1 flex flex-col min-h-0 space-y-4">
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">{file?.name}</span>

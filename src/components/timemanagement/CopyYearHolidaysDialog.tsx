@@ -72,7 +72,23 @@ export function CopyYearHolidaysDialog({
       date: addYears(parseISO(h.date), 1),
     }));
     
-    // Get existing target holidays' observed dates if not clearing const existingObservedDates = clearExisting ? new Set<string>() : new Set(targetHolidays?.map(h => h.observed_date) || []); // Calculate compensation using the new function that groups only consecutive holidays const compensationResults = calculateHolidaysCompensation( shiftedHolidays, weekendDays, existingObservedDates ); // Map results to create payload const holidaysToCreate = compensationResults.map(result => ({ name: result.name, date: format(result.date, 'yyyy-MM-dd'), observed_date: format(result.observedDate, 'yyyy-MM-dd'),
+    // Get existing target holidays' observed dates if not clearing
+    const existingObservedDates = clearExisting 
+      ? new Set<string>() 
+      : new Set(targetHolidays?.map(h => h.observed_date) || []);
+    
+    // Calculate compensation using the new function that groups only consecutive holidays
+    const compensationResults = calculateHolidaysCompensation(
+      shiftedHolidays,
+      weekendDays,
+      existingObservedDates
+    );
+    
+    // Map results to create payload
+    const holidaysToCreate = compensationResults.map(result => ({
+      name: result.name,
+      date: format(result.date, 'yyyy-MM-dd'),
+      observed_date: format(result.observedDate, 'yyyy-MM-dd'),
       year: targetYear,
       is_compensated: result.isCompensated,
       compensation_reason: result.reason,

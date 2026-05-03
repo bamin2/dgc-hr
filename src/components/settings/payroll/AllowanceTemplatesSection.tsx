@@ -118,11 +118,11 @@ export function AllowanceTemplatesSection({ workLocationId, currency }: Allowanc
                   className="flex items-center justify-between p-4 rounded-lg border bg-card"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-md bg-success/10">
+                    <div className="p-2 rounded-md bg-emerald-500/10">
                       {template.amount_type === 'fixed' ? (
-                        <DollarSign className="h-4 w-4 text-success" />
+                        <DollarSign className="h-4 w-4 text-emerald-500" />
                       ) : (
-                        <Percent className="h-4 w-4 text-success" />
+                        <Percent className="h-4 w-4 text-emerald-500" />
                       )}
                     </div>
                     <div>
@@ -135,7 +135,7 @@ export function AllowanceTemplatesSection({ workLocationId, currency }: Allowanc
                           <Badge variant="outline" className="text-xs">Taxable</Badge>
                         )}
                         {template.is_variable && (
-                          <Badge variant="outline" className="text-xs text-info border-info/30 bg-info/10 dark:border-info dark:bg-info">
+                          <Badge variant="outline" className="text-xs text-teal-600 border-teal-200 bg-teal-50 dark:text-teal-400 dark:border-teal-800 dark:bg-teal-950">
                             Variable
                           </Badge>
                         )}

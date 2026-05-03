@@ -187,7 +187,9 @@ export function TimeOffMonthCalendar({ onYearChange }: TimeOffMonthCalendarProps
     } else if (viewMode === "week") {
       const weekStart = weekDates[0];
       const weekEnd = weekDates[6];
-      return `${format(weekStart, "MMM d")} - ${format(weekEnd, "MMM d, yyyy")}`; } else { return `${format(monthStart, "MMMM dd")} - ${format(monthEnd, "MMMM dd")}`;
+      return `${format(weekStart, "MMM d")} - ${format(weekEnd, "MMM d, yyyy")}`;
+    } else {
+      return `${format(monthStart, "MMMM dd")} - ${format(monthEnd, "MMMM dd")}`;
     }
   }, [viewMode, currentDate, weekDates, monthStart, monthEnd]);
 

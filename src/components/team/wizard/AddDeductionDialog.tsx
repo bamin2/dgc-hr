@@ -131,7 +131,8 @@ export function AddDeductionDialog({
                             <span>{template.name}</span>
                             <span className="text-muted-foreground">
                               {template.amount_type === "fixed"
-                                ? `${currencyInfo?.symbol || "$"}${template.amount.toLocaleString()}` : `${template.amount}%`}
+                                ? `${currencyInfo?.symbol || "$"}${template.amount.toLocaleString()}`
+                                : `${template.amount}%`}
                             </span>
                           </div>
                         </SelectItem>

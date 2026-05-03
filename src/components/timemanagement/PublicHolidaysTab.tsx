@@ -148,7 +148,7 @@ export function PublicHolidaysTab() {
             </div>
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground">Compensated:</span>
-              <span className="font-semibold text-warning">{compensatedDays}</span>
+              <span className="font-semibold text-amber-600">{compensatedDays}</span>
             </div>
           </div>
         )}

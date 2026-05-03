@@ -9,22 +9,22 @@ const categoryConfig: Record<string, { label: string; icon: React.ReactNode; cla
   offer_letter: {
     label: "Offer Letter",
     icon: <FileText className="h-3 w-3" />,
-    className: "bg-info/10 text-info",
+    className: "bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400",
   },
   salary_certificate: {
     label: "Salary Certificate",
     icon: <Award className="h-3 w-3" />,
-    className: "bg-success/10 text-success",
+    className: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
   },
   experience_certificate: {
     label: "Experience Certificate",
     icon: <Briefcase className="h-3 w-3" />,
-    className: "bg-warning/10 text-warning",
+    className: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
   },
   contract: {
     label: "Contract",
     icon: <FileSignature className="h-3 w-3" />,
-    className: "bg-warning/10 text-warning",
+    className: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
   },
   other: {
     label: "Other",

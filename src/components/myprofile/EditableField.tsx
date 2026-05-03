@@ -104,7 +104,7 @@ export function EditableField({
               disabled={isSaving}
               className="shrink-0"
             >
-              <Check className="h-4 w-4 text-success" />
+              <Check className="h-4 w-4 text-green-600" />
             </Button>
             <Button
               size="icon-sm"

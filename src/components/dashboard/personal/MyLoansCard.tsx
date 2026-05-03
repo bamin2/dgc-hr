@@ -31,7 +31,24 @@ export function MyLoansCard({ loans, isLoading, currency = 'SAR' }: MyLoansCardP
     );
   }
 
-  // Don't render if no loans if (loans.length === 0) { return null; } const formatCurrency = (amount: number) => new Intl.NumberFormat('en-SA', { style: 'currency', currency, maximumFractionDigits: 0 }).format(amount); const totalOutstanding = loans.reduce((sum, loan) => sum + loan.outstandingBalance, 0); // Find next installment across all loans const nextInstallment = loans .filter(l => l.nextInstallmentDate) .sort((a, b) => (a.nextInstallmentDate || '').localeCompare(b.nextInstallmentDate || ''))[0];
+  // Don't render if no loans
+  if (loans.length === 0) {
+    return null;
+  }
+
+  const formatCurrency = (amount: number) => 
+    new Intl.NumberFormat('en-SA', { 
+      style: 'currency', 
+      currency,
+      maximumFractionDigits: 0 
+    }).format(amount);
+
+  const totalOutstanding = loans.reduce((sum, loan) => sum + loan.outstandingBalance, 0);
+  
+  // Find next installment across all loans
+  const nextInstallment = loans
+    .filter(l => l.nextInstallmentDate)
+    .sort((a, b) => (a.nextInstallmentDate || '').localeCompare(b.nextInstallmentDate || ''))[0];
 
   return (
     <Card>

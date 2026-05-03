@@ -86,7 +86,11 @@ export function CurrencyViewToggle({
 
       {mode === 'local' && (
         <p className="text-xs text-muted-foreground">
-          Values shown in each employee's local currency. Totals across different currencies are not combined. </p> )} {mode === 'reporting' && !hasMissingRates && (
+          Values shown in each employee's local currency. Totals across different currencies are not combined.
+        </p>
+      )}
+
+      {mode === 'reporting' && !hasMissingRates && (
         <p className="text-xs text-muted-foreground">
           All values converted to {reportingCurrency} using the most recent exchange rates for comparison.
         </p>

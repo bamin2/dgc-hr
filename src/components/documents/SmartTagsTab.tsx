@@ -217,7 +217,7 @@ export function SmartTagsTab() {
                         </TableCell>
                         <TableCell>
                           {tag.is_active ? (
-                            <Badge variant="secondary" className="bg-success/10 text-success">
+                            <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
                               Active
                             </Badge>
                           ) : (

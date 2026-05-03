@@ -153,8 +153,8 @@ export function PayrollRunSummaryReport() {
       <Card>
         <CardContent className="pt-6">
           <div className="flex items-center gap-4">
-            <div className="p-2 bg-success/10 rounded-lg">
-              <DollarSign className="h-5 w-5 text-success" />
+            <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
+              <DollarSign className="h-5 w-5 text-emerald-600" />
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Total Gross</p>
@@ -166,8 +166,8 @@ export function PayrollRunSummaryReport() {
       <Card>
         <CardContent className="pt-6">
           <div className="flex items-center gap-4">
-            <div className="p-2 bg-info/10 rounded-lg">
-              <Wallet className="h-5 w-5 text-info" />
+            <div className="p-2 bg-teal-100 dark:bg-teal-900/30 rounded-lg">
+              <Wallet className="h-5 w-5 text-teal-600" />
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Total Net Pay</p>
@@ -179,8 +179,8 @@ export function PayrollRunSummaryReport() {
       <Card>
         <CardContent className="pt-6">
           <div className="flex items-center gap-4">
-            <div className="p-2 bg-warning/10 rounded-lg">
-              <TrendingUp className="h-5 w-5 text-warning" />
+            <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
+              <TrendingUp className="h-5 w-5 text-amber-600" />
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Total GOSI</p>

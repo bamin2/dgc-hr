@@ -200,7 +200,7 @@ export function SalaryHistoryCard({ employeeId, currencyCode, maxItems = 5 }: Sa
                   
                   {/* Timeline dot */}
                   <div className={`absolute left-0 top-1.5 h-2 w-2 rounded-full ${
-                    isIncrease ? 'bg-success' : isDecrease ? 'bg-destructive' : 'bg-primary'
+                    isIncrease ? 'bg-emerald-500' : isDecrease ? 'bg-destructive' : 'bg-primary'
                   }`} />
 
                   <div className="space-y-2">
@@ -229,7 +229,7 @@ export function SalaryHistoryCard({ employeeId, currencyCode, maxItems = 5 }: Sa
                             </span>
                             {change && (
                               <span className={`flex items-center gap-0.5 text-xs ${
-                                isIncrease ? 'text-success' : 'text-destructive'
+                                isIncrease ? 'text-emerald-600' : 'text-destructive'
                               }`}>
                                 {isIncrease ? (
                                   <TrendingUp className="h-3 w-3" />
@@ -255,7 +255,7 @@ export function SalaryHistoryCard({ employeeId, currencyCode, maxItems = 5 }: Sa
                     {hasAllowanceChanges && (
                       <div className="space-y-1">
                         {allowanceChanges.added.map((a, i) => (
-                          <div key={`added-${i}`} className="flex items-center gap-1.5 text-xs text-success">
+                          <div key={`added-${i}`} className="flex items-center gap-1.5 text-xs text-emerald-600">
                             <Plus className="h-3 w-3" />
                             <span>{a.name}</span>
                             <span className="font-medium">+{formatSalaryCurrency(a.amount)}</span>
@@ -281,14 +281,14 @@ export function SalaryHistoryCard({ employeeId, currencyCode, maxItems = 5 }: Sa
                     {hasDeductionChanges && (
                       <div className="space-y-1">
                         {deductionChanges.added.map((d, i) => (
-                          <div key={`added-${i}`} className="flex items-center gap-1.5 text-xs text-warning">
+                          <div key={`added-${i}`} className="flex items-center gap-1.5 text-xs text-amber-600">
                             <Plus className="h-3 w-3" />
                             <span>{d.name} (deduction)</span>
                             <span className="font-medium">+{formatSalaryCurrency(d.amount)}</span>
                           </div>
                         ))}
                         {deductionChanges.removed.map((d, i) => (
-                          <div key={`removed-${i}`} className="flex items-center gap-1.5 text-xs text-success">
+                          <div key={`removed-${i}`} className="flex items-center gap-1.5 text-xs text-emerald-600">
                             <Minus className="h-3 w-3" />
                             <span>{d.name} (deduction)</span>
                             <span className="font-medium">-{formatSalaryCurrency(d.amount)}</span>

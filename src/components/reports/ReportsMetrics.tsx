@@ -14,16 +14,16 @@ export const ReportsMetrics = ({ stats }: ReportsMetricsProps) => {
       value: stats.totalEmployees.toString(),
       subtitle: `${stats.activeEmployees} active`,
       icon: Users,
-      iconBg: 'bg-info/10',
-      iconColor: 'text-info'
+      iconBg: 'bg-teal-100 dark:bg-teal-900/30',
+      iconColor: 'text-teal-600 dark:text-teal-400'
     },
     {
       title: 'Attendance Rate',
       value: `${stats.attendanceRate}%`,
       subtitle: 'Last 30 days average',
       icon: UserCheck,
-      iconBg: 'bg-success/10',
-      iconColor: 'text-success'
+      iconBg: 'bg-emerald-100 dark:bg-emerald-900/30',
+      iconColor: 'text-emerald-600 dark:text-emerald-400'
     },
     {
       title: 'Average Salary',
@@ -38,16 +38,16 @@ export const ReportsMetrics = ({ stats }: ReportsMetricsProps) => {
       value: stats.pendingLeaves.toString(),
       subtitle: 'Awaiting approval',
       icon: Clock,
-      iconBg: 'bg-warning/10',
-      iconColor: 'text-warning'
+      iconBg: 'bg-amber-100 dark:bg-amber-900/30',
+      iconColor: 'text-amber-600 dark:text-amber-400'
     },
     {
       title: 'Monthly Payroll',
       value: `$${(stats.monthlyPayroll / 1000).toFixed(0)}K`,
       subtitle: 'Total compensation',
       icon: Wallet,
-      iconBg: 'bg-info/10',
-      iconColor: 'text-info'
+      iconBg: 'bg-teal-100 dark:bg-teal-900/30',
+      iconColor: 'text-teal-600 dark:text-teal-400'
     }
   ];
 

@@ -17,32 +17,32 @@ export const BenefitsMetrics = ({ metrics }: BenefitsMetricsProps) => {
       value: metrics.totalPlans.toString(),
       subtitle: 'Active benefit plans',
       icon: Heart,
-      iconBg: 'bg-info/10',
-      iconColor: 'text-info'
+      iconBg: 'bg-teal-100 dark:bg-teal-900/30',
+      iconColor: 'text-teal-600 dark:text-teal-400'
     },
     {
       title: 'Active Enrollments',
       value: metrics.activeEnrollments.toString(),
       subtitle: `${metrics.enrollmentRate}% enrollment rate`,
       icon: Users,
-      iconBg: 'bg-success/10',
-      iconColor: 'text-success'
+      iconBg: 'bg-emerald-100 dark:bg-emerald-900/30',
+      iconColor: 'text-emerald-600 dark:text-emerald-400'
     },
     {
       title: 'Pending Claims',
       value: metrics.pendingClaims.toString(),
       subtitle: 'Awaiting processing',
       icon: FileText,
-      iconBg: 'bg-warning/10',
-      iconColor: 'text-warning'
+      iconBg: 'bg-amber-100 dark:bg-amber-900/30',
+      iconColor: 'text-amber-600 dark:text-amber-400'
     },
     {
       title: 'Monthly Cost',
       value: formatCurrency(metrics.monthlyBenefitsCost),
       subtitle: 'Total contributions',
       icon: DollarSign,
-      iconBg: 'bg-muted',
-      iconColor: 'text-muted-foreground'
+      iconBg: 'bg-stone-100 dark:bg-stone-900/30',
+      iconColor: 'text-stone-600 dark:text-stone-400'
     }
   ];
 

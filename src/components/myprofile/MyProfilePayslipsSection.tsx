@@ -28,7 +28,13 @@ export function MyProfilePayslipsSection({ employeeId, noBorder = false }: MyPro
     
     // If same month/year, show condensed format
     if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) {
-      return `${format(start, 'MMM d')} - ${format(end, 'd, yyyy')}`; } return `${format(start, 'MMM d')} - ${format(end, 'MMM d, yyyy')}`; }; const handleView = (payslipId: string) => { navigate(`/my-profile/payslip/${payslipId}`);
+      return `${format(start, 'MMM d')} - ${format(end, 'd, yyyy')}`;
+    }
+    return `${format(start, 'MMM d')} - ${format(end, 'MMM d, yyyy')}`;
+  };
+
+  const handleView = (payslipId: string) => {
+    navigate(`/my-profile/payslip/${payslipId}`);
   };
 
   const handleDownload = async (payslipId: string, periodStart: string, periodEnd: string) => {

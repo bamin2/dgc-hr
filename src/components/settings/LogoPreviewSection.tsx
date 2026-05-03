@@ -101,36 +101,36 @@ export const LogoPreviewSection = ({
                 {/* Email body */}
                 <div className="bg-white p-4 space-y-3">
                   {/* Success header */}
-                  <div className="flex items-center gap-2 text-success">
+                  <div className="flex items-center gap-2 text-green-600">
                     <CheckCircle2 className="h-5 w-5" />
                     <span className="font-semibold text-sm">Leave Request Approved</span>
                   </div>
                   
                   {/* Sample email text */}
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-gray-600">
                     Hi Employee, great news! Your leave request has been approved by your manager.
                   </p>
                   
                   {/* Mock data table */}
                   <div className="rounded-lg border text-xs overflow-hidden">
                     <div className="flex border-b">
-                      <div className="w-1/2 p-2 bg-muted font-medium text-muted-foreground">Leave Type</div>
-                      <div className="w-1/2 p-2 text-muted-foreground">Annual Leave</div>
+                      <div className="w-1/2 p-2 bg-gray-50 font-medium text-gray-700">Leave Type</div>
+                      <div className="w-1/2 p-2 text-gray-600">Annual Leave</div>
                     </div>
                     <div className="flex border-b">
-                      <div className="w-1/2 p-2 bg-muted font-medium text-muted-foreground">Start Date</div>
-                      <div className="w-1/2 p-2 text-muted-foreground">Jan 15, 2026</div>
+                      <div className="w-1/2 p-2 bg-gray-50 font-medium text-gray-700">Start Date</div>
+                      <div className="w-1/2 p-2 text-gray-600">Jan 15, 2026</div>
                     </div>
                     <div className="flex">
-                      <div className="w-1/2 p-2 bg-muted font-medium text-muted-foreground">End Date</div>
-                      <div className="w-1/2 p-2 text-muted-foreground">Jan 17, 2026</div>
+                      <div className="w-1/2 p-2 bg-gray-50 font-medium text-gray-700">End Date</div>
+                      <div className="w-1/2 p-2 text-gray-600">Jan 17, 2026</div>
                     </div>
                   </div>
                 </div>
                 
                 {/* Email footer */}
                 <div className="bg-[#f9fafb] p-3 border-t">
-                  <p className="text-[10px] text-muted-foreground text-center">
+                  <p className="text-[10px] text-gray-500 text-center">
                     {companyName || 'Company Name'} • contact@company.com
                   </p>
                 </div>

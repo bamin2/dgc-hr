@@ -91,13 +91,13 @@ export function MobileSecuritySheet({
                     className="rounded-2xl border bg-card p-4"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="h-11 w-11 rounded-xl bg-success/10 flex items-center justify-center">
-                        <DeviceIcon className="h-5 w-5 text-success" />
+                      <div className="h-11 w-11 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                        <DeviceIcon className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <p className="font-medium text-sm truncate">{session.device}</p>
-                          <Badge variant="secondary" className="bg-success/10 text-success">
+                          <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
                             <CheckCircle className="h-3 w-3 mr-1" />
                             Current
                           </Badge>
@@ -149,7 +149,56 @@ export function MobileSecuritySheet({
               <EmptyState
                 icon={Shield}
                 title="No other sessions"
-                description="You're only signed in on this device." size="sm" /> ) : ( <div className="space-y-3"> {otherSessions.map(session => { const DeviceIcon = getDeviceIcon(session.device); return ( <div key={session.id} className="rounded-2xl border bg-card p-4" > <div className="flex items-center gap-3"> <div className="h-11 w-11 rounded-xl bg-muted flex items-center justify-center shrink-0"> <DeviceIcon className="h-5 w-5 text-muted-foreground" /> </div> <div className="flex-1 min-w-0"> <p className="font-medium text-sm truncate">{session.device}</p> <p className="text-xs text-muted-foreground truncate"> {session.browser} </p> <p className="text-xs text-muted-foreground"> {formatDistanceToNow(new Date(session.last_active), { addSuffix: true })} </p> </div> <Button variant="ghost" size="icon" onClick={() => handleRevokeSession(session.id)} disabled={isRevoking} className="h-11 w-11 shrink-0" > <X className="h-4 w-4" /> </Button> </div> </div> ); })} </div> )} </div> </DrawerBody> <DrawerFooter> <Button variant="destructive" onClick={onSignOutAll} className="w-full h-12" > <LogOut className="h-4 w-4 mr-2" />
+                description="You're only signed in on this device."
+                size="sm"
+              />
+            ) : (
+              <div className="space-y-3">
+                {otherSessions.map(session => {
+                  const DeviceIcon = getDeviceIcon(session.device);
+                  return (
+                    <div
+                      key={session.id}
+                      className="rounded-2xl border bg-card p-4"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="h-11 w-11 rounded-xl bg-muted flex items-center justify-center shrink-0">
+                          <DeviceIcon className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">{session.device}</p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {session.browser}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {formatDistanceToNow(new Date(session.last_active), { addSuffix: true })}
+                          </p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleRevokeSession(session.id)}
+                          disabled={isRevoking}
+                          className="h-11 w-11 shrink-0"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </DrawerBody>
+        
+        <DrawerFooter>
+          <Button
+            variant="destructive"
+            onClick={onSignOutAll}
+            className="w-full h-12"
+          >
+            <LogOut className="h-4 w-4 mr-2" />
             Sign Out of This Device
           </Button>
         </DrawerFooter>

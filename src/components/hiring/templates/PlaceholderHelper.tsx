@@ -22,7 +22,14 @@ const PLACEHOLDERS = [
   { key: "{net_pay_estimate}", description: "Estimated net pay" },
   { key: "{employer_gosi_amount}", description: "Employer GOSI contribution" },
   { key: "{company_name}", description: "Company name from settings" },
-  { key: "{current_date}", description: "Today's date when sent" }, ]; export function PlaceholderHelper() { const handleCopy = (placeholder: string) => { navigator.clipboard.writeText(placeholder); toast({ title: "Copied",
+  { key: "{current_date}", description: "Today's date when sent" },
+];
+
+export function PlaceholderHelper() {
+  const handleCopy = (placeholder: string) => {
+    navigator.clipboard.writeText(placeholder);
+    toast({
+      title: "Copied",
       description: `${placeholder} copied to clipboard`,
     });
   };

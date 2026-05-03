@@ -78,18 +78,18 @@ const EmailActionResult = () => {
 
   const getIcon = () => {
     if (type === "reject-form" && !rejectionComplete) {
-      return <XCircle className="h-16 w-16 text-warning" />;
+      return <XCircle className="h-16 w-16 text-amber-500" />;
     }
     switch (type) {
       case "success":
-        return <CheckCircle className="h-16 w-16 text-success" />;
+        return <CheckCircle className="h-16 w-16 text-emerald-500" />;
       case "rejected":
       case "reject-form":
-        return <XCircle className="h-16 w-16 text-destructive" />;
+        return <XCircle className="h-16 w-16 text-red-500" />;
       case "expired":
-        return <Clock className="h-16 w-16 text-warning" />;
+        return <Clock className="h-16 w-16 text-amber-500" />;
       case "error":
-        return <AlertTriangle className="h-16 w-16 text-destructive" />;
+        return <AlertTriangle className="h-16 w-16 text-red-500" />;
       default:
         return <CheckCircle className="h-16 w-16 text-primary" />;
     }
@@ -97,18 +97,18 @@ const EmailActionResult = () => {
 
   const getBackgroundStyle = () => {
     if (type === "reject-form" && !rejectionComplete) {
-      return "bg-gradient-to-br from-warning to-warning";
+      return "bg-gradient-to-br from-amber-50 to-amber-100";
     }
     switch (type) {
       case "success":
-        return "bg-gradient-to-br from-success to-success";
+        return "bg-gradient-to-br from-emerald-50 to-emerald-100";
       case "rejected":
       case "reject-form":
-        return "bg-gradient-to-br from-destructive to-destructive";
+        return "bg-gradient-to-br from-red-50 to-red-100";
       case "expired":
-        return "bg-gradient-to-br from-warning to-warning";
+        return "bg-gradient-to-br from-amber-50 to-amber-100";
       case "error":
-        return "bg-gradient-to-br from-destructive to-destructive";
+        return "bg-gradient-to-br from-red-50 to-red-100";
       default:
         return "bg-gradient-to-br from-primary/5 to-primary/10";
     }

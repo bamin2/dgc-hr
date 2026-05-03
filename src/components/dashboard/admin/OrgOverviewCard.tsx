@@ -39,15 +39,15 @@ export function OrgOverviewCard({ stats, isLoading }: OrgOverviewCardProps) {
       label: 'Active', 
       value: stats.activeEmployees, 
       icon: UserCheck,
-      color: 'text-success',
-      bgColor: 'bg-success/10'
+      color: 'text-emerald-500',
+      bgColor: 'bg-emerald-500/10'
     },
     { 
       label: 'On Leave', 
       value: stats.onLeaveEmployees, 
       icon: UserMinus,
-      color: 'text-warning',
-      bgColor: 'bg-warning/10'
+      color: 'text-amber-500',
+      bgColor: 'bg-amber-500/10'
     },
   ];
 

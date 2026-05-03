@@ -12,57 +12,57 @@ const typeConfig: Record<BenefitType, { label: string; icon: typeof Heart; class
   health: {
     label: 'Health',
     icon: Heart,
-    className: 'bg-success/10 text-success'
+    className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
   },
   dental: {
     label: 'Dental',
     icon: Smile,
-    className: 'bg-info/10 text-info'
+    className: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400'
   },
   vision: {
     label: 'Vision',
     icon: Eye,
-    className: 'bg-warning/10 text-warning'
+    className: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
   },
   retirement: {
     label: 'Retirement',
     icon: PiggyBank,
-    className: 'bg-warning/10 text-warning'
+    className: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
   },
   life: {
     label: 'Life',
     icon: Shield,
-    className: 'bg-info/10 text-info'
+    className: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400'
   },
   disability: {
     label: 'Disability',
     icon: Accessibility,
-    className: 'bg-muted text-muted-foreground'
+    className: 'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-400'
   },
   wellness: {
     label: 'Wellness',
     icon: Sparkles,
-    className: 'bg-destructive/10 text-destructive'
+    className: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400'
   },
   air_ticket: {
     label: 'Air Ticket',
     icon: Plane,
-    className: 'bg-info/10 text-info'
+    className: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400'
   },
   car_park: {
     label: 'Car Park',
     icon: Car,
-    className: 'bg-info/10 text-info'
+    className: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400'
   },
   phone: {
     label: 'Phone',
     icon: Smartphone,
-    className: 'bg-info/10 text-info'
+    className: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400'
   },
   other: {
     label: 'Other',
     icon: HelpCircle,
-    className: 'bg-muted text-muted-foreground'
+    className: 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
   }
 };
 

@@ -64,7 +64,7 @@ export function ConvertToEmployeeDialog({
       <AlertDialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2">
-            <UserPlus className="h-5 w-5 text-success" />
+            <UserPlus className="h-5 w-5 text-green-600" />
             Convert to Employee
           </AlertDialogTitle>
           <AlertDialogDescription>
@@ -152,11 +152,11 @@ export function ConvertToEmployeeDialog({
             </CardContent>
           </Card>
 
-          <div className="flex items-start gap-2 p-3 bg-warning/10 border border-warning/30 rounded-lg text-sm">
-            <AlertCircle className="h-4 w-4 text-warning mt-0.5 shrink-0" />
+          <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm">
+            <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
             <div>
-              <p className="font-medium text-warning">What will happen:</p>
-              <ul className="text-warning mt-1 space-y-1">
+              <p className="font-medium text-amber-800">What will happen:</p>
+              <ul className="text-amber-700 mt-1 space-y-1">
                 <li>• A new active employee record will be created</li>
                 <li>• Allowances from the offer will be applied</li>
                 <li>• The candidate status will be set to archived</li>
@@ -170,7 +170,7 @@ export function ConvertToEmployeeDialog({
           <AlertDialogAction 
             onClick={handleConvert}
             disabled={convertToEmployee.isPending}
-            className="bg-success hover:bg-success"
+            className="bg-green-600 hover:bg-green-700"
           >
             {convertToEmployee.isPending ? (
               "Converting..."

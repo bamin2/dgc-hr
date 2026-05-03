@@ -74,9 +74,9 @@ export function ApprovalCard({ approval }: ApprovalCardProps) {
           <CardContent className="space-y-4">
             {/* Negative Balance Warning */}
             {(leave_request as any).results_in_negative_balance && (
-              <div className="flex items-center gap-2 px-3 py-2 bg-destructive/10 border border-destructive/30 dark:border-destructive rounded-lg">
-                <AlertTriangle className="h-4 w-4 text-destructive" />
-                <span className="text-sm text-destructive font-medium">
+              <div className="flex items-center gap-2 px-3 py-2 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg">
+                <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                <span className="text-sm text-red-700 dark:text-red-300 font-medium">
                   This request will result in negative leave balance
                 </span>
               </div>

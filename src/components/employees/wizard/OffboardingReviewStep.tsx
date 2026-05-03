@@ -117,12 +117,12 @@ export function OffboardingReviewStep({
             <div className="flex justify-between items-center">
               <span className="text-muted-foreground">Resignation Letter</span>
               {departureData.resignationLetterReceived ? (
-                <Badge variant="outline" className="bg-success/10 text-success border-success/30">
+                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
                   <CheckCircle2 className="h-3 w-3 mr-1" />
                   Received
                 </Badge>
               ) : (
-                <Badge variant="outline" className="bg-warning/10 text-warning border-warning/30">
+                <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
                   <AlertCircle className="h-3 w-3 mr-1" />
                   Pending
                 </Badge>
@@ -131,12 +131,12 @@ export function OffboardingReviewStep({
             <div className="flex justify-between items-center">
               <span className="text-muted-foreground">Manager Confirmed</span>
               {departureData.managerConfirmed ? (
-                <Badge variant="outline" className="bg-success/10 text-success border-success/30">
+                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
                   <CheckCircle2 className="h-3 w-3 mr-1" />
                   Confirmed
                 </Badge>
               ) : (
-                <Badge variant="outline" className="bg-warning/10 text-warning border-warning/30">
+                <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
                   <Clock className="h-3 w-3 mr-1" />
                   Pending
                 </Badge>
@@ -200,13 +200,13 @@ export function OffboardingReviewStep({
             </div>
             <div className="flex justify-between items-center">
               <span className="text-muted-foreground">Returned</span>
-              <Badge variant="outline" className="bg-success/10 text-success border-success/30">
+              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
                 {returnedAssets} items
               </Badge>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-muted-foreground">Pending</span>
-              <Badge variant="outline" className={pendingAssets > 0 ? "bg-warning/10 text-warning border-warning/30" : "bg-success/10 text-success border-success/30"}>
+              <Badge variant="outline" className={pendingAssets > 0 ? "bg-yellow-50 text-yellow-700 border-yellow-200" : "bg-green-50 text-green-700 border-green-200"}>
                 {pendingAssets} items
               </Badge>
             </div>
@@ -228,13 +228,13 @@ export function OffboardingReviewStep({
             </div>
             <div className="flex justify-between items-center">
               <span className="text-muted-foreground">Scheduled</span>
-              <Badge variant="outline" className="bg-info/10 text-info border-info/30">
+              <Badge variant="outline" className="bg-teal-50 text-teal-700 border-teal-200">
                 {scheduledSystems} systems
               </Badge>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-muted-foreground">Revoked</span>
-              <Badge variant="outline" className="bg-muted text-muted-foreground border-border">
+              <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
                 {systems.filter((s) => s.status === "revoked").length} systems
               </Badge>
             </div>

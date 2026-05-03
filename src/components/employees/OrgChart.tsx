@@ -237,7 +237,7 @@ export function OrgChart({ employees, onView, onEdit, onReassign, onBulkReassign
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmReassignment}
-              className="bg-success hover:bg-success"
+              className="bg-emerald-600 hover:bg-emerald-700"
             >
               Confirm
             </AlertDialogAction>

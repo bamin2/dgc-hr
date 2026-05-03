@@ -114,7 +114,10 @@ const Benefits = () => {
       await approveClaim.mutateAsync({
         claimId,
         approvedAmount: claim.amount,
-        reviewerId: claim.employee_id, // In real app, use current user's employee ID }); toast({ title: 'Claim Approved',
+        reviewerId: claim.employee_id, // In real app, use current user's employee ID
+      });
+      toast({
+        title: 'Claim Approved',
         description: `Claim has been approved successfully.`
       });
     } catch (error) {

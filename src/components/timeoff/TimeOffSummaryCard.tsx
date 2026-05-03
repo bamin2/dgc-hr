@@ -99,21 +99,21 @@ export function TimeOffSummaryCard({ year }: TimeOffSummaryCardProps) {
         />
         <SummaryItem
           icon={<Clock className="w-4 h-4" />}
-          bgColor="bg-info/10"
+          bgColor="bg-teal-500/85"
           days={totalPending}
           label="days pending approval"
           sublabel="Awaiting manager approval"
         />
         <SummaryItem
           icon={<Calendar className="w-4 h-4" />}
-          bgColor="bg-warning/10"
+          bgColor="bg-amber-500/85"
           days={bookedDays}
           label="days booked"
           sublabel={`${totalUsed}d used`}
         />
         <SummaryItem
           icon={<Flag className="w-4 h-4" />}
-          bgColor="bg-destructive/10"
+          bgColor="bg-rose-400/85"
           days={totalHolidays}
           label="Public Holidays"
           sublabel={`${remainingHolidays} remaining in ${displayYear}`}

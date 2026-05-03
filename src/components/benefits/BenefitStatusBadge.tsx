@@ -10,23 +10,23 @@ interface BenefitStatusBadgeProps {
 const statusConfig: Record<string, { label: string; className: string }> = {
   active: {
     label: 'Active',
-    className: 'bg-success/10 text-success'
+    className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
   },
   inactive: {
     label: 'Inactive',
-    className: 'bg-muted text-muted-foreground'
+    className: 'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-400'
   },
   pending: {
     label: 'Pending',
-    className: 'bg-warning/10 text-warning'
+    className: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
   },
   cancelled: {
     label: 'Cancelled',
-    className: 'bg-destructive/10 text-destructive'
+    className: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
   },
   expired: {
     label: 'Expired',
-    className: 'bg-muted text-muted-foreground'
+    className: 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
   }
 };
 

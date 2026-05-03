@@ -74,7 +74,7 @@ export const ClaimsTable = ({ claims, onApprove, onDeny }: ClaimsTableProps) => 
                   <div>
                     <p className="font-medium">{formatCurrency(claim.amount)}</p>
                     {claim.approved_amount && (
-                      <p className="text-xs text-success">
+                      <p className="text-xs text-emerald-600">
                         Approved: {formatCurrency(claim.approved_amount)}
                       </p>
                     )}
@@ -93,7 +93,7 @@ export const ClaimsTable = ({ claims, onApprove, onDeny }: ClaimsTableProps) => 
                         <Button 
                           variant="ghost" 
                           size="icon-sm"
-                          className="text-success hover:text-success hover:bg-success/10"
+                          className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
                           onClick={() => onApprove(claim.id)}
                         >
                           <Check className="h-4 w-4" />
@@ -101,7 +101,7 @@ export const ClaimsTable = ({ claims, onApprove, onDeny }: ClaimsTableProps) => 
                         <Button 
                           variant="ghost" 
                           size="icon-sm"
-                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
                           onClick={() => onDeny(claim.id)}
                         >
                           <X className="h-4 w-4" />

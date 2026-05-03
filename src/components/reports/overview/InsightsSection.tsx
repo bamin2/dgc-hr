@@ -45,8 +45,8 @@ export function InsightsSection({ data, isLoading, onNavigate }: InsightsSection
           <Card className="hover:border-primary/50 transition-colors">
             <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
-                <div className="p-2 rounded-full bg-success/10">
-                  <TrendingUp className="h-4 w-4 text-success" />
+                <div className="p-2 rounded-full bg-emerald-100 dark:bg-emerald-900/30">
+                  <TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                 </div>
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   Highest Payroll Cost
@@ -79,8 +79,8 @@ export function InsightsSection({ data, isLoading, onNavigate }: InsightsSection
           <Card className="hover:border-primary/50 transition-colors">
             <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
-                <div className="p-2 rounded-full bg-destructive/10">
-                  <Building2 className="h-4 w-4 text-destructive" />
+                <div className="p-2 rounded-full bg-rose-100 dark:bg-rose-900/30">
+                  <Building2 className="h-4 w-4 text-rose-600 dark:text-rose-400" />
                 </div>
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   Most Active Loans

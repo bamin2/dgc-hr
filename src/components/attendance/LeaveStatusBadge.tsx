@@ -8,15 +8,15 @@ interface LeaveStatusBadgeProps {
 const statusConfig = {
   pending: {
     label: 'Pending',
-    className: 'bg-warning/10 text-warning border-warning/30',
+    className: 'bg-yellow-100 text-yellow-700 border-yellow-200',
   },
   approved: {
     label: 'Approved',
-    className: 'bg-success/10 text-success border-success/30',
+    className: 'bg-green-100 text-green-700 border-green-200',
   },
   rejected: {
     label: 'Rejected',
-    className: 'bg-destructive/10 text-destructive border-destructive/30',
+    className: 'bg-red-100 text-red-700 border-red-200',
   },
 };
 

@@ -42,7 +42,7 @@ import type { PayslipTemplate, PayslipTemplateStatus } from "@/types/payslip-tem
 
 const statusColors: Record<PayslipTemplateStatus, string> = {
   draft: "bg-muted text-muted-foreground",
-  active: "bg-success/10 text-success",
+  active: "bg-emerald-500/10 text-emerald-600",
   archived: "bg-destructive/10 text-destructive",
 };
 

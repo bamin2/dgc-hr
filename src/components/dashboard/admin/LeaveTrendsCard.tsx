@@ -34,8 +34,8 @@ export function LeaveTrendsCard({ trends, isLoading }: LeaveTrendsCardProps) {
   };
 
   const getTrendColor = () => {
-    if (trends.percentChange > 0) return 'text-destructive';
-    if (trends.percentChange < 0) return 'text-success';
+    if (trends.percentChange > 0) return 'text-red-500';
+    if (trends.percentChange < 0) return 'text-emerald-500';
     return 'text-muted-foreground';
   };
 

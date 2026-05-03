@@ -35,9 +35,9 @@ export function EffectiveDateStep({ data, onUpdateData }: EffectiveDateStepProps
       </Alert>
 
       {isBackdated && (
-        <Alert className="border-warning/50 bg-warning/10">
-          <AlertTriangle className="h-4 w-4 text-warning" />
-          <AlertDescription className="text-warning">
+        <Alert className="border-amber-500/50 bg-amber-500/10">
+          <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+          <AlertDescription className="text-amber-600 dark:text-amber-400">
             You have selected a past date. This change will be backdated and may require
             manual retroactive payroll corrections for affected pay periods.
           </AlertDescription>
@@ -86,16 +86,16 @@ export function EffectiveDateStep({ data, onUpdateData }: EffectiveDateStepProps
                 )}
 
                 {data.effectiveDate > today && (
-                  <div className="bg-warning/10 rounded-lg p-3">
-                    <p className="text-sm text-warning font-medium">
+                  <div className="bg-amber-500/10 rounded-lg p-3">
+                    <p className="text-sm text-amber-600 dark:text-amber-400 font-medium">
                       Changes will be applied on the selected date
                     </p>
                   </div>
                 )}
 
                 {isBackdated && (
-                  <div className="bg-warning/10 rounded-lg p-3">
-                    <p className="text-sm text-warning font-medium">
+                  <div className="bg-amber-500/10 rounded-lg p-3">
+                    <p className="text-sm text-amber-600 dark:text-amber-400 font-medium">
                       Backdated — retroactive payroll adjustment may be needed
                     </p>
                   </div>

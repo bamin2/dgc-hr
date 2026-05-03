@@ -53,7 +53,7 @@ export function ApprovalsSummaryCard() {
       <div className="bg-secondary/30 rounded-xl p-4 mb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-warning" />
+            <Clock className="w-4 h-4 text-amber-500" />
             <span className="text-sm text-muted-foreground">Awaiting review</span>
           </div>
           <span className="text-xl sm:text-2xl font-bold text-foreground">{totalPending}</span>

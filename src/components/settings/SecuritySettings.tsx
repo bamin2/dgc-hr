@@ -90,7 +90,35 @@ export const SecuritySettings = ({
 
       <SettingsCard 
         title="Active Sessions" 
-        description="Manage devices where you're logged in" icon={Laptop} > <div className="space-y-3"> {sessions.map((session) => ( <SessionCard key={session.id} session={session} onRevoke={onRevokeSession} /> ))} </div> <div className="mt-4 pt-4 border-t border-border/50"> <Button variant="outline" className="text-destructive hover:text-destructive hover:bg-destructive/10" onClick={onRevokeAllSessions} > Sign Out All Other Devices </Button> </div> </SettingsCard> <SettingsCard title="Security Audit Log" description="Review recent security events" icon={History} > <div className="space-y-3">
+        description="Manage devices where you're logged in"
+        icon={Laptop}
+      >
+        <div className="space-y-3">
+          {sessions.map((session) => (
+            <SessionCard 
+              key={session.id} 
+              session={session} 
+              onRevoke={onRevokeSession}
+            />
+          ))}
+        </div>
+        <div className="mt-4 pt-4 border-t border-border/50">
+          <Button 
+            variant="outline" 
+            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+            onClick={onRevokeAllSessions}
+          >
+            Sign Out All Other Devices
+          </Button>
+        </div>
+      </SettingsCard>
+
+      <SettingsCard 
+        title="Security Audit Log" 
+        description="Review recent security events"
+        icon={History}
+      >
+        <div className="space-y-3">
           {[
             { event: 'Successful login', time: '2 hours ago', location: 'San Francisco, CA' },
             { event: 'Password changed', time: '30 days ago', location: 'San Francisco, CA' },

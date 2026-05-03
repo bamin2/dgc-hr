@@ -48,27 +48,27 @@ const categoryConfig: Record<
   documentation: {
     label: "Documentation",
     icon: FileText,
-    color: "text-info",
+    color: "text-teal-600 dark:text-teal-400",
   },
   training: {
     label: "Training",
     icon: GraduationCap,
-    color: "text-warning",
+    color: "text-amber-600 dark:text-amber-400",
   },
   setup: {
     label: "Setup",
     icon: Settings,
-    color: "text-warning",
+    color: "text-orange-600 dark:text-orange-400",
   },
   introduction: {
     label: "Introduction",
     icon: Users,
-    color: "text-success",
+    color: "text-green-600 dark:text-green-400",
   },
   compliance: {
     label: "Compliance",
     icon: Shield,
-    color: "text-destructive",
+    color: "text-red-600 dark:text-red-400",
   },
 };
 
@@ -193,7 +193,7 @@ export function OnboardingTaskList({ tasks, onTaskToggle }: OnboardingTaskListPr
                           </div>
 
                           {task.status === "completed" && task.completedAt && (
-                            <div className="flex items-center gap-1 mt-2 text-xs text-success">
+                            <div className="flex items-center gap-1 mt-2 text-xs text-green-600 dark:text-green-400">
                               <CheckCircle2 className="w-3 h-3" />
                               Completed on {task.completedAt}
                               {task.completedBy && ` by ${task.completedBy}`}

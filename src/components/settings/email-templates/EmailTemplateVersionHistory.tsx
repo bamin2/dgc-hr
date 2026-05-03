@@ -105,7 +105,109 @@ export function EmailTemplateVersionHistory({
                               </span>
                             </div>
                             <p className="text-xs text-muted-foreground mt-1">
-                              {format(new Date(version.created_at), "MMM d, yyyy 'at' h:mm a")} </p> </div> <div className="flex items-center gap-1"> {expandedVersion === version.id ? ( <ChevronUp className="h-4 w-4 text-muted-foreground" /> ) : ( <ChevronDown className="h-4 w-4 text-muted-foreground" /> )} </div> </div> </CollapsibleTrigger> <CollapsibleContent className="pt-3 mt-3 border-t"> <div className="space-y-3"> <div> <p className="text-xs font-medium text-muted-foreground mb-1"> Subject </p> <p className="text-sm bg-muted/50 p-2 rounded"> {version.subject} </p> </div> <div className="flex items-center gap-2"> <p className="text-xs font-medium text-muted-foreground"> Status: </p> <Badge variant={version.is_active ? "default" : "secondary"}> {version.is_active ? "Active" : "Inactive"} </Badge> </div> <div className="flex gap-2"> <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setPreviewVersion(version); }} > <Eye className="h-3.5 w-3.5 mr-1.5" /> Preview </Button> <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setRestoreVersion(version); }} > <RotateCcw className="h-3.5 w-3.5 mr-1.5" /> Restore </Button> </div> </div> </CollapsibleContent> </div> </Collapsible> ))} </div> )} </ScrollArea> </SheetContent> </Sheet> {/* Preview Dialog */} {previewVersion && ( <Sheet open={!!previewVersion} onOpenChange={() => setPreviewVersion(null)}> <SheetContent className="w-[700px] sm:max-w-[700px]"> <SheetHeader> <SheetTitle className="flex items-center gap-2"> <Eye className="h-5 w-5" /> Preview - Version {previewVersion.version_number} </SheetTitle> </SheetHeader> <ScrollArea className="h-[calc(100vh-120px)] mt-4"> <EmailTemplatePreview templateType={templateType} subject={previewVersion.subject} bodyContent={previewVersion.body_content} /> </ScrollArea> </SheetContent> </Sheet> )} {/* Restore Confirmation */} <AlertDialog open={!!restoreVersion} onOpenChange={() => setRestoreVersion(null)}> <AlertDialogContent> <AlertDialogHeader> <AlertDialogTitle>Restore Version {restoreVersion?.version_number}?</AlertDialogTitle> <AlertDialogDescription> This will replace the current template content with version {restoreVersion?.version_number}. The current content will be saved as a new version in the history. </AlertDialogDescription> </AlertDialogHeader> <AlertDialogFooter> <AlertDialogCancel>Cancel</AlertDialogCancel> <AlertDialogAction onClick={handleRestore}> <RotateCcw className="h-4 w-4 mr-2" />
+                              {format(new Date(version.created_at), "MMM d, yyyy 'at' h:mm a")}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            {expandedVersion === version.id ? (
+                              <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                            )}
+                          </div>
+                        </div>
+                      </CollapsibleTrigger>
+
+                      <CollapsibleContent className="pt-3 mt-3 border-t">
+                        <div className="space-y-3">
+                          <div>
+                            <p className="text-xs font-medium text-muted-foreground mb-1">
+                              Subject
+                            </p>
+                            <p className="text-sm bg-muted/50 p-2 rounded">
+                              {version.subject}
+                            </p>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <p className="text-xs font-medium text-muted-foreground">
+                              Status:
+                            </p>
+                            <Badge variant={version.is_active ? "default" : "secondary"}>
+                              {version.is_active ? "Active" : "Inactive"}
+                            </Badge>
+                          </div>
+
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setPreviewVersion(version);
+                              }}
+                            >
+                              <Eye className="h-3.5 w-3.5 mr-1.5" />
+                              Preview
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setRestoreVersion(version);
+                              }}
+                            >
+                              <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
+                              Restore
+                            </Button>
+                          </div>
+                        </div>
+                      </CollapsibleContent>
+                    </div>
+                  </Collapsible>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+        </SheetContent>
+      </Sheet>
+
+      {/* Preview Dialog */}
+      {previewVersion && (
+        <Sheet open={!!previewVersion} onOpenChange={() => setPreviewVersion(null)}>
+          <SheetContent className="w-[700px] sm:max-w-[700px]">
+            <SheetHeader>
+              <SheetTitle className="flex items-center gap-2">
+                <Eye className="h-5 w-5" />
+                Preview - Version {previewVersion.version_number}
+              </SheetTitle>
+            </SheetHeader>
+            <ScrollArea className="h-[calc(100vh-120px)] mt-4">
+              <EmailTemplatePreview
+                templateType={templateType}
+                subject={previewVersion.subject}
+                bodyContent={previewVersion.body_content}
+              />
+            </ScrollArea>
+          </SheetContent>
+        </Sheet>
+      )}
+
+      {/* Restore Confirmation */}
+      <AlertDialog open={!!restoreVersion} onOpenChange={() => setRestoreVersion(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Restore Version {restoreVersion?.version_number}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will replace the current template content with version {restoreVersion?.version_number}.
+              The current content will be saved as a new version in the history.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRestore}>
+              <RotateCcw className="h-4 w-4 mr-2" />
               Restore Version
             </AlertDialogAction>
           </AlertDialogFooter>

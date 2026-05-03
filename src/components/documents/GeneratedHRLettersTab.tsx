@@ -227,7 +227,14 @@ export function GeneratedHRLettersTab() {
                   </TableCell>
                   <TableCell>
                     {letter.processed_at
-                      ? format(new Date(letter.processed_at), "MMM d, yyyy 'at' h:mm a") : "—"} </TableCell> <TableCell> <div className="flex items-center justify-end gap-1"> <Button variant="ghost" size="icon"
+                      ? format(new Date(letter.processed_at), "MMM d, yyyy 'at' h:mm a")
+                      : "—"}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() => handleView(letter)}
                         disabled={actionLoading === `view-${letter.id}`}
                         title="View"

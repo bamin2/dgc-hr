@@ -21,22 +21,22 @@ export const NotificationsMetrics = ({ total, unread, today, highPriority }: Not
       label: 'Unread',
       value: unread,
       icon: BellOff,
-      color: 'text-info',
-      bgColor: 'bg-info/10'
+      color: 'text-teal-600',
+      bgColor: 'bg-teal-100 dark:bg-teal-900/30'
     },
     {
       label: 'Today',
       value: today,
       icon: Calendar,
-      color: 'text-success',
-      bgColor: 'bg-success/10'
+      color: 'text-emerald-600',
+      bgColor: 'bg-emerald-100 dark:bg-emerald-900/30'
     },
     {
       label: 'High Priority',
       value: highPriority,
       icon: AlertTriangle,
-      color: 'text-destructive',
-      bgColor: 'bg-destructive/10'
+      color: 'text-red-600',
+      bgColor: 'bg-red-100 dark:bg-red-900/30'
     }
   ];
 

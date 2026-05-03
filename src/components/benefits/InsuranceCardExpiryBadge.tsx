@@ -27,7 +27,7 @@ export function InsuranceCardExpiryBadge({
   
   if (daysUntilExpiry <= 30) {
     return (
-      <Badge className="gap-1 bg-warning/10 text-warning hover:bg-warning/10 border-warning/30">
+      <Badge className="gap-1 bg-amber-100 text-amber-800 hover:bg-amber-100 border-amber-200">
         <AlertTriangle className="h-3 w-3" />
         {showDaysRemaining ? `Expires in ${daysUntilExpiry} days` : 'Expiring Soon'}
       </Badge>
@@ -35,7 +35,7 @@ export function InsuranceCardExpiryBadge({
   }
   
   return (
-    <Badge variant="secondary" className="bg-success/10 text-success hover:bg-success/10 border-success/30">
+    <Badge variant="secondary" className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100 border-emerald-200">
       Valid
     </Badge>
   );

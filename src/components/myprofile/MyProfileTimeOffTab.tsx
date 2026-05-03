@@ -129,7 +129,7 @@ export function MyProfileTimeOffTab({ employeeId }: MyProfileTimeOffTabProps) {
                   <div className="flex justify-between text-xs text-muted-foreground">
                     <span>Used: {balance.used_days}</span>
                     {balance.pending_days > 0 && (
-                      <span className="text-warning">Pending: {balance.pending_days}</span>
+                      <span className="text-amber-600">Pending: {balance.pending_days}</span>
                     )}
                     <span>Total: {displayTotal}</span>
                   </div>

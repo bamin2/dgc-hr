@@ -81,7 +81,7 @@ export function ImportHistoryDialog({ open, onOpenChange }: ImportHistoryDialogP
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{imp.filename || "Unknown file"}</span>
                         {imp.status === "completed" ? (
-                          <Badge variant="default" className="bg-success">
+                          <Badge variant="default" className="bg-green-600">
                             <CheckCircle className="h-3 w-3 mr-1" />
                             Active
                           </Badge>
@@ -96,7 +96,7 @@ export function ImportHistoryDialog({ open, onOpenChange }: ImportHistoryDialogP
                         {formatDateTime(imp.imported_at)}
                       </div>
                       <div className="text-sm">
-                        <span className="text-success font-medium">
+                        <span className="text-green-600 font-medium">
                           {imp.successful_records} imported
                         </span>
                         {imp.failed_records > 0 && (

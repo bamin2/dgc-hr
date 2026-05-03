@@ -160,8 +160,8 @@ export function LoanSummaryReport() {
       <Card>
         <CardContent className="pt-6">
           <div className="flex items-center gap-4">
-            <div className="p-2 bg-warning/10 rounded-lg">
-              <TrendingDown className="h-5 w-5 text-warning" />
+            <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
+              <TrendingDown className="h-5 w-5 text-amber-600" />
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Outstanding Balance</p>
@@ -173,8 +173,8 @@ export function LoanSummaryReport() {
       <Card>
         <CardContent className="pt-6">
           <div className="flex items-center gap-4">
-            <div className="p-2 bg-info/10 rounded-lg">
-              <Clock className="h-5 w-5 text-info" />
+            <div className="p-2 bg-teal-100 dark:bg-teal-900/30 rounded-lg">
+              <Clock className="h-5 w-5 text-teal-600" />
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Active Loans</p>
@@ -186,8 +186,8 @@ export function LoanSummaryReport() {
       <Card>
         <CardContent className="pt-6">
           <div className="flex items-center gap-4">
-            <div className="p-2 bg-success/10 rounded-lg">
-              <CheckCircle className="h-5 w-5 text-success" />
+            <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
+              <CheckCircle className="h-5 w-5 text-emerald-600" />
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Closed Loans</p>

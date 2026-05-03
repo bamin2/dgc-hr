@@ -170,7 +170,7 @@ export function ReviewStep({
                   {selectedTemplate?.estimatedDays || 0} days estimated
                 </p>
               </div>
-              <Badge className="bg-success/10 text-success">
+              <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
                 {enabledTasks.length} tasks
               </Badge>
             </div>
@@ -263,14 +263,14 @@ export function ReviewStep({
         </Card>
       </div>
 
-      <Card className="border-success/30 bg-success/10 dark:border-success">
+      <Card className="border-emerald-200 bg-emerald-50/50 dark:border-emerald-800 dark:bg-emerald-950/20">
         <CardContent className="flex items-center gap-4 p-4">
-          <CheckCircle2 className="h-8 w-8 text-success" />
+          <CheckCircle2 className="h-8 w-8 text-emerald-600" />
           <div>
-            <p className="font-medium text-success">
+            <p className="font-medium text-emerald-900 dark:text-emerald-100">
               Ready to Launch
             </p>
-            <p className="text-sm text-success">
+            <p className="text-sm text-emerald-700 dark:text-emerald-300">
               Click "Launch Onboarding" to start the workflow. The employee will receive
               notifications about their tasks.
             </p>

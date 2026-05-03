@@ -120,13 +120,218 @@ export function EditSalaryDialog({
   const [gosiConfirmOpen, setGosiConfirmOpen] = useState(false);
   const [pendingGosiValue, setPendingGosiValue] = useState<boolean | null>(null);
   
-  // Get today's date at start of day for comparison const today = startOfDay(new Date()); const isFutureDate = isAfter(startOfDay(effectiveDate), today); // Initialize form when dialog opens useEffect(() => { if (open) { setBasicSalary(employee.salary || 0); setGosiSalary(employee.gosiRegisteredSalary || null); setIsSubjectToGosi(employee.isSubjectToGosi || false); setAllowances(mapToLocalAllowances(currentAllowances)); setDeductions(mapToLocalDeductions(currentDeductions)); setReason(''); setEffectiveDate(new Date()); } }, [open, employee, currentAllowances, currentDeductions]); // Fetch work locations for GOSI rates const { data: workLocations } = useWorkLocations(); // Calculate GOSI deduction based on nationality rates const gosiCalculation = useMemo(() => { if (!isSubjectToGosi || !gosiSalary) { return { gosiDeduction: 0, employeeRate: 0 }; } const employeeWorkLocation = workLocations?.find(loc => loc.id === workLocationId); if (!employeeWorkLocation?.gosi_enabled) { return { gosiDeduction: 0, employeeRate: 0 }; } const rates = employeeWorkLocation.gosi_nationality_rates || []; const nationalityCode = getCountryCodeByName(employee.nationality || ''); const matchingRate = rates.find(r => r.nationality === nationalityCode); if (!matchingRate) { return { gosiDeduction: 0, employeeRate: 0 }; } const employeeRate = matchingRate.employeeRate ?? 0; const gosiDeduction = (gosiSalary * employeeRate) / 100; return { gosiDeduction, employeeRate }; }, [isSubjectToGosi, employee.nationality, gosiSalary, workLocationId, workLocations]); // Calculated totals const totals = useMemo(() => { const totalAllowances = allowances.reduce((sum, a) => sum + a.amount, 0); const otherDeductions = deductions.reduce((sum, d) => sum + d.amount, 0); const grossPay = basicSalary + totalAllowances; const totalDeductions = otherDeductions + gosiCalculation.gosiDeduction; const netPay = grossPay - totalDeductions; return { totalAllowances, otherDeductions, totalDeductions, grossPay, netPay }; }, [basicSalary, allowances, deductions, gosiCalculation.gosiDeduction]); const handleAllowanceAmountChange = (id: string, value: string) => { const numValue = parseFloat(value) || 0; setAllowances(prev => prev.map(a => a.id === id ? { ...a, amount: numValue } : a) ); }; const handleDeductionAmountChange = (id: string, value: string) => { const numValue = parseFloat(value) || 0; setDeductions(prev => prev.map(d => d.id === id ? { ...d, amount: numValue } : d) ); }; const handleRemoveAllowance = (id: string) => { setAllowances(prev => prev.filter(a => a.id !== id)); }; const handleRemoveDeduction = (id: string) => { setDeductions(prev => prev.filter(d => d.id !== id)); }; const handleAddAllowance = (entry: AllowanceEntry) => { const newAllowance: LocalAllowance = { id: entry.id, templateId: entry.templateId || null, name: entry.customName || 'Allowance', amount: entry.amount, customName: entry.isCustom ? entry.customName || null : null, isEditable: true, }; setAllowances(prev => [...prev, newAllowance]); setShowAllowanceDialog(false); }; const handleAddDeduction = (entry: DeductionEntry) => { const newDeduction: LocalDeduction = { id: entry.id, templateId: entry.templateId || null, name: entry.customName || 'Deduction', amount: entry.amount, customName: entry.isCustom ? entry.customName || null : null, isEditable: true, }; setDeductions(prev => [...prev, newDeduction]); setShowDeductionDialog(false); }; const handleSave = () => { // Create snapshots of previous state const previousAllowances = createAllowanceSnapshot(currentAllowances); const previousDeductions = createDeductionSnapshot(currentDeductions); updateCompensation.mutate({ employeeId: employee.id, previousSalary: employee.salary || 0, newSalary: basicSalary, previousGosiSalary: employee.gosiRegisteredSalary || null, newGosiSalary: isSubjectToGosi ? gosiSalary : null, isSubjectToGosi, previousAllowances, newAllowances: allowances.map(a => ({ templateId: a.templateId, customName: a.templateId ? null : a.name, customAmount: a.amount, })), previousDeductions, newDeductions: deductions.map(d => ({ templateId: d.templateId, customName: d.templateId ? null : d.name, customAmount: d.amount, })), reason: reason || 'Compensation updated',
+  // Get today's date at start of day for comparison
+  const today = startOfDay(new Date());
+  const isFutureDate = isAfter(startOfDay(effectiveDate), today);
+  
+  // Initialize form when dialog opens
+  useEffect(() => {
+    if (open) {
+      setBasicSalary(employee.salary || 0);
+      setGosiSalary(employee.gosiRegisteredSalary || null);
+      setIsSubjectToGosi(employee.isSubjectToGosi || false);
+      setAllowances(mapToLocalAllowances(currentAllowances));
+      setDeductions(mapToLocalDeductions(currentDeductions));
+      setReason('');
+      setEffectiveDate(new Date());
+    }
+  }, [open, employee, currentAllowances, currentDeductions]);
+  
+  // Fetch work locations for GOSI rates
+  const { data: workLocations } = useWorkLocations();
+  
+  // Calculate GOSI deduction based on nationality rates
+  const gosiCalculation = useMemo(() => {
+    if (!isSubjectToGosi || !gosiSalary) {
+      return { gosiDeduction: 0, employeeRate: 0 };
+    }
+    
+    const employeeWorkLocation = workLocations?.find(loc => loc.id === workLocationId);
+    if (!employeeWorkLocation?.gosi_enabled) {
+      return { gosiDeduction: 0, employeeRate: 0 };
+    }
+    
+    const rates = employeeWorkLocation.gosi_nationality_rates || [];
+    const nationalityCode = getCountryCodeByName(employee.nationality || '');
+    const matchingRate = rates.find(r => r.nationality === nationalityCode);
+    
+    if (!matchingRate) {
+      return { gosiDeduction: 0, employeeRate: 0 };
+    }
+    
+    const employeeRate = matchingRate.employeeRate ?? 0;
+    const gosiDeduction = (gosiSalary * employeeRate) / 100;
+    
+    return { gosiDeduction, employeeRate };
+  }, [isSubjectToGosi, employee.nationality, gosiSalary, workLocationId, workLocations]);
+  
+  // Calculated totals
+  const totals = useMemo(() => {
+    const totalAllowances = allowances.reduce((sum, a) => sum + a.amount, 0);
+    const otherDeductions = deductions.reduce((sum, d) => sum + d.amount, 0);
+    const grossPay = basicSalary + totalAllowances;
+    const totalDeductions = otherDeductions + gosiCalculation.gosiDeduction;
+    const netPay = grossPay - totalDeductions;
+    return { totalAllowances, otherDeductions, totalDeductions, grossPay, netPay };
+  }, [basicSalary, allowances, deductions, gosiCalculation.gosiDeduction]);
+  
+  const handleAllowanceAmountChange = (id: string, value: string) => {
+    const numValue = parseFloat(value) || 0;
+    setAllowances(prev => 
+      prev.map(a => a.id === id ? { ...a, amount: numValue } : a)
+    );
+  };
+  
+  const handleDeductionAmountChange = (id: string, value: string) => {
+    const numValue = parseFloat(value) || 0;
+    setDeductions(prev => 
+      prev.map(d => d.id === id ? { ...d, amount: numValue } : d)
+    );
+  };
+  
+  const handleRemoveAllowance = (id: string) => {
+    setAllowances(prev => prev.filter(a => a.id !== id));
+  };
+  
+  const handleRemoveDeduction = (id: string) => {
+    setDeductions(prev => prev.filter(d => d.id !== id));
+  };
+  
+  const handleAddAllowance = (entry: AllowanceEntry) => {
+    const newAllowance: LocalAllowance = {
+      id: entry.id,
+      templateId: entry.templateId || null,
+      name: entry.customName || 'Allowance',
+      amount: entry.amount,
+      customName: entry.isCustom ? entry.customName || null : null,
+      isEditable: true,
+    };
+    setAllowances(prev => [...prev, newAllowance]);
+    setShowAllowanceDialog(false);
+  };
+  
+  const handleAddDeduction = (entry: DeductionEntry) => {
+    const newDeduction: LocalDeduction = {
+      id: entry.id,
+      templateId: entry.templateId || null,
+      name: entry.customName || 'Deduction',
+      amount: entry.amount,
+      customName: entry.isCustom ? entry.customName || null : null,
+      isEditable: true,
+    };
+    setDeductions(prev => [...prev, newDeduction]);
+    setShowDeductionDialog(false);
+  };
+  
+  const handleSave = () => {
+    // Create snapshots of previous state
+    const previousAllowances = createAllowanceSnapshot(currentAllowances);
+    const previousDeductions = createDeductionSnapshot(currentDeductions);
+    
+    updateCompensation.mutate({
+      employeeId: employee.id,
+      previousSalary: employee.salary || 0,
+      newSalary: basicSalary,
+      previousGosiSalary: employee.gosiRegisteredSalary || null,
+      newGosiSalary: isSubjectToGosi ? gosiSalary : null,
+      isSubjectToGosi,
+      previousAllowances,
+      newAllowances: allowances.map(a => ({
+        templateId: a.templateId,
+        customName: a.templateId ? null : a.name,
+        customAmount: a.amount,
+      })),
+      previousDeductions,
+      newDeductions: deductions.map(d => ({
+        templateId: d.templateId,
+        customName: d.templateId ? null : d.name,
+        customAmount: d.amount,
+      })),
+      reason: reason || 'Compensation updated',
       effectiveDate,
     }, {
       onSuccess: () => {
         const successMessage = isFutureDate
           ? `Salary change scheduled for ${format(effectiveDate, 'MMMM d, yyyy')}.`
-          : "The employee's salary has been updated and recorded in history."; toast({ title: isFutureDate ? "Salary change scheduled" : "Compensation updated", description: successMessage, }); onOpenChange(false); }, onError: (error) => { toast({ title: "Error updating compensation", description: error instanceof Error ? error.message : "An error occurred", variant: "destructive", }); }, }); }; return ( <> <Dialog open={open} onOpenChange={onOpenChange}> <DialogContent size="xl"> <DialogHeader> <DialogTitle>Edit Salary</DialogTitle> <DialogDescription> Update compensation for {employee.firstName} {employee.lastName} </DialogDescription> </DialogHeader> <DialogBody className="space-y-6"> {/* Basic Salary */} <div className="space-y-1.5"> <Label htmlFor="basicSalary">Basic Salary</Label> <Input id="basicSalary" type="number" min="0" step="0.01" value={basicSalary} onChange={(e) => setBasicSalary(parseFloat(e.target.value) || 0)} /> </div> {/* Effective Date */} <div className="space-y-1.5"> <Label>Effective Date</Label> <Popover> <PopoverTrigger asChild> <Button variant="outline" className={cn( "w-full justify-start text-left font-normal", !effectiveDate && "text-muted-foreground" )} > <CalendarIcon className="mr-2 h-4 w-4" /> {effectiveDate ? format(effectiveDate, "MMMM d, yyyy") : <span>Pick a date</span>} </Button> </PopoverTrigger> <PopoverContent className="w-auto p-0" align="start"> <Calendar mode="single" selected={effectiveDate} onSelect={(date) => date && setEffectiveDate(date)} disabled={(date) => startOfDay(date) < today} initialFocus className={cn("p-3 pointer-events-auto")} /> </PopoverContent> </Popover> <p className="text-xs text-muted-foreground"> The date when this salary will take effect for payroll </p> </div> {/* Scheduled Change Alert */} {isFutureDate && ( <Alert className="border-warning/30 bg-warning/10 dark:border-warning/30"> <Clock className="h-4 w-4 text-warning" /> <AlertDescription className="text-warning">
+          : "The employee's salary has been updated and recorded in history.";
+        toast({
+          title: isFutureDate ? "Salary change scheduled" : "Compensation updated",
+          description: successMessage,
+        });
+        onOpenChange(false);
+      },
+      onError: (error) => {
+        toast({
+          title: "Error updating compensation",
+          description: error instanceof Error ? error.message : "An error occurred",
+          variant: "destructive",
+        });
+      },
+    });
+  };
+
+  return (
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent size="xl">
+          <DialogHeader>
+            <DialogTitle>Edit Salary</DialogTitle>
+            <DialogDescription>
+              Update compensation for {employee.firstName} {employee.lastName}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <DialogBody className="space-y-6">
+            {/* Basic Salary */}
+            <div className="space-y-1.5">
+              <Label htmlFor="basicSalary">Basic Salary</Label>
+              <Input
+                id="basicSalary"
+                type="number"
+                min="0"
+                step="0.01"
+                value={basicSalary}
+                onChange={(e) => setBasicSalary(parseFloat(e.target.value) || 0)}
+              />
+            </div>
+            
+            {/* Effective Date */}
+            <div className="space-y-1.5">
+              <Label>Effective Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !effectiveDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {effectiveDate ? format(effectiveDate, "MMMM d, yyyy") : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={effectiveDate}
+                    onSelect={(date) => date && setEffectiveDate(date)}
+                    disabled={(date) => startOfDay(date) < today}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+              <p className="text-xs text-muted-foreground">
+                The date when this salary will take effect for payroll
+              </p>
+            </div>
+            
+            {/* Scheduled Change Alert */}
+            {isFutureDate && (
+              <Alert className="border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800/30">
+                <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                <AlertDescription className="text-amber-800 dark:text-amber-300">
                   This salary change is scheduled for {format(effectiveDate, 'MMMM d, yyyy')}.
                   The current salary will remain in effect until then.
                 </AlertDescription>
@@ -272,11 +477,11 @@ export function EditSalaryDialog({
                       </p>
                     </div>
                     {gosiCalculation.gosiDeduction > 0 && (
-                      <div className="flex justify-between items-center text-sm bg-warning/10 p-3 rounded-lg border border-warning/50 dark:border-warning/30">
+                      <div className="flex justify-between items-center text-sm bg-amber-50/50 dark:bg-amber-950/20 p-3 rounded-lg border border-amber-200/50 dark:border-amber-800/30">
                         <span className="text-muted-foreground">
                           Employee Contribution ({gosiCalculation.employeeRate}%)
                         </span>
-                        <span className="text-warning font-medium">
+                        <span className="text-amber-700 dark:text-amber-400 font-medium">
                           {formatAmount(gosiCalculation.gosiDeduction, currency)}
                         </span>
                       </div>
@@ -296,7 +501,7 @@ export function EditSalaryDialog({
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Total Allowances</span>
-                  <span className="text-success">+{formatAmount(totals.totalAllowances, currency)}</span>
+                  <span className="text-green-600">+{formatAmount(totals.totalAllowances, currency)}</span>
                 </div>
                 <div className="flex justify-between text-sm font-medium pt-1 border-t border-border/50">
                   <span>Gross Pay</span>
@@ -309,18 +514,18 @@ export function EditSalaryDialog({
                 {gosiCalculation.gosiDeduction > 0 && (
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">GOSI ({gosiCalculation.employeeRate}%)</span>
-                    <span className="text-destructive">-{formatAmount(gosiCalculation.gosiDeduction, currency)}</span>
+                    <span className="text-red-600">-{formatAmount(gosiCalculation.gosiDeduction, currency)}</span>
                   </div>
                 )}
                 {totals.otherDeductions > 0 && (
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Other Deductions</span>
-                    <span className="text-destructive">-{formatAmount(totals.otherDeductions, currency)}</span>
+                    <span className="text-red-600">-{formatAmount(totals.otherDeductions, currency)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-sm font-medium pt-1 border-t border-border/50">
                   <span>Total Deductions</span>
-                  <span className="text-destructive">-{formatAmount(totals.totalDeductions, currency)}</span>
+                  <span className="text-red-600">-{formatAmount(totals.totalDeductions, currency)}</span>
                 </div>
               </div>
               
@@ -386,13 +591,34 @@ export function EditSalaryDialog({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-warning" />
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
               {pendingGosiValue ? 'Enable GOSI for this employee?' : 'Disable GOSI for this employee?'}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {pendingGosiValue ? (
                 <>
-                  This will mark the employee as subject to GOSI. You'll need to set their GOSI registered salary, and the appropriate rate will be calculated as a deduction for social insurance contributions. </> ) : ( <> This will remove the employee from GOSI calculations. Their GOSI registered salary will be cleared, and no GOSI deductions will be applied to their salary. </> )} </AlertDialogDescription> </AlertDialogHeader> <AlertDialogFooter> <AlertDialogCancel onClick={() => { setGosiConfirmOpen(false); setPendingGosiValue(null); }}>Cancel</AlertDialogCancel> <AlertDialogAction onClick={() => { if (pendingGosiValue !== null) { setIsSubjectToGosi(pendingGosiValue); if (!pendingGosiValue) setGosiSalary(null); } setGosiConfirmOpen(false); setPendingGosiValue(null); }}> {pendingGosiValue ? 'Enable GOSI' : 'Disable GOSI'}
+                  This will mark the employee as subject to GOSI. You'll need to set their GOSI registered salary,
+                  and the appropriate rate will be calculated as a deduction for social insurance contributions.
+                </>
+              ) : (
+                <>
+                  This will remove the employee from GOSI calculations. Their GOSI registered salary will be cleared,
+                  and no GOSI deductions will be applied to their salary.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => { setGosiConfirmOpen(false); setPendingGosiValue(null); }}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              if (pendingGosiValue !== null) {
+                setIsSubjectToGosi(pendingGosiValue);
+                if (!pendingGosiValue) setGosiSalary(null);
+              }
+              setGosiConfirmOpen(false);
+              setPendingGosiValue(null);
+            }}>
+              {pendingGosiValue ? 'Enable GOSI' : 'Disable GOSI'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

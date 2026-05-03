@@ -49,8 +49,8 @@ export function PayrollSnapshotCards({ data, isLoading, onNavigate }: PayrollSna
           value={gross.display}
           subtitle="Finalized payroll runs"
           icon={DollarSign}
-          iconBg="bg-success/10"
-          iconColor="text-success"
+          iconBg="bg-emerald-100 dark:bg-emerald-900/30"
+          iconColor="text-emerald-600 dark:text-emerald-400"
           onClick={() => onNavigate('payroll-run-summary')}
           tooltip={gross.tooltip || "Sum of gross pay from all finalized payroll runs in the selected period"}
           isLoading={isLoading}
@@ -61,8 +61,8 @@ export function PayrollSnapshotCards({ data, isLoading, onNavigate }: PayrollSna
           value={gosi.display}
           subtitle="Employer contributions"
           icon={DollarSign}
-          iconBg="bg-info/10"
-          iconColor="text-info"
+          iconBg="bg-teal-100 dark:bg-teal-900/30"
+          iconColor="text-teal-600 dark:text-teal-400"
           onClick={() => onNavigate('gosi-contribution')}
           tooltip={gosi.tooltip || "Total employer GOSI contribution for the selected period"}
           isLoading={isLoading}
@@ -73,8 +73,8 @@ export function PayrollSnapshotCards({ data, isLoading, onNavigate }: PayrollSna
           value={data.employeesPaid}
           subtitle="In finalized runs"
           icon={Users}
-          iconBg="bg-muted"
-          iconColor="text-muted-foreground"
+          iconBg="bg-stone-100 dark:bg-stone-900/30"
+          iconColor="text-stone-600 dark:text-stone-400"
           onClick={() => onNavigate('payroll-detailed')}
           isLoading={isLoading}
         />
@@ -84,8 +84,8 @@ export function PayrollSnapshotCards({ data, isLoading, onNavigate }: PayrollSna
           value={data.pendingRuns}
           subtitle="Draft payroll runs"
           icon={Clock}
-          iconBg="bg-warning/10"
-          iconColor="text-warning"
+          iconBg="bg-amber-100 dark:bg-amber-900/30"
+          iconColor="text-amber-600 dark:text-amber-400"
           onClick={() => onNavigate('payroll-run-summary')}
           badge={data.pendingRuns > 0 ? { text: 'Action needed', variant: 'secondary' } : undefined}
           isLoading={isLoading}
@@ -96,8 +96,8 @@ export function PayrollSnapshotCards({ data, isLoading, onNavigate }: PayrollSna
           value={net.display}
           subtitle="After deductions"
           icon={FileText}
-          iconBg="bg-info/10"
-          iconColor="text-info"
+          iconBg="bg-teal-100 dark:bg-teal-900/30"
+          iconColor="text-teal-600 dark:text-teal-400"
           onClick={() => onNavigate('payroll-run-summary')}
           tooltip={net.tooltip || "Sum of net pay from all finalized payroll runs"}
           isLoading={isLoading}

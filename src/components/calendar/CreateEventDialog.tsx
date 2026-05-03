@@ -38,11 +38,11 @@ interface CreateEventDialogProps {
 }
 
 const eventColors: { value: EventColor; label: string; class: string }[] = [
-  { value: "green", label: "Green", class: "bg-success" },
-  { value: "orange", label: "Orange", class: "bg-warning" },
-  { value: "coral", label: "Coral", class: "bg-destructive" },
-  { value: "mint", label: "Mint", class: "bg-info" },
-  { value: "blue", label: "Teal", class: "bg-info" },
+  { value: "green", label: "Green", class: "bg-emerald-500" },
+  { value: "orange", label: "Orange", class: "bg-orange-500" },
+  { value: "coral", label: "Coral", class: "bg-rose-400" },
+  { value: "mint", label: "Mint", class: "bg-teal-400" },
+  { value: "blue", label: "Teal", class: "bg-teal-600" },
   { value: "purple", label: "Gold", class: "bg-[#C6A45E]" },
 ];
 

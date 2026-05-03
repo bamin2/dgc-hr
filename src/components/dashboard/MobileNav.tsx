@@ -214,7 +214,7 @@ export function MobileNav() {
             onClick={handleSignOut}
             className={cn(
               "flex items-center gap-3 w-full px-4 py-3 rounded-xl",
-              "text-sidebar-foreground/70 hover:bg-destructive/10 hover:text-destructive",
+              "text-sidebar-foreground/70 hover:bg-red-500/10 hover:text-red-400",
               "transition-all touch-manipulation"
             )}
           >

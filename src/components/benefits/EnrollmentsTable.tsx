@@ -56,7 +56,11 @@ export const EnrollmentsTable = ({
             const totalPersons = 1 + dependentsCount;
             const monthlyCost = baseCost * totalPersons;
 
-            // Format using plan's currency const planCurrency = plan?.currency || 'BHD'; const formatPlanCurrency = (amount: number) => { return new Intl.NumberFormat('en-US', { style: 'currency',
+            // Format using plan's currency
+            const planCurrency = plan?.currency || 'BHD';
+            const formatPlanCurrency = (amount: number) => {
+              return new Intl.NumberFormat('en-US', {
+                style: 'currency',
                 currency: planCurrency,
                 minimumFractionDigits: 0,
               }).format(amount);

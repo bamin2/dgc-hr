@@ -60,8 +60,8 @@ export function BusinessTripsCard({ variant = "default" }: BusinessTripsCardProp
         >
           {upcomingTrip ? (
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-info/10 flex items-center justify-center shrink-0">
-                <Plane className="w-5 h-5 text-info" />
+              <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
+                <Plane className="w-5 h-5 text-blue-600" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
@@ -71,8 +71,8 @@ export function BusinessTripsCard({ variant = "default" }: BusinessTripsCardProp
                   <span className={cn(
                     "text-xs px-2 py-0.5 rounded-full shrink-0",
                     isApproved 
-                      ? "bg-success/10 text-success" 
-                      : "bg-warning/10 text-warning"
+                      ? "bg-green-500/10 text-green-600" 
+                      : "bg-amber-500/10 text-amber-600"
                   )}>
                     {isApproved ? "Approved" : "Pending"}
                   </span>
@@ -123,8 +123,8 @@ export function BusinessTripsCard({ variant = "default" }: BusinessTripsCardProp
             </div>
             <span className={`text-xs px-2 py-0.5 rounded-full ${
               isApproved 
-                ? "bg-success/10 text-success" 
-                : "bg-warning/10 text-warning"
+                ? "bg-green-500/10 text-green-600" 
+                : "bg-amber-500/10 text-amber-600"
             }`}>
               {upcomingTrip.status.replace("_", " ")}
             </span>
@@ -153,7 +153,7 @@ export function BusinessTripsCard({ variant = "default" }: BusinessTripsCardProp
       {/* Show pending count for managers/HR */}
       {(isManager || canEditEmployees) && pendingTrips > 0 && (
         <div className="mt-3 flex items-center gap-2 text-sm">
-          <Clock className="w-4 h-4 text-warning" />
+          <Clock className="w-4 h-4 text-amber-500" />
           <span className="text-muted-foreground">
             <span className="font-medium text-foreground">{pendingTrips}</span> pending approval
           </span>

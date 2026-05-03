@@ -258,7 +258,10 @@ export function EditBenefitPlanDialog({ open, onOpenChange, plan }: EditBenefitP
           .eq('id', plan.id);
       }
 
-      // Show warning if some coverage levels couldn't be deleted if (result?.skippedLevels?.length > 0) { toast({ title: 'Some coverage levels were not removed',
+      // Show warning if some coverage levels couldn't be deleted
+      if (result?.skippedLevels?.length > 0) {
+        toast({
+          title: 'Some coverage levels were not removed',
           description: `${result.skippedLevels.length} coverage level(s) could not be removed because employees are currently enrolled in them.`,
         });
       }

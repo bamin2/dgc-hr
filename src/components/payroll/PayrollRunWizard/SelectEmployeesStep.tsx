@@ -37,7 +37,8 @@ export function SelectEmployeesStep({
 
   const sortByName = <T extends { firstName?: string | null; lastName?: string | null }>(list: T[]) =>
     [...list].sort((a, b) => {
-      const an = `${a.firstName ?? ""} ${a.lastName ?? ""}`.trim().toLowerCase(); const bn = `${b.firstName ?? ""} ${b.lastName ?? ""}`.trim().toLowerCase();
+      const an = `${a.firstName ?? ""} ${a.lastName ?? ""}`.trim().toLowerCase();
+      const bn = `${b.firstName ?? ""} ${b.lastName ?? ""}`.trim().toLowerCase();
       return an.localeCompare(bn);
     });
 

@@ -80,7 +80,60 @@ export function ResetPasswordWizard() {
 
     if (password !== confirmPassword) {
       toast({
-        title: "Passwords don't match", description: "Please make sure your passwords match", variant: "destructive", }); return; } setLoading(true); const { error } = await updatePassword(password); setLoading(false); if (error) { toast({ title: "Error", description: error.message, variant: "destructive", }); return; } setStep("success"); }; const passwordChecks = { length: password.length >= 8, letters: /[a-zA-Z]/.test(password), numbers: /[0-9]/.test(password), }; const steps = [ { id: "email", label: "Enter email", number: 1 }, { id: "check-email", label: "Check email", number: 2 }, { id: "new-password", label: "Create password", number: 3 }, { id: "success", label: "Success", number: 4 }, ]; const getCurrentStepIndex = () => { return steps.findIndex((s) => s.id === step); }; return ( <div className="min-h-screen flex"> {/* Left sidebar with steps */} <div className="hidden lg:flex w-80 bg-sidebar-background p-8 flex-col"> {/* Logo */} <div className="flex items-center gap-2 mb-12"> <div className="w-10 h-10 bg-sidebar-primary/20 rounded-xl flex items-center justify-center"> <Snowflake className="w-6 h-6 text-sidebar-foreground" /> </div> <span className="text-2xl font-semibold text-sidebar-foreground">Franfer</span> </div> {/* Steps */} <div className="space-y-4">
+        title: "Passwords don't match",
+        description: "Please make sure your passwords match",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    const { error } = await updatePassword(password);
+    setLoading(false);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setStep("success");
+  };
+
+  const passwordChecks = {
+    length: password.length >= 8,
+    letters: /[a-zA-Z]/.test(password),
+    numbers: /[0-9]/.test(password),
+  };
+
+  const steps = [
+    { id: "email", label: "Enter email", number: 1 },
+    { id: "check-email", label: "Check email", number: 2 },
+    { id: "new-password", label: "Create password", number: 3 },
+    { id: "success", label: "Success", number: 4 },
+  ];
+
+  const getCurrentStepIndex = () => {
+    return steps.findIndex((s) => s.id === step);
+  };
+
+  return (
+    <div className="min-h-screen flex">
+      {/* Left sidebar with steps */}
+      <div className="hidden lg:flex w-80 bg-sidebar-background p-8 flex-col">
+        {/* Logo */}
+        <div className="flex items-center gap-2 mb-12">
+          <div className="w-10 h-10 bg-sidebar-primary/20 rounded-xl flex items-center justify-center">
+            <Snowflake className="w-6 h-6 text-sidebar-foreground" />
+          </div>
+          <span className="text-2xl font-semibold text-sidebar-foreground">Franfer</span>
+        </div>
+
+        {/* Steps */}
+        <div className="space-y-4">
           {steps.map((s, index) => {
             const currentIndex = getCurrentStepIndex();
             const isCompleted = index < currentIndex;
@@ -95,7 +148,10 @@ export function ResetPasswordWizard() {
                     : isCompleted
                     ? "opacity-60"
                     : "opacity-40"
-                }`} > <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                }`}
+              >
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                     isCompleted
                       ? "bg-success text-success-foreground"
                       : isActive

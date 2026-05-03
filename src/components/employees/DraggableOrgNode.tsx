@@ -122,7 +122,7 @@ export function DraggableOrgNode({
           canDrag ? "cursor-grab active:cursor-grabbing" : "cursor-pointer",
           isDragging && "opacity-50 scale-95",
           !isDragging && "hover:border-primary/50 hover:shadow-md",
-          showDropIndicator && isValidDropTarget && "border-success/40 border-2 bg-success/10",
+          showDropIndicator && isValidDropTarget && "border-emerald-500 border-2 bg-emerald-50 dark:bg-emerald-950/30",
           showDropIndicator && !isValidDropTarget && "border-destructive border-2 bg-destructive/10",
           !showDropIndicator && "border-dashed border-border"
         )}
@@ -177,7 +177,7 @@ export function DraggableOrgNode({
         {/* Add Button */}
         <button
           onClick={handleAddReport}
-          className="absolute -bottom-3 left-1/2 -translate-x-1/2 h-6 w-6 bg-success hover:bg-success rounded-full flex items-center justify-center transition-colors shadow-sm"
+          className="absolute -bottom-3 left-1/2 -translate-x-1/2 h-6 w-6 bg-emerald-500 hover:bg-emerald-600 rounded-full flex items-center justify-center transition-colors shadow-sm"
         >
           <Plus className="h-3.5 w-3.5 text-white" />
         </button>

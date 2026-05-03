@@ -115,7 +115,7 @@ export function LeaveEmailTemplatesTab() {
                   <Badge 
                     variant="outline" 
                     className={template.is_active 
-                      ? "bg-success/10 text-success border-success/30" 
+                      ? "bg-green-500/10 text-green-600 border-green-200" 
                       : "bg-muted text-muted-foreground"
                     }
                   >

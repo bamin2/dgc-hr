@@ -78,7 +78,7 @@ export const PhonePaymentDialog = ({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Smartphone className="h-5 w-5 text-info" />
+            <Smartphone className="h-5 w-5 text-violet-600" />
             Phone Payment Tracking
           </DialogTitle>
           <DialogDescription>
@@ -109,7 +109,7 @@ export const PhonePaymentDialog = ({
                 <p className="text-xs text-muted-foreground">Total Paid</p>
                 <p className={cn(
                   'font-semibold',
-                  isFullyPaid ? 'text-success' : ''
+                  isFullyPaid ? 'text-emerald-600' : ''
                 )}>
                   {formatCurrency(totalPaid)}
                 </p>
@@ -118,7 +118,7 @@ export const PhonePaymentDialog = ({
                 <p className="text-xs text-muted-foreground">Remaining</p>
                 <p className={cn(
                   'font-semibold',
-                  isFullyPaid ? 'text-success' : 'text-warning'
+                  isFullyPaid ? 'text-emerald-600' : 'text-amber-600'
                 )}>
                   {formatCurrency(remainingBalance)}
                 </p>
@@ -128,13 +128,13 @@ export const PhonePaymentDialog = ({
 
           {/* Fully Paid Status */}
           {isFullyPaid ? (
-            <div className="p-4 bg-success/10 border border-success/30 dark:border-success rounded-lg flex items-center gap-3">
-              <div className="h-8 w-8 rounded-full bg-success/10 dark:bg-success flex items-center justify-center">
-                <Check className="h-4 w-4 text-success" />
+            <div className="p-4 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg flex items-center gap-3">
+              <div className="h-8 w-8 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center">
+                <Check className="h-4 w-4 text-emerald-600" />
               </div>
               <div>
-                <p className="font-medium text-success">Fully Paid!</p>
-                <p className="text-sm text-success">
+                <p className="font-medium text-emerald-700 dark:text-emerald-400">Fully Paid!</p>
+                <p className="text-sm text-emerald-600 dark:text-emerald-500">
                   All installments have been completed.
                 </p>
               </div>

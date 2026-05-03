@@ -120,7 +120,38 @@ export function TemplateEditorDialog({
 
       setDocxStoragePath(data.path);
       setDocxOriginalFilename(file.name);
-      // Clear legacy URL if we're using the new storage setDocxTemplateUrl(null); toast.success('DOCX template uploaded'); } catch (error) { console.error('Upload error:', error); toast.error('Failed to upload template'); } finally { setIsUploadingDocx(false); } }; const handleDownloadTemplate = async () => { if (!docxStoragePath) return; try { const { data, error } = await supabase.storage .from('docx-templates') .download(docxStoragePath); if (error) throw error; const url = URL.createObjectURL(data); const a = document.createElement('a'); a.href = url; a.download = docxOriginalFilename || 'template.docx'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); } catch (error) { console.error('Download error:', error); toast.error('Failed to download template');
+      // Clear legacy URL if we're using the new storage
+      setDocxTemplateUrl(null);
+      toast.success('DOCX template uploaded');
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('Failed to upload template');
+    } finally {
+      setIsUploadingDocx(false);
+    }
+  };
+
+  const handleDownloadTemplate = async () => {
+    if (!docxStoragePath) return;
+    
+    try {
+      const { data, error } = await supabase.storage
+        .from('docx-templates')
+        .download(docxStoragePath);
+
+      if (error) throw error;
+
+      const url = URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = docxOriginalFilename || 'template.docx';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error('Failed to download template');
     }
   };
 

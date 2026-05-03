@@ -292,10 +292,10 @@ export function SalaryChangeHistoryReport() {
                 <TableCell>{format(new Date(row.effectiveDate), 'MMM d, yyyy')}</TableCell>
                 <TableCell className="text-right">{formatAmount(row.previousSalary, row.currencyCode)}</TableCell>
                 <TableCell className="text-right">{formatAmount(row.newSalary, row.currencyCode)}</TableCell>
-                <TableCell className={`text-right ${row.changeAmount >= 0 ? 'text-success' : 'text-destructive'}`}>
+                <TableCell className={`text-right ${row.changeAmount >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                   {row.changeAmount >= 0 ? '+' : ''}{formatAmount(row.changeAmount, row.currencyCode)}
                 </TableCell>
-                <TableCell className={`text-right ${row.changePercentage >= 0 ? 'text-success' : 'text-destructive'}`}>
+                <TableCell className={`text-right ${row.changePercentage >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                   {row.changePercentage >= 0 ? '+' : ''}{row.changePercentage.toFixed(1)}%
                 </TableCell>
                 <TableCell className="capitalize">{row.changeType?.replace('_', ' ') || '-'}</TableCell>
