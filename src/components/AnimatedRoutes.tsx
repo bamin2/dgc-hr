@@ -4,7 +4,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ProtectedRoute, PublicRoute, MobileRestrictedRoute } from "@/components/auth";
 import { PageLoader } from "@/components/ui/page-loader";
 import { DashboardPageLoader } from "@/components/dashboard/DashboardPageLoader";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-media-query";
 import { useNavigationDirection, type NavDirection } from "@/hooks/useNavigationDirection";
 
 import Index from "@/pages/Index";

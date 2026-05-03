@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { useMediaQuery } from "@/hooks/use-media-query";
+import { useIsBelowDesktop } from "@/hooks/use-media-query";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { DesktopRequiredMessage } from "@/components/ui/DesktopRequiredMessage";
 
@@ -13,9 +13,9 @@ interface MobileRestrictedRouteProps {
  * Shows a "Desktop Required" message when accessed on screens smaller than 1024px.
  */
 export function MobileRestrictedRoute({ children, featureName }: MobileRestrictedRouteProps) {
-  const isMobile = useMediaQuery("(max-width: 1023px)");
+  const isBelowDesktop = useIsBelowDesktop();
 
-  if (isMobile) {
+  if (isBelowDesktop) {
     return (
       <DashboardLayout>
         <DesktopRequiredMessage featureName={featureName} />

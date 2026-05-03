@@ -1,5 +1,5 @@
 import { useRole } from '@/contexts/RoleContext';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-media-query';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   BentoGrid,

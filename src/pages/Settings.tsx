@@ -28,7 +28,7 @@ import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { useNotificationPreferences } from '@/hooks/useNotificationPreferences';
 import { useUserSessions } from '@/hooks/useUserSessions';
 import { useRole } from '@/contexts/RoleContext';
-import { useMediaQuery } from '@/hooks/use-media-query';
+import { useIsBelowDesktop } from '@/hooks/use-media-query';
 import { Settings, Building2, User, Bell, Shield, Save, Wallet, Loader2, Network, LayoutDashboard, GitBranch, UserCircle, Mail } from 'lucide-react';
 import { DashboardCardVisibility, defaultDashboardCardVisibility } from '@/data/settings';
 import { toast } from 'sonner';
@@ -63,7 +63,7 @@ const SettingsPage = () => {
   const { settings: dbNotificationSettings, updateSettings: updateNotifications, isLoading: notifLoading, isSaving: notifSaving } = useNotificationPreferences();
   const { sessions, isLoading: sessionsLoading, revokeSession, revokeAllSessions } = useUserSessions();
   const { canManageRoles } = useRole();
-  const isMobile = useMediaQuery("(max-width: 1023px)");
+  const isBelowDesktop = useIsBelowDesktop();
   
   // Local state for form editing - start with empty to prevent mock data flash
   const [companySettings, setCompanySettings] = useState<CompanySettings>(emptyCompanySettings);
@@ -81,7 +81,7 @@ const SettingsPage = () => {
 
   // Handle mobile restrictions for admin tabs accessed via deep link
   useEffect(() => {
-    if (isMobile) {
+    if (isBelowDesktop) {
       const tabFromUrl = searchParams.get('tab');
       if (tabFromUrl && ADMIN_TABS.includes(tabFromUrl)) {
         // Redirect to preferences with a toast
@@ -89,7 +89,7 @@ const SettingsPage = () => {
         toast.info('Admin settings are only available on desktop');
       }
     }
-  }, [isMobile, searchParams, setSearchParams]);
+  }, [isBelowDesktop, searchParams, setSearchParams]);
 
   // Update active tab when URL changes
   useEffect(() => {
@@ -97,13 +97,13 @@ const SettingsPage = () => {
     const validTabs = ['company', 'organization', 'dashboard', 'selfservice', 'approvals', 'email-templates', 'payroll', 'preferences', 'notifications', 'security'];
     if (tabFromUrl && validTabs.includes(tabFromUrl)) {
       // On mobile, only allow personal tabs
-      if (isMobile && ADMIN_TABS.includes(tabFromUrl)) {
+      if (isBelowDesktop && ADMIN_TABS.includes(tabFromUrl)) {
         setActiveTab('preferences');
       } else {
         setActiveTab(tabFromUrl);
       }
     }
-  }, [searchParams, isMobile]);
+  }, [searchParams, isBelowDesktop]);
 
   // Sync local state with database when data loads - only when we have real data (non-empty name)
   useEffect(() => {
@@ -193,7 +193,7 @@ const SettingsPage = () => {
   const visibleTabs = allTabs.filter(tab => {
     if (tab.requiresAdmin) {
       // Admin tabs: show only if user has permission AND not on mobile
-      return canManageRoles && !isMobile;
+      return canManageRoles && !isBelowDesktop;
     }
     return true; // Personal tabs always visible
   });
