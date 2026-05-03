@@ -26,7 +26,7 @@ export function AuthLeftPanel() {
             <ValueWord word="Progress" />
           </div>
 
-          <div className="w-12 h-px mt-12 bg-[hsl(var(--auth-brand-panel-foreground)/0.2)]" />
+          <div className="w-12 h-px mt-12 bg-accent/40" />
         </div>
 
         {/* Spacer for balance */}
