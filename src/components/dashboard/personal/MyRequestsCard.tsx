@@ -32,22 +32,22 @@ export function MyRequestsCard({ summary, isLoading }: MyRequestsCardProps) {
       label: 'Pending', 
       count: summary.pending, 
       icon: Clock, 
-      color: 'text-amber-500',
-      bgColor: 'bg-amber-500/10'
+      color: 'text-warning',
+      bgColor: 'bg-warning/10'
     },
     { 
       label: 'Approved', 
       count: summary.approved, 
       icon: CheckCircle, 
-      color: 'text-emerald-500',
-      bgColor: 'bg-emerald-500/10'
+      color: 'text-success',
+      bgColor: 'bg-success/10'
     },
     { 
       label: 'Rejected', 
       count: summary.rejected, 
       icon: XCircle, 
-      color: 'text-red-500',
-      bgColor: 'bg-red-500/10'
+      color: 'text-destructive',
+      bgColor: 'bg-destructive/10'
     },
   ];
 
