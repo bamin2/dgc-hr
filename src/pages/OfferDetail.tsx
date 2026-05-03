@@ -55,7 +55,8 @@ export default function OfferDetail() {
           subtitle={`For: ${offer.candidate?.first_name} ${offer.candidate?.last_name}`}
           breadcrumbs={[
             { label: 'Hiring', href: '/hiring' },
-            { label: offer.offer_code }
+            { label: 'Offers', href: '/hiring' },
+            { label: `${offer.candidate?.first_name ?? ''} ${offer.candidate?.last_name ?? ''}`.trim() || offer.offer_code }
           ]}
         >
           <OfferStatusBadge status={offer.status} />

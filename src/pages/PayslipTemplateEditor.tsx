@@ -124,7 +124,7 @@ export default function PayslipTemplateEditor() {
           breadcrumbs={[
             { label: 'Payroll', href: '/payroll' },
             { label: 'Templates', href: '/payroll/templates' },
-            { label: isNew ? 'New Template' : 'Edit Template' }
+            { label: isNew ? 'New Template' : (template?.name || 'Edit Template') }
           ]}
           actions={
             <Button onClick={handleSave} disabled={!canSave || isSaving}>

@@ -340,6 +340,7 @@ export default function EmployeeProfile() {
         title={employee.fullName}
         subtitle={`${employee.position} • ${employee.department}`}
         breadcrumbs={[
+          { label: "Dashboard", href: "/" },
           { label: "Employees", href: "/employees" },
           { label: employee.fullName },
         ]}
