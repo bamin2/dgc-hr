@@ -36,10 +36,10 @@ const assetTypeLabels: Record<AssetType, string> = {
 };
 
 const conditionColors: Record<AssetCondition, string> = {
-  pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
-  good: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
-  damaged: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
-  missing: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+  pending: "bg-warning/10 text-warning dark:bg-warning/10 dark:text-warning",
+  good: "bg-success/10 text-success dark:bg-success/10 dark:text-success",
+  damaged: "bg-warning/10 text-warning dark:bg-warning/10 dark:text-warning",
+  missing: "bg-destructive/10 text-destructive dark:bg-destructive/10 dark:text-destructive",
 };
 
 export function AssetReturnStep({ assets, onAssetsChange }: AssetReturnStepProps) {
@@ -99,13 +99,13 @@ export function AssetReturnStep({ assets, onAssetsChange }: AssetReturnStepProps
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-yellow-600">{pendingCount}</div>
+            <div className="text-2xl font-bold text-warning">{pendingCount}</div>
             <p className="text-sm text-muted-foreground">Pending Return</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-green-600">{returnedCount}</div>
+            <div className="text-2xl font-bold text-success">{returnedCount}</div>
             <p className="text-sm text-muted-foreground">Returned</p>
           </CardContent>
         </Card>

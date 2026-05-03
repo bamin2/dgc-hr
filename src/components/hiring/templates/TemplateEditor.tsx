@@ -346,7 +346,7 @@ export function TemplateEditor({ templateId, onSuccess }: TemplateEditorProps) {
                                   onClick={() => handleCopyTag(tag.tag)}
                                 >
                                   {copiedTag === tag.tag ? (
-                                    <Check className="h-3 w-3 text-green-500" />
+                                    <Check className="h-3 w-3 text-success" />
                                   ) : (
                                     <Copy className="h-3 w-3" />
                                   )}

@@ -9,19 +9,19 @@ interface ClaimStatusBadgeProps {
 const statusConfig: Record<ClaimStatus, { label: string; className: string }> = {
   pending: {
     label: 'Pending',
-    className: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+    className: 'bg-warning/10 text-warning dark:bg-warning/10 dark:text-warning'
   },
   processing: {
     label: 'Processing',
-    className: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400'
+    className: 'bg-info/10 text-info dark:bg-info/10 dark:text-info'
   },
   approved: {
     label: 'Approved',
-    className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+    className: 'bg-success/10 text-success dark:bg-success/10 dark:text-success'
   },
   rejected: {
     label: 'Rejected',
-    className: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+    className: 'bg-destructive/10 text-destructive dark:bg-destructive/10 dark:text-destructive'
   }
 };
 

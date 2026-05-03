@@ -9,14 +9,14 @@ import { useCalendarEvents, getEventsForDate } from "@/hooks/useCalendarEvents";
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 const colorMap: Record<string, string> = {
-  green: "bg-green-500",
-  blue: "bg-blue-500", 
-  yellow: "bg-amber-500",
-  red: "bg-red-500",
-  purple: "bg-purple-500",
-  orange: "bg-orange-500",
-  teal: "bg-teal-500",
-  pink: "bg-pink-500",
+  green: "bg-success",
+  blue: "bg-info", 
+  yellow: "bg-warning",
+  red: "bg-destructive",
+  purple: "bg-info",
+  orange: "bg-warning",
+  teal: "bg-info",
+  pink: "bg-accent",
 };
 
 export function ScheduleCard() {

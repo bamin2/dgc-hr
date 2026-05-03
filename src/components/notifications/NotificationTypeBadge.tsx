@@ -27,33 +27,33 @@ const typeConfig: Record<NotificationType, {
 }> = {
   approval: {
     icon: CheckCircle,
-    bgColor: "bg-green-100 dark:bg-green-900/30",
-    iconColor: "text-green-600 dark:text-green-400"
+    bgColor: "bg-success/10",
+    iconColor: "text-success"
   },
   payroll: {
     icon: DollarSign,
-    bgColor: "bg-orange-100 dark:bg-orange-900/30",
-    iconColor: "text-orange-600 dark:text-orange-400"
+    bgColor: "bg-warning/10",
+    iconColor: "text-warning"
   },
   document: {
     icon: FileText,
-    bgColor: "bg-blue-100 dark:bg-blue-900/30",
-    iconColor: "text-blue-600 dark:text-blue-400"
+    bgColor: "bg-info/10",
+    iconColor: "text-info"
   },
   reminder: {
     icon: Clock,
-    bgColor: "bg-yellow-100 dark:bg-yellow-900/30",
-    iconColor: "text-yellow-600 dark:text-yellow-400"
+    bgColor: "bg-warning/10",
+    iconColor: "text-warning"
   },
   announcement: {
     icon: Megaphone,
-    bgColor: "bg-purple-100 dark:bg-purple-900/30",
-    iconColor: "text-purple-600 dark:text-purple-400"
+    bgColor: "bg-info/10",
+    iconColor: "text-info"
   },
   system: {
     icon: Settings,
-    bgColor: "bg-gray-100 dark:bg-gray-800",
-    iconColor: "text-gray-600 dark:text-gray-400"
+    bgColor: "bg-muted",
+    iconColor: "text-muted-foreground"
   }
 };
 

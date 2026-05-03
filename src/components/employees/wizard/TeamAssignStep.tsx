@@ -61,7 +61,7 @@ export function TeamAssignStep({ data, onChange }: TeamAssignStepProps) {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
-              <UserCheck className="h-4 w-4 text-green-600" />
+              <UserCheck className="h-4 w-4 text-success" />
               Manager
             </CardTitle>
           </CardHeader>
@@ -90,7 +90,7 @@ export function TeamAssignStep({ data, onChange }: TeamAssignStepProps) {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
-              <User className="h-4 w-4 text-amber-600" />
+              <User className="h-4 w-4 text-warning" />
               Onboarding Buddy
             </CardTitle>
           </CardHeader>
@@ -119,7 +119,7 @@ export function TeamAssignStep({ data, onChange }: TeamAssignStepProps) {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
-              <Monitor className="h-4 w-4 text-orange-600" />
+              <Monitor className="h-4 w-4 text-warning" />
               IT Contact
             </CardTitle>
           </CardHeader>
@@ -156,7 +156,7 @@ export function TeamAssignStep({ data, onChange }: TeamAssignStepProps) {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
-              <Users className="h-4 w-4 text-teal-600" />
+              <Users className="h-4 w-4 text-info" />
               HR Contact
             </CardTitle>
           </CardHeader>

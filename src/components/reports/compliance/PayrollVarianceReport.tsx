@@ -224,16 +224,16 @@ export function PayrollVarianceReport() {
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Delta Amount</CardTitle>
               {data.summary.deltaAmount >= 0 ? (
-                <TrendingUp className="h-4 w-4 text-green-500" />
+                <TrendingUp className="h-4 w-4 text-success" />
               ) : (
-                <TrendingDown className="h-4 w-4 text-red-500" />
+                <TrendingDown className="h-4 w-4 text-destructive" />
               )}
             </CardHeader>
             <CardContent>
-              <div className={cn("font-bold", getResponsiveFontSize(formatCurrency(data.summary.deltaAmount)), data.summary.deltaAmount >= 0 ? 'text-green-600' : 'text-red-600')}>
+              <div className={cn("font-bold", getResponsiveFontSize(formatCurrency(data.summary.deltaAmount)), data.summary.deltaAmount >= 0 ? 'text-success' : 'text-destructive')}>
                 {formatCurrency(data.summary.deltaAmount)}
               </div>
-              <p className={cn("text-sm", data.summary.deltaPercent >= 0 ? 'text-green-600' : 'text-red-600')}>
+              <p className={cn("text-sm", data.summary.deltaPercent >= 0 ? 'text-success' : 'text-destructive')}>
                 {formatPercent(data.summary.deltaPercent)}
               </p>
             </CardContent>
@@ -244,7 +244,7 @@ export function PayrollVarianceReport() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className={cn("font-bold", getResponsiveFontSize(`${data.summary.headcountDelta >= 0 ? '+' : ''}${data.summary.headcountDelta}`), data.summary.headcountDelta >= 0 ? 'text-green-600' : 'text-red-600')}>
+              <div className={cn("font-bold", getResponsiveFontSize(`${data.summary.headcountDelta >= 0 ? '+' : ''}${data.summary.headcountDelta}`), data.summary.headcountDelta >= 0 ? 'text-success' : 'text-destructive')}>
                 {data.summary.headcountDelta >= 0 ? '+' : ''}{data.summary.headcountDelta}
               </div>
               <p className="text-xs text-muted-foreground">net change</p>
@@ -311,10 +311,10 @@ export function PayrollVarianceReport() {
                         <TableCell>{record.department}</TableCell>
                         <TableCell className="text-right">{formatCurrency(record.previousGrossPay)}</TableCell>
                         <TableCell className="text-right">{formatCurrency(record.currentGrossPay)}</TableCell>
-                        <TableCell className={`text-right font-medium ${record.deltaBHD >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        <TableCell className={`text-right font-medium ${record.deltaBHD >= 0 ? 'text-success' : 'text-destructive'}`}>
                           {formatCurrency(record.deltaBHD)}
                         </TableCell>
-                        <TableCell className={`text-right ${record.deltaPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        <TableCell className={`text-right ${record.deltaPercent >= 0 ? 'text-success' : 'text-destructive'}`}>
                           {formatPercent(record.deltaPercent)}
                         </TableCell>
                         <TableCell>

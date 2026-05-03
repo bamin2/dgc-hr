@@ -130,7 +130,7 @@ export function MobileDocumentsSheet({
                               Expired {format(new Date(doc.expiry_date), 'MMM d, yyyy')}
                             </span>
                           ) : isExpiringSoon(doc.expiry_date) ? (
-                            <span className="text-xs text-amber-600 flex items-center gap-1">
+                            <span className="text-xs text-warning flex items-center gap-1">
                               <AlertCircle className="h-3 w-3" />
                               Expires {format(new Date(doc.expiry_date), 'MMM d, yyyy')}
                             </span>

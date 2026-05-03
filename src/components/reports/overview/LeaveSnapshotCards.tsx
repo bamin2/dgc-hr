@@ -18,8 +18,8 @@ export function LeaveSnapshotCards({ data, isLoading, onNavigate }: LeaveSnapsho
           value={data.pendingApprovals}
           subtitle="Awaiting review"
           icon={Clock}
-          iconBg="bg-orange-100 dark:bg-orange-900/30"
-          iconColor="text-orange-600 dark:text-orange-400"
+          iconBg="bg-warning/10"
+          iconColor="text-warning"
           onClick={() => onNavigate('leave-requests')}
           badge={data.pendingApprovals > 0 ? { text: 'Action needed', variant: 'secondary' } : undefined}
           isLoading={isLoading}
@@ -30,8 +30,8 @@ export function LeaveSnapshotCards({ data, isLoading, onNavigate }: LeaveSnapsho
           value={data.onLeaveToday}
           subtitle="Employees currently on leave"
           icon={Calendar}
-          iconBg="bg-cyan-100 dark:bg-cyan-900/30"
-          iconColor="text-cyan-600 dark:text-cyan-400"
+          iconBg="bg-info/10"
+          iconColor="text-info"
           onClick={() => onNavigate('leave-requests')}
           isLoading={isLoading}
         />
@@ -41,8 +41,8 @@ export function LeaveSnapshotCards({ data, isLoading, onNavigate }: LeaveSnapsho
           value={data.daysTakenMTD}
           subtitle="Month to date"
           icon={CalendarDays}
-          iconBg="bg-teal-100 dark:bg-teal-900/30"
-          iconColor="text-teal-600 dark:text-teal-400"
+          iconBg="bg-info/10"
+          iconColor="text-info"
           onClick={() => onNavigate('leave-balance')}
           isLoading={isLoading}
         />

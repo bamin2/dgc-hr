@@ -48,10 +48,10 @@ export const EntitlementTrackingCard = ({
     if (compact) {
       return (
         <div className="flex items-center gap-2 text-sm">
-          <Plane className="h-4 w-4 text-sky-600" />
+          <Plane className="h-4 w-4 text-info" />
           <span className={cn(
             'font-medium',
-            ticketsRemaining === 0 ? 'text-amber-600' : 'text-emerald-600'
+            ticketsRemaining === 0 ? 'text-warning' : 'text-success'
           )}>
             {ticketsUsed}/{ticketsTotal} used
           </span>
@@ -61,11 +61,11 @@ export const EntitlementTrackingCard = ({
 
     return (
       <>
-        <Card className="border-sky-200 dark:border-sky-800 bg-sky-50/50 dark:bg-sky-950/20">
+        <Card className="border-info/30 dark:border-info bg-info/10">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <Plane className="h-5 w-5 text-sky-600" />
+                <Plane className="h-5 w-5 text-info" />
                 <span className="font-medium">Air Ticket Entitlement</span>
               </div>
               {showActions && (
@@ -73,7 +73,7 @@ export const EntitlementTrackingCard = ({
                   variant="outline"
                   size="sm"
                   onClick={() => setAirTicketDialogOpen(true)}
-                  className="border-sky-300 text-sky-700 hover:bg-sky-100"
+                  className="border-info/30 text-info hover:bg-info/10"
                 >
                   {ticketsRemaining > 0 ? 'Use Ticket' : 'View History'}
                 </Button>
@@ -90,7 +90,7 @@ export const EntitlementTrackingCard = ({
               </div>
             </div>
             {ticketsRemaining === 0 && (
-              <p className="text-xs text-amber-600 mt-2">All tickets for this period used</p>
+              <p className="text-xs text-warning mt-2">All tickets for this period used</p>
             )}
           </CardContent>
         </Card>
@@ -120,10 +120,10 @@ export const EntitlementTrackingCard = ({
     if (compact) {
       return (
         <div className="flex items-center gap-2 text-sm">
-          <Smartphone className="h-4 w-4 text-violet-600" />
+          <Smartphone className="h-4 w-4 text-info" />
           <span className={cn(
             'font-medium',
-            isFullyPaid ? 'text-emerald-600' : ''
+            isFullyPaid ? 'text-success' : ''
           )}>
             {installmentsPaid}/{config.installment_months} payments
           </span>
@@ -133,11 +133,11 @@ export const EntitlementTrackingCard = ({
 
     return (
       <>
-        <Card className="border-violet-200 dark:border-violet-800 bg-violet-50/50 dark:bg-violet-950/20">
+        <Card className="border-info/30 dark:border-info bg-info/10">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <Smartphone className="h-5 w-5 text-violet-600" />
+                <Smartphone className="h-5 w-5 text-info" />
                 <span className="font-medium">Phone Payment</span>
               </div>
               {showActions && !isFullyPaid && (
@@ -145,13 +145,13 @@ export const EntitlementTrackingCard = ({
                   variant="outline"
                   size="sm"
                   onClick={() => setPhoneDialogOpen(true)}
-                  className="border-violet-300 text-violet-700 hover:bg-violet-100"
+                  className="border-info/30 text-info hover:bg-info/10"
                 >
                   Record Payment
                 </Button>
               )}
               {isFullyPaid && (
-                <div className="flex items-center gap-1 text-emerald-600 text-sm font-medium">
+                <div className="flex items-center gap-1 text-success text-sm font-medium">
                   <Check className="h-4 w-4" />
                   Fully Paid
                 </div>
@@ -200,17 +200,17 @@ export const EntitlementTrackingCard = ({
     if (compact) {
       return (
         <div className="flex items-center gap-2 text-sm">
-          <Car className="h-4 w-4 text-indigo-600" />
+          <Car className="h-4 w-4 text-info" />
           <span className="font-medium">{spotLocation || 'Active'}</span>
         </div>
       );
     }
 
     return (
-      <Card className="border-indigo-200 dark:border-indigo-800 bg-indigo-50/50 dark:bg-indigo-950/20">
+      <Card className="border-info/30 dark:border-info bg-info/10">
         <CardContent className="p-4">
           <div className="flex items-center gap-2 mb-2">
-            <Car className="h-5 w-5 text-indigo-600" />
+            <Car className="h-5 w-5 text-info" />
             <span className="font-medium">Car Park Allocation</span>
           </div>
           {spotLocation ? (

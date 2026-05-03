@@ -21,7 +21,7 @@ export function WizardProgress({ currentStep, steps }: WizardProgressProps) {
                 <div
                   className={cn(
                     "w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all",
-                    isCompleted && "bg-emerald-600 text-white",
+                    isCompleted && "bg-success text-white",
                     isCurrent && "bg-primary text-primary-foreground ring-4 ring-primary/20",
                     !isCompleted && !isCurrent && "bg-muted text-muted-foreground"
                   )}
@@ -48,7 +48,7 @@ export function WizardProgress({ currentStep, steps }: WizardProgressProps) {
                 <div
                   className={cn(
                     "flex-1 h-0.5 mx-4 transition-colors",
-                    isCompleted ? "bg-emerald-600" : "bg-muted"
+                    isCompleted ? "bg-success" : "bg-muted"
                   )}
                 />
               )}

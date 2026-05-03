@@ -47,8 +47,8 @@ export function LoanSnapshotCards({ data, isLoading, onNavigate }: LoanSnapshotC
           value={data.activeLoans}
           subtitle="Currently active"
           icon={CreditCard}
-          iconBg="bg-rose-100 dark:bg-rose-900/30"
-          iconColor="text-rose-600 dark:text-rose-400"
+          iconBg="bg-destructive/10"
+          iconColor="text-destructive"
           onClick={() => onNavigate('loan-summary')}
           isLoading={isLoading}
         />
@@ -58,8 +58,8 @@ export function LoanSnapshotCards({ data, isLoading, onNavigate }: LoanSnapshotC
           value={balance.display}
           subtitle="Total remaining"
           icon={Wallet}
-          iconBg="bg-rose-100 dark:bg-rose-900/30"
-          iconColor="text-rose-600 dark:text-rose-400"
+          iconBg="bg-destructive/10"
+          iconColor="text-destructive"
           onClick={() => onNavigate('loan-summary')}
           tooltip={balance.tooltip || "Sum of unpaid installments for all active loans"}
           isLoading={isLoading}
@@ -70,8 +70,8 @@ export function LoanSnapshotCards({ data, isLoading, onNavigate }: LoanSnapshotC
           value={data.installmentsDueThisMonth}
           subtitle="This month"
           icon={CalendarClock}
-          iconBg="bg-amber-100 dark:bg-amber-900/30"
-          iconColor="text-amber-600 dark:text-amber-400"
+          iconBg="bg-warning/10"
+          iconColor="text-warning"
           onClick={() => onNavigate('loan-installments')}
           badge={data.installmentsDueThisMonth > 0 ? { text: 'Upcoming', variant: 'outline' } : undefined}
           isLoading={isLoading}

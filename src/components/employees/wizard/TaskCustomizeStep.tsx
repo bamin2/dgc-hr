@@ -30,11 +30,11 @@ interface TaskCustomizeStepProps {
 }
 
 const categoryConfig: Record<TaskCategory, { label: string; icon: React.ComponentType<{ className?: string }>; color: string }> = {
-  documentation: { label: "Documentation", icon: FileText, color: "text-teal-600" },
-  training: { label: "Training", icon: GraduationCap, color: "text-amber-600" },
-  setup: { label: "Setup", icon: Settings, color: "text-orange-600" },
-  introduction: { label: "Introduction", icon: Users, color: "text-green-600" },
-  compliance: { label: "Compliance", icon: Shield, color: "text-red-600" },
+  documentation: { label: "Documentation", icon: FileText, color: "text-info" },
+  training: { label: "Training", icon: GraduationCap, color: "text-warning" },
+  setup: { label: "Setup", icon: Settings, color: "text-warning" },
+  introduction: { label: "Introduction", icon: Users, color: "text-success" },
+  compliance: { label: "Compliance", icon: Shield, color: "text-destructive" },
 };
 
 export function TaskCustomizeStep({ tasks, onChange }: TaskCustomizeStepProps) {
@@ -110,7 +110,7 @@ export function TaskCustomizeStep({ tasks, onChange }: TaskCustomizeStepProps) {
         <Badge variant="secondary">
           {enabledCount} of {tasks.length} tasks enabled
         </Badge>
-        <Badge variant="outline" className="text-amber-600 border-amber-600">
+        <Badge variant="outline" className="text-warning border-warning">
           {requiredCount} required
         </Badge>
       </div>
@@ -173,7 +173,7 @@ export function TaskCustomizeStep({ tasks, onChange }: TaskCustomizeStepProps) {
                                   {task.title}
                                 </span>
                                 {task.required && (
-                                  <Badge variant="outline" className="text-xs text-amber-600 border-amber-600">
+                                  <Badge variant="outline" className="text-xs text-warning border-warning">
                                     Required
                                   </Badge>
                                 )}

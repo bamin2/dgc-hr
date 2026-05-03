@@ -169,7 +169,7 @@ export function EmployeeCompensationCard({
                           <Badge variant="secondary" className="text-[10px] px-1.5">Custom</Badge>
                         )}
                         {!allowance.isCustom && template?.is_variable && (
-                          <Badge className="text-[10px] px-1.5 bg-teal-100 text-teal-700 dark:bg-teal-950 dark:text-teal-300">Variable</Badge>
+                          <Badge className="text-[10px] px-1.5 bg-info/10 text-info dark:bg-info dark:text-info">Variable</Badge>
                         )}
                       </div>
                       {editable ? (

@@ -123,7 +123,7 @@ export const AirTicketUsageDialog = ({
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Plane className="h-5 w-5 text-sky-600" />
+              <Plane className="h-5 w-5 text-info" />
               Air Ticket Usage
             </DialogTitle>
             <DialogDescription>
@@ -144,7 +144,7 @@ export const AirTicketUsageDialog = ({
                 <span className="text-sm text-muted-foreground">Status</span>
                 <span className={cn(
                   'font-semibold',
-                  ticketsRemaining > 0 ? 'text-emerald-600' : 'text-amber-600'
+                  ticketsRemaining > 0 ? 'text-success' : 'text-warning'
                 )}>
                   {ticketsUsed} used / {ticketsRemaining} remaining
                 </span>
@@ -193,7 +193,7 @@ export const AirTicketUsageDialog = ({
             )}
 
             {!canUseTicket && (
-              <div className="p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg text-sm text-amber-700 dark:text-amber-400">
+              <div className="p-4 bg-warning/10 border border-warning/30 dark:border-warning rounded-lg text-sm text-warning">
                 All tickets for this period have been used.
               </div>
             )}

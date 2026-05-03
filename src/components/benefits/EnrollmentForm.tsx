@@ -183,7 +183,7 @@ export const EnrollmentForm = ({ onSubmit, onCancel }: EnrollmentFormProps) => {
                 </SelectContent>
               </Select>
               {plans.length === 0 && (
-                <p className="text-xs text-amber-600">No active benefit plans available.</p>
+                <p className="text-xs text-warning">No active benefit plans available.</p>
               )}
             </div>
 
@@ -242,9 +242,9 @@ export const EnrollmentForm = ({ onSubmit, onCancel }: EnrollmentFormProps) => {
 
             {/* Car Park Spot Location */}
             {isCarParkPlan && (
-              <Card className="border-indigo-200 dark:border-indigo-800 bg-indigo-50/50 dark:bg-indigo-950/20">
+              <Card className="border-info/30 dark:border-info bg-info/10">
                 <CardContent className="p-4 space-y-3">
-                  <div className="flex items-center gap-2 text-indigo-700 dark:text-indigo-400">
+                  <div className="flex items-center gap-2 text-info">
                     <Car className="h-4 w-4" />
                     <span className="text-sm font-medium">Car Park Assignment</span>
                   </div>
@@ -305,7 +305,7 @@ export const EnrollmentForm = ({ onSubmit, onCancel }: EnrollmentFormProps) => {
                         <span className="text-muted-foreground">
                           Employer Cost {dependents.length > 0 && `(${formatCurrency(baseEmployerCost)} × ${totalPersons})`}
                         </span>
-                        <span className="text-emerald-600">{formatCurrency(totalEmployerCost)}/month</span>
+                        <span className="text-success">{formatCurrency(totalEmployerCost)}/month</span>
                       </div>
                     </div>
                     <div className="border-t pt-2 mt-2">

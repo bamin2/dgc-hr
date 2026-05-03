@@ -339,7 +339,7 @@ export function OffboardingWizard({ employee, onComplete }: OffboardingWizardPro
           <Button
             onClick={handleLaunch}
             disabled={createOffboarding.isPending}
-            className="gap-2 bg-red-600 hover:bg-red-700 text-white"
+            className="gap-2 bg-destructive hover:bg-destructive text-white"
           >
             <Rocket className="h-4 w-4" />
             {createOffboarding.isPending ? "Launching..." : "Launch Offboarding"}

@@ -172,31 +172,31 @@ export function ResetPasswordDialog({
             <ul className="space-y-1">
               <li className="flex items-center gap-2">
                 {hasMinLength ? (
-                  <Check className="h-4 w-4 text-green-500" />
+                  <Check className="h-4 w-4 text-success" />
                 ) : (
                   <X className="h-4 w-4 text-muted-foreground" />
                 )}
-                <span className={hasMinLength ? "text-green-500" : "text-muted-foreground"}>
+                <span className={hasMinLength ? "text-success" : "text-muted-foreground"}>
                   At least 8 characters
                 </span>
               </li>
               <li className="flex items-center gap-2">
                 {hasLettersAndNumbers ? (
-                  <Check className="h-4 w-4 text-green-500" />
+                  <Check className="h-4 w-4 text-success" />
                 ) : (
                   <X className="h-4 w-4 text-muted-foreground" />
                 )}
-                <span className={hasLettersAndNumbers ? "text-green-500" : "text-muted-foreground"}>
+                <span className={hasLettersAndNumbers ? "text-success" : "text-muted-foreground"}>
                   Contains letters and numbers
                 </span>
               </li>
               <li className="flex items-center gap-2">
                 {passwordsMatch ? (
-                  <Check className="h-4 w-4 text-green-500" />
+                  <Check className="h-4 w-4 text-success" />
                 ) : (
                   <X className="h-4 w-4 text-muted-foreground" />
                 )}
-                <span className={passwordsMatch ? "text-green-500" : "text-muted-foreground"}>
+                <span className={passwordsMatch ? "text-success" : "text-muted-foreground"}>
                   Passwords match
                 </span>
               </li>

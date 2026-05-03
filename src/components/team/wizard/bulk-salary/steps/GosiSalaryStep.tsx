@@ -185,13 +185,13 @@ export function GosiSalaryStep({
   }, [gosiEmployees, data.gosiHandling, data.gosiPerEmployee, workLocations, data.perEmployeeAllowances, safeAllowanceTemplates]);
 
   const getChangeIcon = (change: number) => {
-    if (change > 0) return <TrendingUp className="h-4 w-4 text-green-600" />;
+    if (change > 0) return <TrendingUp className="h-4 w-4 text-success" />;
     if (change < 0) return <TrendingDown className="h-4 w-4 text-destructive" />;
     return <Minus className="h-4 w-4 text-muted-foreground" />;
   };
 
   const getChangeColor = (change: number) => {
-    if (change > 0) return 'text-green-600 dark:text-green-400';
+    if (change > 0) return 'text-success';
     if (change < 0) return 'text-destructive';
     return 'text-muted-foreground';
   };

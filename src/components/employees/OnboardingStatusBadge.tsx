@@ -9,9 +9,9 @@ interface OnboardingStatusBadgeProps {
 const statusConfig: Record<OnboardingStatus, { label: string; dotClass: string; bgClass: string; textClass: string }> = {
   completed: {
     label: 'Completed',
-    dotClass: 'bg-emerald-500',
-    bgClass: 'bg-emerald-50 dark:bg-emerald-500/10',
-    textClass: 'text-emerald-700 dark:text-emerald-400',
+    dotClass: 'bg-success',
+    bgClass: 'bg-success/10',
+    textClass: 'text-success',
   },
   in_progress: {
     label: 'Onboarding',
@@ -21,21 +21,21 @@ const statusConfig: Record<OnboardingStatus, { label: string; dotClass: string; 
   },
   pending: {
     label: 'Pending',
-    dotClass: 'bg-amber-500',
-    bgClass: 'bg-amber-50 dark:bg-amber-500/10',
-    textClass: 'text-amber-700 dark:text-amber-400',
+    dotClass: 'bg-warning',
+    bgClass: 'bg-warning/10',
+    textClass: 'text-warning',
   },
   scheduled: {
     label: 'Scheduled',
-    dotClass: 'bg-teal-500',
-    bgClass: 'bg-teal-50 dark:bg-teal-500/10',
-    textClass: 'text-teal-700 dark:text-teal-400',
+    dotClass: 'bg-info',
+    bgClass: 'bg-info/10',
+    textClass: 'text-info',
   },
   incomplete: {
     label: 'Incomplete',
-    dotClass: 'bg-red-500',
-    bgClass: 'bg-red-50 dark:bg-red-500/10',
-    textClass: 'text-red-700 dark:text-red-400',
+    dotClass: 'bg-destructive',
+    bgClass: 'bg-destructive/10',
+    textClass: 'text-destructive',
   },
 };
 

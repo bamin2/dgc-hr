@@ -145,7 +145,7 @@ export function LoansTable({
               {
                 label: "Payroll",
                 value: loan.deduct_from_payroll ? (
-                  <span className="text-emerald-600">Yes</span>
+                  <span className="text-success">Yes</span>
                 ) : (
                   <span className="text-muted-foreground">No</span>
                 )
@@ -222,7 +222,7 @@ export function LoansTable({
               </TableCell>
               <TableCell>
                 {loan.deduct_from_payroll ? (
-                  <span className="text-emerald-600 text-sm">Yes</span>
+                  <span className="text-success text-sm">Yes</span>
                 ) : (
                   <span className="text-muted-foreground text-sm">No</span>
                 )}

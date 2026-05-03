@@ -123,21 +123,21 @@ export function HRDocumentRequestsTab() {
     switch (status) {
       case "pending":
         return (
-          <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50">
+          <Badge variant="outline" className="text-warning border-warning/30 bg-warning/10">
             <Clock className="h-3 w-3 mr-1" />
             Pending
           </Badge>
         );
       case "approved":
         return (
-          <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50">
+          <Badge variant="outline" className="text-success border-success/30 bg-success/10">
             <CheckCircle className="h-3 w-3 mr-1" />
             Approved
           </Badge>
         );
       case "rejected":
         return (
-          <Badge variant="outline" className="text-red-600 border-red-200 bg-red-50">
+          <Badge variant="outline" className="text-destructive border-destructive/30 bg-destructive/10">
             <XCircle className="h-3 w-3 mr-1" />
             Rejected
           </Badge>
@@ -237,7 +237,7 @@ export function HRDocumentRequestsTab() {
                 )}
 
                 {request.rejection_reason && (
-                  <div className="text-sm bg-red-50 text-red-700 rounded-md p-3">
+                  <div className="text-sm bg-destructive/10 text-destructive rounded-md p-3">
                     <p>
                       <strong>Rejection reason:</strong> {request.rejection_reason}
                     </p>

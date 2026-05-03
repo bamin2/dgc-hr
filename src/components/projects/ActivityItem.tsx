@@ -11,12 +11,12 @@ interface ActivityItemProps {
 }
 
 const activityConfig: Record<ActivityType, { icon: typeof Plus; colorClass: string }> = {
-  created: { icon: Plus, colorClass: "bg-green-500" },
-  status_change: { icon: ArrowRight, colorClass: "bg-blue-500" },
-  assignee_added: { icon: UserPlus, colorClass: "bg-green-500" },
-  assignee_removed: { icon: UserMinus, colorClass: "bg-orange-500" },
+  created: { icon: Plus, colorClass: "bg-success" },
+  status_change: { icon: ArrowRight, colorClass: "bg-info" },
+  assignee_added: { icon: UserPlus, colorClass: "bg-success" },
+  assignee_removed: { icon: UserMinus, colorClass: "bg-warning" },
   comment: { icon: MessageSquare, colorClass: "bg-muted-foreground" },
-  updated: { icon: RefreshCw, colorClass: "bg-blue-500" },
+  updated: { icon: RefreshCw, colorClass: "bg-info" },
 };
 
 export function ActivityItem({ activity, isLast }: ActivityItemProps) {

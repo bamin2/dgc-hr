@@ -107,9 +107,9 @@ function LoanCard({ loan, formatCurrency }: { loan: LoanWithInstallmentsData; fo
 
               {/* Next Payment */}
               {nextDueInstallment && (
-                <div className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-warning/10 rounded-lg">
                   <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-amber-600" />
+                    <Calendar className="h-4 w-4 text-warning" />
                     <div>
                       <p className="text-xs text-muted-foreground">Next Payment</p>
                       <p className="text-sm font-medium">
@@ -117,7 +117,7 @@ function LoanCard({ loan, formatCurrency }: { loan: LoanWithInstallmentsData; fo
                       </p>
                     </div>
                   </div>
-                  <p className="font-semibold text-amber-700 dark:text-amber-400">
+                  <p className="font-semibold text-warning">
                     {formatCurrency(nextDueInstallment.amount)}
                   </p>
                 </div>
@@ -133,7 +133,7 @@ function LoanCard({ loan, formatCurrency }: { loan: LoanWithInstallmentsData; fo
                 {paidInstallments.slice(-3).reverse().map((inst) => (
                   <div key={inst.id} className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="h-3.5 w-3.5 text-green-600" />
+                      <CheckCircle className="h-3.5 w-3.5 text-success" />
                       <span className="text-muted-foreground">
                         {format(new Date(inst.paid_at!), 'MMM d, yyyy')}
                       </span>
@@ -200,8 +200,8 @@ export function MyProfileLoansTab({ employeeId }: MyProfileLoansTabProps) {
           </BentoCard>
           <BentoCard colSpan={4}>
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-amber-100 dark:bg-amber-950/30 rounded-lg">
-                <TrendingDown className="h-5 w-5 text-amber-600" />
+              <div className="p-2 bg-warning/10 rounded-lg">
+                <TrendingDown className="h-5 w-5 text-warning" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Total Outstanding</p>
@@ -211,8 +211,8 @@ export function MyProfileLoansTab({ employeeId }: MyProfileLoansTabProps) {
           </BentoCard>
           <BentoCard colSpan={4}>
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 dark:bg-blue-950/30 rounded-lg">
-                <Clock className="h-5 w-5 text-blue-600" />
+              <div className="p-2 bg-info/10 rounded-lg">
+                <Clock className="h-5 w-5 text-info" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Pending Requests</p>
