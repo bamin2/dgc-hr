@@ -34,6 +34,28 @@ async function getManagerUserId(employeeId: string): Promise<string | null> {
   return getEmployeeUserId(employee.manager_id);
 }
 
+// Walk the manager chain starting from `managerId` up to MAX_DEPTH levels.
+// Returns true if `employeeId` appears in that chain (cycle detected).
+async function isCircularManager(employeeId: string, managerId: string): Promise<boolean> {
+  const MAX_DEPTH = 5;
+  let current: string | null = managerId;
+  const visited = new Set<string>([employeeId]);
+
+  for (let depth = 0; depth < MAX_DEPTH && current; depth++) {
+    if (visited.has(current)) return true;
+    visited.add(current);
+
+    const { data } = await supabase
+      .from('employees')
+      .select('manager_id')
+      .eq('id', current)
+      .single();
+
+    current = (data?.manager_id as string | null) ?? null;
+  }
+  return false;
+}
+
 // Get a default HR approver, optionally excluding a specific user (to prevent self-approval)
 async function getDefaultHRApprover(workflowDefaultId?: string | null, excludeUserId?: string | null): Promise<string | null> {
   // First try workflow's default (only if it's not the excluded user)
@@ -83,8 +105,30 @@ export function useInitiateApproval() {
         return { autoApproved: false, blocked: true, reason: 'no_steps' } satisfies ApprovalInitiationResult;
       }
 
-      // 3. Get manager user_id if needed
-      const managerUserId = await getManagerUserId(employeeId);
+      // 3. Resolve manager (employee row + user_id) and detect cycles
+      const { data: requesterEmployee } = await supabase
+        .from("employees")
+        .select("manager_id")
+        .eq("id", employeeId)
+        .single();
+      const directManagerEmployeeId = (requesterEmployee?.manager_id as string | null) ?? null;
+
+      let managerEmployeeRow: { id: string; user_id: string | null } | null = null;
+      if (directManagerEmployeeId) {
+        const { data } = await supabase
+          .from("employees")
+          .select("id, user_id")
+          .eq("id", directManagerEmployeeId)
+          .single();
+        managerEmployeeRow = (data as { id: string; user_id: string | null } | null) ?? null;
+      }
+      const managerUserId = managerEmployeeRow?.user_id ?? null;
+
+      const cycleDetected = managerEmployeeRow
+        ? await isCircularManager(employeeId, managerEmployeeRow.id)
+        : false;
+
+      let circularManagerDetected = false;
 
       // 4. Create approval steps
       let firstStepCreated = false;
@@ -93,14 +137,16 @@ export function useInitiateApproval() {
         let effectiveApproverType = stepConfig.approver;
 
         if (stepConfig.approver === "manager") {
-          if (managerUserId && managerUserId !== requesterUserId) {
+          if (managerUserId && managerUserId !== requesterUserId && !cycleDetected) {
             approverUserId = managerUserId;
           } else if (stepConfig.fallback === "hr") {
             // Fallback to HR (exclude requester to prevent self-approval)
             approverUserId = await getDefaultHRApprover(workflow.default_hr_approver_id, requesterUserId);
             effectiveApproverType = "hr";
+            if (cycleDetected) circularManagerDetected = true;
           } else {
             // Skip this step if no manager and no fallback
+            if (cycleDetected) circularManagerDetected = true;
             continue;
           }
         } else if (stepConfig.approver === "hr") {
@@ -157,7 +203,11 @@ export function useInitiateApproval() {
           if (insertError) throw insertError;
           firstStepCreated = true;
         } else {
-          return { autoApproved: false, blocked: true, reason: 'no_approver' } satisfies ApprovalInitiationResult;
+          return {
+            autoApproved: false,
+            blocked: true,
+            reason: circularManagerDetected ? 'circular_manager' : 'no_approver',
+          } satisfies ApprovalInitiationResult;
         }
       }
 
@@ -209,6 +259,9 @@ export function useInitiateApproval() {
             break;
           case 'no_approver':
             toast.error("No approver could be assigned. Please contact HR.");
+            break;
+          case 'circular_manager':
+            toast.error("Manager assignment is circular. Please contact HR.");
             break;
           default:
             toast.error("Request could not be submitted for approval. Please contact HR.");

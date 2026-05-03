@@ -5,7 +5,8 @@ export type ApprovalStepStatus = 'queued' | 'pending' | 'approved' | 'rejected' 
 export type ApprovalInitiationBlockedReason =
   | 'workflow_inactive'
   | 'no_steps'
-  | 'no_approver';
+  | 'no_approver'
+  | 'circular_manager';
 
 export interface ApprovalInitiationResult {
   autoApproved: false;
