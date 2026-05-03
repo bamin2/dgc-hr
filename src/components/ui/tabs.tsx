@@ -12,9 +12,9 @@ const TabsList = React.forwardRef<
   <TabsPrimitive.List
     ref={ref}
     className={cn(
-      // LiquidGlass V2 pill track
+      // LiquidGlass V2 pill track — token-driven
       "inline-flex h-auto items-center gap-1 p-1",
-      "bg-white/15 border border-white/20 backdrop-blur-md rounded-full",
+      "bg-foreground/5 border border-border/60 backdrop-blur-md rounded-full",
       // Mobile scroll support
       "max-w-full overflow-x-auto scrollbar-none",
       className
@@ -31,14 +31,15 @@ const TabsTrigger = React.forwardRef<
   <TabsPrimitive.Trigger
     ref={ref}
     className={cn(
-      // Base styles
+      // Base
       "inline-flex items-center justify-center gap-2 whitespace-nowrap",
       "h-10 px-4 sm:px-5 rounded-full",
       "text-sm font-medium transition-colors duration-200",
-      // Inactive state
-      "text-black/50 hover:bg-white/30 hover:text-black",
-      // Active state - pill style
-      "data-[state=active]:bg-white/70 data-[state=active]:text-black data-[state=active]:shadow-sm",
+      // Inactive
+      "text-muted-foreground hover:text-foreground hover:bg-foreground/5",
+      // Active pill — surface contrast against the track
+      "data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm",
+      "data-[state=active]:border data-[state=active]:border-border/40",
       // Focus
       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
       // Disabled
