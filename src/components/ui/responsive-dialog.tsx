@@ -1,6 +1,6 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { useMediaQuery } from "@/hooks/use-media-query";
+import { useIsMobile } from "@/hooks/use-media-query";
 import {
   Dialog,
   DialogContent,
@@ -87,7 +87,7 @@ export function ResponsiveDialog({
   className,
   disableSheet = false,
 }: ResponsiveDialogProps) {
-  const isMobile = useMediaQuery("(max-width: 640px)");
+  const isMobile = useIsMobile();
 
   // Use Sheet on mobile for full-screen experience
   if (isMobile && !disableSheet) {

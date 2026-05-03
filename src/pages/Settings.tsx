@@ -28,7 +28,7 @@ import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { useNotificationPreferences } from '@/hooks/useNotificationPreferences';
 import { useUserSessions } from '@/hooks/useUserSessions';
 import { useRole } from '@/contexts/RoleContext';
-import { useMediaQuery } from '@/hooks/use-media-query';
+import { useIsBelowDesktop } from '@/hooks/use-media-query';
 import { Settings, Building2, User, Bell, Shield, Save, Wallet, Loader2, Network, LayoutDashboard, GitBranch, UserCircle, Mail } from 'lucide-react';
 import { DashboardCardVisibility, defaultDashboardCardVisibility } from '@/data/settings';
 import { toast } from 'sonner';
@@ -63,7 +63,7 @@ const SettingsPage = () => {
   const { settings: dbNotificationSettings, updateSettings: updateNotifications, isLoading: notifLoading, isSaving: notifSaving } = useNotificationPreferences();
   const { sessions, isLoading: sessionsLoading, revokeSession, revokeAllSessions } = useUserSessions();
   const { canManageRoles } = useRole();
-  const isMobile = useMediaQuery("(max-width: 1023px)");
+  const isBelowDesktop = useIsBelowDesktop();
   
   // Local state for form editing - start with empty to prevent mock data flash
   const [companySettings, setCompanySettings] = useState<CompanySettings>(emptyCompanySettings);

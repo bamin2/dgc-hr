@@ -6,7 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { User } from 'lucide-react';
 import { useMyEmployee } from '@/hooks/useMyEmployee';
 import { useCompanySettings } from '@/contexts/CompanySettingsContext';
-import { useMediaQuery } from '@/hooks/use-media-query';
+import { useIsBelowDesktop } from '@/hooks/use-media-query';
 import {
   MyProfileHeader,
   MyProfileOverviewTab,
@@ -35,7 +35,7 @@ const MyProfilePage = () => {
   const [activeTab, setActiveTab] = useState(tabFromUrl || 'overview');
   const { data: employee, isLoading, error, isProfileLoading } = useMyEmployee();
   const { settings, isLoading: settingsLoading } = useCompanySettings();
-  const isMobile = useMediaQuery("(max-width: 1023px)");
+  const isBelowDesktop = useIsBelowDesktop();
 
   // Update active tab when URL parameter changes
   useEffect(() => {
@@ -53,7 +53,7 @@ const MyProfilePage = () => {
   }
 
   // Render mobile hub for smaller screens
-  if (isMobile) {
+  if (isBelowDesktop) {
     return <MobileProfileHub />;
   }
 
