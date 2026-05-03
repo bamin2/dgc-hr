@@ -13,7 +13,7 @@ This directory contains custom React hooks for data fetching, state management, 
 ```
 src/hooks/
 ├── README.md
-├── use-mobile.tsx          # Responsive breakpoint hook
+├── use-media-query.ts       # Responsive breakpoint hooks (canonical)
 ├── use-toast.ts            # Toast notification hook
 ├── usePayrollWizard.ts     # Payroll wizard state management
 ├── employees/              # Employee-related hooks
