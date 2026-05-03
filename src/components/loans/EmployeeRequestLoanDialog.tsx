@@ -55,6 +55,26 @@ const formSchema = z.object({
     message: "Please provide duration or installment amount",
     path: ["duration_months"],
   }
+).refine(
+  (data) => {
+    if (data.repayment_method !== "installment") return true;
+    if (data.installment_amount == null) return true;
+    return data.installment_amount <= data.principal_amount;
+  },
+  {
+    message: "Installment cannot exceed loan amount.",
+    path: ["installment_amount"],
+  }
+).refine(
+  (data) => {
+    if (data.repayment_method !== "duration") return true;
+    if (data.duration_months == null) return true;
+    return data.duration_months <= 60;
+  },
+  {
+    message: "Maximum 60 months.",
+    path: ["duration_months"],
+  }
 );
 
 type FormData = z.infer<typeof formSchema>;
