@@ -46,25 +46,21 @@ export function MobileQuickActionsCard() {
       label: "Request Time Off",
       icon: CalendarPlus,
       onClick: () => setIsTimeOffDialogOpen(true),
-      color: "bg-primary/10 text-primary",
     },
     {
       label: "Request Loan",
       icon: Banknote,
       onClick: () => setIsLoanDialogOpen(true),
-      color: "bg-emerald-500/10 text-emerald-600",
     },
     {
       label: "View Payslip",
       icon: Receipt,
       onClick: () => setIsPayslipsSheetOpen(true),
-      color: "bg-blue-500/10 text-blue-600",
     },
     {
       label: "HR Letter",
       icon: FileText,
       onClick: () => setIsHRLetterDialogOpen(true),
-      color: "bg-amber-500/10 text-amber-600",
     },
   ];
 
@@ -74,13 +70,11 @@ export function MobileQuickActionsCard() {
       label: "Approvals",
       icon: CheckSquare,
       onClick: () => navigate("/approvals"),
-      color: "bg-violet-500/10 text-violet-600",
     },
     {
       label: "Directory",
       icon: BookUser,
       onClick: () => navigate("/directory"),
-      color: "bg-rose-500/10 text-rose-600",
     },
   ] : [];
 
