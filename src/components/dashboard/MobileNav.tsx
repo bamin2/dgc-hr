@@ -151,9 +151,9 @@ export function MobileNav() {
           </PrefetchNavLink>
         </div>
 
-        {/* Primary Navigation - Large touch targets */}
+        {/* Secondary Navigation - destinations not in the bottom MobileActionBar */}
         <nav className="flex-1 py-4 px-3 overflow-y-auto space-y-1 min-h-0">
-          {primaryMenuItems.map((item) => (
+          {secondaryMenuItems.map((item) => (
             <NavItem
               key={item.path}
               icon={item.icon}
@@ -164,41 +164,6 @@ export function MobileNav() {
               large
             />
           ))}
-
-          {/* More Section - Expandable */}
-          <div className="pt-4 mt-4 border-t border-sidebar-border/50">
-            <button
-              onClick={() => setShowMore(!showMore)}
-              className={cn(
-                "flex items-center gap-3 w-full px-4 py-3 rounded-xl",
-                "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 active:bg-sidebar-accent",
-                "transition-all touch-manipulation"
-              )}
-            >
-              <span className="text-xs font-semibold uppercase tracking-wider flex-1 text-left">
-                More
-              </span>
-              <ChevronRight className={cn(
-                "w-4 h-4 text-sidebar-foreground/30 transition-transform",
-                showMore && "rotate-90"
-              )} />
-            </button>
-
-            {showMore && (
-              <div className="mt-1 space-y-1 animate-in slide-in-from-top-2 duration-200">
-                {secondaryMenuItems.map((item) => (
-                  <NavItem
-                    key={item.path}
-                    icon={item.icon}
-                    label={item.label}
-                    path={item.path}
-                    isActive={location.pathname === item.path}
-                    onClick={handleClose}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
         </nav>
 
         {/* Sign Out Button */}
