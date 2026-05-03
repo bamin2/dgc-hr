@@ -277,7 +277,10 @@ const SettingsPage = () => {
         return canManageRoles ? (
           <DashboardSettingsTab 
             visibility={companySettings.dashboardCardVisibility ?? defaultDashboardCardVisibility}
-            onChange={(visibility) => setCompanySettings(prev => ({ ...prev, dashboardCardVisibility: visibility }))}
+            onChange={(visibility) => {
+              setCompanySettings(prev => ({ ...prev, dashboardCardVisibility: visibility }));
+              setCompanyDirty(true);
+            }}
           />
         ) : null;
       case 'selfservice':
@@ -285,7 +288,10 @@ const SettingsPage = () => {
           <SelfServiceSettings
             employeeCanViewCompensation={companySettings.employeeCanViewCompensation ?? true}
             showCompensationLineItems={companySettings.showCompensationLineItems ?? false}
-            onChange={(field, value) => setCompanySettings(prev => ({ ...prev, [field]: value }))}
+            onChange={(field, value) => {
+              setCompanySettings(prev => ({ ...prev, [field]: value }));
+              setCompanyDirty(true);
+            }}
           />
         ) : null;
       case 'approvals':
@@ -298,7 +304,7 @@ const SettingsPage = () => {
         return (
           <UserPreferencesForm 
             preferences={userPreferences} 
-            onChange={setUserPreferences}
+            onChange={handleUserPreferencesChange}
             jobTitleFromEmployee={jobTitleFromEmployee}
           />
         );
@@ -306,7 +312,7 @@ const SettingsPage = () => {
         return (
           <NotificationSettingsForm 
             settings={notificationSettings} 
-            onChange={setNotificationSettings} 
+            onChange={handleNotificationSettingsChange} 
           />
         );
       case 'security':
@@ -343,7 +349,7 @@ const SettingsPage = () => {
           subtitle="Manage your workspace and preferences"
           actions={
             showGlobalSaveButton ? (
-              <Button onClick={handleSave} disabled={!canSave}>
+              <Button onClick={handleSave} disabled={!canSave || !activeTabDirty}>
                 {isSaving ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 ) : (
@@ -364,7 +370,7 @@ const SettingsPage = () => {
               <div className="md:hidden">
                 <select
                   value={activeTab}
-                  onChange={(e) => setActiveTab(e.target.value)}
+                  onChange={(e) => requestTabSwitch(e.target.value)}
                   className="w-full px-3 py-2 bg-background border rounded-md text-sm"
                 >
                   {adminTabs.length > 0 && (
@@ -396,7 +402,7 @@ const SettingsPage = () => {
                         return (
                           <button
                             key={tab.value}
-                            onClick={() => setActiveTab(tab.value)}
+                            onClick={() => requestTabSwitch(tab.value)}
                             className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
                               isActive 
                                 ? 'bg-primary/10 text-primary font-medium' 
@@ -423,7 +429,7 @@ const SettingsPage = () => {
                       return (
                         <button
                           key={tab.value}
-                          onClick={() => setActiveTab(tab.value)}
+                          onClick={() => requestTabSwitch(tab.value)}
                           className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
                             isActive 
                               ? 'bg-primary/10 text-primary font-medium' 
