@@ -46,6 +46,22 @@
 </head>
 
   <body>
+    <script>
+      // Pin DGC Green for the /auth route before any React/branding code runs.
+      // Prevents the left brand panel from flashing from green to gold when
+      // company branding is later applied via CSS variable overrides.
+      (function () {
+        try {
+          var p = window.location.pathname;
+          if (p === '/auth' || p.indexOf('/auth/') === 0) {
+            var root = document.documentElement;
+            root.setAttribute('data-auth-route', 'true');
+            root.style.setProperty('--auth-brand-panel', '168 48% 11%');
+            root.style.setProperty('--auth-brand-panel-foreground', '48 21% 97%');
+          }
+        } catch (e) {}
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
