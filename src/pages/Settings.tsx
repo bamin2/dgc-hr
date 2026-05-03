@@ -150,6 +150,7 @@ const SettingsPage = () => {
           // These tabs modify companySettings state
           if (canManageRoles && hasCompanySettingsLoaded) {
             await updateGlobalSettings(companySettings);
+            setCompanyDirty(false);
           } else if (canManageRoles && !hasCompanySettingsLoaded) {
             toast.error('Company settings are still loading. Please wait.');
             return;
@@ -158,10 +159,12 @@ const SettingsPage = () => {
           
         case 'preferences':
           await updatePreferences(userPreferences);
+          setPrefsDirty(false);
           break;
           
         case 'notifications':
           await updateNotifications(notificationSettings);
+          setNotifDirty(false);
           break;
           
         // These tabs have their own save mechanisms:
@@ -179,6 +182,46 @@ const SettingsPage = () => {
 
   const handleCompanySettingsChange = (newSettings: CompanySettings) => {
     setCompanySettings(newSettings);
+    setCompanyDirty(true);
+  };
+
+  const handleUserPreferencesChange = (next: UserPreferences) => {
+    setUserPreferences(next);
+    setPrefsDirty(true);
+  };
+
+  const handleNotificationSettingsChange = (next: NotificationSettings) => {
+    setNotificationSettings(next);
+    setNotifDirty(true);
+  };
+
+  const activeTabDirty = useMemo(() => {
+    if (['company', 'dashboard', 'selfservice'].includes(activeTab)) return companyDirty;
+    if (activeTab === 'preferences') return prefsDirty;
+    if (activeTab === 'notifications') return notifDirty;
+    return false;
+  }, [activeTab, companyDirty, prefsDirty, notifDirty]);
+
+  const requestTabSwitch = (nextTab: string) => {
+    if (nextTab === activeTab) return;
+    if (activeTabDirty) {
+      setPendingTab(nextTab);
+      return;
+    }
+    setActiveTab(nextTab);
+  };
+
+  const discardActiveTabChanges = () => {
+    if (['company', 'dashboard', 'selfservice'].includes(activeTab)) {
+      setCompanySettings(globalSettings);
+      setCompanyDirty(false);
+    } else if (activeTab === 'preferences') {
+      setUserPreferences(dbUserPreferences);
+      setPrefsDirty(false);
+    } else if (activeTab === 'notifications') {
+      setNotificationSettings(dbNotificationSettings);
+      setNotifDirty(false);
+    }
   };
 
 
