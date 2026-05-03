@@ -266,10 +266,10 @@ export function LoanDetailSheet({ loanId, open, onOpenChange, readOnly = false }
                   </TabsTrigger>
                 </TabsList>
                 <TabsContent value="schedule" className="mt-4">
-                  <LoanInstallmentsTable 
+                  <LoanInstallmentsTable
                     installments={loan.installments}
-                    canMarkPaid={loan.status === "active"}
-                    canSkip={loan.status === "active"}
+                    canMarkPaid={!readOnly && loan.status === "active"}
+                    canSkip={!readOnly && loan.status === "active"}
                     onMarkPaid={handleMarkPaid}
                     onSkip={handleSkipInstallment}
                   />
@@ -281,7 +281,7 @@ export function LoanDetailSheet({ loanId, open, onOpenChange, readOnly = false }
             )}
 
             {/* Danger Zone - Delete Loan */}
-            {loan && !["closed"].includes(loan.status) && (
+            {!readOnly && loan && !["closed"].includes(loan.status) && (
               <div className="mt-6 pt-6 border-t border-destructive/20">
                 <div className="flex items-center justify-between">
                   <div>
@@ -290,7 +290,7 @@ export function LoanDetailSheet({ loanId, open, onOpenChange, readOnly = false }
                       Permanently remove this loan record
                     </p>
                   </div>
-                  <Button 
+                  <Button
                     variant="destructive"
                     size="sm"
                     onClick={() => setDeleteDialogOpen(true)}
