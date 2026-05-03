@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,7 +33,6 @@ import { useLeaveBalanceSummary } from '@/hooks/useLeaveBalances';
 import { useRole } from '@/contexts/RoleContext';
 
 export function AttendanceTab() {
-  const navigate = useNavigate();
   const { canEditEmployees } = useRole();
   const [activeTab, setActiveTab] = useState('overview');
   const [searchQuery, setSearchQuery] = useState('');
