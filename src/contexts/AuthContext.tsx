@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
+import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+
+const ALLOWED_EMAIL_DOMAIN = 'dgcholding.com';
 
 interface Profile {
   id: string;
@@ -60,6 +63,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const enforceAllowedDomain = async (currentUser: User | null): Promise<boolean> => {
+    if (!currentUser?.email) return true;
+    const email = currentUser.email.toLowerCase();
+    if (email.endsWith(`@${ALLOWED_EMAIL_DOMAIN}`)) return true;
+
+    await supabase.auth.signOut();
+    setProfile(null);
+    setUser(null);
+    setSession(null);
+    toast.error('Only @dgcholding.com accounts can sign in. Please use your DGC email.');
+    return false;
+  };
+
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -71,9 +87,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         // Defer profile fetch with setTimeout to avoid deadlock
         if (session?.user) {
-          setTimeout(() => {
-            fetchProfile(session.user.id);
-          }, 0);
+          enforceAllowedDomain(session.user).then((ok) => {
+            if (!ok) return;
+            setTimeout(() => {
+              fetchProfile(session.user.id);
+            }, 0);
+          });
         } else {
           setProfile(null);
         }
@@ -90,11 +109,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchProfile(session.user.id);
+        const ok = await enforceAllowedDomain(session.user);
+        if (ok) await fetchProfile(session.user.id);
       }
       setLoading(false);
     });

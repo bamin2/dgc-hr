@@ -1,130 +1,71 @@
+# Enforce @dgcholding.com Domain in AuthContext
+
 ## Goal
-Stop silently auto-approving requests when the approval workflow is misconfigured. Instead, leave the request in its initial pending/submitted state, surface a destructive toast, and return a structured `{ blocked: true, reason }` so callers can react.
+Block any signed-in session whose email is not on `dgcholding.com` (case-insensitive), regardless of provider (Microsoft OAuth, password, etc.). Enforce on both initial session load and live auth state changes.
 
-## Behavior matrix
+## File
+`src/contexts/AuthContext.tsx` only. No changes to OAuth setup, password flow, or redirects.
 
-| Condition | Old behavior | New behavior |
-|---|---|---|
-| `workflow.is_active === false` | Flips status to approved/hr_approved | No DB write to status, no steps. Return `{ autoApproved: false, blocked: true, reason: 'workflow_inactive' }`. Destructive toast: *"Approval workflow is inactive. Please contact HR to enable it."* |
-| `steps.length === 0` | Flips status to approved | Same: no writes, return `{ blocked: true, reason: 'no_steps' }`. Same toast wording but with reason-specific message: *"Approval workflow has no steps configured. Please contact HR."* |
-| `firstStepCreated === false` after loop | Flips status to approved | Last-resort: call `getDefaultHRApprover(workflow.default_hr_approver_id, requesterUserId)`. If a user is found → create a single HR step (pending). If still null → no steps, return `{ blocked: true, reason: 'no_approver' }`. Destructive toast: *"No approver could be assigned. Please contact HR."* |
-| All steps created | Updates request to `pending`/`submitted`, returns `{ autoApproved: false }` | **Unchanged.** |
+## Changes
 
-The hook **never** flips a request to approved on its own.
-
-## Type changes — `src/types/approvals.ts`
-
-Add a result type used by the mutation (placed near the existing approval types):
-
+### 1. Add constant + sonner import (top of file)
 ```ts
-export type ApprovalInitiationBlockedReason =
-  | 'workflow_inactive'
-  | 'no_steps'
-  | 'no_approver';
+import { toast } from 'sonner';
 
-export interface ApprovalInitiationResult {
-  autoApproved: false;
-  blocked: boolean;
-  reason?: ApprovalInitiationBlockedReason;
-}
+const ALLOWED_EMAIL_DOMAIN = 'dgcholding.com';
 ```
 
-Note: `autoApproved` is now always `false` (the hook no longer auto-approves), but the field is retained so existing call sites that read `result.autoApproved` keep compiling.
-
-## Hook changes — `src/hooks/useApprovalEngine.ts`
-
-Import the new result type alongside existing imports:
-
+### 2. Add a domain enforcement helper inside `AuthProvider`
 ```ts
-import { ApprovalWorkflowStep, RequestType, ApprovalInitiationResult } from "@/types/approvals";
+const enforceAllowedDomain = async (currentUser: User | null): Promise<boolean> => {
+  if (!currentUser?.email) return true;
+  const email = currentUser.email.toLowerCase();
+  if (email.endsWith(`@${ALLOWED_EMAIL_DOMAIN}`)) return true;
+
+  await supabase.auth.signOut();
+  setProfile(null);
+  setUser(null);
+  setSession(null);
+  toast.error('Only @dgcholding.com accounts can sign in. Please use your DGC email.');
+  return false;
+};
 ```
 
-### A. Replace the inactive-workflow block (lines 76–100)
+### 3. Wire it into the `onAuthStateChange` callback
+After `setUser(session?.user ?? null);`, if there is a `session.user`, run the domain check before scheduling `fetchProfile`. If the check fails, skip the profile fetch entirely.
 
 ```ts
-// 2. If workflow is inactive — block, do not auto-approve.
-if (!workflow.is_active) {
-  return { autoApproved: false, blocked: true, reason: 'workflow_inactive' } satisfies ApprovalInitiationResult;
-}
-```
+setSession(session);
+setUser(session?.user ?? null);
 
-### B. Replace the zero-steps block (lines 102–127)
-
-```ts
-const steps = (workflow.steps as unknown as ApprovalWorkflowStep[]) || [];
-if (steps.length === 0) {
-  return { autoApproved: false, blocked: true, reason: 'no_steps' } satisfies ApprovalInitiationResult;
-}
-```
-
-### C. Replace the "no steps created" auto-approve fallback (lines 182–206)
-
-```ts
-// 5. If no steps were created, try a last-resort default HR approver.
-if (!firstStepCreated) {
-  const fallbackHrUserId = await getDefaultHRApprover(
-    workflow.default_hr_approver_id,
-    requesterUserId,
-  );
-
-  if (fallbackHrUserId) {
-    const { error: insertError } = await supabase
-      .from("request_approval_steps")
-      .insert({
-        request_id: requestId,
-        request_type: requestType,
-        step_number: 1,
-        approver_type: "hr",
-        approver_user_id: fallbackHrUserId,
-        status: "pending",
-      });
-    if (insertError) throw insertError;
-    firstStepCreated = true;
-  } else {
-    return { autoApproved: false, blocked: true, reason: 'no_approver' } satisfies ApprovalInitiationResult;
-  }
-}
-```
-
-The existing block at lines 208–228 (set request to pending/submitted, return `{ autoApproved: false }`) runs unchanged when at least one step exists. Update the final return so it satisfies the new type:
-
-```ts
-return { autoApproved: false, blocked: false } satisfies ApprovalInitiationResult;
-```
-
-### D. Update `onSuccess` toast handling (lines 246–250)
-
-Replace the auto-approve branch with reason-specific destructive toasts:
-
-```ts
-if (result.blocked) {
-  switch (result.reason) {
-    case 'workflow_inactive':
-      toast.error("Approval workflow is inactive. Please contact HR to enable it.");
-      break;
-    case 'no_steps':
-      toast.error("Approval workflow has no steps configured. Please contact HR.");
-      break;
-    case 'no_approver':
-      toast.error("No approver could be assigned. Please contact HR.");
-      break;
-    default:
-      toast.error("Request could not be submitted for approval. Please contact HR.");
-  }
+if (session?.user) {
+  enforceAllowedDomain(session.user).then((ok) => {
+    if (!ok) return;
+    setTimeout(() => fetchProfile(session.user.id), 0);
+  });
 } else {
-  toast.success("Request submitted for approval");
+  setProfile(null);
 }
 ```
 
-(`onError` handler unchanged.)
+### 4. Wire it into the initial `getSession()` resolution
+```ts
+supabase.auth.getSession().then(async ({ data: { session } }) => {
+  setSession(session);
+  setUser(session?.user ?? null);
+  if (session?.user) {
+    const ok = await enforceAllowedDomain(session.user);
+    if (ok) await fetchProfile(session.user.id);
+  }
+  setLoading(false);
+});
+```
 
-## Side-effect notes
-- Existing callers reading `result.autoApproved` will simply see `false` in all blocked paths and continue rendering pending UI — correct behavior, since the request really is pending.
-- Database query invalidations in `onSuccess` still run (idempotent, harmless when blocked).
-- No changes to `getEmployeeUserId`, `getManagerUserId`, or `getDefaultHRApprover` signatures.
+## Behavior Notes
+- Case-insensitive check via `email.toLowerCase().endsWith('@dgcholding.com')`.
+- On rejection: `signOut()` → clear `user`, `session`, `profile` → destructive sonner toast.
+- The `SIGNED_OUT` event fired by the forced sign-out will re-enter the listener with `session = null`, which is a no-op for the domain check.
+- No changes to: `signInWithAzure` OAuth options, `signIn` password flow, `resetPassword`, `updatePassword`, redirect URLs, or context shape.
 
-## Out of scope
-- `request_approval_steps` table schema, RLS, or migrations.
-- Other approval-related hooks/components.
-- Any UI that consumes `useInitiateApproval` — they keep working unchanged.
-- DGC tokens / styling.
+## Files Modified
+- `src/contexts/AuthContext.tsx`
