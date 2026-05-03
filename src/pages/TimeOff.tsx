@@ -18,7 +18,7 @@ export default function TimeOff() {
       <div className="space-y-6">
         <PageHeader
           title="Time off"
-          subtitle="Manage your team's time off."
+          subtitle="View your leave balances and request time off."
           actions={
             <Button 
               variant="liquidGlass" 
