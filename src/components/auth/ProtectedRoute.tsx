@@ -3,6 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
 import { AppRole } from "@/data/roles";
 import { PageLoader } from "@/components/ui/page-loader";
+import { OnboardingGate } from "./OnboardingGate";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -10,7 +11,7 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, requiredRoles }: ProtectedRouteProps) {
-  const { user, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
   const { currentUser } = useRole();
   const location = useLocation();
 
@@ -22,6 +23,12 @@ export function ProtectedRoute({ children, requiredRoles }: ProtectedRouteProps)
   // Redirect to auth page if not logged in
   if (!user) {
     return <Navigate to="/auth" state={{ from: location }} replace />;
+  }
+
+  // Block all protected routes when the signed-in user has no linked employee.
+  // Only gate once profile has resolved to avoid flashing for everyone on first paint.
+  if (profile && profile.employee_id === null) {
+    return <OnboardingGate />;
   }
 
   // Check role requirements if specified
