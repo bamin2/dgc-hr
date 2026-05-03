@@ -2,6 +2,17 @@ export type RequestType = 'time_off' | 'loan' | 'hr_letter' | 'business_trip';
 export type ApproverType = 'manager' | 'hr' | 'specific_user';
 export type ApprovalStepStatus = 'queued' | 'pending' | 'approved' | 'rejected' | 'skipped' | 'cancelled';
 
+export type ApprovalInitiationBlockedReason =
+  | 'workflow_inactive'
+  | 'no_steps'
+  | 'no_approver';
+
+export interface ApprovalInitiationResult {
+  autoApproved: false;
+  blocked: boolean;
+  reason?: ApprovalInitiationBlockedReason;
+}
+
 export interface ApprovalWorkflowStep {
   step: number;
   approver: ApproverType;
