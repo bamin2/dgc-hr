@@ -199,8 +199,20 @@ export function useInitiateApproval() {
         queryClient.invalidateQueries({ queryKey: queryKeys.loans.all });
       }
       
-      if (result.autoApproved) {
-        toast.success("Request auto-approved (no approval workflow configured)");
+      if (result.blocked) {
+        switch (result.reason) {
+          case 'workflow_inactive':
+            toast.error("Approval workflow is inactive. Please contact HR to enable it.");
+            break;
+          case 'no_steps':
+            toast.error("Approval workflow has no steps configured. Please contact HR.");
+            break;
+          case 'no_approver':
+            toast.error("No approver could be assigned. Please contact HR.");
+            break;
+          default:
+            toast.error("Request could not be submitted for approval. Please contact HR.");
+        }
       } else {
         toast.success("Request submitted for approval");
       }
