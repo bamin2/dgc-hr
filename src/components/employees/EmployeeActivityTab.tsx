@@ -65,7 +65,7 @@ export function EmployeeActivityTab({ employeeId }: EmployeeActivityTabProps) {
         status: req.status,
         timestamp: req.created_at || req.start_date,
         icon: <Calendar className="h-4 w-4" />,
-        iconBgClass: 'bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400',
+        iconBgClass: 'bg-info/10 text-info',
       });
     });
 
@@ -80,7 +80,7 @@ export function EmployeeActivityTab({ employeeId }: EmployeeActivityTabProps) {
         status: loan.status,
         timestamp: loan.created_at || loan.start_date,
         icon: <Banknote className="h-4 w-4" />,
-        iconBgClass: 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400',
+        iconBgClass: 'bg-success/10 text-success',
       });
     });
 
@@ -93,7 +93,7 @@ export function EmployeeActivityTab({ employeeId }: EmployeeActivityTabProps) {
         description: doc.documentName,
         timestamp: doc.createdAt || new Date().toISOString(),
         icon: <FileText className="h-4 w-4" />,
-        iconBgClass: 'bg-stone-100 dark:bg-stone-900/30 text-stone-600 dark:text-stone-400',
+        iconBgClass: 'bg-muted text-muted-foreground',
       });
     });
 

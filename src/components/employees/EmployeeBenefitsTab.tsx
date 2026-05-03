@@ -91,7 +91,7 @@ function EnrollmentCard({ enrollment }: { enrollment: BenefitEnrollment }) {
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Employer pays</span>
-                <span className="font-medium text-green-600">{formatPlanCurrency(adjustedEmployerContribution)}</span>
+                <span className="font-medium text-success">{formatPlanCurrency(adjustedEmployerContribution)}</span>
               </div>
             </div>
           </div>
@@ -182,8 +182,8 @@ export function EmployeeBenefitsTab({ employeeId }: EmployeeBenefitsTabProps) {
           </Card>
           <Card>
             <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2 bg-amber-100 dark:bg-amber-950/30 rounded-lg">
-                <DollarSign className="h-5 w-5 text-amber-600" />
+              <div className="p-2 bg-warning/10 rounded-lg">
+                <DollarSign className="h-5 w-5 text-warning" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Monthly Cost (Total)</p>
@@ -195,8 +195,8 @@ export function EmployeeBenefitsTab({ employeeId }: EmployeeBenefitsTabProps) {
           </Card>
           <Card>
             <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2 bg-blue-100 dark:bg-blue-950/30 rounded-lg">
-                <Calendar className="h-5 w-5 text-blue-600" />
+              <div className="p-2 bg-info/10 rounded-lg">
+                <Calendar className="h-5 w-5 text-info" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Next Renewal</p>
