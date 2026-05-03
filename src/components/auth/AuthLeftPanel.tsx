@@ -18,7 +18,7 @@ export function AuthLeftPanel() {
 
         {/* Value Statements */}
         <div className="flex-1 flex flex-col justify-center">
-          <div className="w-12 h-px mb-12 bg-[hsl(var(--auth-brand-panel-foreground)/0.2)]" />
+          <div className="w-12 h-px mb-12 bg-accent/40" />
 
           <div className="space-y-6">
             <ValueWord word="People" hasAccent />
@@ -26,7 +26,7 @@ export function AuthLeftPanel() {
             <ValueWord word="Progress" />
           </div>
 
-          <div className="w-12 h-px mt-12 bg-[hsl(var(--auth-brand-panel-foreground)/0.2)]" />
+          <div className="w-12 h-px mt-12 bg-accent/40" />
         </div>
 
         {/* Spacer for balance */}
@@ -44,9 +44,9 @@ interface ValueWordProps {
 function ValueWord({ word, hasAccent }: ValueWordProps) {
   return (
     <div className="flex items-center gap-3">
-      {hasAccent && <div className="w-1 h-6 rounded-full bg-success" />}
+      {hasAccent && <div className="w-1 h-8 rounded-full bg-accent" />}
       <span
-        className={`text-2xl lg:text-3xl font-light tracking-[0.1em] text-[hsl(var(--auth-brand-panel-foreground))] ${
+        className={`text-2xl lg:text-3xl font-medium tracking-[0.05em] text-[hsl(var(--auth-brand-panel-foreground))] ${
           hasAccent ? "" : "ml-4"
         }`}
       >
