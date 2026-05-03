@@ -428,7 +428,7 @@ export function ComplianceSnapshotReport() {
                           <TableCell>{record.department}</TableCell>
                           <TableCell>{record.location}</TableCell>
                           <TableCell>
-                            <span className="text-orange-600">{record.issue}</span>
+                            <span className="text-warning">{record.issue}</span>
                           </TableCell>
                         </TableRow>
                       ))}
