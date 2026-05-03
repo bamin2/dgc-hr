@@ -2,7 +2,7 @@ import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { ImpersonationBanner } from "./ImpersonationBanner";
 import { MobileActionBar } from "./MobileActionBar";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-media-query";
 import { cn } from "@/lib/utils";
 
 interface DashboardLayoutProps {
