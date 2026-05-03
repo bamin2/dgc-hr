@@ -55,7 +55,7 @@ export const BenefitsTable = ({ plans }: BenefitsTableProps) => {
               if (plan.type === 'air_ticket' && plan.entitlement_config) {
                 const config = plan.entitlement_config as AirTicketConfig;
                 return (
-                  <span className="flex items-center gap-1 text-sky-600 dark:text-sky-400">
+                  <span className="flex items-center gap-1 text-info">
                     <Plane className="h-3.5 w-3.5" />
                     {config.tickets_per_period} / {config.period_years}yr
                   </span>
@@ -64,7 +64,7 @@ export const BenefitsTable = ({ plans }: BenefitsTableProps) => {
               if (plan.type === 'phone' && plan.entitlement_config) {
                 const config = plan.entitlement_config as PhoneConfig;
                 return (
-                  <span className="flex items-center gap-1 text-violet-600 dark:text-violet-400">
+                  <span className="flex items-center gap-1 text-primary">
                     <Smartphone className="h-3.5 w-3.5" />
                     {formatPlanCurrency(config.monthly_installment)}/mo
                   </span>

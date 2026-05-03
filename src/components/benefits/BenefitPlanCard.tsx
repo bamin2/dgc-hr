@@ -45,7 +45,7 @@ export const BenefitPlanCard = ({ plan }: BenefitPlanCardProps) => {
         
         {/* Type-specific info */}
         {plan.type === 'air_ticket' && plan.entitlement_config && (
-          <div className="flex items-center gap-2 text-sm text-sky-700 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/20 px-3 py-2 rounded-md">
+          <div className="flex items-center gap-2 text-sm text-info bg-info/10 px-3 py-2 rounded-md">
             <Plane className="h-4 w-4" />
             <span>
               {(plan.entitlement_config as AirTicketConfig).tickets_per_period} ticket(s) every {(plan.entitlement_config as AirTicketConfig).period_years} year(s)
@@ -54,7 +54,7 @@ export const BenefitPlanCard = ({ plan }: BenefitPlanCardProps) => {
         )}
 
         {plan.type === 'phone' && plan.entitlement_config && (
-          <div className="flex items-center gap-2 text-sm text-violet-700 dark:text-violet-400 bg-violet-50 dark:bg-violet-950/20 px-3 py-2 rounded-md">
+          <div className="flex items-center gap-2 text-sm text-primary bg-primary/10 px-3 py-2 rounded-md">
             <Smartphone className="h-4 w-4" />
             <span>
               {formatPlanCurrency((plan.entitlement_config as PhoneConfig).total_device_cost)} over {(plan.entitlement_config as PhoneConfig).installment_months} months
@@ -63,7 +63,7 @@ export const BenefitPlanCard = ({ plan }: BenefitPlanCardProps) => {
         )}
 
         {plan.type === 'car_park' && (
-          <div className="flex items-center gap-2 text-sm text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/20 px-3 py-2 rounded-md">
+          <div className="flex items-center gap-2 text-sm text-primary bg-primary/10 px-3 py-2 rounded-md">
             <Car className="h-4 w-4" />
             <span>Monthly parking allocation</span>
           </div>
@@ -99,7 +99,7 @@ export const BenefitPlanCard = ({ plan }: BenefitPlanCardProps) => {
             <ul className="space-y-1.5">
               {plan.features.slice(0, 3).map((feature, index) => (
                 <li key={index} className="flex items-center gap-2 text-sm">
-                  <Check className="h-3.5 w-3.5 text-emerald-500 flex-shrink-0" />
+                  <Check className="h-3.5 w-3.5 text-success flex-shrink-0" />
                   <span className="text-muted-foreground">{feature}</span>
                 </li>
               ))}
