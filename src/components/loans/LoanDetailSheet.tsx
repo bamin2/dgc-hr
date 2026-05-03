@@ -31,9 +31,11 @@ interface LoanDetailSheetProps {
   loanId: string | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Hide all admin actions (Review/Restructure/Payment/Disburse/Skip/Mark Paid/Delete). */
+  readOnly?: boolean;
 }
 
-export function LoanDetailSheet({ loanId, open, onOpenChange }: LoanDetailSheetProps) {
+export function LoanDetailSheet({ loanId, open, onOpenChange, readOnly = false }: LoanDetailSheetProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [restructureDialogOpen, setRestructureDialogOpen] = useState(false);
