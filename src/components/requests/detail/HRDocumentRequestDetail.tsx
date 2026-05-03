@@ -43,7 +43,7 @@ export function HRDocumentRequestDetailSheet({
     }
     try {
       const { data, error } = await supabase.storage
-        .from("hr-documents")
+        .from("hr-letters")
         .createSignedUrl(request.pdf_storage_path, 60);
       if (error) throw error;
       window.open(data.signedUrl, "_blank", "noopener,noreferrer");
