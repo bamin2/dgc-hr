@@ -17,11 +17,30 @@ import {
 } from './bento';
 
 function CardSkeleton({ colSpan = 4 }: { colSpan?: 4 | 5 | 7 | 8 | 12 }) {
+  const isWide = colSpan >= 6;
+
+  const BarColumn = () => (
+    <div className="space-y-3">
+      <Skeleton className="h-3 w-[60%] rounded-full" />
+      <Skeleton className="h-3 w-[45%] rounded-full" />
+      <Skeleton className="h-3 w-[35%] rounded-full" />
+    </div>
+  );
+
   return (
     <BentoCard colSpan={colSpan}>
-      <div className="space-y-4">
-        <Skeleton className="h-5 w-32" />
-        <Skeleton className="h-20 w-full rounded-xl" />
+      <div className="space-y-5">
+        {/* Header: 32px avatar + 120px title bar */}
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-8 w-8 rounded-full" />
+          <Skeleton className="h-4 w-[120px] rounded-full" />
+        </div>
+
+        {/* Content bars: single column, or two columns when wide */}
+        <div className={isWide ? "grid grid-cols-2 gap-6" : ""}>
+          <BarColumn />
+          {isWide && <BarColumn />}
+        </div>
       </div>
     </BentoCard>
   );
