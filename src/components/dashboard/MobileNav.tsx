@@ -23,18 +23,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { RoleBadge } from "@/components/employees/RoleBadge";
 import dgcLogoLight from "@/assets/dgc-people-logo.svg";
 
-// PRIMARY - Core employee actions (always visible, larger touch targets)
-const primaryMenuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/" },
-  { icon: UserCircle, label: "My Profile", path: "/my-profile" },
-  { icon: Clock, label: "Time Off", path: "/time-off" },
-  { icon: Bell, label: "Notifications", path: "/notifications" },
-];
-
-// SECONDARY - Less frequent actions (grouped in "More")
+// SECONDARY - Destinations not present in the bottom MobileActionBar
 const secondaryMenuItems = [
   { icon: BookUser, label: "Directory", path: "/directory" },
   { icon: Briefcase, label: "Projects", path: "/projects" },
+  { icon: Calendar, label: "Calendar", path: "/calendar" },
+  { icon: Plane, label: "Business Trips", path: "/business-trips" },
   { icon: Settings, label: "Settings", path: "/settings" },
   { icon: HelpCircle, label: "Help Center", path: "/help-center" },
 ];
