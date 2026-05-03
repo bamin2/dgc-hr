@@ -1,54 +1,44 @@
-## Goal
+## Plan: Rewrite README.md
 
-Make route navigation feel native on mobile by adding directional slide transitions, with a subtle fade on desktop. Use framer-motion's `AnimatePresence` keyed on the route path.
+Replace the generic Lovable boilerplate `README.md` with a comprehensive, project-specific document for the **DGC Holding HR Platform**. Once approved (build mode), I'll write the file and it will sync to GitHub automatically via the existing Lovable ↔ GitHub integration.
 
-## Approach
+### Proposed sections
 
-1. **Add `framer-motion`** as a dependency (already widely used, ~25kb gzipped, tree-shakable).
-2. **Create `<AnimatedRoutes>`** in `src/components/AnimatedRoutes.tsx`:
-   - Uses `useLocation()` + `AnimatePresence mode="wait"`.
-   - Wraps each route's element in a `<motion.div>` keyed by `location.pathname`.
-   - Tracks navigation direction via a small `useNavigationDirection` hook that listens to `history.state.idx` (React Router v6 increments this on push, decrements on back) — push → slide from right, pop → slide from left.
-   - Desktop (>= md): subtle fade + 6px Y translate (matches existing `page-in` keyframe feel).
-   - Mobile (< md): horizontal slide-in-from-right on forward, slide-out-to-right on back. Uses `useIsMobile()`.
-   - Honors `prefers-reduced-motion` → falls back to instant change (no animation).
-3. **Wire into `App.tsx`**: replace the current `<Routes>` block with `<AnimatedRoutes />`. The route table moves into `AnimatedRoutes` so `AnimatePresence` can see route changes. All existing `ProtectedRoute` / `MobileRestrictedRoute` / `DashboardLazyPage` wrappers stay intact.
-4. **Performance guards**:
-   - `mode="wait"` ensures only one route renders at a time (no layout overlap, no double data fetches).
-   - Transition duration: 220ms mobile slide, 180ms desktop fade — matches existing `cubic-bezier(0.2, 0.6, 0.2, 1)` easing already in `index.css`.
-   - `will-change: transform, opacity` only during transition.
-   - Animations disabled inside iframes / when reduced-motion is set.
-5. **Auth pages excluded**: `/auth`, `/auth/reset-password`, `/email-action-result` render outside `AnimatedRoutes` (or with fade only) — slide transitions on the login screen feel weird.
+1. **Header & Overview** — Project name (DGC HR), one-paragraph description, live URLs:
+   - Production: `https://hr.dgcholding.com`
+   - Lovable preview: `https://style-to-site-solver.lovable.app`
 
-## Technical details
+2. **Features** — Grouped list reflecting actual modules in `src/pages`:
+   - Workforce: Employees, Directory, MyProfile, Onboarding/Offboarding, Hiring & Candidates
+   - Time & Leave: Time Off, Time Management, Attendance, Calendar, Public Holidays
+   - Payroll & Compensation: Payroll runs, Payslips, Payslip Templates, Bulk Salary Update, Loans, GOSI
+   - Benefits & Requests: Benefits enrollment & claims, Business Trips, Approvals, Unified Requests
+   - Documents & Reports: HR Letters, Document templates, Reports, Audit Trail
+   - Platform: Notifications, Help Center, Settings, role-based access (employee/manager/hr/admin), impersonation
+   - PWA: Installable, offline indicator, mobile-first navigation with route prefetching
 
-**New files:**
-- `src/components/AnimatedRoutes.tsx` — owns the route table + `AnimatePresence`.
-- `src/hooks/useNavigationDirection.ts` — reads `window.history.state?.idx` on each location change, compares to previous, returns `'forward' | 'back' | 'replace'`.
+3. **Tech stack** — Vite 5, React 18, TypeScript 5, Tailwind v3, shadcn/ui (Radix), React Router 6, TanStack Query 5, Supabase (Lovable Cloud), framer-motion, react-hook-form + zod, recharts, tiptap, docxtemplater, jspdf, xlsx, Playwright + Vitest.
 
-**Edited files:**
-- `src/App.tsx` — replace inline `<Routes>` with `<AnimatedRoutes />`. Keep the auth/public routes either inside (with fade variant) or as a separate non-animated `<Routes>` group above.
-- `package.json` — add `framer-motion`.
+4. **Architecture highlights** — Brief notes on:
+   - Lovable Cloud (Supabase) for auth, DB, storage, edge functions
+   - User roles in separate `user_roles` table with `has_role()` security definer
+   - Centralized query keys, design tokens, date utils
+   - Route-level lazy loading + nav prefetching + animated transitions
 
-**Variant sketch:**
+5. **Local development** — Prereqs (Node 18+, bun or npm), clone, install, `.env` requirements (Supabase URL + anon key auto-provisioned by Lovable Cloud), `npm run dev`.
 
-```ts
-const mobileVariants = {
-  initial: (dir) => ({ x: dir === 'back' ? '-30%' : '100%', opacity: 0 }),
-  animate: { x: 0, opacity: 1 },
-  exit:    (dir) => ({ x: dir === 'back' ? '100%' : '-30%', opacity: 0 }),
-};
-const desktopVariants = {
-  initial: { opacity: 0, y: 6 },
-  animate: { opacity: 1, y: 0 },
-  exit:    { opacity: 0, y: -6 },
-};
-```
+6. **Scripts** — `dev`, `build`, `build:dev`, `lint`, `preview`, plus `vitest` and `playwright test`.
 
-Transition: `{ duration: isMobile ? 0.22 : 0.18, ease: [0.2, 0.6, 0.2, 1] }`.
+7. **Project structure** — Short tree of `src/` (pages, components, hooks, lib, contexts, integrations, types).
 
-## Out of scope
+8. **Testing** — Unit tests with Vitest (`src/**/__tests__`), E2E with Playwright (`e2e/`).
 
-- No shared-element transitions (would require per-page coordination).
-- No swipe-to-go-back gesture (separate, larger feature).
-- The existing `.page-enter` utility and per-component `animate-fade-up` stay as-is — they animate content *inside* a page, the new system animates the page boundary.
+9. **Deployment** — Via Lovable (Share → Publish) and custom domain (`hr.dgcholding.com`); GitHub two-way sync note.
+
+10. **Design system** — Brief: DGC palette (Deep Green `#0F2A28`, Off-white `#F7F7F5`, Gold `#C6A45E`), 8pt spacing, Instrument Sans, liquid-glass surfaces.
+
+11. **Contributing & License** — Internal project note; proprietary to DGC Holding.
+
+### Out of scope
+- No code changes, no new dependencies.
+- Does not touch any other docs (`src/**/README.md` files remain as-is).
