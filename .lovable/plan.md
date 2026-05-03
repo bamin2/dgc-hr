@@ -1,73 +1,66 @@
 ## Goal
-Normalize breadcrumbs across the requested detail pages so each page's `PageHeader` shows a clear path using data already loaded on the page. No back buttons; no other layout changes.
+Replace the single muted circle in `EmptyState` with a layered visual: gold-tinted outer ring + card-colored inner circle + primary-colored icon. Scale proportionally across `sm` / `default` / `lg`. No prop changes, no consumer changes.
 
-## Audit (current vs. requested)
+## Findings
+- `EmptyState` lives at `src/components/ui/empty-state.tsx`.
+- Icon block is lines 78–81; size variant logic uses `iconSizes` (line 58–62).
+- Tokens used: `bg-accent` is the DGC gold, `bg-card`, `border-border`, `text-primary` (DGC deep green) — all already in the design system.
+- `NoSearchResults` uses `<EmptyState>` and is unaffected (prop interface preserved).
 
-| Page | Current breadcrumbs | Action |
-|---|---|---|
-| EmployeeProfile | `Employees › {fullName}` | Prepend `Dashboard` |
-| CandidateDetail | `Hiring › {Name}` | No change — already correct |
-| OfferDetail | `Hiring › {offer_code}` | Reshape to `Hiring › Offers › {Candidate Name}` |
-| BusinessTripDetail | `Business Trips › Trip Details` | Use destination name as final crumb |
-| LeaveRequestDetail | `Time Management › Leave Request Details` | Reshape to `Time Management › Leave Requests › {Employee}` |
-| OnboardingDetail | `Employees › Onboarding › {Name}` | No change — already correct |
-| BenefitDetail | `Benefits › {Plan name}` | No change — already correct |
-| Payslip | `Payroll › Payslip` | No change — already correct |
-| MyPayslip | `My Profile › Payslip` | No change — already correct |
-| PayrollRun | No PageHeader; this is the new-run wizard, no run number exists yet | Skip — see note |
-| PayslipTemplateEditor | `Payroll › Templates › {New Template / Edit Template}` | Use `template.name` as final crumb when editing |
+## Sizing scale (proportional)
 
-### Note on `PayrollRun.tsx`
-This file is a 4-step wizard for **creating** a new payroll run. There is no `runId`/`n` available — the run is only persisted on submit. Adding a `Payroll › Run #{n}` breadcrumb here would invent data. Recommend leaving as-is; if a separate "view existing run" page exists or is added later, it should carry the `Run #{n}` breadcrumb. Will not modify `PayrollRun.tsx` in this prompt.
+| size | outer | inner | icon (unchanged) |
+|---|---|---|---|
+| sm | 72×72 | 56×56 | h-8 w-8 |
+| default | 96×96 | 72×72 | h-12 w-12 |
+| lg | 120×120 | 88×88 | h-16 w-16 |
 
-## Changes
+## Change
 
-### `src/pages/EmployeeProfile.tsx` (line 342)
+In `src/components/ui/empty-state.tsx`, replace the icon block (lines 78–81) and add two new size maps right after `iconSizes` (line 62). Final structure:
+
 ```tsx
-breadcrumbs={[
-  { label: "Dashboard", href: "/" },
-  { label: "Employees", href: "/employees" },
-  { label: employee.fullName },
-]}
+const iconSizes = {
+  sm: "h-8 w-8",
+  default: "h-12 w-12",
+  lg: "h-16 w-16",
+};
+
+const outerCircleSizes = {
+  sm: "h-[72px] w-[72px]",
+  default: "h-24 w-24",          // 96px
+  lg: "h-[120px] w-[120px]",
+};
+
+const innerCircleSizes = {
+  sm: "h-14 w-14",                // 56px
+  default: "h-[72px] w-[72px]",
+  lg: "h-[88px] w-[88px]",
+};
 ```
 
-### `src/pages/OfferDetail.tsx` (line 56)
-```tsx
-breadcrumbs={[
-  { label: 'Hiring', href: '/hiring' },
-  { label: 'Offers', href: '/hiring' },
-  { label: `${offer.candidate?.first_name ?? ''} ${offer.candidate?.last_name ?? ''}`.trim() || offer.offer_code }
-]}
-```
-(Hiring page is the current home for offers; using `/hiring` for the Offers crumb keeps navigation valid without inventing a route.)
+And the icon block becomes:
 
-### `src/pages/BusinessTripDetail.tsx` (line 46)
 ```tsx
-breadcrumbs={[
-  { label: 'Business Trips', href: '/business-trips' },
-  { label: trip.destination?.name || 'Trip Details' }
-]}
-```
-
-### `src/pages/LeaveRequestDetail.tsx` (line 52)
-```tsx
-breadcrumbs={[
-  { label: 'Time Management', href: '/time-management' },
-  { label: 'Leave Requests', href: '/time-management' },
-  { label: employeeName }
-]}
+{/* Layered icon visual: gold-tinted outer ring, card inner circle, primary icon */}
+<div
+  className={cn(
+    "rounded-full bg-accent/10 flex items-center justify-center mb-4",
+    outerCircleSizes[size]
+  )}
+>
+  <div
+    className={cn(
+      "rounded-full bg-card border border-border flex items-center justify-center",
+      innerCircleSizes[size]
+    )}
+  >
+    <Icon className={cn("text-primary", iconSizes[size])} />
+  </div>
+</div>
 ```
 
-### `src/pages/PayslipTemplateEditor.tsx` (line 124)
-```tsx
-breadcrumbs={[
-  { label: 'Payroll', href: '/payroll' },
-  { label: 'Templates', href: '/payroll/templates' },
-  { label: isNew ? 'New Template' : (template?.name || 'Edit Template') }
-]}
-```
-
-## Untouched
-- `CandidateDetail.tsx`, `OnboardingDetail.tsx`, `BenefitDetail.tsx`, `Payslip.tsx`, `MyPayslip.tsx`: already match the spec.
-- `PayrollRun.tsx`: skipped per note above.
-- No back buttons added; no actions/layout/title/subtitle changes elsewhere.
+## Notes
+- Used `bg-accent/10` instead of `/8` because Tailwind only ships standard opacity steps; `/10` is the closest token-friendly equivalent and visually reads as a quiet gold tint. If the user explicitly wants `/8`, swap to `bg-accent/[0.08]`.
+- Prop interface, sizing variant API, padding logic, title/description/actions all untouched.
+- `NoSearchResults` consumer continues to work unchanged.
