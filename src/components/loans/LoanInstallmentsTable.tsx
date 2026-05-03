@@ -39,7 +39,7 @@ export function LoanInstallmentsTable({
   const getStatusBadge = (installment: LoanInstallment) => {
     if (installment.status === "paid") {
       return (
-        <Badge variant="default" className="bg-emerald-500 hover:bg-emerald-600">
+        <Badge variant="default" className="bg-success text-success-foreground hover:bg-success/90">
           Paid {installment.paid_method === "payroll" ? "(Payroll)" : "(Manual)"}
         </Badge>
       );

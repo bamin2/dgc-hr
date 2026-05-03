@@ -91,7 +91,7 @@ export function SkipInstallmentDialog({
             />
           </div>
 
-          <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-200">
+          <div className="rounded-lg border border-warning/30 bg-warning/10 p-3 text-sm text-warning">
             <p className="font-medium">This action will:</p>
             <ul className="list-disc list-inside mt-1 text-xs space-y-0.5">
               <li>Mark this installment as skipped</li>
