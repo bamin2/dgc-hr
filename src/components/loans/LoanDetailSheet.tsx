@@ -110,47 +110,49 @@ export function LoanDetailSheet({ loanId, open, onOpenChange, readOnly = false }
             {/* Status and Actions */}
             <div className="flex items-center justify-between">
               <LoanStatusBadge status={loan.status} />
-              <div className="flex gap-2">
-                {loan.status === "requested" && (
-                  <Button 
-                    size="sm" 
-                    onClick={() => setApprovalDialogOpen(true)}
-                  >
-                    <CheckCircle className="h-4 w-4 mr-1" />
-                    Review
-                  </Button>
-                )}
-                {loan.status === "active" && (
-                  <>
-                    <Button 
+              {!readOnly && (
+                <div className="flex gap-2">
+                  {loan.status === "requested" && (
+                    <Button
                       size="sm"
-                      variant="outline"
-                      onClick={() => setRestructureDialogOpen(true)}
+                      onClick={() => setApprovalDialogOpen(true)}
                     >
-                      <RefreshCw className="h-4 w-4 mr-1" />
-                      Restructure
+                      <CheckCircle className="h-4 w-4 mr-1" />
+                      Review
                     </Button>
-                    <Button 
+                  )}
+                  {loan.status === "active" && (
+                    <>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setRestructureDialogOpen(true)}
+                      >
+                        <RefreshCw className="h-4 w-4 mr-1" />
+                        Restructure
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setPaymentDialogOpen(true)}
+                      >
+                        <CreditCard className="h-4 w-4 mr-1" />
+                        Payment
+                      </Button>
+                    </>
+                  )}
+                  {loan.status === "approved" && (
+                    <Button
                       size="sm"
-                      variant="outline"
-                      onClick={() => setPaymentDialogOpen(true)}
+                      onClick={handleDisburse}
+                      disabled={disburseLoan.isPending}
                     >
-                      <CreditCard className="h-4 w-4 mr-1" />
-                      Payment
+                      <Banknote className="h-4 w-4 mr-1" />
+                      Disburse
                     </Button>
-                  </>
-                )}
-                {loan.status === "approved" && (
-                  <Button 
-                    size="sm"
-                    onClick={handleDisburse}
-                    disabled={disburseLoan.isPending}
-                  >
-                    <Banknote className="h-4 w-4 mr-1" />
-                    Disburse
-                  </Button>
-                )}
-              </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Employee Info */}
