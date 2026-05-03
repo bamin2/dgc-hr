@@ -107,9 +107,9 @@ function LoanCard({ loan, formatCurrency }: { loan: LoanWithInstallmentsData; fo
 
               {/* Next Payment */}
               {nextDueInstallment && (
-                <div className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-warning/10 rounded-lg">
                   <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-amber-600" />
+                    <Calendar className="h-4 w-4 text-warning" />
                     <div>
                       <p className="text-xs text-muted-foreground">Next Payment</p>
                       <p className="text-sm font-medium">
@@ -117,7 +117,7 @@ function LoanCard({ loan, formatCurrency }: { loan: LoanWithInstallmentsData; fo
                       </p>
                     </div>
                   </div>
-                  <p className="font-semibold text-amber-700 dark:text-amber-400">
+                  <p className="font-semibold text-warning">
                     {formatCurrency(nextDueInstallment.amount)}
                   </p>
                 </div>
