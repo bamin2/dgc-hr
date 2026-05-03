@@ -104,8 +104,10 @@ export function MobileQuickActionsCard() {
                 )}
               >
                 <div className={cn(
-                  "w-11 h-11 rounded-xl flex items-center justify-center",
-                  action.color
+                  "w-11 h-11 rounded-xl flex items-center justify-center border",
+                  action.label === "Request Time Off"
+                    ? "bg-accent/10 text-primary border-accent/30"
+                    : "bg-muted text-primary border-border"
                 )}>
                   <Icon className="h-5 w-5" />
                 </div>
