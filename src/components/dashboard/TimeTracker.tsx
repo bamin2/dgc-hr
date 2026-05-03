@@ -115,7 +115,7 @@ export function TimeTracker() {
           <div
             className={cn(
               "w-3 h-3 rounded-full",
-              isClockedIn ? "bg-green-400 animate-pulse" : "bg-white/50"
+              isClockedIn ? "bg-success animate-pulse" : "bg-white/50"
             )}
           />
         </div>

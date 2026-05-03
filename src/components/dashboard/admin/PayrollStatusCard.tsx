@@ -49,7 +49,7 @@ export function PayrollStatusCard({ status, isLoading, currency = 'SAR' }: Payro
         {status.lastRunDate && (
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-emerald-500" />
+              <CheckCircle className="h-4 w-4 text-success" />
               <span className="text-sm">Last Run</span>
             </div>
             <div className="text-right">
