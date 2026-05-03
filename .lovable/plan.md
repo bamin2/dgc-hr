@@ -1,25 +1,37 @@
 ## Goal
-Re-skin the auth left panel accents from green/muted to DGC Gold, and tighten the value-word typography. No layout, logo, or background changes.
+Neutralize the colored icon tiles on the mobile Quick Actions grid. All actions become tonal (`bg-muted text-primary border border-border`); only "Request Time Off" gets a gold-tinted highlight to read as the most prominent action.
 
-## Changes in `src/components/auth/AuthLeftPanel.tsx`
+## Changes in `src/components/dashboard/bento/MobileQuickActionsCard.tsx`
 
-1. Line 21 — top divider:
-   - From: `bg-[hsl(var(--auth-brand-panel-foreground)/0.2)]`
-   - To: `bg-accent/40`
+1. Drop `color` from the `QuickActionItem` interface (line 20–25).
+2. Remove the `color: "..."` field from every entry in `baseActions` (lines 45–70) and `managerActions` (lines 73–86).
+3. In the render (lines 113–118), replace the dynamic `action.color` class with a conditional:
+   - Default tile: `bg-muted text-primary border border-border`
+   - "Request Time Off" only: `bg-accent/10 text-primary border border-accent/30`
+4. Keep icons, labels, click handlers, the 2-column grid, BentoCard wrapping, and all dialog wiring untouched.
 
-2. Line 29 — bottom divider: same swap as above.
+### Resulting interface
+```ts
+interface QuickActionItem {
+  label: string;
+  icon: React.ElementType;
+  onClick: () => void;
+}
+```
 
-3. Line 47 — accent bar in `ValueWord`:
-   - From: `<div className="w-1 h-6 rounded-full bg-success" />`
-   - To: `<div className="w-1 h-8 rounded-full bg-accent" />`
-
-4. Line 49 — value word typography:
-   - From: `font-light tracking-[0.1em]`
-   - To: `font-medium tracking-[0.05em]`
-   (Keep `text-2xl lg:text-3xl` and the panel-foreground color intact.)
+### Resulting tile JSX
+```tsx
+<div
+  className={cn(
+    "w-11 h-11 rounded-xl flex items-center justify-center border",
+    action.label === "Request Time Off"
+      ? "bg-accent/10 text-primary border-accent/30"
+      : "bg-muted text-primary border-border"
+  )}
+>
+  <Icon className="h-5 w-5" />
+</div>
+```
 
 ## Out of scope
-- Panel background `bg-[hsl(var(--auth-brand-panel))]`
-- Logo block and `DGC People` label
-- Container layout, spacing, and `ml-4` offset for non-accent words
-- `ValueWord` prop interface
+- Outer button background (`bg-secondary/50`), grid layout, header, dialogs, navigation.
