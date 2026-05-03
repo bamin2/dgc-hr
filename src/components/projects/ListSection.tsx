@@ -17,10 +17,10 @@ interface ListSectionProps {
 }
 
 const statusIcons: Record<ProjectStatus, React.ReactNode> = {
-  in_progress: <Loader2 className="h-4 w-4 text-teal-600" />,
+  in_progress: <Loader2 className="h-4 w-4 text-info" />,
   todo: <Circle className="h-4 w-4 text-muted-foreground" />,
-  need_review: <AlertCircle className="h-4 w-4 text-yellow-500" />,
-  done: <CheckCircle className="h-4 w-4 text-green-500" />,
+  need_review: <AlertCircle className="h-4 w-4 text-warning" />,
+  done: <CheckCircle className="h-4 w-4 text-success" />,
 };
 
 export function ListSection({ status, projects, onAddProject, onProjectClick }: ListSectionProps) {

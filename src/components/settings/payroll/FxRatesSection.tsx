@@ -274,13 +274,12 @@ export function FxRatesSection() {
       </CardHeader>
       <CardContent className="space-y-4">
         {missingCurrencies.length > 0 && (
-          <div className="flex items-start gap-3 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
-            <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+          <div className="flex items-start gap-3 p-3 rounded-lg bg-warning/10 border border-warning/20">
+            <AlertTriangle className="h-5 w-5 text-warning flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-amber-500">Missing Exchange Rates</p>
+              <p className="text-sm font-medium text-warning">Missing Exchange Rates</p>
               <p className="text-xs text-muted-foreground mt-1">
-                The following currencies don't have exchange rates configured:{' '}
-                {missingCurrencies.map(c => c.code).join(', ')}. 
+                The following currencies don't have exchange rates configured:{' '} {missingCurrencies.map(c => c.code).join(', ')}. 
                 Reports using these currencies cannot be converted to BHD.
               </p>
             </div>

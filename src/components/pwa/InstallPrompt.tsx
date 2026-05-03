@@ -85,48 +85,7 @@ export function InstallPrompt() {
             <h3 className="font-semibold text-foreground">Install DGC People</h3>
             <p className="mt-1 text-sm text-muted-foreground">
               {isIOS
-                ? "Tap the share button, then 'Add to Home Screen'"
-                : "Add to your home screen for quick access"}
-            </p>
-
-            {/* Actions */}
-            <div className="mt-3 flex items-center gap-2">
-              {isIOS ? (
-                <Button
-                  size="sm"
-                  onClick={handleDismiss}
-                  className="bg-primary hover:bg-primary/90"
-                >
-                  Got it
-                </Button>
-              ) : (
-                <Button
-                  size="sm"
-                  onClick={handleInstall}
-                  className="bg-primary hover:bg-primary/90"
-                >
-                  <Download className="mr-1.5 h-4 w-4" />
-                  Install
-                </Button>
-              )}
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={handleDismiss}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                Not now
-              </Button>
-            </div>
-          </div>
-
-          {/* Dismiss button */}
-          <button
-            onClick={handleDismiss}
-            className="shrink-0 rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-            aria-label="Dismiss"
-          >
-            <X className="h-4 w-4" />
+                ? "Tap the share button, then 'Add to Home Screen'" : "Add to your home screen for quick access"} </p> {/* Actions */} <div className="mt-3 flex items-center gap-2"> {isIOS ? ( <Button size="sm" onClick={handleDismiss} className="bg-primary hover:bg-primary/90" > Got it </Button> ) : ( <Button size="sm" onClick={handleInstall} className="bg-primary hover:bg-primary/90" > <Download className="mr-1.5 h-4 w-4" /> Install </Button> )} <Button size="sm" variant="ghost" onClick={handleDismiss} className="text-muted-foreground hover:text-foreground" > Not now </Button> </div> </div> {/* Dismiss button */} <button onClick={handleDismiss} className="shrink-0 rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors" aria-label="Dismiss" > <X className="h-4 w-4" />
           </button>
         </div>
       </div>

@@ -88,60 +88,7 @@ export const EditEnrollmentDialog = ({
   const employerCost = selectedCoverageLevel?.employer_cost ?? enrollment.employer_contribution;
   const totalCost = employeeCost + employerCost;
 
-  // Format using plan's currency
-  const planCurrency = plan?.currency || 'BHD';
-  const formatPlanCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: planCurrency,
-      minimumFractionDigits: 2,
-    }).format(amount);
-  };
-
-  const handleSave = async () => {
-    if (!enrollment || !selectedCoverageLevelId || !startDate) return;
-
-    try {
-      // Build entitlement_data for car park plans
-      let entitlementData = enrollment.entitlement_data;
-      if (isCarParkPlan) {
-        entitlementData = {
-          ...((entitlementData as Record<string, unknown>) || {}),
-          spot_location: spotLocation || null,
-        };
-      }
-
-      // Update enrollment
-      await updateEnrollment.mutateAsync({
-        id: enrollment.id,
-        coverage_level_id: selectedCoverageLevelId,
-        start_date: format(startDate, 'yyyy-MM-dd'),
-        end_date: endDate ? format(endDate, 'yyyy-MM-dd') : null,
-        employee_contribution: employeeCost,
-        employer_contribution: employerCost,
-        entitlement_data: entitlementData,
-      });
-
-      // Update beneficiaries
-      await updateBeneficiaries.mutateAsync({
-        enrollmentId: enrollment.id,
-        beneficiaries: beneficiaries.map(b => ({
-          name: b.name,
-          relationship: b.relationship,
-          national_id: b.nationalId,
-        })),
-      });
-
-      toast({
-        title: 'Enrollment Updated',
-        description: 'The enrollment has been updated successfully.',
-      });
-      onOpenChange(false);
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to update enrollment. Please try again.',
-        variant: 'destructive',
+  // Format using plan's currency const planCurrency = plan?.currency || 'BHD'; const formatPlanCurrency = (amount: number) => { return new Intl.NumberFormat('en-US', { style: 'currency', currency: planCurrency, minimumFractionDigits: 2, }).format(amount); }; const handleSave = async () => { if (!enrollment || !selectedCoverageLevelId || !startDate) return; try { // Build entitlement_data for car park plans let entitlementData = enrollment.entitlement_data; if (isCarParkPlan) { entitlementData = { ...((entitlementData as Record<string, unknown>) || {}), spot_location: spotLocation || null, }; } // Update enrollment await updateEnrollment.mutateAsync({ id: enrollment.id, coverage_level_id: selectedCoverageLevelId, start_date: format(startDate, 'yyyy-MM-dd'), end_date: endDate ? format(endDate, 'yyyy-MM-dd') : null, employee_contribution: employeeCost, employer_contribution: employerCost, entitlement_data: entitlementData, }); // Update beneficiaries await updateBeneficiaries.mutateAsync({ enrollmentId: enrollment.id, beneficiaries: beneficiaries.map(b => ({ name: b.name, relationship: b.relationship, national_id: b.nationalId, })), }); toast({ title: 'Enrollment Updated', description: 'The enrollment has been updated successfully.', }); onOpenChange(false); } catch (error) { toast({ title: 'Error', description: 'Failed to update enrollment. Please try again.', variant: 'destructive',
       });
     }
   };
@@ -273,7 +220,7 @@ export const EditEnrollmentDialog = ({
             {/* Car Park Spot Location */}
             {isCarParkPlan && (
               <div className="space-y-3">
-                <div className="flex items-center gap-2 text-indigo-700 dark:text-indigo-400">
+                <div className="flex items-center gap-2 text-info">
                   <Car className="h-4 w-4" />
                   <Label className="font-medium">Car Park Assignment</Label>
                 </div>
@@ -333,7 +280,7 @@ export const EditEnrollmentDialog = ({
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Employer pays</span>
-                <span className="font-medium text-emerald-600">{formatPlanCurrency(employerCost)}</span>
+                <span className="font-medium text-success">{formatPlanCurrency(employerCost)}</span>
               </div>
               <div className="border-t pt-3 flex justify-between">
                 <span className="font-medium">Total Monthly Cost</span>

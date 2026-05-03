@@ -178,7 +178,7 @@ export function BalanceAdjustmentDialog({
                   <FormDescription>
                     New total will be: <strong>{getNewTotal()}</strong> days
                     {getNewTotal() < 0 && (
-                      <span className="text-amber-600 ml-1">(negative balance)</span>
+                      <span className="text-warning ml-1">(negative balance)</span>
                     )}
                   </FormDescription>
                   <FormMessage />

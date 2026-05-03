@@ -37,11 +37,11 @@ export function TeamRequestsTab() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "approved":
-        return <Badge className="bg-emerald-500">Approved</Badge>;
+        return <Badge className="bg-success">Approved</Badge>;
       case "rejected":
         return <Badge variant="destructive">Rejected</Badge>;
       case "pending":
-        return <Badge variant="outline" className="text-amber-600 border-amber-600">Pending</Badge>;
+        return <Badge variant="outline" className="text-warning border-warning">Pending</Badge>;
       case "cancelled":
         return <Badge variant="secondary">Cancelled</Badge>;
       default:

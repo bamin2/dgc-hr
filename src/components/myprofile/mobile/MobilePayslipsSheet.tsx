@@ -107,23 +107,7 @@ export function MobilePayslipsSheet({
             <EmptyState
               icon={Receipt}
               title="No payslips"
-              description="You don't have any payslips issued yet."
-              size="sm"
-            />
-          ) : (
-            <div className="space-y-3 pb-4">
-              {recentPayslips.map((payslip) => (
-                <div
-                  key={payslip.id}
-                  className="rounded-2xl border bg-card p-4 space-y-3"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                      <Receipt className="h-5 w-5 text-primary" />
-                    </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm">
+              description="You don't have any payslips issued yet." size="sm" /> ) : ( <div className="space-y-3 pb-4"> {recentPayslips.map((payslip) => ( <div key={payslip.id} className="rounded-2xl border bg-card p-4 space-y-3" > <div className="flex items-start gap-3"> <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0"> <Receipt className="h-5 w-5 text-primary" /> </div> <div className="flex-1 min-w-0"> <p className="font-medium text-sm">
                         {format(new Date(payslip.payPeriodStart), 'MMMM yyyy')}
                       </p>
                       <p className="text-xs text-muted-foreground">

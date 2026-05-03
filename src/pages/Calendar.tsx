@@ -165,10 +165,7 @@ export default function Calendar() {
     const eventsCount = todayEvents.filter((e) => e.type === "event").length;
     const parts = [];
     if (meetingsCount > 0) {
-      parts.push(`${meetingsCount} meeting${meetingsCount > 1 ? "s" : ""}`);
-    }
-    if (eventsCount > 0) {
-      parts.push(`${eventsCount} event${eventsCount > 1 ? "s" : ""}`);
+      parts.push(`${meetingsCount} meeting${meetingsCount > 1 ? "s" : ""}`); } if (eventsCount > 0) { parts.push(`${eventsCount} event${eventsCount > 1 ? "s" : ""}`);
     }
     if (parts.length === 0) {
       return "No events scheduled for today";

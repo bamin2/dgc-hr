@@ -16,12 +16,12 @@ export function ImpersonationBanner() {
     .slice(0, 2);
 
   return (
-    <div className="bg-amber-500 text-amber-950 px-4 py-2 flex items-center justify-between">
+    <div className="bg-warning text-warning px-4 py-2 flex items-center justify-between">
       <div className="flex items-center gap-3">
         <Eye className="w-4 h-4" />
-        <Avatar className="w-6 h-6 border border-amber-600">
+        <Avatar className="w-6 h-6 border border-warning">
           <AvatarImage src={impersonatedEmployee.avatar} />
-          <AvatarFallback className="bg-amber-400 text-amber-950 text-xs">
+          <AvatarFallback className="bg-warning text-warning text-xs">
             {initials}
           </AvatarFallback>
         </Avatar>
@@ -37,7 +37,7 @@ export function ImpersonationBanner() {
         variant="outline" 
         size="sm" 
         onClick={stopImpersonation}
-        className="bg-amber-600 border-amber-700 text-amber-50 hover:bg-amber-700 hover:text-amber-50 h-7"
+        className="bg-warning border-warning text-warning hover:bg-warning hover:text-warning h-7"
       >
         <X className="w-3 h-3 mr-1" />
         Exit View

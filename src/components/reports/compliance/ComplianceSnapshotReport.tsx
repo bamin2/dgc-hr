@@ -184,49 +184,49 @@ export function ComplianceSnapshotReport() {
       {/* KPI Cards */}
       {data?.summary && (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card className={data.summary.missingDocsCount > 0 ? 'border-red-200 bg-red-50/50' : ''}>
+          <Card className={data.summary.missingDocsCount > 0 ? 'border-destructive/30 bg-destructive/10' : ''}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Missing Documents</CardTitle>
-              <FileWarning className={cn("h-4 w-4", data.summary.missingDocsCount > 0 ? 'text-red-500' : 'text-muted-foreground')} />
+              <FileWarning className={cn("h-4 w-4", data.summary.missingDocsCount > 0 ? 'text-destructive' : 'text-muted-foreground')} />
             </CardHeader>
             <CardContent>
-              <div className={cn("font-bold", getResponsiveFontSize(data.summary.missingDocsCount), data.summary.missingDocsCount > 0 && 'text-red-600')}>
+              <div className={cn("font-bold", getResponsiveFontSize(data.summary.missingDocsCount), data.summary.missingDocsCount > 0 && 'text-destructive')}>
                 {data.summary.missingDocsCount}
               </div>
               <p className="text-xs text-muted-foreground">required docs not uploaded</p>
             </CardContent>
           </Card>
-          <Card className={data.summary.expiredDocsCount > 0 ? 'border-red-200 bg-red-50/50' : ''}>
+          <Card className={data.summary.expiredDocsCount > 0 ? 'border-destructive/30 bg-destructive/10' : ''}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Expired Documents</CardTitle>
-              <AlertTriangle className={cn("h-4 w-4", data.summary.expiredDocsCount > 0 ? 'text-red-500' : 'text-muted-foreground')} />
+              <AlertTriangle className={cn("h-4 w-4", data.summary.expiredDocsCount > 0 ? 'text-destructive' : 'text-muted-foreground')} />
             </CardHeader>
             <CardContent>
-              <div className={cn("font-bold", getResponsiveFontSize(data.summary.expiredDocsCount), data.summary.expiredDocsCount > 0 && 'text-red-600')}>
+              <div className={cn("font-bold", getResponsiveFontSize(data.summary.expiredDocsCount), data.summary.expiredDocsCount > 0 && 'text-destructive')}>
                 {data.summary.expiredDocsCount}
               </div>
               <p className="text-xs text-muted-foreground">documents past expiry</p>
             </CardContent>
           </Card>
-          <Card className={data.summary.expiringDocsCount > 0 ? 'border-amber-200 bg-amber-50/50' : ''}>
+          <Card className={data.summary.expiringDocsCount > 0 ? 'border-warning/30 bg-warning/10' : ''}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Expiring Soon</CardTitle>
-              <Clock className={cn("h-4 w-4", data.summary.expiringDocsCount > 0 ? 'text-amber-500' : 'text-muted-foreground')} />
+              <Clock className={cn("h-4 w-4", data.summary.expiringDocsCount > 0 ? 'text-warning' : 'text-muted-foreground')} />
             </CardHeader>
             <CardContent>
-              <div className={cn("font-bold", getResponsiveFontSize(data.summary.expiringDocsCount), data.summary.expiringDocsCount > 0 && 'text-amber-600')}>
+              <div className={cn("font-bold", getResponsiveFontSize(data.summary.expiringDocsCount), data.summary.expiringDocsCount > 0 && 'text-warning')}>
                 {data.summary.expiringDocsCount}
               </div>
               <p className="text-xs text-muted-foreground">within {filters.expiryWindowDays || 30} days</p>
             </CardContent>
           </Card>
-          <Card className={data.summary.gosiMismatchCount > 0 ? 'border-orange-200 bg-orange-50/50' : ''}>
+          <Card className={data.summary.gosiMismatchCount > 0 ? 'border-warning/30 bg-warning/10' : ''}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">GOSI Mismatches</CardTitle>
-              <ShieldAlert className={cn("h-4 w-4", data.summary.gosiMismatchCount > 0 ? 'text-orange-500' : 'text-muted-foreground')} />
+              <ShieldAlert className={cn("h-4 w-4", data.summary.gosiMismatchCount > 0 ? 'text-warning' : 'text-muted-foreground')} />
             </CardHeader>
             <CardContent>
-              <div className={cn("font-bold", getResponsiveFontSize(data.summary.gosiMismatchCount), data.summary.gosiMismatchCount > 0 && 'text-orange-600')}>
+              <div className={cn("font-bold", getResponsiveFontSize(data.summary.gosiMismatchCount), data.summary.gosiMismatchCount > 0 && 'text-warning')}>
                 {data.summary.gosiMismatchCount}
               </div>
               <p className="text-xs text-muted-foreground">registration issues</p>
@@ -428,7 +428,7 @@ export function ComplianceSnapshotReport() {
                           <TableCell>{record.department}</TableCell>
                           <TableCell>{record.location}</TableCell>
                           <TableCell>
-                            <span className="text-orange-600">{record.issue}</span>
+                            <span className="text-warning">{record.issue}</span>
                           </TableCell>
                         </TableRow>
                       ))}

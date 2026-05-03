@@ -87,10 +87,7 @@ export function DashboardSettingsTab({ visibility, onChange }: DashboardSettings
                   key={card.id}
                   className={`flex items-start gap-4 rounded-lg border p-4 transition-colors ${
                     isEnabled ? 'bg-card' : 'bg-muted/50'
-                  }`}
-                >
-                  <div className={`rounded-lg p-2 ${isEnabled ? 'bg-primary/10' : 'bg-muted'}`}>
-                    <Icon className={`h-5 w-5 ${isEnabled ? 'text-primary' : 'text-muted-foreground'}`} />
+                  }`} > <div className={`rounded-lg p-2 ${isEnabled ? 'bg-primary/10' : 'bg-muted'}`}> <Icon className={`h-5 w-5 ${isEnabled ? 'text-primary' : 'text-muted-foreground'}`} />
                   </div>
                   <div className="flex-1 space-y-1">
                     <div className="flex items-center justify-between">

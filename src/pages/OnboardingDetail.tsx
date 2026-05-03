@@ -276,7 +276,7 @@ export default function OnboardingDetail() {
             <CardContent>
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 rounded-full bg-green-500 mt-1.5" />
+                  <div className="w-2 h-2 rounded-full bg-success mt-1.5" />
                   <div>
                     <p className="text-sm font-medium">Start Date</p>
                     <p className="text-sm text-muted-foreground">
@@ -285,7 +285,7 @@ export default function OnboardingDetail() {
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 rounded-full bg-teal-500 mt-1.5" />
+                  <div className="w-2 h-2 rounded-full bg-info mt-1.5" />
                   <div>
                     <p className="text-sm font-medium">Scheduled Completion</p>
                     <p className="text-sm text-muted-foreground">

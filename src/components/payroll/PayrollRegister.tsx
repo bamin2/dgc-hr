@@ -45,17 +45,7 @@ export function PayrollRegister({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("loan_installments")
-        .select(`
-          id,
-          amount,
-          installment_number,
-          loan:loans(
-            id,
-            employee_id,
-            duration_months,
-            employee:employees(id, first_name, last_name)
-          )
-        `)
+        .select(` id, amount, installment_number, loan:loans( id, employee_id, duration_months, employee:employees(id, first_name, last_name) ) `)
         .eq("paid_in_payroll_run_id", run.id)
         .eq("status", "paid");
 
@@ -88,10 +78,7 @@ export function PayrollRegister({
   }));
 
   const formatCurrency = (amount: number) =>
-    `${location.currency} ${amount.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
+    `${location.currency} ${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2, })}`;
 
   // Calculate adjusted totals per employee
   const getAdjustedTotals = (emp: PayrollRunEmployee) => {

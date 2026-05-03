@@ -106,9 +106,9 @@ const BenefitDetail = () => {
 
         {/* Type-specific Configuration Display */}
         {plan.type === 'air_ticket' && plan.entitlement_config && (
-          <Card className="border-border/50 border-sky-200 dark:border-sky-800 bg-sky-50/50 dark:bg-sky-950/20">
+          <Card className="border-border/50 border-info/30 dark:border-info bg-info/10">
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2 text-sky-700 dark:text-sky-400">
+              <CardTitle className="text-lg flex items-center gap-2 text-info">
                 <Plane className="h-5 w-5" />
                 Air Ticket Entitlement
               </CardTitle>
@@ -132,9 +132,9 @@ const BenefitDetail = () => {
         )}
 
         {plan.type === 'car_park' && (
-          <Card className="border-border/50 border-indigo-200 dark:border-indigo-800 bg-indigo-50/50 dark:bg-indigo-950/20">
+          <Card className="border-border/50 border-info/30 dark:border-info bg-info/10">
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2 text-indigo-700 dark:text-indigo-400">
+              <CardTitle className="text-lg flex items-center gap-2 text-info">
                 <Car className="h-5 w-5" />
                 Car Park Entitlement
               </CardTitle>
@@ -149,9 +149,9 @@ const BenefitDetail = () => {
         )}
 
         {plan.type === 'phone' && plan.entitlement_config && (
-          <Card className="border-border/50 border-violet-200 dark:border-violet-800 bg-violet-50/50 dark:bg-violet-950/20">
+          <Card className="border-border/50 border-info/30 dark:border-info bg-info/10">
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2 text-violet-700 dark:text-violet-400">
+              <CardTitle className="text-lg flex items-center gap-2 text-info">
                 <Smartphone className="h-5 w-5" />
                 Phone Entitlement
               </CardTitle>
@@ -199,7 +199,7 @@ const BenefitDetail = () => {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Employer Contribution</span>
-                        <span className="text-emerald-600 font-medium">{formatCurrency(coverage.employer_cost)}/mo</span>
+                        <span className="text-success font-medium">{formatCurrency(coverage.employer_cost)}/mo</span>
                       </div>
                       <div className="flex justify-between pt-2 border-t">
                         <span className="text-muted-foreground">Total Value</span>
@@ -223,8 +223,8 @@ const BenefitDetail = () => {
               <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {plan.features.map((feature, index) => (
                   <li key={index} className="flex items-center gap-2">
-                    <div className="h-5 w-5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center flex-shrink-0">
-                      <Check className="h-3 w-3 text-emerald-600" />
+                    <div className="h-5 w-5 rounded-full bg-success/10 flex items-center justify-center flex-shrink-0">
+                      <Check className="h-3 w-3 text-success" />
                     </div>
                     <span className="text-sm">{feature}</span>
                   </li>

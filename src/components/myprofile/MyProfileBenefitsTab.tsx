@@ -255,8 +255,8 @@ export function MyProfileBenefitsTab({ employeeId }: MyProfileBenefitsTabProps) 
           </BentoCard>
           <BentoCard colSpan={6}>
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 dark:bg-blue-950/30 rounded-lg">
-                <Calendar className="h-5 w-5 text-blue-600" />
+              <div className="p-2 bg-info/10 rounded-lg">
+                <Calendar className="h-5 w-5 text-info" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Next Renewal</p>

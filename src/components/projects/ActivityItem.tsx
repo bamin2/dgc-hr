@@ -11,12 +11,12 @@ interface ActivityItemProps {
 }
 
 const activityConfig: Record<ActivityType, { icon: typeof Plus; colorClass: string }> = {
-  created: { icon: Plus, colorClass: "bg-green-500" },
-  status_change: { icon: ArrowRight, colorClass: "bg-blue-500" },
-  assignee_added: { icon: UserPlus, colorClass: "bg-green-500" },
-  assignee_removed: { icon: UserMinus, colorClass: "bg-orange-500" },
+  created: { icon: Plus, colorClass: "bg-success" },
+  status_change: { icon: ArrowRight, colorClass: "bg-info" },
+  assignee_added: { icon: UserPlus, colorClass: "bg-success" },
+  assignee_removed: { icon: UserMinus, colorClass: "bg-warning" },
   comment: { icon: MessageSquare, colorClass: "bg-muted-foreground" },
-  updated: { icon: RefreshCw, colorClass: "bg-blue-500" },
+  updated: { icon: RefreshCw, colorClass: "bg-info" },
 };
 
 export function ActivityItem({ activity, isLast }: ActivityItemProps) {
@@ -56,33 +56,7 @@ export function ActivityItem({ activity, isLast }: ActivityItemProps) {
     if (diffInDays < 7) {
       return formatDistanceToNow(date, { addSuffix: true });
     }
-    return format(date, "MMM d, yyyy 'at' h:mm a");
-  };
-
-  return (
-    <div className="relative flex gap-3 pb-4">
-      {/* Timeline connector */}
-      {!isLast && (
-        <div className="absolute left-[11px] top-6 bottom-0 w-0.5 bg-border" />
-      )}
-      
-      {/* Icon */}
-      <div className={cn(
-        "relative z-10 flex h-6 w-6 shrink-0 items-center justify-center rounded-full",
-        config.colorClass
-      )}>
-        <Icon className="h-3 w-3 text-white" />
-      </div>
-      
-      {/* Content */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <Avatar className="h-5 w-5">
-            <AvatarFallback className="text-[10px]">
-              U
-            </AvatarFallback>
-          </Avatar>
-          <span className="text-sm text-muted-foreground">
+    return format(date, "MMM d, yyyy 'at' h:mm a"); }; return ( <div className="relative flex gap-3 pb-4"> {/* Timeline connector */} {!isLast && ( <div className="absolute left-[11px] top-6 bottom-0 w-0.5 bg-border" /> )} {/* Icon */} <div className={cn( "relative z-10 flex h-6 w-6 shrink-0 items-center justify-center rounded-full", config.colorClass )}> <Icon className="h-3 w-3 text-white" /> </div> {/* Content */} <div className="flex-1 min-w-0"> <div className="flex items-center gap-2"> <Avatar className="h-5 w-5"> <AvatarFallback className="text-[10px]"> U </AvatarFallback> </Avatar> <span className="text-sm text-muted-foreground">
             {getActionText()}
           </span>
         </div>

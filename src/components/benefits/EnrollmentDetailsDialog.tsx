@@ -59,11 +59,7 @@ export const EnrollmentDetailsDialog = ({
   const totalEmployerCost = baseEmployerCost * totalPersons;
   const totalCost = totalEmployeeCost + totalEmployerCost;
 
-  // Format using plan's currency
-  const planCurrency = plan?.currency || 'BHD';
-  const formatPlanCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
+  // Format using plan's currency const planCurrency = plan?.currency || 'BHD'; const formatPlanCurrency = (amount: number) => { return new Intl.NumberFormat('en-US', { style: 'currency',
       currency: planCurrency,
       minimumFractionDigits: 2,
     }).format(amount);
@@ -211,7 +207,7 @@ export const EnrollmentDetailsDialog = ({
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Employer pays (per person)</span>
-                <span className="text-emerald-600">{formatPlanCurrency(baseEmployerCost)}</span>
+                <span className="text-success">{formatPlanCurrency(baseEmployerCost)}</span>
               </div>
               {dependentsCount > 0 && (
                 <>
@@ -223,7 +219,7 @@ export const EnrollmentDetailsDialog = ({
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Employer Total ({formatPlanCurrency(baseEmployerCost)} × {totalPersons})</span>
-                    <span className="font-medium text-emerald-600">{formatPlanCurrency(totalEmployerCost)}</span>
+                    <span className="font-medium text-success">{formatPlanCurrency(totalEmployerCost)}</span>
                   </div>
                 </>
               )}

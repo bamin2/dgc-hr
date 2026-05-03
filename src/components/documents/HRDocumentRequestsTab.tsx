@@ -123,21 +123,21 @@ export function HRDocumentRequestsTab() {
     switch (status) {
       case "pending":
         return (
-          <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50">
+          <Badge variant="outline" className="text-warning border-warning/30 bg-warning/10">
             <Clock className="h-3 w-3 mr-1" />
             Pending
           </Badge>
         );
       case "approved":
         return (
-          <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50">
+          <Badge variant="outline" className="text-success border-success/30 bg-success/10">
             <CheckCircle className="h-3 w-3 mr-1" />
             Approved
           </Badge>
         );
       case "rejected":
         return (
-          <Badge variant="outline" className="text-red-600 border-red-200 bg-red-50">
+          <Badge variant="outline" className="text-destructive border-destructive/30 bg-destructive/10">
             <XCircle className="h-3 w-3 mr-1" />
             Rejected
           </Badge>
@@ -224,103 +224,7 @@ export function HRDocumentRequestsTab() {
                     </Badge>
                   </div>
                   <span className="text-muted-foreground">
-                    Requested {format(new Date(request.created_at), "MMM d, yyyy 'at' h:mm a")}
-                  </span>
-                </div>
-
-                {request.notes && (
-                  <div className="text-sm bg-muted/50 rounded-md p-3">
-                    <p className="text-muted-foreground">
-                      <strong>Notes:</strong> {request.notes}
-                    </p>
-                  </div>
-                )}
-
-                {request.rejection_reason && (
-                  <div className="text-sm bg-red-50 text-red-700 rounded-md p-3">
-                    <p>
-                      <strong>Rejection reason:</strong> {request.rejection_reason}
-                    </p>
-                  </div>
-                )}
-
-                {/* Actions */}
-                {request.status === "pending" && (
-                  <div className="flex items-center gap-2 pt-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleReject(request)}
-                      disabled={updateRequest.isPending}
-                    >
-                      <XCircle className="h-4 w-4 mr-1" />
-                      Reject
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={() => handleApproveAndGenerate(request)}
-                      disabled={generatingId === request.id || !request.template?.docx_storage_path}
-                    >
-                      {generatingId === request.id ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                          Generating...
-                        </>
-                      ) : (
-                        <>
-                          <FileCheck className="h-4 w-4 mr-1" />
-                          Approve & Generate
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                )}
-
-                {request.status === "approved" && request.pdf_storage_path && (
-                  <div className="flex items-center gap-2 pt-2">
-                    <Button variant="outline" size="sm" onClick={() => handleDownload(request)}>
-                      <Download className="h-4 w-4 mr-1" />
-                      Download PDF
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-
-      {/* Reject Dialog */}
-      <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Reject Request</DialogTitle>
-            <DialogDescription>
-              Provide a reason for rejecting this document request. The employee will be notified.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="rejection-reason">Rejection Reason</Label>
-              <Textarea
-                id="rejection-reason"
-                value={rejectionReason}
-                onChange={(e) => setRejectionReason(e.target.value)}
-                placeholder="Enter the reason for rejection..."
-                rows={3}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleConfirmReject}
-              disabled={updateRequest.isPending}
-            >
-              {updateRequest.isPending ? "Rejecting..." : "Reject Request"}
+                    Requested {format(new Date(request.created_at), "MMM d, yyyy 'at' h:mm a")} </span> </div> {request.notes && ( <div className="text-sm bg-muted/50 rounded-md p-3"> <p className="text-muted-foreground"> <strong>Notes:</strong> {request.notes} </p> </div> )} {request.rejection_reason && ( <div className="text-sm bg-destructive/10 text-destructive rounded-md p-3"> <p> <strong>Rejection reason:</strong> {request.rejection_reason} </p> </div> )} {/* Actions */} {request.status === "pending" && ( <div className="flex items-center gap-2 pt-2"> <Button variant="outline" size="sm" onClick={() => handleReject(request)} disabled={updateRequest.isPending} > <XCircle className="h-4 w-4 mr-1" /> Reject </Button> <Button size="sm" onClick={() => handleApproveAndGenerate(request)} disabled={generatingId === request.id || !request.template?.docx_storage_path} > {generatingId === request.id ? ( <> <Loader2 className="h-4 w-4 mr-1 animate-spin" /> Generating... </> ) : ( <> <FileCheck className="h-4 w-4 mr-1" /> Approve & Generate </> )} </Button> </div> )} {request.status === "approved" && request.pdf_storage_path && ( <div className="flex items-center gap-2 pt-2"> <Button variant="outline" size="sm" onClick={() => handleDownload(request)}> <Download className="h-4 w-4 mr-1" /> Download PDF </Button> </div> )} </CardContent> </Card> ))} </div> )} {/* Reject Dialog */} <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}> <DialogContent> <DialogHeader> <DialogTitle>Reject Request</DialogTitle> <DialogDescription> Provide a reason for rejecting this document request. The employee will be notified. </DialogDescription> </DialogHeader> <div className="space-y-4 py-4"> <div className="space-y-2"> <Label htmlFor="rejection-reason">Rejection Reason</Label> <Textarea id="rejection-reason" value={rejectionReason} onChange={(e) => setRejectionReason(e.target.value)} placeholder="Enter the reason for rejection..." rows={3} /> </div> </div> <DialogFooter> <Button variant="outline" onClick={() => setRejectDialogOpen(false)}> Cancel </Button> <Button variant="destructive" onClick={handleConfirmReject} disabled={updateRequest.isPending} > {updateRequest.isPending ? "Rejecting..." : "Reject Request"}
             </Button>
           </DialogFooter>
         </DialogContent>

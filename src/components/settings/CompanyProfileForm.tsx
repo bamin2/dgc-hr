@@ -336,18 +336,7 @@ export const CompanyProfileForm = ({ settings, onChange }: CompanyProfileFormPro
 
       <SettingsCard 
         title="Work Schedule" 
-        description="Configure your company's work week and payroll schedule"
-        icon={Calendar}
-      >
-        <div className="space-y-6">
-          <div className="space-y-2">
-            <Label>Weekend Days</Label>
-            <p className="text-xs text-muted-foreground mb-3">
-              Select the days that are considered weekends for your company. Public holidays falling on these days will be compensated.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              {weekDays.map((day) => (
-                <div key={day.value} className="flex items-center space-x-2">
+        description="Configure your company's work week and payroll schedule" icon={Calendar} > <div className="space-y-6"> <div className="space-y-2"> <Label>Weekend Days</Label> <p className="text-xs text-muted-foreground mb-3"> Select the days that are considered weekends for your company. Public holidays falling on these days will be compensated. </p> <div className="flex flex-wrap gap-3"> {weekDays.map((day) => ( <div key={day.value} className="flex items-center space-x-2">
                   <Checkbox
                     id={`weekend-${day.value}`}
                     checked={settings.branding.weekendDays?.includes(day.value)}

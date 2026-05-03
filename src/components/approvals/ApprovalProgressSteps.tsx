@@ -26,11 +26,11 @@ export function ApprovalProgressSteps({ steps, currentStepId }: ApprovalProgress
   const getStepColor = (step: RequestApprovalStep) => {
     switch (step.status) {
       case "approved":
-        return "bg-emerald-500 text-white";
+        return "bg-success text-white";
       case "rejected":
         return "bg-destructive text-white";
       case "pending":
-        return "bg-amber-500 text-white";
+        return "bg-warning text-white";
       case "cancelled":
         return "bg-muted text-muted-foreground";
       default:
@@ -104,7 +104,7 @@ export function ApprovalProgressSteps({ steps, currentStepId }: ApprovalProgress
               <div
                 className={cn(
                   "w-8 h-0.5 mx-2",
-                  step.status === "approved" ? "bg-emerald-500" : "bg-muted"
+                  step.status === "approved" ? "bg-success" : "bg-muted"
                 )}
               />
             )}

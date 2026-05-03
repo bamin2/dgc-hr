@@ -11,19 +11,19 @@ const statusConfig: Record<CorrectionStatus, { label: string; variant: 'default'
     label: 'Pending Manager',
     variant: 'outline',
     icon: Clock,
-    className: 'border-amber-500/50 text-amber-600 bg-amber-50 dark:bg-amber-950/20',
+    className: 'border-warning/50 text-warning bg-warning/10',
   },
   pending_hr: {
     label: 'Pending HR',
     variant: 'outline',
     icon: UserCheck,
-    className: 'border-teal-500/50 text-teal-600 bg-teal-50 dark:bg-teal-950/20',
+    className: 'border-info/50 text-info bg-info/10',
   },
   approved: {
     label: 'Approved',
     variant: 'outline',
     icon: CheckCircle,
-    className: 'border-green-500/50 text-green-600 bg-green-50 dark:bg-green-950/20',
+    className: 'border-success/50 text-success bg-success/10',
   },
   rejected: {
     label: 'Rejected',

@@ -48,13 +48,13 @@ export function AllPendingApprovalsCard({ pendingApprovals, isLoading }: AllPend
   ];
 
   return (
-    <Card className={total > 0 ? 'border-amber-200 bg-amber-50/50 dark:border-amber-900 dark:bg-amber-950/20' : ''}>
+    <Card className={total > 0 ? 'border-warning/30 bg-warning/10 dark:border-warning' : ''}>
       <CardHeader className="pb-2">
         <CardTitle className="text-base font-medium flex items-center gap-2">
           <ClipboardCheck className="h-4 w-4 text-primary" />
           All Pending Approvals
           {total > 0 && (
-            <span className="ml-auto rounded-full bg-amber-500 px-2 py-0.5 text-xs font-semibold text-white">
+            <span className="ml-auto rounded-full bg-warning px-2 py-0.5 text-xs font-semibold text-white">
               {total}
             </span>
           )}
@@ -81,7 +81,7 @@ export function AllPendingApprovalsCard({ pendingApprovals, isLoading }: AllPend
                     {item.label}
                   </span>
                   <span className="flex items-center gap-2">
-                    <span className="font-semibold text-amber-600">{item.count}</span>
+                    <span className="font-semibold text-warning">{item.count}</span>
                     <ArrowRight className="h-4 w-4" />
                   </span>
                 </Button>

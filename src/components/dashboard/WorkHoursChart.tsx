@@ -100,8 +100,7 @@ export function WorkHoursChart() {
           <p className="text-xs text-muted-foreground">Total Hours</p>
         </div>
         <div className="text-center">
-          <p className={`text-2xl font-bold ${overtime > 0 ? 'text-success' : 'text-muted-foreground'}`}>
-            {overtime > 0 ? `+${overtime}h` : '0h'}
+          <p className={`text-2xl font-bold ${overtime > 0 ? 'text-success' : 'text-muted-foreground'}`}> {overtime > 0 ? `+${overtime}h` : '0h'}
           </p>
           <p className="text-xs text-muted-foreground">Overtime</p>
         </div>

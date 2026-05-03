@@ -60,12 +60,11 @@ export function EmployeeActivityTab({ employeeId }: EmployeeActivityTabProps) {
       items.push({
         id: `leave-${req.id}`,
         type: 'leave',
-        title: `${req.leave_type?.name || 'Leave'} Request`,
-        description: `${req.days_count} day${req.days_count !== 1 ? 's' : ''} (${format(new Date(req.start_date), 'MMM d')} - ${format(new Date(req.end_date), 'MMM d')})`,
+        title: `${req.leave_type?.name || 'Leave'} Request`, description: `${req.days_count} day${req.days_count !== 1 ? 's' : ''} (${format(new Date(req.start_date), 'MMM d')} - ${format(new Date(req.end_date), 'MMM d')})`,
         status: req.status,
         timestamp: req.created_at || req.start_date,
         icon: <Calendar className="h-4 w-4" />,
-        iconBgClass: 'bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400',
+        iconBgClass: 'bg-info/10 text-info',
       });
     });
 
@@ -80,7 +79,7 @@ export function EmployeeActivityTab({ employeeId }: EmployeeActivityTabProps) {
         status: loan.status,
         timestamp: loan.created_at || loan.start_date,
         icon: <Banknote className="h-4 w-4" />,
-        iconBgClass: 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400',
+        iconBgClass: 'bg-success/10 text-success',
       });
     });
 
@@ -93,7 +92,7 @@ export function EmployeeActivityTab({ employeeId }: EmployeeActivityTabProps) {
         description: doc.documentName,
         timestamp: doc.createdAt || new Date().toISOString(),
         icon: <FileText className="h-4 w-4" />,
-        iconBgClass: 'bg-stone-100 dark:bg-stone-900/30 text-stone-600 dark:text-stone-400',
+        iconBgClass: 'bg-muted text-muted-foreground',
       });
     });
 

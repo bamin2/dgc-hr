@@ -153,100 +153,7 @@ export function OffboardingWizard({ employee, onComplete }: OffboardingWizardPro
         if (!departureData.lastWorkingDay) {
           toast({
             title: "Last working day required",
-            description: "Please select the employee's last working day.",
-            variant: "destructive",
-          });
-          return false;
-        }
-        return true;
-      case 1:
-        if (!interviewData.skipInterview) {
-          if (!interviewData.scheduledDate || !interviewData.scheduledTime) {
-            toast({
-              title: "Interview schedule required",
-              description: "Please schedule the exit interview or skip it.",
-              variant: "destructive",
-            });
-            return false;
-          }
-          if (!interviewData.interviewer) {
-            toast({
-              title: "Interviewer required",
-              description: "Please select an interviewer for the exit interview.",
-              variant: "destructive",
-            });
-            return false;
-          }
-        }
-        return true;
-      case 2:
-        return true; // Assets are optional
-      case 3:
-        if (!itContact) {
-          toast({
-            title: "IT contact required",
-            description: "Please select an IT contact for access revocation.",
-            variant: "destructive",
-          });
-          return false;
-        }
-        return true;
-      default:
-        return true;
-    }
-  };
-
-  const handleNext = () => {
-    if (validateStep(currentStep)) {
-      setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
-    }
-  };
-
-  const handlePrevious = () => {
-    setCurrentStep((prev) => Math.max(prev - 1, 0));
-  };
-
-  const handleLaunch = async () => {
-    try {
-      await createOffboarding.mutateAsync({
-        record: {
-          employee_id: employee.id,
-          last_working_day: departureData.lastWorkingDay,
-          departure_reason: departureData.departureReason,
-          resignation_letter_received: departureData.resignationLetterReceived,
-          notice_period_status: departureData.noticePeriodStatus,
-          manager_confirmed: departureData.managerConfirmed,
-          it_contact_id: itContact || null,
-          data_backup_required: dataBackupRequired,
-          email_forwarding: emailForwarding,
-          notes: notes || null,
-          status: "in_progress",
-        },
-        interview: {
-          scheduled_date: interviewData.scheduledDate || null,
-          scheduled_time: interviewData.scheduledTime || null,
-          interviewer_id: interviewData.interviewer || null,
-          format: interviewData.format,
-          skip_interview: interviewData.skipInterview,
-        },
-        assets: assets.map((a) => ({
-          name: a.name,
-          type: a.type,
-          serial_number: a.serialNumber || null,
-          condition: a.condition,
-          notes: a.notes || null,
-        })),
-        accessSystems: systems.map((s) => ({
-          name: s.name,
-          type: s.type,
-          access_level: s.accessLevel || null,
-          revocation_date: s.revocationDate || null,
-          status: s.status,
-        })),
-      });
-
-      toast({
-        title: "Offboarding launched!",
+            description: "Please select the employee's last working day.", variant: "destructive", }); return false; } return true; case 1: if (!interviewData.skipInterview) { if (!interviewData.scheduledDate || !interviewData.scheduledTime) { toast({ title: "Interview schedule required", description: "Please schedule the exit interview or skip it.", variant: "destructive", }); return false; } if (!interviewData.interviewer) { toast({ title: "Interviewer required", description: "Please select an interviewer for the exit interview.", variant: "destructive", }); return false; } } return true; case 2: return true; // Assets are optional case 3: if (!itContact) { toast({ title: "IT contact required", description: "Please select an IT contact for access revocation.", variant: "destructive", }); return false; } return true; default: return true; } }; const handleNext = () => { if (validateStep(currentStep)) { setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1)); } }; const handlePrevious = () => { setCurrentStep((prev) => Math.max(prev - 1, 0)); }; const handleLaunch = async () => { try { await createOffboarding.mutateAsync({ record: { employee_id: employee.id, last_working_day: departureData.lastWorkingDay, departure_reason: departureData.departureReason, resignation_letter_received: departureData.resignationLetterReceived, notice_period_status: departureData.noticePeriodStatus, manager_confirmed: departureData.managerConfirmed, it_contact_id: itContact || null, data_backup_required: dataBackupRequired, email_forwarding: emailForwarding, notes: notes || null, status: "in_progress", }, interview: { scheduled_date: interviewData.scheduledDate || null, scheduled_time: interviewData.scheduledTime || null, interviewer_id: interviewData.interviewer || null, format: interviewData.format, skip_interview: interviewData.skipInterview, }, assets: assets.map((a) => ({ name: a.name, type: a.type, serial_number: a.serialNumber || null, condition: a.condition, notes: a.notes || null, })), accessSystems: systems.map((s) => ({ name: s.name, type: s.type, access_level: s.accessLevel || null, revocation_date: s.revocationDate || null, status: s.status, })), }); toast({ title: "Offboarding launched!",
         description: `Offboarding process has been initiated for ${employee.firstName} ${employee.lastName}.`,
       });
       onComplete?.();
@@ -339,7 +246,7 @@ export function OffboardingWizard({ employee, onComplete }: OffboardingWizardPro
           <Button
             onClick={handleLaunch}
             disabled={createOffboarding.isPending}
-            className="gap-2 bg-red-600 hover:bg-red-700 text-white"
+            className="gap-2 bg-destructive hover:bg-destructive text-white"
           >
             <Rocket className="h-4 w-4" />
             {createOffboarding.isPending ? "Launching..." : "Launch Offboarding"}

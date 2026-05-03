@@ -26,7 +26,7 @@ export const SessionCard = ({ session, onRevoke }: SessionCardProps) => {
           <div className="flex items-center gap-2">
             <span className="font-medium">{session.device || 'Unknown Device'}</span>
             {session.is_current && (
-              <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+              <Badge variant="secondary" className="bg-success/10 text-success">
                 Current Session
               </Badge>
             )}

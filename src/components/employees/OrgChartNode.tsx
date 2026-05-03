@@ -97,7 +97,7 @@ export function OrgChartNode({ employee, onView, onEdit }: OrgChartNodeProps) {
         {/* Add Button */}
         <button
           onClick={handleAddReport}
-          className="absolute -bottom-3 left-1/2 -translate-x-1/2 h-6 w-6 bg-emerald-500 hover:bg-emerald-600 rounded-full flex items-center justify-center transition-colors shadow-sm"
+          className="absolute -bottom-3 left-1/2 -translate-x-1/2 h-6 w-6 bg-success hover:bg-success rounded-full flex items-center justify-center transition-colors shadow-sm"
         >
           <Plus className="h-3.5 w-3.5 text-white" />
         </button>

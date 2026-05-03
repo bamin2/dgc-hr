@@ -173,7 +173,7 @@ export default function PayslipTemplateEditor() {
                 </SelectItem>
                 <SelectItem value="active">
                   <div className="flex items-center gap-2">
-                    <Badge className="bg-green-500 text-xs">Active</Badge>
+                    <Badge className="bg-success text-xs">Active</Badge>
                   </div>
                 </SelectItem>
                 <SelectItem value="archived">
@@ -197,7 +197,7 @@ export default function PayslipTemplateEditor() {
               />
               <Label htmlFor="is-default" className="text-sm font-normal cursor-pointer">
                 {isDefault ? (
-                  <span className="flex items-center gap-1 text-green-600">
+                  <span className="flex items-center gap-1 text-success">
                     <Check className="h-4 w-4" /> Default
                   </span>
                 ) : (

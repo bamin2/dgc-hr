@@ -10,8 +10,8 @@ interface AirTicketFieldsProps {
 
 export function AirTicketConfigFields({ config, onChange }: AirTicketFieldsProps) {
   return (
-    <div className="space-y-4 p-4 bg-sky-50 dark:bg-sky-950/20 rounded-lg border border-sky-200 dark:border-sky-800">
-      <div className="flex items-center gap-2 text-sky-700 dark:text-sky-400">
+    <div className="space-y-4 p-4 bg-info/10 rounded-lg border border-info/30 dark:border-info">
+      <div className="flex items-center gap-2 text-info">
         <Plane className="h-4 w-4" />
         <span className="text-sm font-medium">Air Ticket Entitlement</span>
       </div>
@@ -75,8 +75,8 @@ export function PhoneConfigFields({ config, onChange, currency = 'BHD' }: PhoneF
   };
 
   return (
-    <div className="space-y-4 p-4 bg-violet-50 dark:bg-violet-950/20 rounded-lg border border-violet-200 dark:border-violet-800">
-      <div className="flex items-center gap-2 text-violet-700 dark:text-violet-400">
+    <div className="space-y-4 p-4 bg-info/10 rounded-lg border border-info/30 dark:border-info">
+      <div className="flex items-center gap-2 text-info">
         <Smartphone className="h-4 w-4" />
         <span className="text-sm font-medium">Phone Entitlement</span>
       </div>

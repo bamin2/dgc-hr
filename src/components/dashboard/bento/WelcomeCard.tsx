@@ -152,7 +152,7 @@ export function WelcomeCard() {
 
             {/* Pending Requests */}
             <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-secondary/30">
-              <Clock className="h-5 w-5 text-amber-500 shrink-0" />
+              <Clock className="h-5 w-5 text-warning shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs text-muted-foreground">Pending</p>
                 <p className="text-base font-semibold">{pendingRequests}</p>
@@ -162,7 +162,7 @@ export function WelcomeCard() {
             {/* Approvals Waiting (manager only) */}
             {showApprovals && (
               <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-secondary/30">
-                <CheckCircle className="h-5 w-5 text-green-500 shrink-0" />
+                <CheckCircle className="h-5 w-5 text-success shrink-0" />
                 <div className="min-w-0">
                   <p className="text-xs text-muted-foreground">To Approve</p>
                   <p className="text-base font-semibold">{approvalsWaiting}</p>

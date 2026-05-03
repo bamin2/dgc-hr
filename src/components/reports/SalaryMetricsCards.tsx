@@ -33,16 +33,16 @@ export function SalaryMetricsCards({ stats, isLoading }: SalaryMetricsCardsProps
       value: formatCurrency(stats.averageSalary),
       subtext: 'per employee',
       icon: TrendingUp,
-      iconBg: 'bg-teal-500/10',
-      iconColor: 'text-teal-600',
+      iconBg: 'bg-info/10',
+      iconColor: 'text-info',
     },
     {
       label: 'Median Salary',
       value: formatCurrency(stats.medianSalary),
       subtext: 'middle value',
       icon: Users,
-      iconBg: 'bg-emerald-500/10',
-      iconColor: 'text-emerald-500',
+      iconBg: 'bg-success/10',
+      iconColor: 'text-success',
     },
     {
       label: 'Salary Range',
@@ -50,8 +50,8 @@ export function SalaryMetricsCards({ stats, isLoading }: SalaryMetricsCardsProps
       subtext: `to ${formatCurrency(stats.maxSalary)}`,
       icon: ArrowDown,
       secondIcon: ArrowUp,
-      iconBg: 'bg-amber-500/10',
-      iconColor: 'text-amber-500',
+      iconBg: 'bg-warning/10',
+      iconColor: 'text-warning',
     },
   ];
 

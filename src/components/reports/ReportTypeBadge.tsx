@@ -12,27 +12,27 @@ const typeConfig: Record<ReportType, { label: string; icon: typeof Calendar; cla
   attendance: {
     label: 'Attendance',
     icon: Calendar,
-    className: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400'
+    className: 'bg-info/10 text-info'
   },
   payroll: {
     label: 'Payroll',
     icon: Wallet,
-    className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+    className: 'bg-success/10 text-success'
   },
   benefits: {
     label: 'Benefits',
     icon: Gift,
-    className: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+    className: 'bg-warning/10 text-warning'
   },
   employees: {
     label: 'Employees',
     icon: Users,
-    className: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
+    className: 'bg-warning/10 text-warning'
   },
   leave: {
     label: 'Leave',
     icon: Clock,
-    className: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400'
+    className: 'bg-info/10 text-info'
   }
 };
 

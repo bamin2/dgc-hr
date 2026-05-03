@@ -54,13 +54,13 @@ export function PayslipRegisterReport() {
       </Card>
       <Card>
         <CardContent className="pt-6">
-          <div className={cn("font-bold text-emerald-600", getResponsiveFontSize(issuedCount))}>{issuedCount}</div>
+          <div className={cn("font-bold text-success", getResponsiveFontSize(issuedCount))}>{issuedCount}</div>
           <p className="text-xs text-muted-foreground">Issued</p>
         </CardContent>
       </Card>
       <Card>
         <CardContent className="pt-6">
-          <div className={cn("font-bold text-amber-600", getResponsiveFontSize(pendingCount))}>{pendingCount}</div>
+          <div className={cn("font-bold text-warning", getResponsiveFontSize(pendingCount))}>{pendingCount}</div>
           <p className="text-xs text-muted-foreground">Pending</p>
         </CardContent>
       </Card>
@@ -123,12 +123,12 @@ export function PayslipRegisterReport() {
                   <TableCell>{record.department}</TableCell>
                   <TableCell className="text-center">
                     {record.payslipIssued ? (
-                      <Badge variant="default" className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">
+                      <Badge variant="default" className="bg-success/10 text-success">
                         <CheckCircle className="h-3 w-3 mr-1" />
                         Issued
                       </Badge>
                     ) : (
-                      <Badge variant="secondary" className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+                      <Badge variant="secondary" className="bg-warning/10 text-warning">
                         <XCircle className="h-3 w-3 mr-1" />
                         Pending
                       </Badge>

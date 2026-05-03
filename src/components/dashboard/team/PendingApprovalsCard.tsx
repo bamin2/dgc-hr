@@ -32,7 +32,7 @@ export function PendingApprovalsCard({ pendingApprovals, isLoading }: PendingApp
   const total = pendingApprovals.leaveRequests;
 
   return (
-    <Card className={total > 0 ? 'border-amber-200 bg-amber-50/50 dark:border-amber-900 dark:bg-amber-950/20' : ''}>
+    <Card className={total > 0 ? 'border-warning/30 bg-warning/10 dark:border-warning' : ''}>
       <CardHeader className="pb-2">
         <CardTitle className="text-base font-medium flex items-center gap-2">
           <ClipboardList className="h-4 w-4 text-primary" />
@@ -48,7 +48,7 @@ export function PendingApprovalsCard({ pendingApprovals, isLoading }: PendingApp
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-sm">Time Off Requests</span>
-              <span className="font-semibold text-amber-600">
+              <span className="font-semibold text-warning">
                 {pendingApprovals.leaveRequests}
               </span>
             </div>

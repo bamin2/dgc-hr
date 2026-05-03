@@ -8,33 +8,33 @@ interface StatusBadgeProps {
 const statusConfig = {
   active: {
     label: 'ACTIVE',
-    className: 'border-emerald-300 bg-emerald-50 text-emerald-600 dark:border-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400',
-    dotClassName: 'bg-emerald-500'
+    className: 'border-success/30 bg-success/10 text-success dark:border-success',
+    dotClassName: 'bg-success'
   },
   on_boarding: {
     label: 'ON BOARDING',
-    className: 'border-orange-300 bg-orange-50 text-orange-600 dark:border-orange-600 dark:bg-orange-950/50 dark:text-orange-400',
-    dotClassName: 'bg-orange-500'
+    className: 'border-warning/30 bg-warning/10 text-warning dark:border-warning',
+    dotClassName: 'bg-warning'
   },
   probation: {
     label: 'PROBATION',
-    className: 'border-yellow-300 bg-yellow-50 text-yellow-600 dark:border-yellow-600 dark:bg-yellow-950/50 dark:text-yellow-400',
-    dotClassName: 'bg-yellow-500'
+    className: 'border-warning/30 bg-warning/10 text-warning dark:border-warning',
+    dotClassName: 'bg-warning'
   },
   on_leave: {
     label: 'ON LEAVE',
-    className: 'border-red-300 bg-red-50 text-red-600 dark:border-red-600 dark:bg-red-950/50 dark:text-red-400',
-    dotClassName: 'bg-red-500'
+    className: 'border-destructive/30 bg-destructive/10 text-destructive dark:border-destructive',
+    dotClassName: 'bg-destructive'
   },
   terminated: {
     label: 'TERMINATED',
-    className: 'border-gray-300 bg-gray-50 text-gray-600 dark:border-gray-600 dark:bg-gray-950/50 dark:text-gray-400',
-    dotClassName: 'bg-gray-500'
+    className: 'border-border bg-muted text-muted-foreground',
+    dotClassName: 'bg-muted'
   },
   resigned: {
     label: 'RESIGNED',
-    className: 'border-slate-300 bg-slate-50 text-slate-600 dark:border-slate-600 dark:bg-slate-950/50 dark:text-slate-400',
-    dotClassName: 'bg-slate-500'
+    className: 'border-border bg-muted text-muted-foreground',
+    dotClassName: 'bg-muted'
   }
 };
 
