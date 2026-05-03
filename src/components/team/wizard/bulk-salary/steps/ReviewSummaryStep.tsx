@@ -106,9 +106,9 @@ export function ReviewSummaryStep({ data, impacts, totals, currency }: ReviewSum
   const getChangeColor = (change: number, inverse: boolean = false) => {
     if (inverse) {
       if (change > 0) return 'text-destructive';
-      if (change < 0) return 'text-green-600 dark:text-green-400';
+      if (change < 0) return 'text-success';
     } else {
-      if (change > 0) return 'text-green-600 dark:text-green-400';
+      if (change > 0) return 'text-success';
       if (change < 0) return 'text-destructive';
     }
     return 'text-muted-foreground';
@@ -184,19 +184,19 @@ export function ReviewSummaryStep({ data, impacts, totals, currency }: ReviewSum
         </Card>
 
         {!isMixedCurrency && (
-          <Card className={isPositiveChange ? 'bg-green-500/10 border-green-500/20' : 'bg-destructive/10 border-destructive/20'}>
+          <Card className={isPositiveChange ? 'bg-success/10 border-success/20' : 'bg-destructive/10 border-destructive/20'}>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${isPositiveChange ? 'bg-green-500/20' : 'bg-destructive/20'}`}>
+                <div className={`p-2 rounded-lg ${isPositiveChange ? 'bg-success/20' : 'bg-destructive/20'}`}>
                   {isPositiveChange ? (
-                    <TrendingUp className="h-5 w-5 text-green-600 dark:text-green-400" />
+                    <TrendingUp className="h-5 w-5 text-success" />
                   ) : (
                     <TrendingDown className="h-5 w-5 text-destructive" />
                   )}
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Total Change</p>
-                  <p className={`text-xl font-bold ${isPositiveChange ? 'text-green-600 dark:text-green-400' : 'text-destructive'}`}>
+                  <p className={`text-xl font-bold ${isPositiveChange ? 'text-success' : 'text-destructive'}`}>
                     {isPositiveChange ? '+' : ''}{formatCurrency(totals.change)}
                   </p>
                 </div>

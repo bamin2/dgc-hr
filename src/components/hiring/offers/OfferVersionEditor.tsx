@@ -240,15 +240,15 @@ export function OfferVersionEditor({ version, offerId, candidateId, candidateNat
       case 'draft':
         return <Badge variant="outline" className="bg-muted">Draft</Badge>;
       case 'sent':
-        return <Badge className="bg-blue-500">Sent</Badge>;
+        return <Badge className="bg-info text-info-foreground">Sent</Badge>;
       case 'accepted':
-        return <Badge className="bg-green-500">Accepted</Badge>;
+        return <Badge className="bg-success text-success-foreground">Accepted</Badge>;
       case 'rejected':
-        return <Badge className="bg-red-500">Rejected</Badge>;
+        return <Badge className="bg-destructive text-destructive-foreground">Rejected</Badge>;
       case 'superseded':
         return <Badge variant="outline" className="text-muted-foreground">Superseded</Badge>;
       case 'expired':
-        return <Badge variant="outline" className="text-orange-500">Expired</Badge>;
+        return <Badge variant="outline" className="text-warning">Expired</Badge>;
       default:
         return null;
     }
@@ -282,11 +282,11 @@ export function OfferVersionEditor({ version, offerId, candidateId, candidateNat
                     <RefreshCw className="h-4 w-4 mr-2" />
                     Revise Offer
                   </Button>
-                  <Button onClick={handleAccept} disabled={acceptOffer.isPending} className="bg-green-600 hover:bg-green-700 text-white">
+                  <Button onClick={handleAccept} disabled={acceptOffer.isPending} className="bg-success hover:bg-success/90 text-success-foreground">
                     <UserPlus className="h-4 w-4 mr-2" />
                     {acceptOffer.isPending ? "Converting..." : "Accept & Convert to Employee"}
                   </Button>
-                  <Button variant="outline" onClick={handleReject} disabled={rejectOffer.isPending} className="text-red-600 hover:text-red-700">
+                  <Button variant="outline" onClick={handleReject} disabled={rejectOffer.isPending} className="text-destructive hover:text-destructive/80">
                     <XCircle className="h-4 w-4 mr-2" />
                     Reject
                   </Button>
