@@ -20,7 +20,8 @@ const filterOptions: { value: FilterOption; label: string }[] = [
 export function MobileRequestsHub() {
   const [statusFilter, setStatusFilter] = useState<FilterOption>("all");
   const [newRequestOpen, setNewRequestOpen] = useState(false);
-  
+  const [selectedRequest, setSelectedRequest] = useState<UnifiedRequest | null>(null);
+
   const { data: requests, isLoading } = useUnifiedRequests(
     statusFilter === "all" ? undefined : statusFilter
   );
@@ -73,7 +74,11 @@ export function MobileRequestsHub() {
         ) : requests && requests.length > 0 ? (
           <div className="space-y-3">
             {requests.map((request) => (
-              <MobileRequestCard key={`${request.type}-${request.id}`} request={request} />
+              <MobileRequestCard
+                key={`${request.type}-${request.id}`}
+                request={request}
+                onClick={() => setSelectedRequest(request)}
+              />
             ))}
           </div>
         ) : (
@@ -93,6 +98,13 @@ export function MobileRequestsHub() {
 
       {/* New Request Sheet */}
       <MobileNewRequestSheet open={newRequestOpen} onOpenChange={setNewRequestOpen} />
+
+      {/* Request Detail Sheet */}
+      <MobileRequestDetailSheet
+        request={selectedRequest}
+        open={!!selectedRequest}
+        onOpenChange={(o) => !o && setSelectedRequest(null)}
+      />
     </div>
   );
 }
