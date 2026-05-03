@@ -1,43 +1,112 @@
 ## Problem
 
-Three dead navigation targets exist:
+There are **three competing breakpoint definitions** and **two different `useIsMobile` hooks with the same name**:
 
-1. **`PendingApprovalsCard`** (team manager dashboard) navigates to `/leave?status=pending` — no `/leave` route is registered in `AnimatedRoutes`. Button does nothing useful.
-2. **`pages/Attendance.tsx`** — exists in the codebase but is not wired into `AnimatedRoutes`. Its "Request Leave" button navigates to `/attendance/leave/request`, which also does not exist. Page is effectively dead code.
-3. **`components/timemanagement/AttendanceTab.tsx`** — rendered inside `/time-management`, has a "Request Leave" button that navigates to the same nonexistent `/attendance/leave/request` route.
+| Hook / file | "Mobile" threshold |
+|---|---|
+| `src/hooks/use-mobile.tsx` → `useIsMobile` | `< 768px` |
+| `src/hooks/use-media-query.ts` → `useIsMobile` | `≤ 640px` |
+| `MobileRestrictedRoute`, `MyProfile`, `Settings`, `Approvals` | `≤ 1023px` |
+| `ResponsiveDialog` | `≤ 640px` |
 
-Project convention (memory): leave creation must use a modal dialog (`RequestTimeOffDialog`), not a `/new` route. Approvals live at `/approvals` (the admin `AllPendingApprovalsCard` already uses the correct query string).
+Tailwind defaults are `sm=640`, `md=768`, `lg=1024`. Same-named hook in two files makes imports a coin flip — `EmployeeTable`, `LoansTable`, `PayrollTable` import from `use-media-query` (640), while `DashboardLayout`, `DashboardRenderer`, `AnimatedRoutes`, `Header` import from `use-mobile` (768).
+
+Concrete consequences in the 641–1023 px range (small tablets, foldables, narrow windows):
+- `DashboardLayout` shows the **desktop** sidebar (≥768) but `MobileRestrictedRoute` blocks pages as if they were on **mobile** (<1024).
+- `MyProfile`/`Settings` render their **mobile** layout, but `ResponsiveDialog` opens as a **desktop** modal instead of a sheet.
+- Tables flip to card view at different widths than the layout flips to mobile nav.
+
+## Goal
+
+One canonical breakpoint system aligned to Tailwind defaults, used everywhere.
+
+```text
+mobile:  < 768px   (Tailwind md-)        → bottom nav, sheets, card lists
+tablet:  768–1023  (md to lg-)           → sidebar collapses, dialogs allowed, restricted features still blocked
+desktop: ≥ 1024px  (lg+)                 → full sidebar + all features
+```
+
+Restricted-feature pages (Payroll, Reports, Audit, Bulk Salary) keep their `< 1024` block — that's a **feature gate**, not the same concept as "is mobile". It will use a separate, explicitly named hook.
 
 ## Changes
 
-### 1. `src/components/dashboard/team/PendingApprovalsCard.tsx`
-Replace `navigate('/leave?status=pending')` with the same target the admin card uses:
-`navigate('/approvals?tab=all-requests&type=time_off')`
+### 1. Consolidate to a single hook file: `src/hooks/use-media-query.ts`
 
-This matches `AllPendingApprovalsCard` and points to the actually-registered `/approvals` route.
+Replace its current contents with:
 
-### 2. `src/components/timemanagement/AttendanceTab.tsx`
-Remove the broken `navigate('/attendance/leave/request')` call. Wire the "Request Leave" button to open the existing `RequestTimeOffDialog` modal:
-- Add local `isRequestLeaveOpen` state.
-- Button `onClick` sets it to `true`.
-- Render `<RequestTimeOffDialog open={isRequestLeaveOpen} onOpenChange={setIsRequestLeaveOpen} />` at the bottom of the component (alongside existing dialogs).
+```ts
+export function useMediaQuery(query: string): boolean { /* unchanged */ }
 
-### 3. `src/pages/Attendance.tsx` (dead page)
-This page is not referenced anywhere except itself and is not in the router. Two options:
+// Canonical breakpoints — match Tailwind sm/md/lg
+export const useIsMobile = () => useMediaQuery("(max-width: 767px)");   // < md
+export const useIsTablet = () => useMediaQuery("(min-width: 768px) and (max-width: 1023px)");
+export const useIsDesktop = () => useMediaQuery("(min-width: 1024px)");
 
-**Recommended:** Delete `src/pages/Attendance.tsx`. Its functionality is fully duplicated by `components/timemanagement/AttendanceTab.tsx` (used inside `/time-management`). Keeping it around invites future drift.
+// Feature gate: blocks pages on anything below desktop
+export const useIsBelowDesktop = () => useMediaQuery("(max-width: 1023px)");
+```
 
-If preferred to keep it, apply the same `RequestTimeOffDialog` fix as in step 2, but it would still be unreachable.
+### 2. Delete `src/hooks/use-mobile.tsx`
+
+Re-point every importer to `@/hooks/use-media-query`:
+
+- `src/components/dashboard/Header.tsx`
+- `src/components/ui/sidebar.tsx`
+- `src/components/AnimatedRoutes.tsx`
+- `src/components/dashboard/DashboardRenderer.tsx`
+- `src/components/dashboard/DashboardLayout.tsx`
+
+These currently use the 768 threshold — the new `useIsMobile` (also 768) preserves their behavior exactly.
+
+### 3. Update the `<= 1023` callsites to use `useIsBelowDesktop`
+
+These four files conflate "mobile" with "below desktop". Rename the local variable to `isBelowDesktop` and import the new hook:
+
+- `src/components/auth/MobileRestrictedRoute.tsx`
+- `src/pages/MyProfile.tsx`
+- `src/pages/Settings.tsx`
+- `src/pages/Approvals.tsx`
+
+Behavior is unchanged; the name now matches the intent (this is a feature/layout gate, not a mobile detection).
+
+### 4. Fix `ResponsiveDialog` to use the tablet+ threshold
+
+`src/components/ui/responsive-dialog.tsx` currently uses `(max-width: 640px)`, so a 720 px tablet shows the desktop modal alongside mobile nav. Change to:
+
+```ts
+const isMobile = useIsMobile(); // < 768
+```
+
+This aligns dialog vs. sheet rendering with the rest of the layout switch.
+
+### 5. Sweep stale `useIsMobile` from `use-media-query` callers
+
+The following already import from `use-media-query` and got the 640 threshold; they will now get 768. Visually verify no regressions in card/table flip:
+- `src/components/employees/EmployeeTable.tsx`
+- `src/components/loans/LoansTable.tsx`
+- `src/components/payroll/PayrollTable.tsx`
+
+Tables already render in mobile cards under 768 in the dashboard layout, so this aligns them with the navigation switch instead of being one breakpoint behind.
 
 ## Verification
 
-After changes:
-- `rg "navigate\(['\"]/(leave|attendance)" src/` should return no results other than the legitimate `/time-management/leave/:id` detail link in `LeaveRequestsTable.tsx`.
-- Team manager dashboard "Review Requests" button lands on `/approvals` filtered to time off.
-- "Request Leave" button inside `/time-management` Attendance tab opens the personal leave request modal.
+After the changes:
+
+```bash
+rg "use-mobile" src/                       # → no matches
+rg "max-width: 640px"  src/                # → no matches outside index.css
+rg "max-width: 1023px" src/                # → no matches; replaced by useIsBelowDesktop
+rg "useIsMobile|useIsTablet|useIsDesktop|useIsBelowDesktop" src/ | rg -v use-media-query.ts
+```
+
+Manual checks at viewport widths 600, 720, 900, 1100:
+- 600 → mobile nav, sheets, card tables.
+- 720 → mobile nav, sheets, card tables (was previously a mixed state).
+- 900 → desktop sidebar, dialogs, table view, restricted pages still blocked.
+- 1100 → full desktop, all features.
 
 ## Technical notes
 
-- `RequestTimeOffDialog` is already exported from `src/components/timeoff/`. It uses `useCreateLeaveRequest` and follows the existing modal pattern.
-- No router changes required; we are removing dead targets, not adding new routes.
-- No new routes are added because `/attendance` is intentionally consolidated under `/time-management` per the time-management restructure memory.
+- All thresholds are picked to match Tailwind's default `md` (768) and `lg` (1024) so CSS class breakpoints (`md:`, `lg:`) and JS hook checks agree.
+- The `useIsMobile` rename in `use-media-query.ts` (640 → 768) is a behavior change for `EmployeeTable`/`LoansTable`/`PayrollTable`. This is the intended fix; the inconsistency was the bug.
+- No route or RLS changes; purely client breakpoint normalization.
