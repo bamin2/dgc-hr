@@ -36,13 +36,13 @@ interface AuditTableProps {
 }
 
 const ENTITY_TYPE_CONFIG: Record<EntityType, { label: string; icon: React.ElementType; color: string }> = {
-  employee: { label: 'Employee', icon: User, color: 'bg-info/10 text-info dark:bg-info/10 dark:text-info' },
-  leave_request: { label: 'Leave', icon: Calendar, color: 'bg-success/10 text-success dark:bg-success/10 dark:text-success' },
-  loan: { label: 'Loan', icon: Banknote, color: 'bg-warning/10 text-warning dark:bg-warning/10 dark:text-warning' },
-  document: { label: 'Document', icon: FileText, color: 'bg-muted text-muted-foreground dark:bg-muted dark:text-muted-foreground' },
-  compensation: { label: 'Compensation', icon: DollarSign, color: 'bg-success/10 text-success dark:bg-success/10 dark:text-success' },
-  leave_balance: { label: 'Balance', icon: Scale, color: 'bg-info/10 text-info dark:bg-info/10 dark:text-info' },
-  hr_document_request: { label: 'HR Letter', icon: FileOutput, color: 'bg-info/10 text-info dark:bg-info/10 dark:text-info' },
+  employee: { label: 'Employee', icon: User, color: 'bg-info/10 text-info' },
+  leave_request: { label: 'Leave', icon: Calendar, color: 'bg-success/10 text-success' },
+  loan: { label: 'Loan', icon: Banknote, color: 'bg-warning/10 text-warning' },
+  document: { label: 'Document', icon: FileText, color: 'bg-muted text-muted-foreground' },
+  compensation: { label: 'Compensation', icon: DollarSign, color: 'bg-success/10 text-success' },
+  leave_balance: { label: 'Balance', icon: Scale, color: 'bg-info/10 text-info' },
+  hr_document_request: { label: 'HR Letter', icon: FileOutput, color: 'bg-info/10 text-info' },
 };
 
 const ACTION_CONFIG: Record<ActionType, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {

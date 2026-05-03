@@ -170,7 +170,7 @@ export function ReviewStep({
                   {selectedTemplate?.estimatedDays || 0} days estimated
                 </p>
               </div>
-              <Badge className="bg-success/10 text-success dark:bg-success/10 dark:text-success">
+              <Badge className="bg-success/10 text-success">
                 {enabledTasks.length} tasks
               </Badge>
             </div>
@@ -263,7 +263,7 @@ export function ReviewStep({
         </Card>
       </div>
 
-      <Card className="border-success/30 bg-success/10 dark:border-success dark:bg-success/10">
+      <Card className="border-success/30 bg-success/10 dark:border-success">
         <CardContent className="flex items-center gap-4 p-4">
           <CheckCircle2 className="h-8 w-8 text-success" />
           <div>

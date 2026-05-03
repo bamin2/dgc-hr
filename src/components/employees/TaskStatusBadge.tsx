@@ -13,15 +13,15 @@ const statusConfig: Record<TaskStatus, { label: string; className: string }> = {
   },
   in_progress: {
     label: "In Progress",
-    className: "bg-info/10 text-info dark:bg-info/10 dark:text-info",
+    className: "bg-info/10 text-info",
   },
   completed: {
     label: "Completed",
-    className: "bg-success/10 text-success dark:bg-success/10 dark:text-success",
+    className: "bg-success/10 text-success",
   },
   skipped: {
     label: "Skipped",
-    className: "bg-warning/10 text-warning dark:bg-warning/10 dark:text-warning",
+    className: "bg-warning/10 text-warning",
   },
 };
 

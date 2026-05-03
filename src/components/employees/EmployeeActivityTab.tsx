@@ -60,8 +60,7 @@ export function EmployeeActivityTab({ employeeId }: EmployeeActivityTabProps) {
       items.push({
         id: `leave-${req.id}`,
         type: 'leave',
-        title: `${req.leave_type?.name || 'Leave'} Request`,
-        description: `${req.days_count} day${req.days_count !== 1 ? 's' : ''} (${format(new Date(req.start_date), 'MMM d')} - ${format(new Date(req.end_date), 'MMM d')})`,
+        title: `${req.leave_type?.name || 'Leave'} Request`, description: `${req.days_count} day${req.days_count !== 1 ? 's' : ''} (${format(new Date(req.start_date), 'MMM d')} - ${format(new Date(req.end_date), 'MMM d')})`,
         status: req.status,
         timestamp: req.created_at || req.start_date,
         icon: <Calendar className="h-4 w-4" />,

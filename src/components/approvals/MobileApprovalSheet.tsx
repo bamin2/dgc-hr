@@ -75,8 +75,7 @@ export function MobileApprovalSheet({
           </DrawerTitle>
           <DrawerDescription>
             {isApproving
-              ? `Approve ${employeeName}'s ${getRequestTypeLabel(requestType)}?`
-              : `Why are you rejecting ${employeeName}'s ${getRequestTypeLabel(requestType)}?`}
+              ? `Approve ${employeeName}'s ${getRequestTypeLabel(requestType)}?` : `Why are you rejecting ${employeeName}'s ${getRequestTypeLabel(requestType)}?`}
           </DrawerDescription>
         </DrawerHeader>
 

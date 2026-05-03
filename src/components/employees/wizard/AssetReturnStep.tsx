@@ -36,10 +36,10 @@ const assetTypeLabels: Record<AssetType, string> = {
 };
 
 const conditionColors: Record<AssetCondition, string> = {
-  pending: "bg-warning/10 text-warning dark:bg-warning/10 dark:text-warning",
-  good: "bg-success/10 text-success dark:bg-success/10 dark:text-success",
-  damaged: "bg-warning/10 text-warning dark:bg-warning/10 dark:text-warning",
-  missing: "bg-destructive/10 text-destructive dark:bg-destructive/10 dark:text-destructive",
+  pending: "bg-warning/10 text-warning",
+  good: "bg-success/10 text-success",
+  damaged: "bg-warning/10 text-warning",
+  missing: "bg-destructive/10 text-destructive",
 };
 
 export function AssetReturnStep({ assets, onAssetsChange }: AssetReturnStepProps) {

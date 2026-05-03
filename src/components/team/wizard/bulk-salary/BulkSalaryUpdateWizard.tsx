@@ -55,15 +55,7 @@ export function BulkSalaryUpdateWizard() {
     }
   }, [currentStep, data.selectedEmployeeIds, loadEmployeeCompensation]);
 
-  // Determine currency from selected employees' work locations
-  const currency = useMemo(() => {
-    if (selectedEmployees.length > 0 && selectedEmployees[0].workLocationId) {
-      const workLocation = workLocations?.find(wl => wl.id === selectedEmployees[0].workLocationId);
-      if (workLocation?.currency) {
-        return workLocation.currency;
-      }
-    }
-    return 'BHD'; // Default to BHD
+  // Determine currency from selected employees' work locations const currency = useMemo(() => { if (selectedEmployees.length > 0 && selectedEmployees[0].workLocationId) { const workLocation = workLocations?.find(wl => wl.id === selectedEmployees[0].workLocationId); if (workLocation?.currency) { return workLocation.currency; } } return 'BHD'; // Default to BHD
   }, [selectedEmployees, workLocations]);
 
   // Determine effective steps (skip GOSI if no GOSI employees)

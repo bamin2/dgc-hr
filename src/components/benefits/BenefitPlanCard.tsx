@@ -17,11 +17,7 @@ export const BenefitPlanCard = ({ plan }: BenefitPlanCardProps) => {
   const lowestCost = costs.length > 0 ? Math.min(...costs) : 0;
   const highestCost = costs.length > 0 ? Math.max(...costs) : 0;
 
-  // Format currency using the plan's currency
-  const planCurrency = plan.currency || 'BHD';
-  const formatPlanCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
+  // Format currency using the plan's currency const planCurrency = plan.currency || 'BHD'; const formatPlanCurrency = (amount: number) => { return new Intl.NumberFormat('en-US', { style: 'currency',
       currency: planCurrency,
       minimumFractionDigits: 0,
     }).format(amount);

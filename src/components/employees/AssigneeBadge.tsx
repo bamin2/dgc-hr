@@ -11,22 +11,22 @@ const assigneeConfig: Record<TaskAssignee, { label: string; icon: React.ElementT
   employee: {
     label: "Employee",
     icon: User,
-    className: "bg-info/10 text-info dark:bg-info/10 dark:text-info",
+    className: "bg-info/10 text-info",
   },
   hr: {
     label: "HR",
     icon: Users,
-    className: "bg-muted text-muted-foreground dark:bg-muted dark:text-muted-foreground",
+    className: "bg-muted text-muted-foreground",
   },
   manager: {
     label: "Manager",
     icon: UserCheck,
-    className: "bg-success/10 text-success dark:bg-success/10 dark:text-success",
+    className: "bg-success/10 text-success",
   },
   it: {
     label: "IT",
     icon: Monitor,
-    className: "bg-warning/10 text-warning dark:bg-warning/10 dark:text-warning",
+    className: "bg-warning/10 text-warning",
   },
 };
 

@@ -146,14 +146,7 @@ export const LogoUpload = ({
   };
 
   const handleRemove = async () => {
-    // Delete from storage if it's our bucket
-    if (value && value.includes('avatars')) {
-      const path = value.split('/avatars/')[1];
-      if (path) {
-        await supabase.storage.from('avatars').remove([path]);
-      }
-    }
-    onChange('');
+    // Delete from storage if it's our bucket if (value && value.includes('avatars')) { const path = value.split('/avatars/')[1]; if (path) { await supabase.storage.from('avatars').remove([path]); } } onChange('');
   };
 
   return (

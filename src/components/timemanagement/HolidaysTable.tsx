@@ -128,7 +128,7 @@ export function HolidaysTable({
                 </TableCell>
                 <TableCell>
                   {holiday.is_compensated ? (
-                    <Badge variant="secondary" className="text-xs bg-warning/10 text-warning dark:bg-warning/10 dark:text-warning">
+                    <Badge variant="secondary" className="text-xs bg-warning/10 text-warning">
                       {holiday.compensation_reason}
                     </Badge>
                   ) : (

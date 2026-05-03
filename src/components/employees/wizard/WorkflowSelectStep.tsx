@@ -30,11 +30,11 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 };
 
 const categoryColors: Record<TaskCategory, string> = {
-  documentation: "bg-info/10 text-info dark:bg-info/10 dark:text-info",
-  training: "bg-warning/10 text-warning dark:bg-warning/10 dark:text-warning",
-  setup: "bg-warning/10 text-warning dark:bg-warning/10 dark:text-warning",
-  introduction: "bg-success/10 text-success dark:bg-success/10 dark:text-success",
-  compliance: "bg-destructive/10 text-destructive dark:bg-destructive/10 dark:text-destructive",
+  documentation: "bg-info/10 text-info",
+  training: "bg-warning/10 text-warning",
+  setup: "bg-warning/10 text-warning",
+  introduction: "bg-success/10 text-success",
+  compliance: "bg-destructive/10 text-destructive",
 };
 
 export function WorkflowSelectStep({

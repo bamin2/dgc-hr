@@ -57,9 +57,9 @@ const typeLabels: Record<AccessSystemType, string> = {
 };
 
 const statusColors: Record<AccessStatus, string> = {
-  active: "bg-success/10 text-success dark:bg-success/10 dark:text-success",
-  scheduled: "bg-info/10 text-info dark:bg-info/10 dark:text-info",
-  revoked: "bg-muted text-muted-foreground dark:bg-muted dark:text-muted-foreground",
+  active: "bg-success/10 text-success",
+  scheduled: "bg-info/10 text-info",
+  revoked: "bg-muted text-muted-foreground",
 };
 
 export function AccessRevocationStep({

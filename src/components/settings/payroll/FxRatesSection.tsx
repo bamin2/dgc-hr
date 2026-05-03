@@ -279,8 +279,7 @@ export function FxRatesSection() {
             <div>
               <p className="text-sm font-medium text-warning">Missing Exchange Rates</p>
               <p className="text-xs text-muted-foreground mt-1">
-                The following currencies don't have exchange rates configured:{' '}
-                {missingCurrencies.map(c => c.code).join(', ')}. 
+                The following currencies don't have exchange rates configured:{' '} {missingCurrencies.map(c => c.code).join(', ')}. 
                 Reports using these currencies cannot be converted to BHD.
               </p>
             </div>

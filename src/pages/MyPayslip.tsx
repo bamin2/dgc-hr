@@ -66,14 +66,7 @@ export default function MyPayslip() {
 
       const { data: record, error } = await supabase
         .from("payroll_run_employees")
-        .select(`
-          id, employee_id, employee_name, employee_code, department, position,
-          base_salary, housing_allowance, transportation_allowance, other_allowances,
-          gosi_deduction, other_deductions, gross_pay, total_deductions, net_pay,
-          payroll_run:payroll_runs!payroll_run_employees_payroll_run_id_fkey(
-            pay_period_start, pay_period_end, status
-          )
-        `)
+        .select(` id, employee_id, employee_name, employee_code, department, position, base_salary, housing_allowance, transportation_allowance, other_allowances, gosi_deduction, other_deductions, gross_pay, total_deductions, net_pay, payroll_run:payroll_runs!payroll_run_employees_payroll_run_id_fkey( pay_period_start, pay_period_end, status ) `)
         .eq("id", id)
         .eq("employee_id", myEmployee.id)
         .maybeSingle();

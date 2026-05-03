@@ -24,11 +24,7 @@ function EnrollmentCard({ enrollment }: { enrollment: BenefitEnrollment }) {
   const beneficiaries = enrollment.beneficiaries || [];
   const hasBeneficiaries = beneficiaries.length > 0;
   
-  // Format currency using the plan's currency
-  const planCurrency = enrollment.plan?.currency || 'BHD';
-  const formatPlanCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
+  // Format currency using the plan's currency const planCurrency = enrollment.plan?.currency || 'BHD'; const formatPlanCurrency = (amount: number) => { return new Intl.NumberFormat('en-US', { style: 'currency',
       currency: planCurrency,
       minimumFractionDigits: 2,
     }).format(amount);

@@ -200,62 +200,7 @@ export function LeaveRequestDetailView({ request, approvalSteps }: LeaveRequestD
             <div>
               <p className="text-sm text-muted-foreground">Submitted On</p>
               <p className="font-medium mt-1">
-                {format(new Date(request.created_at), "MMM d, yyyy 'at' h:mm a")}
-              </p>
-            </div>
-
-            {reviewerName && request.reviewed_at && (
-              <div>
-                <p className="text-sm text-muted-foreground">Reviewed By</p>
-                <p className="font-medium mt-1">{reviewerName}</p>
-                <p className="text-sm text-muted-foreground">
-                  {format(new Date(request.reviewed_at), "MMM d, yyyy 'at' h:mm a")}
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Reason */}
-      {request.reason && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <FileText className="h-4 w-4 text-muted-foreground" />
-              Reason
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm whitespace-pre-wrap">{request.reason}</p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Attachments */}
-      {attachments && attachments.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <Paperclip className="h-4 w-4 text-muted-foreground" />
-              Attachments ({attachments.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {attachments.map((att) => (
-                <div key={att.id} className="flex items-center gap-3 p-2 rounded-md bg-muted/50">
-                  <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
-                  <span className="text-sm truncate flex-1">{att.file_name}</span>
-                  {att.file_size && (
-                    <span className="text-xs text-muted-foreground shrink-0">
-                      {(att.file_size / 1024).toFixed(0)} KB
-                    </span>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 shrink-0"
+                {format(new Date(request.created_at), "MMM d, yyyy 'at' h:mm a")} </p> </div> {reviewerName && request.reviewed_at && ( <div> <p className="text-sm text-muted-foreground">Reviewed By</p> <p className="font-medium mt-1">{reviewerName}</p> <p className="text-sm text-muted-foreground"> {format(new Date(request.reviewed_at), "MMM d, yyyy 'at' h:mm a")} </p> </div> )} </CardContent> </Card> </div> {/* Reason */} {request.reason && ( <Card> <CardHeader> <CardTitle className="text-base flex items-center gap-2"> <FileText className="h-4 w-4 text-muted-foreground" /> Reason </CardTitle> </CardHeader> <CardContent> <p className="text-sm whitespace-pre-wrap">{request.reason}</p> </CardContent> </Card> )} {/* Attachments */} {attachments && attachments.length > 0 && ( <Card> <CardHeader> <CardTitle className="text-base flex items-center gap-2"> <Paperclip className="h-4 w-4 text-muted-foreground" /> Attachments ({attachments.length}) </CardTitle> </CardHeader> <CardContent> <div className="space-y-2"> {attachments.map((att) => ( <div key={att.id} className="flex items-center gap-3 p-2 rounded-md bg-muted/50"> <FileText className="w-4 h-4 text-muted-foreground shrink-0" /> <span className="text-sm truncate flex-1">{att.file_name}</span> {att.file_size && ( <span className="text-xs text-muted-foreground shrink-0"> {(att.file_size / 1024).toFixed(0)} KB </span> )} <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0"
                     onClick={async () => {
                       try {
                         const url = await getSignedAttachmentUrl(att.file_path);

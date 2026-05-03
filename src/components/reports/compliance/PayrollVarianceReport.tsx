@@ -311,10 +311,7 @@ export function PayrollVarianceReport() {
                         <TableCell>{record.department}</TableCell>
                         <TableCell className="text-right">{formatCurrency(record.previousGrossPay)}</TableCell>
                         <TableCell className="text-right">{formatCurrency(record.currentGrossPay)}</TableCell>
-                        <TableCell className={`text-right font-medium ${record.deltaBHD >= 0 ? 'text-success' : 'text-destructive'}`}>
-                          {formatCurrency(record.deltaBHD)}
-                        </TableCell>
-                        <TableCell className={`text-right ${record.deltaPercent >= 0 ? 'text-success' : 'text-destructive'}`}>
+                        <TableCell className={`text-right font-medium ${record.deltaBHD >= 0 ? 'text-success' : 'text-destructive'}`}> {formatCurrency(record.deltaBHD)} </TableCell> <TableCell className={`text-right ${record.deltaPercent >= 0 ? 'text-success' : 'text-destructive'}`}>
                           {formatPercent(record.deltaPercent)}
                         </TableCell>
                         <TableCell>

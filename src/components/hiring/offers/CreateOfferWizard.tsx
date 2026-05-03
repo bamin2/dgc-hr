@@ -412,63 +412,7 @@ export function CreateOfferWizard({ candidate, onSuccess, onCancel }: CreateOffe
                           <Info className="h-4 w-4 text-muted-foreground cursor-help" />
                         </TooltipTrigger>
                         <TooltipContent className="max-w-xs">
-                          <p>GOSI (General Organization for Social Insurance) deductions will be calculated based on the work location's configured rates for {candidate.nationality || "the candidate's nationality"}.</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                  <Switch
-                    id="gosi-toggle"
-                    checked={isSubjectToGosi}
-                    onCheckedChange={setIsSubjectToGosi}
-                    disabled={!selectedWorkLocation?.gosi_enabled}
-                  />
-                </div>
-                {!selectedWorkLocation?.gosi_enabled && formData.work_location_id && (
-                  <p className="text-xs text-muted-foreground mt-2">
-                    GOSI is not enabled for this work location
-                  </p>
-                )}
-                {isSubjectToGosi && gosiCalculation.rate > 0 && (
-                  <div className="mt-3 p-2 bg-muted rounded-md text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Employee Rate ({gosiCalculation.rate}%)</span>
-                      <span className="font-medium text-destructive">-{formatAmount(gosiCalculation.employeeAmount)}</span>
-                    </div>
-                  </div>
-                )}
-                {isSubjectToGosi && gosiCalculation.rate === 0 && candidate.nationality && (
-                  <p className="text-xs text-warning mt-2">
-                    No GOSI rate configured for nationality: {candidate.nationality}
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-
-            <Separator />
-
-            {/* Allowances */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="font-medium text-sm">Allowances</h4>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowAllowanceDialog(true)}
-                  disabled={!formData.work_location_id}
-                >
-                  <Plus className="h-4 w-4 mr-1" />
-                  Add Allowance
-                </Button>
-              </div>
-
-              {allowances.length === 0 ? (
-                <div className="text-sm text-muted-foreground text-center py-4 border rounded-lg border-dashed">
-                  No allowances added
-                </div>
-              ) : (
-                <div className="space-y-2">
+                          <p>GOSI (General Organization for Social Insurance) deductions will be calculated based on the work location's configured rates for {candidate.nationality || "the candidate's nationality"}.</p> </TooltipContent> </Tooltip> </TooltipProvider> </div> <Switch id="gosi-toggle" checked={isSubjectToGosi} onCheckedChange={setIsSubjectToGosi} disabled={!selectedWorkLocation?.gosi_enabled} /> </div> {!selectedWorkLocation?.gosi_enabled && formData.work_location_id && ( <p className="text-xs text-muted-foreground mt-2"> GOSI is not enabled for this work location </p> )} {isSubjectToGosi && gosiCalculation.rate > 0 && ( <div className="mt-3 p-2 bg-muted rounded-md text-sm"> <div className="flex justify-between"> <span className="text-muted-foreground">Employee Rate ({gosiCalculation.rate}%)</span> <span className="font-medium text-destructive">-{formatAmount(gosiCalculation.employeeAmount)}</span> </div> </div> )} {isSubjectToGosi && gosiCalculation.rate === 0 && candidate.nationality && ( <p className="text-xs text-warning mt-2"> No GOSI rate configured for nationality: {candidate.nationality} </p> )} </CardContent> </Card> <Separator /> {/* Allowances */} <div className="space-y-3"> <div className="flex items-center justify-between"> <h4 className="font-medium text-sm">Allowances</h4> <Button type="button" variant="outline" size="sm" onClick={() => setShowAllowanceDialog(true)} disabled={!formData.work_location_id} > <Plus className="h-4 w-4 mr-1" /> Add Allowance </Button> </div> {allowances.length === 0 ? ( <div className="text-sm text-muted-foreground text-center py-4 border rounded-lg border-dashed"> No allowances added </div> ) : ( <div className="space-y-2">
                   {allowances.map((allowance) => {
                     const displayAmount = allowance.isPercentage && allowance.percentageOf === 'basic_salary'
                       ? (formData.basic_salary || 0) * allowance.amount / 100

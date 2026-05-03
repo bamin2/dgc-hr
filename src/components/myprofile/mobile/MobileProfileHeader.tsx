@@ -7,15 +7,14 @@ interface MobileProfileHeaderProps {
 }
 
 export function MobileProfileHeader({ employee }: MobileProfileHeaderProps) {
-  const initials = `${employee.firstName?.[0] || ''}${employee.lastName?.[0] || ''}`.toUpperCase();
-  const fullName = employee.fullName || `${employee.firstName} ${employee.lastName}`;
+  const initials = `${employee.firstName?.[0] || ''}${employee.lastName?.[0] || ''}`.toUpperCase(); const fullName = employee.fullName || `${employee.firstName} ${employee.lastName}`;
   
   const statusColors: Record<string, string> = {
-    active: 'bg-success/10 text-success dark:bg-success/10 dark:text-success',
-    on_leave: 'bg-warning/10 text-warning dark:bg-warning/10 dark:text-warning',
-    probation: 'bg-info/10 text-info dark:bg-info/10 dark:text-info',
-    on_boarding: 'bg-info/10 text-info dark:bg-info/10 dark:text-info',
-    terminated: 'bg-muted text-muted-foreground dark:bg-muted dark:text-muted-foreground',
+    active: 'bg-success/10 text-success',
+    on_leave: 'bg-warning/10 text-warning',
+    probation: 'bg-info/10 text-info',
+    on_boarding: 'bg-info/10 text-info',
+    terminated: 'bg-muted text-muted-foreground',
   };
 
   return (

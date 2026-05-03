@@ -27,9 +27,9 @@ export const NotificationCard = ({ notification, onMarkAsRead, onDelete }: Notif
   };
 
   const priorityBadgeColors = {
-    high: 'bg-destructive/10 text-destructive dark:bg-destructive/10 dark:text-destructive',
-    medium: 'bg-warning/10 text-warning dark:bg-warning/10 dark:text-warning',
-    low: 'bg-muted text-muted-foreground dark:bg-muted dark:text-muted-foreground'
+    high: 'bg-destructive/10 text-destructive',
+    medium: 'bg-warning/10 text-warning',
+    low: 'bg-muted text-muted-foreground'
   };
 
   const handleView = () => {

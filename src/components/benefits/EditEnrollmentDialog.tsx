@@ -88,60 +88,7 @@ export const EditEnrollmentDialog = ({
   const employerCost = selectedCoverageLevel?.employer_cost ?? enrollment.employer_contribution;
   const totalCost = employeeCost + employerCost;
 
-  // Format using plan's currency
-  const planCurrency = plan?.currency || 'BHD';
-  const formatPlanCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: planCurrency,
-      minimumFractionDigits: 2,
-    }).format(amount);
-  };
-
-  const handleSave = async () => {
-    if (!enrollment || !selectedCoverageLevelId || !startDate) return;
-
-    try {
-      // Build entitlement_data for car park plans
-      let entitlementData = enrollment.entitlement_data;
-      if (isCarParkPlan) {
-        entitlementData = {
-          ...((entitlementData as Record<string, unknown>) || {}),
-          spot_location: spotLocation || null,
-        };
-      }
-
-      // Update enrollment
-      await updateEnrollment.mutateAsync({
-        id: enrollment.id,
-        coverage_level_id: selectedCoverageLevelId,
-        start_date: format(startDate, 'yyyy-MM-dd'),
-        end_date: endDate ? format(endDate, 'yyyy-MM-dd') : null,
-        employee_contribution: employeeCost,
-        employer_contribution: employerCost,
-        entitlement_data: entitlementData,
-      });
-
-      // Update beneficiaries
-      await updateBeneficiaries.mutateAsync({
-        enrollmentId: enrollment.id,
-        beneficiaries: beneficiaries.map(b => ({
-          name: b.name,
-          relationship: b.relationship,
-          national_id: b.nationalId,
-        })),
-      });
-
-      toast({
-        title: 'Enrollment Updated',
-        description: 'The enrollment has been updated successfully.',
-      });
-      onOpenChange(false);
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to update enrollment. Please try again.',
-        variant: 'destructive',
+  // Format using plan's currency const planCurrency = plan?.currency || 'BHD'; const formatPlanCurrency = (amount: number) => { return new Intl.NumberFormat('en-US', { style: 'currency', currency: planCurrency, minimumFractionDigits: 2, }).format(amount); }; const handleSave = async () => { if (!enrollment || !selectedCoverageLevelId || !startDate) return; try { // Build entitlement_data for car park plans let entitlementData = enrollment.entitlement_data; if (isCarParkPlan) { entitlementData = { ...((entitlementData as Record<string, unknown>) || {}), spot_location: spotLocation || null, }; } // Update enrollment await updateEnrollment.mutateAsync({ id: enrollment.id, coverage_level_id: selectedCoverageLevelId, start_date: format(startDate, 'yyyy-MM-dd'), end_date: endDate ? format(endDate, 'yyyy-MM-dd') : null, employee_contribution: employeeCost, employer_contribution: employerCost, entitlement_data: entitlementData, }); // Update beneficiaries await updateBeneficiaries.mutateAsync({ enrollmentId: enrollment.id, beneficiaries: beneficiaries.map(b => ({ name: b.name, relationship: b.relationship, national_id: b.nationalId, })), }); toast({ title: 'Enrollment Updated', description: 'The enrollment has been updated successfully.', }); onOpenChange(false); } catch (error) { toast({ title: 'Error', description: 'Failed to update enrollment. Please try again.', variant: 'destructive',
       });
     }
   };

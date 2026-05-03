@@ -86,8 +86,7 @@ export function ConfirmApplyStep({ data, employeeCount, totalChange, onUpdateDat
             </div>
 
             <div className="flex items-start gap-3">
-              <div className={`p-2 rounded-lg ${isIncrease ? 'bg-success/10' : 'bg-destructive/10'}`}>
-                <CheckCircle2 className={`h-5 w-5 ${isIncrease ? 'text-success' : 'text-destructive'}`} />
+              <div className={`p-2 rounded-lg ${isIncrease ? 'bg-success/10' : 'bg-destructive/10'}`}> <CheckCircle2 className={`h-5 w-5 ${isIncrease ? 'text-success' : 'text-destructive'}`} />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Total Impact</p>

@@ -12,57 +12,57 @@ const typeConfig: Record<BenefitType, { label: string; icon: typeof Heart; class
   health: {
     label: 'Health',
     icon: Heart,
-    className: 'bg-success/10 text-success dark:bg-success/10 dark:text-success'
+    className: 'bg-success/10 text-success'
   },
   dental: {
     label: 'Dental',
     icon: Smile,
-    className: 'bg-info/10 text-info dark:bg-info/10 dark:text-info'
+    className: 'bg-info/10 text-info'
   },
   vision: {
     label: 'Vision',
     icon: Eye,
-    className: 'bg-warning/10 text-warning dark:bg-warning/10 dark:text-warning'
+    className: 'bg-warning/10 text-warning'
   },
   retirement: {
     label: 'Retirement',
     icon: PiggyBank,
-    className: 'bg-warning/10 text-warning dark:bg-warning/10 dark:text-warning'
+    className: 'bg-warning/10 text-warning'
   },
   life: {
     label: 'Life',
     icon: Shield,
-    className: 'bg-info/10 text-info dark:bg-info/10 dark:text-info'
+    className: 'bg-info/10 text-info'
   },
   disability: {
     label: 'Disability',
     icon: Accessibility,
-    className: 'bg-muted text-muted-foreground dark:bg-muted dark:text-muted-foreground'
+    className: 'bg-muted text-muted-foreground'
   },
   wellness: {
     label: 'Wellness',
     icon: Sparkles,
-    className: 'bg-destructive/10 text-destructive dark:bg-destructive/10 dark:text-destructive'
+    className: 'bg-destructive/10 text-destructive'
   },
   air_ticket: {
     label: 'Air Ticket',
     icon: Plane,
-    className: 'bg-info/10 text-info dark:bg-info/10 dark:text-info'
+    className: 'bg-info/10 text-info'
   },
   car_park: {
     label: 'Car Park',
     icon: Car,
-    className: 'bg-info/10 text-info dark:bg-info/10 dark:text-info'
+    className: 'bg-info/10 text-info'
   },
   phone: {
     label: 'Phone',
     icon: Smartphone,
-    className: 'bg-info/10 text-info dark:bg-info/10 dark:text-info'
+    className: 'bg-info/10 text-info'
   },
   other: {
     label: 'Other',
     icon: HelpCircle,
-    className: 'bg-muted text-muted-foreground dark:bg-muted dark:text-muted-foreground'
+    className: 'bg-muted text-muted-foreground'
   }
 };
 

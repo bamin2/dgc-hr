@@ -18,36 +18,7 @@ export default function TimeOff() {
       <div className="space-y-6">
         <PageHeader
           title="Time off"
-          subtitle="Manage your team's time off."
-          actions={
-            <Button 
-              variant="liquidGlass" 
-              size="liquidGlass"
-              onClick={() => setIsRequestDialogOpen(true)}
-            >
-              <CalendarPlus className="w-4 h-4 mr-2" />
-              Request time off
-            </Button>
-          }
-        />
-
-        <Tabs defaultValue="calendar" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="calendar">
-              <Calendar className="h-4 w-4" />
-              Calendar
-            </TabsTrigger>
-            <TabsTrigger value="leaves">
-              <Target className="h-4 w-4" />
-              Leave and balances
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="calendar" className="mt-6">
-            <TimeOffCalendarTab />
-          </TabsContent>
-
-          <TabsContent value="leaves" className="mt-6">
+          subtitle="Manage your team's time off." actions={ <Button variant="liquidGlass" size="liquidGlass" onClick={() => setIsRequestDialogOpen(true)} > <CalendarPlus className="w-4 h-4 mr-2" /> Request time off </Button> } /> <Tabs defaultValue="calendar" className="space-y-6"> <TabsList> <TabsTrigger value="calendar"> <Calendar className="h-4 w-4" /> Calendar </TabsTrigger> <TabsTrigger value="leaves"> <Target className="h-4 w-4" /> Leave and balances </TabsTrigger> </TabsList> <TabsContent value="calendar" className="mt-6"> <TimeOffCalendarTab /> </TabsContent> <TabsContent value="leaves" className="mt-6">
             <LeavesBalancesTab />
           </TabsContent>
         </Tabs>

@@ -160,12 +160,7 @@ export function AddTeamMemberWizard() {
       // Combine phone with country code
       const mobileCountry = getCountryByCode(basicData.mobileCountryCode);
       const fullMobilePhone = basicData.mobileNumber 
-        ? `${mobileCountry?.dialCode || ""} ${basicData.mobileNumber}`.trim()
-        : null;
-
-      const officeCountry = getCountryByCode(basicData.officeCountryCode);
-      const fullOfficePhone = basicData.officeNumber 
-        ? `${officeCountry?.dialCode || ""} ${basicData.officeNumber}`.trim()
+        ? `${mobileCountry?.dialCode || ""} ${basicData.mobileNumber}`.trim() : null; const officeCountry = getCountryByCode(basicData.officeCountryCode); const fullOfficePhone = basicData.officeNumber ? `${officeCountry?.dialCode || ""} ${basicData.officeNumber}`.trim()
         : null;
 
       // Create the employee as Active (this wizard is for already hired employees)

@@ -275,7 +275,7 @@ export function TeamCompensationStep({
 
       {/* GOSI Section - shown for Bahraini employees or when manually enabled */}
       {(isBahraini || data.isSubjectToGosi) && (
-        <Card className="border-warning/30 bg-warning/10 dark:border-warning dark:bg-warning/10">
+        <Card className="border-warning/30 bg-warning/10 dark:border-warning">
           <CardContent className="pt-4 space-y-4">
             <div className="flex items-start gap-3">
               <Info className="h-5 w-5 text-warning mt-0.5 shrink-0" />
@@ -350,7 +350,7 @@ export function TeamCompensationStep({
                     </span>
                   )}
                   {!a.isCustom && a.isVariable && (
-                    <span className="text-xs text-info bg-info/10 dark:text-info dark:bg-info px-1.5 py-0.5 rounded">
+                    <span className="text-xs text-info bg-info/10 dark:bg-info px-1.5 py-0.5 rounded">
                       variable
                     </span>
                   )}

@@ -48,7 +48,7 @@ export function AllPendingApprovalsCard({ pendingApprovals, isLoading }: AllPend
   ];
 
   return (
-    <Card className={total > 0 ? 'border-warning/30 bg-warning/10 dark:border-warning dark:bg-warning/10' : ''}>
+    <Card className={total > 0 ? 'border-warning/30 bg-warning/10 dark:border-warning' : ''}>
       <CardHeader className="pb-2">
         <CardTitle className="text-base font-medium flex items-center gap-2">
           <ClipboardCheck className="h-4 w-4 text-primary" />

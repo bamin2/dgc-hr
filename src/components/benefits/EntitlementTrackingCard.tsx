@@ -34,11 +34,7 @@ export const EntitlementTrackingCard = ({
   const [phoneDialogOpen, setPhoneDialogOpen] = useState(false);
   const { formatCurrency } = useCompanySettings();
 
-  // For car park, we don't need entitlement_config
-  if (!entitlementConfig && planType !== 'car_park') return null;
-
-  // Air Ticket Tracking
-  if (planType === 'air_ticket') {
+  // For car park, we don't need entitlement_config if (!entitlementConfig && planType !== 'car_park') return null; // Air Ticket Tracking if (planType === 'air_ticket') {
     const config = entitlementConfig as AirTicketConfig;
     const data = entitlementData as AirTicketData | null;
     const ticketsUsed = data?.tickets_used || 0;

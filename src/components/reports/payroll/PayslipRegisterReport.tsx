@@ -123,12 +123,12 @@ export function PayslipRegisterReport() {
                   <TableCell>{record.department}</TableCell>
                   <TableCell className="text-center">
                     {record.payslipIssued ? (
-                      <Badge variant="default" className="bg-success/10 text-success dark:bg-success/10 dark:text-success">
+                      <Badge variant="default" className="bg-success/10 text-success">
                         <CheckCircle className="h-3 w-3 mr-1" />
                         Issued
                       </Badge>
                     ) : (
-                      <Badge variant="secondary" className="bg-warning/10 text-warning dark:bg-warning/10 dark:text-warning">
+                      <Badge variant="secondary" className="bg-warning/10 text-warning">
                         <XCircle className="h-3 w-3 mr-1" />
                         Pending
                       </Badge>

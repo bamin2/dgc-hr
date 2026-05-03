@@ -76,55 +76,7 @@ export function FormerEmployeesTable() {
         </h3>
         <p className="text-muted-foreground text-sm">
           {isPermissionError
-            ? "You don't have permission to view this data. Only HR and Admin can access former employee records."
-            : "An error occurred while loading the data. Please try again."}
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-4">
-      {/* Search */}
-      <div className="relative w-full sm:w-80">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search former employees..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 bg-background"
-        />
-      </div>
-
-      {/* Empty State */}
-      {filteredEmployees.length === 0 ? (
-        <div className="text-center py-12">
-          <Users className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-foreground mb-1">
-            No former employees found
-          </h3>
-          <p className="text-muted-foreground">
-            {searchQuery
-              ? "Try adjusting your search criteria"
-              : "There are no resigned or terminated employees in the system"}
-          </p>
-        </div>
-      ) : (
-        <>
-          {/* Table */}
-          <div className="rounded-lg border bg-card overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50 hover:bg-muted/50">
-                  <TableHead className="font-medium">Employee Name</TableHead>
-                  <TableHead className="font-medium">Email Address</TableHead>
-                  <TableHead className="font-medium">Department</TableHead>
-                  <TableHead className="font-medium">Job Title</TableHead>
-                  <TableHead className="font-medium">Join Date</TableHead>
-                  <TableHead className="font-medium">Last Working Day</TableHead>
-                  <TableHead className="font-medium">Departure Reason</TableHead>
-                  <TableHead className="font-medium">Exit Interview</TableHead>
-                  <TableHead className="font-medium">Status</TableHead>
+            ? "You don't have permission to view this data. Only HR and Admin can access former employee records." : "An error occurred while loading the data. Please try again."} </p> </div> ); } return ( <div className="space-y-4"> {/* Search */} <div className="relative w-full sm:w-80"> <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" /> <Input placeholder="Search former employees..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10 bg-background" /> </div> {/* Empty State */} {filteredEmployees.length === 0 ? ( <div className="text-center py-12"> <Users className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" /> <h3 className="text-lg font-medium text-foreground mb-1"> No former employees found </h3> <p className="text-muted-foreground"> {searchQuery ? "Try adjusting your search criteria" : "There are no resigned or terminated employees in the system"} </p> </div> ) : ( <> {/* Table */} <div className="rounded-lg border bg-card overflow-hidden"> <Table> <TableHeader> <TableRow className="bg-muted/50 hover:bg-muted/50"> <TableHead className="font-medium">Employee Name</TableHead> <TableHead className="font-medium">Email Address</TableHead> <TableHead className="font-medium">Department</TableHead> <TableHead className="font-medium">Job Title</TableHead> <TableHead className="font-medium">Join Date</TableHead> <TableHead className="font-medium">Last Working Day</TableHead> <TableHead className="font-medium">Departure Reason</TableHead> <TableHead className="font-medium">Exit Interview</TableHead> <TableHead className="font-medium">Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

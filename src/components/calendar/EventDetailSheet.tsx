@@ -54,14 +54,14 @@ const platformLabels: Record<string, string> = {
 };
 
 const colorStyles: Record<string, string> = {
-  green: "bg-success/10 text-success dark:bg-success/10 dark:text-success",
-  orange: "bg-warning/10 text-warning dark:bg-warning/10 dark:text-warning",
-  coral: "bg-destructive/10 text-destructive dark:bg-destructive/10 dark:text-destructive",
-  mint: "bg-info/10 text-info dark:bg-info/10 dark:text-info",
+  green: "bg-success/10 text-success",
+  orange: "bg-warning/10 text-warning",
+  coral: "bg-destructive/10 text-destructive",
+  mint: "bg-info/10 text-info",
   gold: "bg-[#C6A45E]/20 text-[#8B7035] dark:bg-[#C6A45E]/10 dark:text-[#C6A45E]",
   sage: "bg-[#6B8E7B]/20 text-[#4A6B5D] dark:bg-[#6B8E7B]/10 dark:text-[#6B8E7B]",
   // Legacy mappings
-  blue: "bg-info/10 text-info dark:bg-info/10 dark:text-info",
+  blue: "bg-info/10 text-info",
   purple: "bg-[#C6A45E]/20 text-[#8B7035] dark:bg-[#C6A45E]/10 dark:text-[#C6A45E]",
 };
 

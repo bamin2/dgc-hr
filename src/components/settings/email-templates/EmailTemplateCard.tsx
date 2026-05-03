@@ -63,12 +63,7 @@ export function EmailTemplateCard({ template, onEdit, compact = false }: EmailTe
                 </span>
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Last updated: {format(new Date(template.updated_at), "MMM d, yyyy 'at' h:mm a")}
-              </p>
-            </div>
-          </div>
-          <Button variant="outline" size="sm" onClick={onEdit} className="shrink-0">
-            <Pencil className="h-3.5 w-3.5 mr-1.5" />
+                Last updated: {format(new Date(template.updated_at), "MMM d, yyyy 'at' h:mm a")} </p> </div> </div> <Button variant="outline" size="sm" onClick={onEdit} className="shrink-0"> <Pencil className="h-3.5 w-3.5 mr-1.5" />
             Edit
           </Button>
         </div>

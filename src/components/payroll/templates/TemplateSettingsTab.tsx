@@ -233,22 +233,14 @@ export function TemplateSettingsTab({ settings, onSettingsChange }: TemplateSett
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label>Show Department</Label>
-              <p className="text-sm text-muted-foreground">Display employee's department</p>
-            </div>
-            <Switch
-              checked={settings.visibility.show_department}
-              onCheckedChange={(checked) => updateVisibility('show_department', checked)}
+              <p className="text-sm text-muted-foreground">Display employee's department</p> </div> <Switch checked={settings.visibility.show_department} onCheckedChange={(checked) => updateVisibility('show_department', checked)}
             />
           </div>
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label>Show Job Title</Label>
-              <p className="text-sm text-muted-foreground">Display employee's position/job title</p>
-            </div>
-            <Switch
-              checked={settings.visibility.show_job_title}
-              onCheckedChange={(checked) => updateVisibility('show_job_title', checked)}
+              <p className="text-sm text-muted-foreground">Display employee's position/job title</p> </div> <Switch checked={settings.visibility.show_job_title} onCheckedChange={(checked) => updateVisibility('show_job_title', checked)}
             />
           </div>
 
@@ -340,8 +332,7 @@ export function TemplateSettingsTab({ settings, onSettingsChange }: TemplateSett
             </Select>
             <p className="text-sm text-muted-foreground">
               {settings.currency.payslip_currency_mode === 'employee_currency'
-                ? "Payslip will display amounts in the employee's salary currency"
-                : "Payslip will display amounts in the work location's default currency"}
+                ? "Payslip will display amounts in the employee's salary currency" : "Payslip will display amounts in the work location's default currency"}
             </p>
           </div>
         </CardContent>

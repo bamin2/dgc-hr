@@ -96,11 +96,7 @@ export function RequestTimeOffDialog({ open, onOpenChange }: RequestTimeOffDialo
         return;
       }
 
-      // Get the current user's employee_id from employees table (single source of truth)
-      const { data: employee } = await supabase
-        .from('employees')
-        .select('id')
-        .eq('user_id', user.id)
+      // Get the current user's employee_id from employees table (single source of truth) const { data: employee } = await supabase .from('employees') .select('id') .eq('user_id', user.id)
         .maybeSingle();
 
       if (!employee?.id) {

@@ -101,24 +101,7 @@ export function MobileDocumentsSheet({
             <EmptyState
               icon={FileText}
               title="No documents"
-              description="You don't have any documents available yet."
-              size="sm"
-            />
-          ) : (
-            <div className="space-y-3 pb-4">
-              {documents.map((doc) => (
-                <div
-                  key={doc.id}
-                  className="rounded-2xl border bg-card p-4 space-y-3"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                      <FileText className="h-5 w-5 text-primary" />
-                    </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{doc.document_name}</p>
-                      <p className="text-xs text-muted-foreground truncate">
+              description="You don't have any documents available yet." size="sm" /> ) : ( <div className="space-y-3 pb-4"> {documents.map((doc) => ( <div key={doc.id} className="rounded-2xl border bg-card p-4 space-y-3" > <div className="flex items-start gap-3"> <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0"> <FileText className="h-5 w-5 text-primary" /> </div> <div className="flex-1 min-w-0"> <p className="font-medium text-sm truncate">{doc.document_name}</p> <p className="text-xs text-muted-foreground truncate">
                         {doc.document_type?.name || 'Document'}
                       </p>
                       

@@ -19,74 +19,7 @@ const PAYROLL_SMART_TAGS = [
   { tag: "EMPLOYEE_EMAIL", category: "Employee", description: "Email address" },
   { tag: "DEPARTMENT", category: "Employee", description: "Department name" },
   { tag: "POSITION", category: "Employee", description: "Job title" },
-  { tag: "START_DATE", category: "Employee", description: "Employee's start/join date" },
-  { tag: "JOIN_DATE", category: "Employee", description: "Same as START_DATE" },
-  
-  // GOSI
-  { tag: "GOSI_REGISTERED_SALARY", category: "GOSI", description: "GOSI registered salary amount" },
-  
-  // Company Info
-  { tag: "COMPANY_NAME", category: "Company", description: "Company display name" },
-  { tag: "COMPANY_LEGAL_NAME", category: "Company", description: "Registered legal name" },
-  { tag: "COMPANY_ADDRESS", category: "Company", description: "Full company address" },
-  
-  // Pay Period
-  { tag: "PAY_PERIOD_START", category: "Pay Period", description: "Start date of pay period" },
-  { tag: "PAY_PERIOD_END", category: "Pay Period", description: "End date of pay period" },
-  { tag: "PAY_PERIOD", category: "Pay Period", description: "Full period range (start - end)" },
-  { tag: "PAY_MONTH_YEAR", category: "Pay Period", description: "Month and year (e.g., January 2025)" },
-  
-  // Earnings
-  { tag: "BASE_SALARY", category: "Earnings", description: "Base monthly salary" },
-  { tag: "HOUSING_ALLOWANCE", category: "Earnings", description: "Housing allowance amount" },
-  { tag: "TRANSPORTATION_ALLOWANCE", category: "Earnings", description: "Transport allowance amount" },
-  { tag: "OTHER_ALLOWANCES", category: "Earnings", description: "Sum of other allowances" },
-  { tag: "GROSS_PAY", category: "Earnings", description: "Total earnings before deductions" },
-  { tag: "TOTAL_EARNINGS", category: "Earnings", description: "Same as gross pay" },
-  
-  // Deductions
-  { tag: "GOSI_DEDUCTION", category: "Deductions", description: "GOSI employee contribution" },
-  { tag: "OTHER_DEDUCTIONS", category: "Deductions", description: "Sum of other deductions" },
-  { tag: "LOAN_DEDUCTION", category: "Deductions", description: "Loan deduction amount" },
-  { tag: "TOTAL_DEDUCTIONS", category: "Deductions", description: "Sum of all deductions" },
-  
-  // Net Pay
-  { tag: "NET_PAY", category: "Net Pay", description: "Final take-home amount" },
-  { tag: "CURRENCY", category: "Net Pay", description: "Currency code (e.g., BHD)" },
-  
-  // Metadata
-  { tag: "GENERATED_DATE", category: "Metadata", description: "Date payslip was generated" },
-  { tag: "PAYSLIP_ID", category: "Metadata", description: "Unique payslip identifier" },
-
-  // Loop Arrays (use with {{#TAG}}...{{/TAG}} syntax to repeat rows)
-  { tag: "#ALLOWANCES", category: "Loops", description: "Loop: repeats for each allowance. Use {{name}} and {{amount}} inside." },
-  { tag: "#DEDUCTIONS", category: "Loops", description: "Loop: repeats for each deduction (GOSI, loans, manual deductions). Use {{name}} and {{amount}} inside." },
-  { tag: "#ADJUSTMENTS_EARNINGS", category: "Loops", description: "Loop: repeats for each one-time earning adjustment. Use {{name}} and {{amount}} inside." },
-
-  // Conditional Sections (use with {{#TAG}}...{{/TAG}} syntax)
-  { tag: "SHOW_GOSI", category: "Conditional", description: "Show block only if employee is subject to GOSI and deduction > 0" },
-  { tag: "SHOW_HOUSING_ALLOWANCE", category: "Conditional", description: "Show block only if housing allowance > 0" },
-  { tag: "SHOW_TRANSPORT_ALLOWANCE", category: "Conditional", description: "Show block only if transport allowance > 0" },
-  { tag: "SHOW_OTHER_ALLOWANCES", category: "Conditional", description: "Show block only if other allowances > 0" },
-  { tag: "SHOW_OTHER_DEDUCTIONS", category: "Conditional", description: "Show block only if other deductions > 0" },
-  { tag: "SHOW_LOAN_DEDUCTION", category: "Conditional", description: "Show block only if loan deduction > 0" },
-];
-
-interface SmartTagsTabProps {
-  docxStoragePath: string | null;
-}
-
-export function SmartTagsTab({ docxStoragePath }: SmartTagsTabProps) {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [copiedTag, setCopiedTag] = useState<string | null>(null);
-  const { data: smartTags, isLoading } = useActiveSmartTags();
-
-  // Combine database tags with payroll-specific tags
-  const allTags = [
-    ...(smartTags || []).map((dbTag) => ({
-      tag: dbTag.tag,
-      category: dbTag.category,
-      description: dbTag.description || "",
+  { tag: "START_DATE", category: "Employee", description: "Employee's start/join date" }, { tag: "JOIN_DATE", category: "Employee", description: "Same as START_DATE" }, // GOSI { tag: "GOSI_REGISTERED_SALARY", category: "GOSI", description: "GOSI registered salary amount" }, // Company Info { tag: "COMPANY_NAME", category: "Company", description: "Company display name" }, { tag: "COMPANY_LEGAL_NAME", category: "Company", description: "Registered legal name" }, { tag: "COMPANY_ADDRESS", category: "Company", description: "Full company address" }, // Pay Period { tag: "PAY_PERIOD_START", category: "Pay Period", description: "Start date of pay period" }, { tag: "PAY_PERIOD_END", category: "Pay Period", description: "End date of pay period" }, { tag: "PAY_PERIOD", category: "Pay Period", description: "Full period range (start - end)" }, { tag: "PAY_MONTH_YEAR", category: "Pay Period", description: "Month and year (e.g., January 2025)" }, // Earnings { tag: "BASE_SALARY", category: "Earnings", description: "Base monthly salary" }, { tag: "HOUSING_ALLOWANCE", category: "Earnings", description: "Housing allowance amount" }, { tag: "TRANSPORTATION_ALLOWANCE", category: "Earnings", description: "Transport allowance amount" }, { tag: "OTHER_ALLOWANCES", category: "Earnings", description: "Sum of other allowances" }, { tag: "GROSS_PAY", category: "Earnings", description: "Total earnings before deductions" }, { tag: "TOTAL_EARNINGS", category: "Earnings", description: "Same as gross pay" }, // Deductions { tag: "GOSI_DEDUCTION", category: "Deductions", description: "GOSI employee contribution" }, { tag: "OTHER_DEDUCTIONS", category: "Deductions", description: "Sum of other deductions" }, { tag: "LOAN_DEDUCTION", category: "Deductions", description: "Loan deduction amount" }, { tag: "TOTAL_DEDUCTIONS", category: "Deductions", description: "Sum of all deductions" }, // Net Pay { tag: "NET_PAY", category: "Net Pay", description: "Final take-home amount" }, { tag: "CURRENCY", category: "Net Pay", description: "Currency code (e.g., BHD)" }, // Metadata { tag: "GENERATED_DATE", category: "Metadata", description: "Date payslip was generated" }, { tag: "PAYSLIP_ID", category: "Metadata", description: "Unique payslip identifier" }, // Loop Arrays (use with {{#TAG}}...{{/TAG}} syntax to repeat rows) { tag: "#ALLOWANCES", category: "Loops", description: "Loop: repeats for each allowance. Use {{name}} and {{amount}} inside." }, { tag: "#DEDUCTIONS", category: "Loops", description: "Loop: repeats for each deduction (GOSI, loans, manual deductions). Use {{name}} and {{amount}} inside." }, { tag: "#ADJUSTMENTS_EARNINGS", category: "Loops", description: "Loop: repeats for each one-time earning adjustment. Use {{name}} and {{amount}} inside." }, // Conditional Sections (use with {{#TAG}}...{{/TAG}} syntax) { tag: "SHOW_GOSI", category: "Conditional", description: "Show block only if employee is subject to GOSI and deduction > 0" }, { tag: "SHOW_HOUSING_ALLOWANCE", category: "Conditional", description: "Show block only if housing allowance > 0" }, { tag: "SHOW_TRANSPORT_ALLOWANCE", category: "Conditional", description: "Show block only if transport allowance > 0" }, { tag: "SHOW_OTHER_ALLOWANCES", category: "Conditional", description: "Show block only if other allowances > 0" }, { tag: "SHOW_OTHER_DEDUCTIONS", category: "Conditional", description: "Show block only if other deductions > 0" }, { tag: "SHOW_LOAN_DEDUCTION", category: "Conditional", description: "Show block only if loan deduction > 0" }, ]; interface SmartTagsTabProps { docxStoragePath: string | null; } export function SmartTagsTab({ docxStoragePath }: SmartTagsTabProps) { const [searchQuery, setSearchQuery] = useState(""); const [copiedTag, setCopiedTag] = useState<string | null>(null); const { data: smartTags, isLoading } = useActiveSmartTags(); // Combine database tags with payroll-specific tags const allTags = [ ...(smartTags || []).map((dbTag) => ({ tag: dbTag.tag, category: dbTag.category, description: dbTag.description || "",
     })),
     ...PAYROLL_SMART_TAGS,
   ];

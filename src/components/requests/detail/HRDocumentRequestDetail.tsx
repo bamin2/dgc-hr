@@ -91,50 +91,7 @@ export function HRDocumentRequestDetailSheet({
                 <div>
                   <p className="text-sm font-medium">Submitted</p>
                   <p className="text-sm text-muted-foreground">
-                    {format(new Date(request.created_at), "MMM d, yyyy 'at' h:mm a")}
-                  </p>
-                </div>
-              </div>
-
-              {request.processed_at && (
-                <div className="flex items-start gap-3">
-                  <CheckCircle className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium">Processed</p>
-                    <p className="text-sm text-muted-foreground">
-                      {format(new Date(request.processed_at), "MMM d, yyyy 'at' h:mm a")}
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {request.notes && (
-              <div className="rounded-xl bg-white/60 dark:bg-white/5 p-4">
-                <p className="text-sm font-medium mb-1">Notes</p>
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                  {request.notes}
-                </p>
-              </div>
-            )}
-
-            {request.status === "rejected" && request.rejection_reason && (
-              <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-4">
-                <div className="flex items-center gap-2 mb-1">
-                  <AlertCircle className="h-4 w-4 text-destructive" />
-                  <p className="text-sm font-medium text-destructive">
-                    Rejection Reason
-                  </p>
-                </div>
-                <p className="text-sm text-destructive">
-                  {request.rejection_reason}
-                </p>
-              </div>
-            )}
-
-            {request.status === "approved" && request.pdf_storage_path && (
-              <Button onClick={handleDownload} className="w-full min-h-[48px]">
-                <Download className="h-4 w-4 mr-2" />
+                    {format(new Date(request.created_at), "MMM d, yyyy 'at' h:mm a")} </p> </div> </div> {request.processed_at && ( <div className="flex items-start gap-3"> <CheckCircle className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" /> <div> <p className="text-sm font-medium">Processed</p> <p className="text-sm text-muted-foreground"> {format(new Date(request.processed_at), "MMM d, yyyy 'at' h:mm a")} </p> </div> </div> )} </div> {request.notes && ( <div className="rounded-xl bg-white/60 dark:bg-white/5 p-4"> <p className="text-sm font-medium mb-1">Notes</p> <p className="text-sm text-muted-foreground whitespace-pre-wrap"> {request.notes} </p> </div> )} {request.status === "rejected" && request.rejection_reason && ( <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-4"> <div className="flex items-center gap-2 mb-1"> <AlertCircle className="h-4 w-4 text-destructive" /> <p className="text-sm font-medium text-destructive"> Rejection Reason </p> </div> <p className="text-sm text-destructive"> {request.rejection_reason} </p> </div> )} {request.status === "approved" && request.pdf_storage_path && ( <Button onClick={handleDownload} className="w-full min-h-[48px]"> <Download className="h-4 w-4 mr-2" />
                 Download Document
               </Button>
             )}

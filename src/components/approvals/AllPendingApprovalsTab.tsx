@@ -117,7 +117,7 @@ export function AllPendingApprovalsTab() {
           <p className="text-sm text-muted-foreground">
             {pendingRequests.length} pending request{pendingRequests.length !== 1 ? "s" : ""}
           </p>
-          <Badge variant="secondary" className="bg-warning/10 text-warning dark:bg-warning dark:text-warning">
+          <Badge variant="secondary" className="bg-warning/10 text-warning dark:bg-warning">
             HR/Admin Override
           </Badge>
         </div>
