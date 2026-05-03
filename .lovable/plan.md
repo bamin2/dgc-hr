@@ -1,44 +1,56 @@
-## Plan: Rewrite README.md
+# Mobile Requests — make cards open detail views
 
-Replace the generic Lovable boilerplate `README.md` with a comprehensive, project-specific document for the **DGC Holding HR Platform**. Once approved (build mode), I'll write the file and it will sync to GitHub automatically via the existing Lovable ↔ GitHub integration.
+## Problem
+On `/requests` (mobile), `MobileRequestCard` accepts `onClick` but `MobileRequestsHub` never passes one. Every card is a dead button — the most common interaction (tap a request to see status / approval timeline / cancel) does nothing.
 
-### Proposed sections
+## Goal
+Tapping any request card opens a focused mobile detail view appropriate to its type (leave, business trip, HR document, loan), reusing existing detail components instead of rebuilding them.
 
-1. **Header & Overview** — Project name (DGC HR), one-paragraph description, live URLs:
-   - Production: `https://hr.dgcholding.com`
-   - Lovable preview: `https://style-to-site-solver.lovable.app`
+## Approach
+Introduce a single `MobileRequestDetailSheet` that the hub controls via a `selectedRequest` state. The sheet renders a type-specific body using already-built components, wrapped in the standard mobile `Sheet` (bottom, ~92vh, `SheetBody` for scroll). This keeps mobile flows in-page (no route push), preserves the list scroll position, and matches the existing `MobileNewRequestSheet` pattern.
 
-2. **Features** — Grouped list reflecting actual modules in `src/pages`:
-   - Workforce: Employees, Directory, MyProfile, Onboarding/Offboarding, Hiring & Candidates
-   - Time & Leave: Time Off, Time Management, Attendance, Calendar, Public Holidays
-   - Payroll & Compensation: Payroll runs, Payslips, Payslip Templates, Bulk Salary Update, Loans, GOSI
-   - Benefits & Requests: Benefits enrollment & claims, Business Trips, Approvals, Unified Requests
-   - Documents & Reports: HR Letters, Document templates, Reports, Audit Trail
-   - Platform: Notifications, Help Center, Settings, role-based access (employee/manager/hr/admin), impersonation
-   - PWA: Installable, offline indicator, mobile-first navigation with route prefetching
+### Per-type bodies (reuse, do not rebuild)
+- **leave** → `LeaveRequestDetailDialog` content (extract its inner body into a presentational `LeaveRequestDetailView` so it can render inside either a Dialog or a Sheet)
+- **business_trip** → `TripDetailView` (already a standalone view component)
+- **loan** → `LoanDetailSheet` body (similarly extract inner view if it's currently bound to its own Sheet wrapper)
+- **hr_document** → small inline view: template name, status, requested date, generated document download link if present, cancel button if pending. No existing detail component, so build a minimal `HRDocumentRequestDetail` here.
 
-3. **Tech stack** — Vite 5, React 18, TypeScript 5, Tailwind v3, shadcn/ui (Radix), React Router 6, TanStack Query 5, Supabase (Lovable Cloud), framer-motion, react-hook-form + zod, recharts, tiptap, docxtemplater, jspdf, xlsx, Playwright + Vitest.
+Each body receives the full `metadata` object already attached to `UnifiedRequest`, so no extra fetching is needed for the initial render. Mutations (cancel, etc.) continue to use the existing hooks from each domain.
 
-4. **Architecture highlights** — Brief notes on:
-   - Lovable Cloud (Supabase) for auth, DB, storage, edge functions
-   - User roles in separate `user_roles` table with `has_role()` security definer
-   - Centralized query keys, design tokens, date utils
-   - Route-level lazy loading + nav prefetching + animated transitions
+### Hub wiring
+```tsx
+const [selected, setSelected] = useState<UnifiedRequest | null>(null);
+...
+<MobileRequestCard
+  key={`${request.type}-${request.id}`}
+  request={request}
+  onClick={() => setSelected(request)}
+/>
+...
+<MobileRequestDetailSheet
+  request={selected}
+  open={!!selected}
+  onOpenChange={(o) => !o && setSelected(null)}
+/>
+```
 
-5. **Local development** — Prereqs (Node 18+, bun or npm), clone, install, `.env` requirements (Supabase URL + anon key auto-provisioned by Lovable Cloud), `npm run dev`.
+### Sheet shell
+- `Sheet` `side="bottom"`, `h-[92vh]`, rounded-top, `flex flex-col p-0`
+- `SheetHeader` with title (type label + short identifier) + status badge
+- `SheetBody` for scrollable content
+- Sticky footer for primary action when applicable (Cancel request, Download document, View attachment)
+- Close via swipe-down / back gesture / explicit close button — uses standard project Sheet behaviour
 
-6. **Scripts** — `dev`, `build`, `build:dev`, `lint`, `preview`, plus `vitest` and `playwright test`.
+## Files
+- **edit** `src/components/requests/MobileRequestsHub.tsx` — add `selected` state, pass `onClick`, render detail sheet
+- **new** `src/components/requests/MobileRequestDetailSheet.tsx` — shell + type switch
+- **new** `src/components/requests/detail/LeaveRequestDetailView.tsx` — extracted from `LeaveRequestDetailDialog`
+- **new** `src/components/requests/detail/HRDocumentRequestDetail.tsx`
+- **edit** `src/components/timeoff/LeaveRequestDetailDialog.tsx` — render the new extracted view inside its dialog (no behaviour change on desktop)
+- **edit** `src/components/loans/LoanDetailSheet.tsx` — export the inner view (or import the existing one) for reuse on mobile
+- **edit** `src/components/requests/index.ts` — export new components
 
-7. **Project structure** — Short tree of `src/` (pages, components, hooks, lib, contexts, integrations, types).
-
-8. **Testing** — Unit tests with Vitest (`src/**/__tests__`), E2E with Playwright (`e2e/`).
-
-9. **Deployment** — Via Lovable (Share → Publish) and custom domain (`hr.dgcholding.com`); GitHub two-way sync note.
-
-10. **Design system** — Brief: DGC palette (Deep Green `#0F2A28`, Off-white `#F7F7F5`, Gold `#C6A45E`), 8pt spacing, Instrument Sans, liquid-glass surfaces.
-
-11. **Contributing & License** — Internal project note; proprietary to DGC Holding.
-
-### Out of scope
-- No code changes, no new dependencies.
-- Does not touch any other docs (`src/**/README.md` files remain as-is).
+## Out of scope
+- No new routes (mobile detail stays in-sheet, consistent with `MobileApprovalCard` pattern)
+- No changes to desktop request pages
+- No schema or query changes — `UnifiedRequest.metadata` already carries everything needed

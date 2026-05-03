@@ -2,9 +2,10 @@ import { useState } from "react";
 import { Plus, Inbox } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useUnifiedRequests, UnifiedStatus } from "@/hooks/useUnifiedRequests";
+import { useUnifiedRequests, UnifiedRequest, UnifiedStatus } from "@/hooks/useUnifiedRequests";
 import { MobileRequestCard } from "./MobileRequestCard";
 import { MobileNewRequestSheet } from "./MobileNewRequestSheet";
+import { MobileRequestDetailSheet } from "./MobileRequestDetailSheet";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type FilterOption = "all" | UnifiedStatus;
@@ -19,7 +20,8 @@ const filterOptions: { value: FilterOption; label: string }[] = [
 export function MobileRequestsHub() {
   const [statusFilter, setStatusFilter] = useState<FilterOption>("all");
   const [newRequestOpen, setNewRequestOpen] = useState(false);
-  
+  const [selectedRequest, setSelectedRequest] = useState<UnifiedRequest | null>(null);
+
   const { data: requests, isLoading } = useUnifiedRequests(
     statusFilter === "all" ? undefined : statusFilter
   );
@@ -72,7 +74,11 @@ export function MobileRequestsHub() {
         ) : requests && requests.length > 0 ? (
           <div className="space-y-3">
             {requests.map((request) => (
-              <MobileRequestCard key={`${request.type}-${request.id}`} request={request} />
+              <MobileRequestCard
+                key={`${request.type}-${request.id}`}
+                request={request}
+                onClick={() => setSelectedRequest(request)}
+              />
             ))}
           </div>
         ) : (
@@ -92,6 +98,13 @@ export function MobileRequestsHub() {
 
       {/* New Request Sheet */}
       <MobileNewRequestSheet open={newRequestOpen} onOpenChange={setNewRequestOpen} />
+
+      {/* Request Detail Sheet */}
+      <MobileRequestDetailSheet
+        request={selectedRequest}
+        open={!!selectedRequest}
+        onOpenChange={(o) => !o && setSelectedRequest(null)}
+      />
     </div>
   );
 }
