@@ -329,9 +329,9 @@ export function EditSalaryDialog({
             
             {/* Scheduled Change Alert */}
             {isFutureDate && (
-              <Alert className="border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800/30">
-                <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                <AlertDescription className="text-amber-800 dark:text-amber-300">
+              <Alert className="border-warning/30 bg-warning/10">
+                <Clock className="h-4 w-4 text-warning" />
+                <AlertDescription className="text-warning">
                   This salary change is scheduled for {format(effectiveDate, 'MMMM d, yyyy')}.
                   The current salary will remain in effect until then.
                 </AlertDescription>
@@ -477,11 +477,11 @@ export function EditSalaryDialog({
                       </p>
                     </div>
                     {gosiCalculation.gosiDeduction > 0 && (
-                      <div className="flex justify-between items-center text-sm bg-amber-50/50 dark:bg-amber-950/20 p-3 rounded-lg border border-amber-200/50 dark:border-amber-800/30">
+                      <div className="flex justify-between items-center text-sm bg-warning/5 p-3 rounded-lg border border-warning/20">
                         <span className="text-muted-foreground">
                           Employee Contribution ({gosiCalculation.employeeRate}%)
                         </span>
-                        <span className="text-amber-700 dark:text-amber-400 font-medium">
+                        <span className="text-warning font-medium">
                           {formatAmount(gosiCalculation.gosiDeduction, currency)}
                         </span>
                       </div>
@@ -501,7 +501,7 @@ export function EditSalaryDialog({
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Total Allowances</span>
-                  <span className="text-green-600">+{formatAmount(totals.totalAllowances, currency)}</span>
+                  <span className="text-success">+{formatAmount(totals.totalAllowances, currency)}</span>
                 </div>
                 <div className="flex justify-between text-sm font-medium pt-1 border-t border-border/50">
                   <span>Gross Pay</span>
@@ -514,18 +514,18 @@ export function EditSalaryDialog({
                 {gosiCalculation.gosiDeduction > 0 && (
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">GOSI ({gosiCalculation.employeeRate}%)</span>
-                    <span className="text-red-600">-{formatAmount(gosiCalculation.gosiDeduction, currency)}</span>
+                    <span className="text-destructive">-{formatAmount(gosiCalculation.gosiDeduction, currency)}</span>
                   </div>
                 )}
                 {totals.otherDeductions > 0 && (
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Other Deductions</span>
-                    <span className="text-red-600">-{formatAmount(totals.otherDeductions, currency)}</span>
+                    <span className="text-destructive">-{formatAmount(totals.otherDeductions, currency)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-sm font-medium pt-1 border-t border-border/50">
                   <span>Total Deductions</span>
-                  <span className="text-red-600">-{formatAmount(totals.totalDeductions, currency)}</span>
+                  <span className="text-destructive">-{formatAmount(totals.totalDeductions, currency)}</span>
                 </div>
               </div>
               
@@ -591,7 +591,7 @@ export function EditSalaryDialog({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              <AlertTriangle className="h-5 w-5 text-warning" />
               {pendingGosiValue ? 'Enable GOSI for this employee?' : 'Disable GOSI for this employee?'}
             </AlertDialogTitle>
             <AlertDialogDescription>

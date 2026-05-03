@@ -186,8 +186,8 @@ export function FormerEmployeesTable() {
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <button className="flex items-center gap-1.5 cursor-default">
-                                  <CheckCircle className="h-4 w-4 text-emerald-500" />
-                                  <span className="text-sm text-emerald-600 dark:text-emerald-400">
+                                  <CheckCircle className="h-4 w-4 text-success" />
+                                  <span className="text-sm text-success">
                                     Completed
                                   </span>
                                 </button>
@@ -204,8 +204,8 @@ export function FormerEmployeesTable() {
                           </TooltipProvider>
                         ) : employee.exitInterviewCompleted === false ? (
                           <div className="flex items-center gap-1.5">
-                            <Clock className="h-4 w-4 text-amber-500" />
-                            <span className="text-sm text-amber-600 dark:text-amber-400">
+                            <Clock className="h-4 w-4 text-warning" />
+                            <span className="text-sm text-warning">
                               Pending
                             </span>
                           </div>

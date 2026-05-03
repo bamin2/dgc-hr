@@ -208,11 +208,11 @@ export function EmployeeTimeOffTab({ employeeId }: EmployeeTimeOffTabProps) {
                         <div>Used</div>
                       </div>
                       <div>
-                        <div className="font-medium text-amber-600">{balance.pending_days}</div>
+                        <div className="font-medium text-warning">{balance.pending_days}</div>
                         <div>Pending</div>
                       </div>
                       <div>
-                        <div className="font-medium text-green-600">{remaining}</div>
+                        <div className="font-medium text-success">{remaining}</div>
                         <div>Remaining</div>
                       </div>
                     </div>

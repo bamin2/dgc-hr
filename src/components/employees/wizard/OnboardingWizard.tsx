@@ -383,7 +383,7 @@ export function OnboardingWizard({ initialEmployeeDetails, employeeId, onComplet
           <Button
             onClick={handleLaunch}
             disabled={createOnboarding.isPending}
-            className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
+            className="gap-2 bg-success text-success-foreground hover:bg-success/90"
           >
             {createOnboarding.isPending ? (
               <Loader2 className="h-4 w-4 animate-spin" />
