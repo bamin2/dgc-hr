@@ -2,7 +2,7 @@ import dgcLogoLight from "@/assets/dgc-people-logo.svg";
 
 export function AuthLeftPanel() {
   return (
-    <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-primary to-primary/90">
+    <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-primary">
       <div className="relative z-10 flex flex-col h-full w-full p-8 lg:p-12">
         {/* Logo */}
         <div className="mb-auto">
