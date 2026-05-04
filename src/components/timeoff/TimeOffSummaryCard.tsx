@@ -113,7 +113,7 @@ export function TimeOffSummaryCard({ year }: TimeOffSummaryCardProps) {
         />
         <SummaryItem
           icon={<Flag className="w-4 h-4" />}
-          bgColor="bg-rose-400/85"
+          bgColor="bg-muted"
           days={totalHolidays}
           label="Public Holidays"
           sublabel={`${remainingHolidays} remaining in ${displayYear}`}
