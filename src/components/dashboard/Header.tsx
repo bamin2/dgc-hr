@@ -14,6 +14,8 @@ import { NotificationBell } from "@/components/notifications";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
 import { useIsMobile } from "@/hooks/use-media-query";
+import { usePendingApprovalsCount } from "@/hooks/usePendingApprovalsCount";
+import { usePersonalDashboard } from "@/hooks/usePersonalDashboard";
 import { RoleBadge } from "@/components/employees";
 import { MobileNav } from "./MobileNav";
 import { GlobalSearch } from "./GlobalSearch";
@@ -54,6 +56,33 @@ export function Header() {
     .toUpperCase()
     .slice(0, 2);
 
+  const firstName = displayName.split(' ')[0];
+
+  const greeting = (() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
+  })();
+
+  const { data: pendingApprovalsCount = 0 } = usePendingApprovalsCount();
+  const { data: personalDashboard } = usePersonalDashboard();
+
+  const canApprove = ['manager', 'hr', 'admin'].includes(currentUser.role);
+  const nextLeaveStart = personalDashboard?.upcomingTimeOff?.[0]?.startDate;
+
+  let subtitle: string | null = null;
+  if (canApprove && pendingApprovalsCount > 0) {
+    subtitle = `${pendingApprovalsCount} approval${pendingApprovalsCount === 1 ? '' : 's'} waiting for you`;
+  } else if (nextLeaveStart) {
+    const formatted = new Date(nextLeaveStart).toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+    });
+    subtitle = `Your next leave starts ${formatted}`;
+  }
+
   return (
     <header className="sticky top-0 z-40 bg-background border-b border-border">
       <div className="flex items-center justify-between h-14 sm:h-16 lg:h-20 px-4 sm:px-6">
@@ -65,11 +94,13 @@ export function Header() {
           </div>
           <div>
             <h1 className="text-base sm:text-xl font-semibold text-foreground">
-              Hello, {displayName.split(' ')[0]}! 👋
+              {greeting}, {firstName}
             </h1>
-            <p className="hidden sm:block text-sm text-muted-foreground">
-              Let's check your team today
-            </p>
+            {subtitle && (
+              <p className="hidden sm:block text-sm text-muted-foreground">
+                {subtitle}
+              </p>
+            )}
           </div>
         </div>
 
