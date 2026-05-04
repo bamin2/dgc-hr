@@ -10,45 +10,45 @@ interface EventCardProps {
 
 const colorStyles: Record<string, { bg: string; border: string; text: string }> = {
   green: {
-    bg: "bg-emerald-50 dark:bg-emerald-950/30",
+    bg: "bg-emerald-50",
     border: "border-l-emerald-500",
-    text: "text-emerald-900 dark:text-emerald-100",
+    text: "text-emerald-900",
   },
   orange: {
-    bg: "bg-orange-50 dark:bg-orange-950/30",
+    bg: "bg-orange-50",
     border: "border-l-orange-500",
-    text: "text-orange-900 dark:text-orange-100",
+    text: "text-orange-900",
   },
   coral: {
-    bg: "bg-rose-50 dark:bg-rose-950/30",
+    bg: "bg-rose-50",
     border: "border-l-rose-400",
-    text: "text-rose-900 dark:text-rose-100",
+    text: "text-rose-900",
   },
   mint: {
-    bg: "bg-teal-50 dark:bg-teal-950/30",
+    bg: "bg-teal-50",
     border: "border-l-teal-500",
-    text: "text-teal-900 dark:text-teal-100",
+    text: "text-teal-900",
   },
   gold: {
-    bg: "bg-[#C6A45E]/10 dark:bg-[#C6A45E]/20",
+    bg: "bg-[#C6A45E]/10",
     border: "border-l-[#C6A45E]",
-    text: "text-[#8B7035] dark:text-[#C6A45E]",
+    text: "text-[#8B7035]",
   },
   sage: {
-    bg: "bg-[#6B8E7B]/10 dark:bg-[#6B8E7B]/20",
+    bg: "bg-[#6B8E7B]/10",
     border: "border-l-[#6B8E7B]",
-    text: "text-[#4A6B5D] dark:text-[#6B8E7B]",
+    text: "text-[#4A6B5D]",
   },
   // Legacy mappings for existing data
   blue: {
-    bg: "bg-teal-50 dark:bg-teal-950/30",
+    bg: "bg-teal-50",
     border: "border-l-teal-500",
-    text: "text-teal-900 dark:text-teal-100",
+    text: "text-teal-900",
   },
   purple: {
-    bg: "bg-[#C6A45E]/10 dark:bg-[#C6A45E]/20",
+    bg: "bg-[#C6A45E]/10",
     border: "border-l-[#C6A45E]",
-    text: "text-[#8B7035] dark:text-[#C6A45E]",
+    text: "text-[#8B7035]",
   },
 };
 

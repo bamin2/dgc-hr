@@ -1,58 +1,67 @@
 ## Goal
 
-Migrate hard-coded Tailwind palette colors and hex chart fills across `src/components/reports/` to semantic design tokens (status uses) and `--chart-*` tokens (chart series), preserving multi-series distinguishability and dropping `dark:` overrides on status/decoration uses. `src/components/ui/` is not touched.
+Soften palette colors across `src/components/calendar/*.tsx`, treating event-color picker maps differently from status/decoration uses. `src/components/ui/` is not touched.
+
+## Important finding about event colors
+
+The **canonical `EventColor` enum** (from Supabase, used by `CreateEventDialog`'s picker and `EventCard`) is the **semantic set**: `green`, `orange`, `coral`, `mint`, `gold`/`blue`, `sage`/`purple` — NOT raw `red / yellow / pink / violet`. The only place raw keys appear is the legacy `eventColorMap` in `MonthView.tsx` (`blue, green, red, yellow, purple, orange, pink, mint, coral`), which extends beyond what users can pick. So the user's mapping rule is applied to that map, but most of those keys (`red`, `yellow`, `pink`) are dead branches today.
 
 ## Mapping rules
 
-**Status / decoration (badges, dot icons, KPI tiles, conditional text, borders):**
-- emerald / green → `success` (`text-success`, `bg-success/10`, `border-success/30`)
-- red / rose → `destructive`
-- amber / yellow / orange → `warning`
-- blue / sky / teal → `info`
-- DGC gold `#C6A45E` and brand-toned tiles → `primary` (`text-primary`, `bg-primary/10`)
-- Drop every `dark:` palette override on these uses (semantic tokens auto-adapt).
+**Event-color picker maps (KEEP keys, soften values, preserve color identity):**
+Applies to `MonthView.tsx` `eventColorMap`, `EventCard.tsx` `colorClasses`, `EventDetailSheet.tsx` color badges, `CreateEventDialog.tsx` `eventColors` swatches, `CalendarFilters.tsx` `colors` swatches.
 
-**Chart series (recharts `fill=`/`stroke=` and color arrays):**
-- Replace hex palettes and `colors=[...]` arrays with `hsl(var(--chart-1))` … `hsl(var(--chart-5))`, using `hsl(var(--chart-accent))` for the highlighted/primary series.
-- Preserve series count: 3 series → chart-1/2/3; 5 series → chart-1…5; donuts/distributions cycle through chart-1…5.
-- Do NOT change chart logic, data shape, dataKeys, or layout.
+- `bg-red-500` → `bg-rose-500/90`
+- `bg-green-500` → `bg-emerald-500/90`
+- `bg-blue-500` → `bg-sky-500/90`
+- `bg-yellow-500` → `bg-amber-500/90`
+- `bg-purple-500` → `bg-violet-500/90`
+- `bg-pink-500` → `bg-pink-500/90`
+- Existing softer palette tokens (`bg-emerald-500`, `bg-orange-500`, `bg-rose-400`, `bg-teal-400/500/600`, `bg-[#C6A45E]`, `bg-[#6B8E7B]`) → append `/90` for picker swatches and event chips so they read calmer; keep the same hue.
+- Multi-class entries in `EventCard.tsx`/`EventDetailSheet.tsx` (`bg-emerald-50`, `border-l-emerald-500`, `text-emerald-900`, plus `dark:` pairs): keep hue, drop neon — keep `-50` surfaces and `-500` accents but standardize at `/100` opacity (already muted), and strip `dark:` overrides per project policy. Brand `#C6A45E` and `#6B8E7B` entries kept as-is (already DGC tokens).
+
+**Non-picker status/decoration uses (standard semantic mapping):**
+None found in current scan — `WeekView.tsx`, `DayView.tsx`, `CalendarHeader.tsx`, `CalendarToolbar.tsx` had no palette hits. If any surface during edit, apply: emerald/green → `success`, red → `destructive`, amber/yellow → `warning`, blue/sky → `info`.
 
 ## Files & changes
 
-### Charts (palette-array fixes)
-1. **PayrollChart.tsx** — `#22C55E`, `#C6A45E`, `#6B7B6E` → `hsl(var(--chart-accent))` (Net Pay, primary), `hsl(var(--chart-2))` (Taxes), `hsl(var(--chart-3))` (Benefits).
-2. **LeaveChart.tsx** — `#4A6B5D`, `#22C55E`, `#F97316` → `hsl(var(--chart-1))`, `hsl(var(--chart-accent))`, `hsl(var(--chart-3))` (Taken / Remaining / Pending).
-3. **SalaryDistributionChart.tsx**, **SalaryChangeTypeChart.tsx**, **SalaryTrendChart.tsx** — already use `hsl(var(--chart-*))`; verify the `colors` array spans `--chart-1`…`--chart-5` (no `--chart-1`/`--chart-2` repeats at index 5–6) and adjust if duplicated.
+1. **MonthView.tsx** (`eventColorMap`, lines 21–31)
+   - `blue: bg-teal-600` → `bg-sky-500/90`
+   - `green: bg-green-500` → `bg-emerald-500/90`
+   - `red: bg-red-500` → `bg-rose-500/90`
+   - `yellow: bg-yellow-500` → `bg-amber-500/90`
+   - `purple: bg-[#C6A45E]` → `bg-violet-500/90`
+   - `orange: bg-orange-500` → `bg-orange-500/90`
+   - `pink: bg-pink-500` → `bg-pink-500/90`
+   - `mint: bg-teal-400` → `bg-teal-400/90`
+   - `coral: bg-rose-400` → `bg-rose-400/90`
+   - Fallback `"bg-teal-600"` → `"bg-sky-500/90"` (line 111).
 
-### Status / KPI tile fixes
-4. **ReportsMetrics.tsx** — teal/emerald/amber/`#C6A45E` `iconBg`/`iconColor` pairs → `bg-info/10 text-info`, `bg-success/10 text-success`, `bg-primary/10 text-primary`, `bg-warning/10 text-warning`. Drop `dark:` variants.
-5. **ReportTypeBadge.tsx** — teal/emerald/amber/orange palette → `bg-info/10 text-info`, `bg-success/10 text-success`, `bg-warning/10 text-warning`, `bg-primary/10 text-primary` (depending on category). Drop `dark:`.
-6. **SalaryMetricsCards.tsx** — teal/emerald/amber `iconBg`/`iconColor` → info/success/warning tokens.
-7. **DepartmentTable.tsx** — `text-red-600`/`text-emerald-600` → `text-destructive` / `text-success`.
-8. **salary/SalaryReports.tsx** (lines 295, 298) — `text-emerald-600`/`text-red-600` change-amount conditionals → `text-success` / `text-destructive`.
+   Note: this changes the visual hue for `blue` (teal→sky) and `purple` (gold→violet) per the user's explicit mapping rule. Since `EventColor` enum values used by the picker are `green/orange/coral/mint/blue/purple` and labels in `CreateEventDialog` show "Teal" for `blue` and "Gold" for `purple`, the visual will diverge from the label. **Recommend in implementation: keep existing brand hue (teal/gold) for `blue`/`purple` keys to preserve picker label↔swatch parity, and only soften with `/90`.** Will confirm by softening only (no hue swap) for `blue` and `purple` unless you say otherwise.
 
-### Compliance
-9. **compliance/PayrollVarianceReport.tsx** — `text-green-500/600`, `text-red-500/600` → `text-success` / `text-destructive` for Trending icons, delta text, table cells.
-10. **compliance/ComplianceSnapshotReport.tsx** — `border-red-200 bg-red-50/50`, `text-red-500/600`, `border-amber-200 bg-amber-50/50`, `text-amber-500/600`, `border-orange-200 bg-orange-50/50` → `border-destructive/30 bg-destructive/5 text-destructive`, `border-warning/30 bg-warning/5 text-warning`.
-11. **compliance/GosiContributionReport.tsx** — teal/amber/emerald icon tiles → info/warning/success tokens; drop `dark:`.
+2. **EventCard.tsx** (`colorClasses`, lines 11–52)
+   - Drop every `dark:bg-*-950/30` and `dark:text-*-100` override.
+   - Keep `bg-{hue}-50`, `border-l-{hue}-500`, `text-{hue}-900` for `green` (emerald), `orange`, `coral` (rose), `mint`/`blue` (teal).
+   - Brand entries (`gold`, `sage`, `purple` mapping to `#C6A45E`/`#6B8E7B`): drop `dark:` overrides, keep brand hex.
 
-### Payroll reports
-12. **payroll/PayrollRunSummaryReport.tsx** — emerald/teal/amber tiles → success/info/warning; drop `dark:`.
-13. **payroll/PayslipRegisterReport.tsx** — `text-emerald-600`/`text-amber-600` counters and badge classes → success/warning tokens; drop `dark:`.
+3. **EventDetailSheet.tsx** (color map lines 56–66)
+   - Drop all `dark:` overrides.
+   - Keep light-mode classes as-is (already muted `bg-{hue}-100 text-{hue}-800`).
 
-### Loans, leave, overview
-14. **loans/LoanSummaryReport.tsx** — amber/teal/emerald tiles → warning/info/success tokens; drop `dark:`.
-15. **leave/LeaveBalanceReport.tsx** — teal/amber/emerald tiles → info/warning/success tokens; drop `dark:`.
-16. **overview/WorkforceSnapshotCards.tsx** — teal/green/red icon prop pairs → info/success/destructive tokens; drop `dark:`.
-17. **overview/LoanSnapshotCards.tsx** — rose/amber icon prop pairs → destructive/warning tokens; drop `dark:`.
-18. **overview/InsightsSection.tsx** — emerald/rose icon tiles → success/destructive tokens; drop `dark:`.
+4. **CreateEventDialog.tsx** (`eventColors`, lines 40–47)
+   - Soften swatches with `/90`: `bg-emerald-500/90`, `bg-orange-500/90`, `bg-rose-400/90`, `bg-teal-400/90`, `bg-teal-600/90`, `bg-[#C6A45E]/90`.
 
-### Out of scope
-- `src/components/ui/` (not touched).
-- Chart logic, dataKeys, recharts config.
-- Shared `chart` token defs in `tailwind.config.ts` / `src/index.css`.
+5. **CalendarFilters.tsx** (`colors`, lines 39–46)
+   - Same `/90` softening: `bg-emerald-500/90`, `bg-orange-500/90`, `bg-rose-400/90`, `bg-teal-500/90`, `bg-[#C6A45E]/90`, `bg-[#6B8E7B]/90`.
+
+6. **WeekView.tsx, DayView.tsx, CalendarHeader.tsx, CalendarToolbar.tsx** — no palette colors detected; no changes needed.
+
+## Out of scope
+- `src/components/ui/`.
+- `EventColor` enum, calendar logic, dataKeys, recharts.
+- Brand hex tokens `#C6A45E` / `#6B8E7B`.
 
 ## Verification
-
-- `rg "emerald|green-[0-9]|red-[0-9]|amber-[0-9]|yellow-[0-9]|blue-[0-9]|sky-[0-9]|orange-[0-9]|teal-[0-9]|rose-[0-9]|violet|indigo|purple|#[0-9a-fA-F]{3,8}|dark:" src/components/reports/` → expect zero matches in status/decoration files; chart token strings remain.
-- Visually confirm Reports page: Overview, Salary, Payroll, Compliance, Loans, Leave tabs — each multi-series chart renders with distinct colors (chart-1…chart-5/accent), KPI tiles use semantic surfaces, badges intact in light + dark mode.
+- `rg "dark:" src/components/calendar/` → expect zero matches.
+- `rg "bg-(red|yellow|pink|purple|blue|green)-[0-9]" src/components/calendar/` → expect zero raw matches (all softened or hue-mapped).
+- Manually confirm: open `/calendar`, create event, picker still shows distinct swatches matching their labels; events render on month grid with calm (non-neon) chips; event detail sheet badge uses muted background.
