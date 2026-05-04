@@ -54,15 +54,16 @@ const platformLabels: Record<string, string> = {
 };
 
 const colorStyles: Record<string, string> = {
-  green: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200",
-  orange: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-200",
-  coral: "bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-200",
-  mint: "bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-200",
-  gold: "bg-[#C6A45E]/20 text-[#8B7035] dark:bg-[#C6A45E]/10 dark:text-[#C6A45E]",
-  sage: "bg-[#6B8E7B]/20 text-[#4A6B5D] dark:bg-[#6B8E7B]/10 dark:text-[#6B8E7B]",
+const colorClasses: Record<string, string> = {
+  green: "bg-emerald-100 text-emerald-800",
+  orange: "bg-orange-100 text-orange-800",
+  coral: "bg-rose-100 text-rose-800",
+  mint: "bg-teal-100 text-teal-800",
+  gold: "bg-[#C6A45E]/20 text-[#8B7035]",
+  sage: "bg-[#6B8E7B]/20 text-[#4A6B5D]",
   // Legacy mappings
-  blue: "bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-200",
-  purple: "bg-[#C6A45E]/20 text-[#8B7035] dark:bg-[#C6A45E]/10 dark:text-[#C6A45E]",
+  blue: "bg-teal-100 text-teal-800",
+  purple: "bg-[#C6A45E]/20 text-[#8B7035]",
 };
 
 export function EventDetailSheet({
