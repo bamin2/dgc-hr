@@ -37,12 +37,12 @@ const platforms = [
 ];
 
 const colors = [
-  { value: "green", label: "Green", class: "bg-emerald-500" },
-  { value: "orange", label: "Orange", class: "bg-orange-500" },
-  { value: "coral", label: "Coral", class: "bg-rose-400" },
-  { value: "mint", label: "Mint", class: "bg-teal-500" },
-  { value: "gold", label: "Gold", class: "bg-[#C6A45E]" },
-  { value: "sage", label: "Sage", class: "bg-[#6B8E7B]" },
+  { value: "green", label: "Green", class: "bg-emerald-500/90" },
+  { value: "orange", label: "Orange", class: "bg-orange-500/90" },
+  { value: "coral", label: "Coral", class: "bg-rose-400/90" },
+  { value: "mint", label: "Mint", class: "bg-teal-500/90" },
+  { value: "gold", label: "Gold", class: "bg-[#C6A45E]/90" },
+  { value: "sage", label: "Sage", class: "bg-[#6B8E7B]/90" },
 ];
 
 export function CalendarFilters({

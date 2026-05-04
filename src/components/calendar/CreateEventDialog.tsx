@@ -38,12 +38,12 @@ interface CreateEventDialogProps {
 }
 
 const eventColors: { value: EventColor; label: string; class: string }[] = [
-  { value: "green", label: "Green", class: "bg-emerald-500" },
-  { value: "orange", label: "Orange", class: "bg-orange-500" },
-  { value: "coral", label: "Coral", class: "bg-rose-400" },
-  { value: "mint", label: "Mint", class: "bg-teal-400" },
-  { value: "blue", label: "Teal", class: "bg-teal-600" },
-  { value: "purple", label: "Gold", class: "bg-[#C6A45E]" },
+  { value: "green", label: "Green", class: "bg-emerald-500/90" },
+  { value: "orange", label: "Orange", class: "bg-orange-500/90" },
+  { value: "coral", label: "Coral", class: "bg-rose-400/90" },
+  { value: "mint", label: "Mint", class: "bg-teal-400/90" },
+  { value: "blue", label: "Teal", class: "bg-teal-600/90" },
+  { value: "purple", label: "Gold", class: "bg-[#C6A45E]/90" },
 ];
 
 export function CreateEventDialog({ open, onOpenChange }: CreateEventDialogProps) {
