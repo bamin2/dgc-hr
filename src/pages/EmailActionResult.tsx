@@ -78,18 +78,18 @@ const EmailActionResult = () => {
 
   const getIcon = () => {
     if (type === "reject-form" && !rejectionComplete) {
-      return <XCircle className="h-16 w-16 text-amber-500" />;
+      return <XCircle className="h-16 w-16 text-warning" />;
     }
     switch (type) {
       case "success":
-        return <CheckCircle className="h-16 w-16 text-emerald-500" />;
+        return <CheckCircle className="h-16 w-16 text-success" />;
       case "rejected":
       case "reject-form":
-        return <XCircle className="h-16 w-16 text-red-500" />;
+        return <XCircle className="h-16 w-16 text-destructive" />;
       case "expired":
-        return <Clock className="h-16 w-16 text-amber-500" />;
+        return <Clock className="h-16 w-16 text-warning" />;
       case "error":
-        return <AlertTriangle className="h-16 w-16 text-red-500" />;
+        return <AlertTriangle className="h-16 w-16 text-destructive" />;
       default:
         return <CheckCircle className="h-16 w-16 text-primary" />;
     }
@@ -97,18 +97,18 @@ const EmailActionResult = () => {
 
   const getBackgroundStyle = () => {
     if (type === "reject-form" && !rejectionComplete) {
-      return "bg-gradient-to-br from-amber-50 to-amber-100";
+      return "bg-gradient-to-br from-warning/10 to-warning/20";
     }
     switch (type) {
       case "success":
-        return "bg-gradient-to-br from-emerald-50 to-emerald-100";
+        return "bg-gradient-to-br from-success/10 to-success/20";
       case "rejected":
       case "reject-form":
-        return "bg-gradient-to-br from-red-50 to-red-100";
+        return "bg-gradient-to-br from-destructive/10 to-destructive/20";
       case "expired":
-        return "bg-gradient-to-br from-amber-50 to-amber-100";
+        return "bg-gradient-to-br from-warning/10 to-warning/20";
       case "error":
-        return "bg-gradient-to-br from-red-50 to-red-100";
+        return "bg-gradient-to-br from-destructive/10 to-destructive/20";
       default:
         return "bg-gradient-to-br from-primary/5 to-primary/10";
     }

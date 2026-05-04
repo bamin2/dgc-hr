@@ -167,7 +167,7 @@ const ClaimSubmission = () => {
                     </SelectContent>
                   </Select>
                   {employeeId && employeeEnrollments.length === 0 && (
-                    <p className="text-xs text-amber-600">This employee has no active benefit enrollments.</p>
+                    <p className="text-xs text-warning">This employee has no active benefit enrollments.</p>
                   )}
                 </div>
 
