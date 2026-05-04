@@ -54,7 +54,6 @@ const platformLabels: Record<string, string> = {
 };
 
 const colorStyles: Record<string, string> = {
-const colorClasses: Record<string, string> = {
   green: "bg-emerald-100 text-emerald-800",
   orange: "bg-orange-100 text-orange-800",
   coral: "bg-rose-100 text-rose-800",
