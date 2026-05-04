@@ -1,67 +1,72 @@
 ## Goal
 
-Soften palette colors across `src/components/calendar/*.tsx`, treating event-color picker maps differently from status/decoration uses. `src/components/ui/` is not touched.
+Migrate hard-coded Tailwind palette colors across `src/pages/*.tsx` to semantic design tokens, and drop `dark:` palette overrides on status/decoration uses. `src/components/ui/` and everything outside `src/pages/` are untouched.
 
-## Important finding about event colors
+## Mapping rules (status / decoration)
+- emerald / green → `success` (`text-success`, `bg-success`, `bg-success/10`)
+- red / rose → `destructive`
+- amber / yellow / orange → `warning`
+- blue / sky / teal / indigo → `info`
+- violet / purple / pink (decorative chips) → `bg-muted text-primary`
+- Drop every `dark:{palette}-*` override on these uses (semantic tokens auto-adapt).
 
-The **canonical `EventColor` enum** (from Supabase, used by `CreateEventDialog`'s picker and `EventCard`) is the **semantic set**: `green`, `orange`, `coral`, `mint`, `gold`/`blue`, `sage`/`purple` — NOT raw `red / yellow / pink / violet`. The only place raw keys appear is the legacy `eventColorMap` in `MonthView.tsx` (`blue, green, red, yellow, purple, orange, pink, mint, coral`), which extends beyond what users can pick. So the user's mapping rule is applied to that map, but most of those keys (`red`, `yellow`, `pink`) are dead branches today.
-
-## Mapping rules
-
-**Event-color picker maps (KEEP keys, soften values, preserve color identity):**
-Applies to `MonthView.tsx` `eventColorMap`, `EventCard.tsx` `colorClasses`, `EventDetailSheet.tsx` color badges, `CreateEventDialog.tsx` `eventColors` swatches, `CalendarFilters.tsx` `colors` swatches.
-
-- `bg-red-500` → `bg-rose-500/90`
-- `bg-green-500` → `bg-emerald-500/90`
-- `bg-blue-500` → `bg-sky-500/90`
-- `bg-yellow-500` → `bg-amber-500/90`
-- `bg-purple-500` → `bg-violet-500/90`
-- `bg-pink-500` → `bg-pink-500/90`
-- Existing softer palette tokens (`bg-emerald-500`, `bg-orange-500`, `bg-rose-400`, `bg-teal-400/500/600`, `bg-[#C6A45E]`, `bg-[#6B8E7B]`) → append `/90` for picker swatches and event chips so they read calmer; keep the same hue.
-- Multi-class entries in `EventCard.tsx`/`EventDetailSheet.tsx` (`bg-emerald-50`, `border-l-emerald-500`, `text-emerald-900`, plus `dark:` pairs): keep hue, drop neon — keep `-50` surfaces and `-500` accents but standardize at `/100` opacity (already muted), and strip `dark:` overrides per project policy. Brand `#C6A45E` and `#6B8E7B` entries kept as-is (already DGC tokens).
-
-**Non-picker status/decoration uses (standard semantic mapping):**
-None found in current scan — `WeekView.tsx`, `DayView.tsx`, `CalendarHeader.tsx`, `CalendarToolbar.tsx` had no palette hits. If any surface during edit, apply: emerald/green → `success`, red → `destructive`, amber/yellow → `warning`, blue/sky → `info`.
+Liquid-glass surfaces (`dark:bg-white/*`, `dark:hover:bg-white/*`) are NOT palette overrides and are kept per the Liquid Glass UI core memory.
 
 ## Files & changes
 
-1. **MonthView.tsx** (`eventColorMap`, lines 21–31)
-   - `blue: bg-teal-600` → `bg-sky-500/90`
-   - `green: bg-green-500` → `bg-emerald-500/90`
-   - `red: bg-red-500` → `bg-rose-500/90`
-   - `yellow: bg-yellow-500` → `bg-amber-500/90`
-   - `purple: bg-[#C6A45E]` → `bg-violet-500/90`
-   - `orange: bg-orange-500` → `bg-orange-500/90`
-   - `pink: bg-pink-500` → `bg-pink-500/90`
-   - `mint: bg-teal-400` → `bg-teal-400/90`
-   - `coral: bg-rose-400` → `bg-rose-400/90`
-   - Fallback `"bg-teal-600"` → `"bg-sky-500/90"` (line 111).
+### EmployeeProfile.tsx
+- L757: `bg-green-500` → `bg-success` (status dot).
+- L774: `bg-amber-500` → `bg-warning` (status dot).
 
-   Note: this changes the visual hue for `blue` (teal→sky) and `purple` (gold→violet) per the user's explicit mapping rule. Since `EventColor` enum values used by the picker are `green/orange/coral/mint/blue/purple` and labels in `CreateEventDialog` show "Teal" for `blue` and "Gold" for `purple`, the visual will diverge from the label. **Recommend in implementation: keep existing brand hue (teal/gold) for `blue`/`purple` keys to preserve picker label↔swatch parity, and only soften with `/90`.** Will confirm by softening only (no hue swap) for `blue` and `purple` unless you say otherwise.
+### EmailActionResult.tsx (icons + gradient surfaces)
+- L81: `text-amber-500` → `text-warning`.
+- L85: `text-emerald-500` → `text-success`.
+- L88: `text-red-500` → `text-destructive`.
+- L90: `text-amber-500` → `text-warning`.
+- L92: `text-red-500` → `text-destructive`.
+- L100: `bg-gradient-to-br from-amber-50 to-amber-100` → `bg-gradient-to-br from-warning/10 to-warning/20`.
+- L104: `from-emerald-50 to-emerald-100` → `from-success/10 to-success/20`.
+- L107: `from-red-50 to-red-100` → `from-destructive/10 to-destructive/20`.
+- L109: `from-amber-50 to-amber-100` → `from-warning/10 to-warning/20`.
+- L111: `from-red-50 to-red-100` → `from-destructive/10 to-destructive/20`.
 
-2. **EventCard.tsx** (`colorClasses`, lines 11–52)
-   - Drop every `dark:bg-*-950/30` and `dark:text-*-100` override.
-   - Keep `bg-{hue}-50`, `border-l-{hue}-500`, `text-{hue}-900` for `green` (emerald), `orange`, `coral` (rose), `mint`/`blue` (teal).
-   - Brand entries (`gold`, `sage`, `purple` mapping to `#C6A45E`/`#6B8E7B`): drop `dark:` overrides, keep brand hex.
+### PayslipTemplates.tsx
+- L45: `active: "bg-emerald-500/10 text-emerald-600"` → `active: "bg-success/10 text-success"`.
 
-3. **EventDetailSheet.tsx** (color map lines 56–66)
-   - Drop all `dark:` overrides.
-   - Keep light-mode classes as-is (already muted `bg-{hue}-100 text-{hue}-800`).
+### PayslipTemplateEditor.tsx
+- L176: `<Badge className="bg-green-500 text-xs">Active</Badge>` → `<Badge className="bg-success text-success-foreground text-xs">Active</Badge>`.
+- L200: `text-green-600` → `text-success`.
 
-4. **CreateEventDialog.tsx** (`eventColors`, lines 40–47)
-   - Soften swatches with `/90`: `bg-emerald-500/90`, `bg-orange-500/90`, `bg-rose-400/90`, `bg-teal-400/90`, `bg-teal-600/90`, `bg-[#C6A45E]/90`.
+### ClaimSubmission.tsx
+- L170: `text-amber-600` → `text-warning`.
 
-5. **CalendarFilters.tsx** (`colors`, lines 39–46)
-   - Same `/90` softening: `bg-emerald-500/90`, `bg-orange-500/90`, `bg-rose-400/90`, `bg-teal-500/90`, `bg-[#C6A45E]/90`, `bg-[#6B8E7B]/90`.
+### OnboardingDetail.tsx
+- L279: `bg-green-500` → `bg-success` (timeline dot — Start Date).
+- L288: `bg-teal-500` → `bg-info` (timeline dot — Scheduled Completion).
 
-6. **WeekView.tsx, DayView.tsx, CalendarHeader.tsx, CalendarToolbar.tsx** — no palette colors detected; no changes needed.
+### PayrollRun.tsx
+- L432: `text-green-500` → `text-success` (verified check icon).
+
+### BenefitDetail.tsx (type-specific config cards + features)
+- L109: `border-sky-200 dark:border-sky-800 bg-sky-50/50 dark:bg-sky-950/20` → `border-info/30 bg-info/5`.
+- L111: `text-sky-700 dark:text-sky-400` → `text-info`.
+- L135: `border-indigo-200 dark:border-indigo-800 bg-indigo-50/50 dark:bg-indigo-950/20` → `border-info/30 bg-info/5` (indigo treated as info).
+- L137: `text-indigo-700 dark:text-indigo-400` → `text-info`.
+- L152: `border-violet-200 dark:border-violet-800 bg-violet-50/50 dark:bg-violet-950/20` → `border-border bg-muted/50` (violet → muted decorative chip per rule).
+- L154: `text-violet-700 dark:text-violet-400` → `text-primary`.
+- L202: `text-emerald-600` → `text-success`.
+- L226: `bg-emerald-100 dark:bg-emerald-900/30` → `bg-success/15`.
+- L227: `text-emerald-600` → `text-success`.
+
+### CandidateDetail.tsx
+- L164: keep `dark:hover:bg-white/10` (liquid-glass surface, not a palette override). No change required.
 
 ## Out of scope
+- Any file outside `src/pages/`.
 - `src/components/ui/`.
-- `EventColor` enum, calendar logic, dataKeys, recharts.
-- Brand hex tokens `#C6A45E` / `#6B8E7B`.
+- Liquid-glass `bg-white/*` and `dark:bg-white/*` patterns.
 
 ## Verification
-- `rg "dark:" src/components/calendar/` → expect zero matches.
-- `rg "bg-(red|yellow|pink|purple|blue|green)-[0-9]" src/components/calendar/` → expect zero raw matches (all softened or hue-mapped).
-- Manually confirm: open `/calendar`, create event, picker still shows distinct swatches matching their labels; events render on month grid with calm (non-neon) chips; event detail sheet badge uses muted background.
+- `rg "(emerald|green-[0-9]|red-[0-9]|amber-[0-9]|yellow-[0-9]|blue-[0-9]|sky-[0-9]|orange-[0-9]|teal-[0-9]|rose-[0-9]|violet|indigo|purple|pink-[0-9])" src/pages/` → expect zero matches.
+- `rg "dark:(emerald|green|red|amber|yellow|blue|sky|orange|teal|rose|violet|indigo|purple|pink)-" src/pages/` → expect zero matches.
+- Manual smoke: Employee profile (status dots), Email action result page (success/error/expired/reject states), Payslip Templates list + editor (Active badge), Onboarding detail timeline, Payroll run wizard last step, Benefit detail (Air Ticket / Car Park / Phone config cards + features list), Claim submission empty-enrollments warning.
